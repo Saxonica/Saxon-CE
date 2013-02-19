@@ -41,8 +41,10 @@ and denormalization, and are based on code released by the Unicode Consortium. T
 to change the format in which the data needed for normalization is distributed and accessed.
 
 * GenericSorter. Saxon's sort routine was written by Wolfgang Hoschek while working at CERN, the 
-European Organization for Nuclear Research. It has been modified to integrate it more closely with Saxon.
+European Organization for Nuclear Research. It has been modified to integrate it more closely with 
+Saxon.
 
 * ExpressionParser, Tokenizer. The original versions of Saxon's XPath parser and tokenizer were taken
 from James Clark's xt product. They have been modified beyond all recognition, but the core design remains
 intact, and their provenance is duly acknowledged.
+
