@@ -1,0 +1,559 @@
+<?xml version="1.0" encoding="utf-8"?>
+<article id="coding" title="Developing Applications">
+   <h1>Developing Applications</h1>
+  
+  <p>This section of the Saxon-CE documentation describes how to write XSLT 2.0 stylesheets to
+   execute in the browser.</p>
+  <p>For examples, please see the demonstration applications on this site.</p>
+   <section id="namespaces" title="Namespaces">
+      <h1>Namespaces</h1>
+  
+      <p>The following namespaces are defined. They may be declared in the <code>xsl:stylesheet</code>
+   element if they are used. If ixsl instructions are used (e.g. <code>ixsl:set-attribute</code>)
+   then the ixsl namespace must be specified as an extension namespace using
+    <code>extension-element-prefixes="ixsl"</code>. In all cases, the prefix shown is conventional
+   and a different prefix may be used if preferred.</p>
+      <table>
+         <tr>
+            <td>
+               <p>
+      <strong>prefix</strong>
+     </p>
+            </td>
+            <td>
+               <p>
+      <strong>Namespace URI</strong>
+     </p>
+            </td>
+            <td>
+               <p>
+      <strong>Usage</strong>
+     </p>
+            </td>
+         </tr>
+         <tr>
+            <td>
+               <p>ixsl</p>
+            </td>
+            <td>
+               <p>http://saxonica.com/ns/interactiveXSLT</p>
+            </td>
+            <td>
+               <p>Used for extension functions and instructions offered by the Saxon-CE product that are
+      particular to the browser environment. Also used for system-defined mode names, such as
+       <code>ixsl:onclick</code>, and system-defined output methods such as
+       <code>ixsl:replace-content</code>
+     </p>
+            </td>
+         </tr>
+         <tr>
+            <td>
+               <p>js</p>
+            </td>
+            <td>
+               <p>http://saxonica.com/ns/globalJS</p>
+            </td>
+            <td>
+               <p>Used to identify user-defined extension functions, JavaScript functions defined in the
+      global Window object.</p>
+            </td>
+         </tr>
+         <tr>
+            <td>
+               <p>prop</p>
+            </td>
+            <td>
+               <p>http://saxonica.com/ns/html-property</p>
+            </td>
+            <td>
+               <p>Used for pseudo-attributes of element nodes in the HTML DOM tree: JavaScript properties of
+      elements that are not directly exposed as attributes can be read and written using this
+      mechanism. These pseudo-attributes can be accessed by name, but are not included in the list
+      of attributes returned using the expression <code>@*</code>.</p>
+            </td>
+         </tr>
+         <tr>
+            <td>
+               <p>style</p>
+            </td>
+            <td>
+               <p>http://saxonica.com/ns/html-style-property</p>
+            </td>
+            <td>
+               <p>Used for pseudo-attributes of element nodes in the HTML DOM tree: JavaScript properties of
+      of the style object associated with an element node can be read and written using this
+      mechanism. These pseudo-attributes can be accessed by name, but are not included in the list
+      of attributes returned using the expression <code>@*</code>.</p>
+            </td>
+         </tr>
+      </table>
+   </section>
+   <section id="result-documents" title="Result documents">
+      <h1>Result documents</h1>
+  
+      <p>The <code>xsl:result-document</code> instruction is used capture an output tree from the XSLT transformation
+  and to determine where this tree should be added to the HTML of the rendered page.</p>
+      <p>The recommended design approach with Saxon-CE is not to render the entire HTML page from the stylesheet,
+  but rather to generate fragments of HTML which can be inserted into the static skeleton of the page
+  at the appropriate places.</p>
+      <p>The form <code>&lt;xsl:result-document href="#abcd"&gt;</code> causes the result tree to be
+   written as the last (or only) child of the HTML element with a given ID value.</p>
+      <p>The form <code>&lt;xsl:result-document href="?select=//table[1]/tbody/tr[1]/td[2]"&gt;</code>
+   can be used to select the target element. The result tree will be appended as a child of the
+   first selected element. Relative XPaths like <code>../h1</code> may be used if the current node
+   is set and is a member of the host HTML document.</p>
+      <p>
+   <i>Considerations when selecting the HTML target node:</i>
+  </p>
+      <ul>
+         <li>
+            <p>All HTML elements and attributes are considered to have lower-case names</p>
+         </li>
+         <li>
+            <p>For elements in a namespace such as XHTML or SVG, ensure the appropriate namespace context is
+     provided</p>
+         </li>
+         <li>
+            <p>Mandatory nodes such as <code>tbody</code> within <code>table</code> are implicit within the
+     DOM, even when not added explicitly</p>
+         </li>
+      </ul>
+      <p>If the <code>href</code> supplied does not match an existing element in the HTML page, the
+    <code>xsl:result-document</code> instruction is ignored and the transform will continue to
+   completion. In this case, Saxon-CE (debug version only) sends a warning message to the
+   development console with information about the failed match.</p>
+      <p>The <code>method</code> attribute may be one of <code>ixsl:append-content</code> (the default)
+   or <code>ixsl:replace-content</code>. This indicates whether the new content should replace all
+   existing content in the selected element, or should be appended after existing content.</p>
+      <p>When the <code>xsl:result-document</code> instruction is evaluated, the HTML page is not updated immediately.
+   Instead, the result documents are added to a pending update list, which is used to modify the HTML page when
+   all processing is complete. The stylesheet therefore gets a static view of the HTML page, which
+   is not affected by changes made during that processing phase. Of course, when a new
+   transformation starts in response to user input, the effects of the previous phase are
+   visible.</p>
+      <p>When HTML page changes are required that only affect attributes, the extension instructions
+    <code>xsl:set-attribute</code> and <code>xsl:remove-attribute</code> can be used. See <a href="../../coding/extension-instructions" class="bodylink">Extension Instructions</a> for more detail.
+    The effect of these instructions, like <code>xsl:result-document</code>, is also deferred
+  until the transformation is complete.</p>
+   </section>
+   <section id="source-documents" title="Source documents">
+      <h1>Source documents</h1>
+  
+      <p>Source documents may be read using the <code>doc()</code> and <code>document()</code> functions
+  in the usual way.</p>
+      <p>The root (document) node of the HTML page is accessible using the extension function 
+  <code>ixsl:page()</code> (with no arguments). Because the HTML data model is not a direct match
+  for the XDM data model used by XPath 2.0 and XSLT 2.0, some special considerations apply.</p>
+      <p>When navigating the HTML DOM, regular elements and attributes are treated as being in no namespace, and their
+   names are always written in lower-case regardless of the actual case used in the HTML page.</p>
+      <p>As well as exposing regular attributes in the DOM tree, Saxon also exposes pseudo-attributes to
+   make available information that would be available to a Javascript programmer via JavaScript properties rather than as
+   DOM attribute nodes. For example, clicking a checkbox changes the <code>checked</code> property
+   to <code>true</code> or <code>false</code>, but it does not affect the value of the <code>checked</code> attribute. Saxon
+   therefore makes the property available as a pseudo-attribute <code>@prop:checked</code>, where
+   the namespace prefix <code>prop</code> is bound to the namespace URI
+    <code>http://saxonica.com/ns/html-property</code>. Moreover, Saxon exposes properties of the
+   style of the element in a similar way: for example the style's <code>font-size</code> property is available as
+   the pseudo-attribute <code>@style:fontSize</code>, where the namespace prefix <code>style</code>
+   is bound to the namespace URI <code>http://saxonica.com/ns/html-style-property</code>.</p>
+  
+      <p>Pseudo-attributes are accessible by explicit name in a path expression, but they are not included
+   in the results when you read all attributes of an element using <code>@*</code>. They are also
+   not copied by <code>xsl:copy</code>. They can be written as well as read, using
+    <code>xsl:attribute</code>, attributes in a literal result element, or
+    <code>ixsl:set-attribute</code>.</p>
+  
+      <p>When you write a <code>style</code> attribute to the HTML DOM, Saxon parses the value of the
+   attribute and updates the corresponding properties of the <code>style</code> object associated
+   with the DOM element. For example, if you set <code>style="font-size:30px;
+    font-weight:normal"</code> on an element <code>E</code>, Saxon will set
+    <code>E.style.fontSize</code> to <code>30px</code> and <code>E.style.fontWeight</code> to
+    <code>normal</code>. (Firefox does this automatically, Internet Explorer does not, so this feature 
+   is there to improve portability across browsers.)</p>
+      <aside>
+   Style property names specific to a rendering engine are, by convention, prefixed with a
+    '-' hyphen character. A name prefixed in this way is not a valid XML name, and would prevent the
+    XSLT from compiling. You therefore should prepend such a name with the the undersore '_'
+    character which Saxon-CE will recognize and remove when accessing the HTML DOM. For example,
+    when referencing the style property, <code>-webkit-transition</code>, use
+     <code>style:_-webkit-transition</code>.
+  </aside>
+   </section>
+   <section id="events" title="Handling user input events">
+      <h1>Handling user input events</h1>
+  
+      <p>A key aim of Saxon-CE is that it should be possible to implement a high quality interactive
+   user interface without dropping down into JavaScript.</p>
+      <p>Event handlers for user input are written in the form of template rules. The match pattern of
+   the template rule must match the element that receives the event, and the mode name reflects the
+   type of event, for example <code>ixsl:onclick</code>. This causes a new transformation to take
+   place, using the existing stylesheet, which is initiated with the target element in the HTML DOM
+   as the initial context item.</p>
+      <p>Of course, CSS can be used in the usual way to control changes in appearance in response to
+   mouse movement and the like. It is also possible to handle some events using JavaScript and some
+   using XSLT. Saxon-CE sets the event listener on the <code>document</code> object. On receiving an
+   event notification, the processor checks for matching template rules on the target element and
+   then on ancestors of the target element (provision is also made for events on linked SVG
+   elements).</p>
+      <p>While an event is being processed, the function <code>ixsl:event()</code> can be called to
+   return the <code>Event</code> object; its properties and methods are available via the
+    <code>ixsl:get()</code> and <code>ixsl:call()</code> extension functions.</p>
+   </section>
+   <section id="system-events" title="Handling client system events">
+      <h1>Handling client system events</h1>
+  
+      <p>As well as handling user interaction events on DOM elements, Saxon-CE also handles events raised by objects
+   such as <code>window</code> that live outside the DOM.</p>
+      <p>Event handlers for such objects are written in the form of template rules. The match pattern is
+   different from that for conventional templates because there is no node to match. Instead, the pattern must be an <code>ixsl</code> function (e.g.
+    <code>ixsl:window()</code> ) that returns the object whose event is to be handled. The mode name
+   is the type of event, for example <code>ixsl:onhashevent</code>. An event notification causes a
+   new transformation to take place, using the existing stylesheet. The initial context item for the
+   transformation is set to the matched object.</p>
+      <p>While an event is being processed, the function <code>ixsl:event()</code> can be called to
+   get access to the <code>Event</code> object; its properties and methods are available via the
+    <code>ixsl:get()</code> and <code>ixsl:call()</code> functions.</p>
+      <p>
+   <i>Note that client system events can be caused both by user interaction and by your own XSLT.
+    Browser behavior will be more predictable if your design does not rely on differentiating
+    between events originating from users and from your own code.</i>
+  </p>
+   </section>
+   <section id="animation" title="Animation">
+      <h1>Animation</h1>
+  
+      <p>The extension instruction <code>ixsl:schedule-action</code> may be used to define processing
+   that is to take place after a defined interval. The <code>wait</code> attribute takes an XPath
+   expression whose value must be an integer, the length of time in milliseconds after which the
+   body of the instruction will be executed.</p>
+      <p>At present the body of the instruction must be a single call on
+   <code>xsl:call-template</code>. In effect this starts a new transformation with the
+  named template as the entry point, while retaining the context item at the point of the call,
+  and leaving all global variables unchanged.</p>
+      <p>If an action is to take place repeatedly, then each action should trigger the next by making
+   another call on <code>ixsl:schedule-action</code>.</p>
+      <p>There is currently no mechanism to cancel an action once initiated.</p>
+   </section>
+   <section id="extensions" title="Extension functions">
+      <h1>Extension functions</h1>
+  
+      <p>Saxon-CE defines a number of functions in the namespace
+    <code>http://saxonica.com/ns/interactiveXSLT</code>, conventional prefix <code>ixsl</code>.</p>
+      <table>
+         <tr>
+            <td>
+               <p>
+      <strong>Function</strong>
+     </p>
+            </td>
+            <td>
+               <p>
+      <strong>Effect</strong>
+     </p>
+            </td>
+         </tr>
+         <tr>
+            <td>
+               <p>ixsl:page()</p>
+            </td>
+            <td>
+               <p>Returns the document node of the HTML DOM document. The result is both a node and a
+      JavaScript object. So, for example, the title of the current document is accessible as
+       <code>ixsl:page()/html/head/title</code>. Similarly, the contents of an element with
+       <code>id="title"</code> can be retrieved as <code>string(id('title', ixsl:page()))</code>.
+      All HTML elements and attributes are considered to have lower-case names as far as XPath is
+      concerned. The names will be in no namespace.</p>
+            </td>
+         </tr>
+         <tr>
+            <td>
+               <p>ixsl:source()</p>
+            </td>
+            <td>
+               <p>Returns the document node of the source XML document. Useful for retrieving the source
+      document from within a user-event template as the context item wll be that of the host HTML
+      page.</p>
+            </td>
+         </tr>
+         <tr>
+            <td>
+               <p>ixsl:window()</p>
+            </td>
+            <td>
+               <p>Returns the Window object. This is a JavaScript object: it is possible to get its properties
+      using <code>ixsl:get</code> and to call its methods using <code>ixsl:call</code>.</p>
+            </td>
+         </tr>
+         <tr>
+            <td>
+               <p>ixsl:event()</p>
+            </td>
+            <td>
+               <p>Returns the current Event object while processing a user input event (or the empty sequence
+      otherwise). This is a JavaScript object: it is possible to get its properties using
+       <code>ixsl:get</code> and to call its methods using <code>ixsl:call</code>.</p>
+            </td>
+         </tr>
+         <tr>
+            <td>
+               <p>ixsl:get( $object, $property )</p>
+            </td>
+            <td>
+               <p>Gets a property of a JavaScript object (which may be an object returned by another extension
+      function, or a node in the HTML DOM). The <code>$object</code> argument identifies the object,
+      the <code>$property</code> is the name of the required property as a string. Note that
+      properties of element nodes may also be obtained as pseudo-attributes, for example
+       <code>$checkbox/@prop:checked</code> returns the value of the <code>checked</code> property,
+      where <code>prop</code> is bound to the namespace
+       <code>http://saxonica.com/ns/html-property</code>. The value of a nested property can be
+      obtained by using dot separator characters within <code>name</code> - for example,
+       <code>location.hash</code> to get the hash property of the location property of the
+       <code>window</code> object.</p>
+            </td>
+         </tr>
+         <tr>
+            <td>
+               <p>ixsl:call( $object, $method, $arguments... )</p>
+            </td>
+            <td>
+               <p>Calls a JavaScript function. The first argument is the object on which the function is
+      defined (use <code>ixsl:window()</code> to call a global function). The second argument is the
+      function name. The third and subsequent arguments are the actual arguments to the function.
+      The result of calling the function is returned as the result of <code>ixsl:call()</code>.</p>
+            </td>
+         </tr>
+         <tr>
+            <td>
+               <p>ixsl:eval($script)</p>
+            </td>
+            <td>
+               <p>Executes Javascript code, supplied as a string. The supplied <code>script</code> is injected
+      into the DOM as a function which is evaluated immediately to return a result. This ensures
+      access to the global scope. Repeated evaluations can be acheived more efficiently by calling
+       <code>ixsl:eval</code> once to create a function, and then using <code>ixsl:call</code>
+      subsequently to call that function as often as required.</p>
+            </td>
+         </tr>
+      </table>
+      <p>Global JavaScript functions (those belonging to the global Window object) can also be called
+   directly. For example if a function has been declared as
+    <code>&lt;script type="text/javascript" language="javascript"&gt; function square(x) { return String(x*x) }&lt;/script&gt;</code>
+   then it can be called from within an XPath expression as <code>js:square('5')</code> where
+    <code>js</code> is bound to the namespace <code>http://saxonica.com/ns/globalJS</code>.</p>
+   </section>
+   <section id="extension-instructions" title="Extension Instructions">
+      <h1>Extension Instructions</h1>
+  
+      <table>
+         <tr>
+            <td>
+               <p>
+      <strong>Instruction</strong>
+     </p>
+            </td>
+            <td>
+               <p>
+      <strong>Effect</strong>
+     </p>
+            </td>
+         </tr>
+         <tr>
+            <td>
+               <p>ixsl:set‑attribute</p>
+            </td>
+            <td>
+               <p>Sets an attribute or psuedo attribute with a given name and value in the HTML page for the
+      current node. The current node must be an element in the HTML page. The instruction has
+      attributes <code>name</code>, <code>namespace</code>, and <code>select</code>, and works in
+      exactly the same way as <code>xsl:attribute</code>, except that the attribute is written
+      directly to the current element. Like <code>xsl:result-document</code>, the writing of the
+      attribute is delayed until the end of the transformation phase. The instruction also follows
+      the same restrictions as <code>xsl:result-document</code> in that it should not be used while
+      evaluating a variable or a function.</p>
+            </td>
+         </tr>
+         <tr>
+            <td>
+               <p>ixsl:set‑property</p>
+            </td>
+            <td>
+               <p>Sets the value of properties for client objects that are not part of the DOM. The
+      instruction has attributes <code>name</code>, <code>object</code>, and <code>select</code>.
+      The name attribute is either a property name or a dot (character '.') separated list of names.
+      The <code>object</code> attribute is the object the property belong to — when no object
+      attribute is present, the <code>window</code> object is used. The <code>select</code>
+      attribute provides the new property value.</p>
+            </td>
+         </tr>
+         <tr>
+            <td>
+               <p>ixsl:remove‑attribute</p>
+            </td>
+            <td>
+               <p>Removes the attribute with the given <code>name</code> argument at the current element node.
+      The optional <code>namespace</code> argument is used to specify the namespace of the attribute
+      to be removed. A typical use for this is to enable a disabled HTML element by removing the
+       <code>disabled</code> attribute (setting the value has no effect).</p>
+            </td>
+         </tr>
+         <tr>
+            <td>
+               <p>ixsl:schedule‑action</p>
+            </td>
+            <td>
+               <p>Makes an asynchronous call to the template named in an <code>xsl:call-template</code>
+      instruction that is the only permitted body content of <code>ixsl:schedule-action</code>. The
+       <code>wait</code> attribute of <code>ixsl:schedule-action</code> is an integer used to
+      specify the delay in miliseconds before the call is invoked. See the <a href="../animation" class="bodylink">Animation</a> section for further detail.</p>
+            </td>
+         </tr>
+      </table>
+   </section>
+   <section id="logging" title="Logging">
+      <h1>Logging</h1>
+  
+      <p>The debug version of Saxon-CE provides error and event logging capabilities with a configurable
+   logging threshold. If a developer console is available in the host browser, this will be the
+   logging output destination, otherwise, output is sent to a floating and resizable HTML panel
+   contained within the web page.</p>
+      <p>The logging features described here are only supported by the debug version of Saxon-CE. They
+   are designed for use when developing and testing the stylesheets to run under Saxon-CE. For the production
+   version, logging features are 'compiled out' to reduce file size and improve performance. See the
+    <a href="../../starting/installing" class="bodylink">Installing</a> section for more detail.</p>
+      <p>The threshold level for logging is controlled in three possible ways:</p>
+      <ol>
+         <li>
+            <p>from the URI in the browser address bar using the <code>logLevel</code> parameter - e.g.
+      <code>http://demoqx.com?logLevel=FINE</code>.</p>
+         </li>
+         <li>
+            <p>from the JavaScript API, by calling the Saxon object's <a class="bodylink" href="/api/saxon/setLogLevel">setLogLevel</a> function.</p>
+         </li>
+         <li>
+            <p>from the JavaScript API, by setting the <code>logLevel</code> property of the <a class="bodylink" href="/api/command">Command</a> object.</p>
+         </li>
+      </ol>
+      <p>Setting the logLevel in the URI will override any logLevel set from JavaScript. The default
+   logLevel is set to <code>SEVERE</code>. The levels used are summarized below:</p>
+      <table>
+         <tr>
+            <td>
+               <p>
+      <strong>Level</strong>
+     </p>
+            </td>
+            <td>
+               <p>
+      <strong>Description</strong>
+     </p>
+            </td>
+         </tr>
+         <tr>
+            <td>
+               <p>OFF</p>
+            </td>
+            <td>
+               <p>All logging disabled</p>
+            </td>
+         </tr>
+         <tr>
+            <td>
+               <p><i>SEVERE</i>(Default)</p>
+            </td>
+            <td>
+               <p>All fatal XSLT or internal errors</p>
+            </td>
+         </tr>
+         <tr>
+            <td>
+               <p>WARNING</p>
+            </td>
+            <td>
+               <p>Bad but not fatal conditions</p>
+            </td>
+         </tr>
+         <tr>
+            <td>
+               <p>INFO</p>
+            </td>
+            <td>
+               <p>Output from <code>xsl:message</code> and <code>fn:trace()</code>
+     </p>
+            </td>
+         </tr>
+         <tr>
+            <td>
+               <p>CONFIG</p>
+            </td>
+            <td>
+               <p>Configuration data (Not yet used)</p>
+            </td>
+         </tr>
+         <tr>
+            <td>
+               <p>FINE</p>
+            </td>
+            <td>
+               <p>High-level XSLT calls: main transform, event transforms and result-documents</p>
+            </td>
+         </tr>
+         <tr>
+            <td>
+               <p>FINER</p>
+            </td>
+            <td>
+               <p>More granular loggable events</p>
+            </td>
+         </tr>
+         <tr>
+            <td>
+               <p>FINEST</p>
+            </td>
+            <td>
+               <p>Provides a trace output (in XML form) at the XSLT instruction level</p>
+            </td>
+         </tr>
+      </table>
+      <p>Log events and errors may also be handled from JavaScript by setting an error handler function
+   for the Saxon object (see <a class="bodylink" href="/api/saxon/setErrorHandler">setErrorHandler</a>); this may be used for capturing results from automated tests, or for
+   providing a custom view of loggable events or errors.</p>
+      <p>Depending on the browser, the logging output destination for logging may switch between the
+   developer console and the floating HTML panel. </p>
+      <p>For example, with Internet Explorer 9, the floating logging panel will show when the web page
+   is first loaded if no console is yet opened. To switch to using the developer console, press
+    <code>F12</code> and then select <code>script &gt; start debugging</code>: this reloads the web
+   page, but because the developer console is now detected, all logging will be directed there
+   instead.</p>
+      <p>As you might expect, other browsers are different. For Chrome, Firefox/Firebug, Opera and
+   Safari, the console always seems to be available for logging, even if not visible. You therefore
+   won't see the floating log panel, but will instead just need to open the console to review log
+   events.</p>
+   </section>
+   <section id="tracing" title="Tracing Execution">
+      <h1>Tracing Execution</h1>
+  
+      <p>Saxon-CE provides a <code>Trace</code> mode to help with understanding the dynamic behaviour of
+   an XSLT stylesheet. In this mode the execution of each instruction in the stylesheet is traced
+   and selected details are output to the developer console in XML form.</p>
+      <p>To initiate Trace mode you should use the debug version of Saxon-CE, then set the
+    <code>logLevel</code> attribute to <code>FINEST</code> (see the <a href="../../coding/logging" class="bodylink">Logging</a> section) and refresh the host HTML page.</p>
+      <p>Trace output can be voluminous. It will be rendered differently according to the
+   capabilities of the development console of the browser you use. Chrome and Safari provide a
+   better environment for large trace outputs as they render the trace XML using 'lazy-loading'.</p>
+      <p>Note that the order of execution of traced instructions may be different from what you might
+   expect due to optimisations made by the XSLT compiler. Details are added within the trace to help
+   associate traced instructions with the corresponding source XSLT, and for top-level instructions the
+   URI for the XSLT module is also provided.</p>
+      <p>The <a href="http://www.saxonica.com/documentation/functions/intro/trace.xml" class="bodylink">fn:trace()</a>
+   function can be used to insert user-selected information into a trace.  It has the signature:
+    <code>trace($value as item()*, $label as xs:string)</code>. The <code>$value</code> argument of
+   this function is an XPath expression and its evaluation result is shown as an attribute of the
+    <code>user-trace</code> element, with <code>$label</code> as the other attribute. Each value in
+   the result sequence is output in the trace. The output of <code>fn:trace()</code> can also be reviewed
+   independently of the Trace mode when the <code>logLevel</code> is set to <code>FINE</code>.</p>
+      <p>Each transform results in a separate trace output; for example, new trace output is generated
+   for <code>ixsl:schedule-action</code> or DOM event initiated transforms. If a fatal dynamic error
+   occurs during XSLT execution, the trace is output up to the error point, the error message is
+   then sent and the trace terminated.</p>
+   </section>
+</article>

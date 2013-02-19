@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?><catalog xmlns="http://www.saxonica.com/ns/doc/catalog" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+    <section ref="about">About Saxon-CE</section>
+    <section ref="changes">Change Log for Saxon-CE</section>
+    <section ref="starting">Getting started</section>    
+    <section ref="coding">Developing Applications</section>
+    <section ref="api">JavaScript API</section>
+    <section ref="conformance">Conformance</section>
+    <section ref="samples">Sample Applications</section>
+    <section ref="demonstrations">Demonstrations</section>
+    <section ref="system-interfaces">System Programming Interfaces</section>
+</catalog>

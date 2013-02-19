@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<article id="demonstrations" title="Demonstrations">
+   <h1>Demonstrations</h1>
+        
+
+        <p>Saxon-CE users have built proof of concept demonstrations to show the use of the Saxon-CE
+            software.</p>
+        <ul>
+            <li>
+                <p>
+                    <a href="http://piez.org/wendell/projects/Interedition2011/" class="bodylink">Handling TEI
+                        overlap</a>
+                </p>
+                <p> The TEI (Text Encoding initiative) is widely used by scholars for building
+                    literary corpora (databases of digitized text). As an XML vocabulary, TEI is
+                    complex because it has to tackle problems like associating annotations with
+                    different parts of the text, and representing overlapping fragments (for
+                    example, quotations that cross paragraph boundaries).</p>
+
+                <p> Because of this complexity, XSLT 2.0 brings considerable benefits, with features
+                    such as grouping and regular expression support. Wendell Piez of Mulberry
+                    Technologies, Inc. demonstrates how Saxon-CE can be used to process TEI markup
+                    in two areas:</p>
+                <p>- the ability to display textual annotations</p>
+                <p>- the ability to show boundaries of overlapping fragments </p>
+
+                <p> Saxon-CE helps here in two ways:</p>
+
+                <p>- it brings the power of XSLT 2.0 to the browser, to tackle the complex
+                    processing needed</p>
+                <p>- it enables an interactive rendition of the document, without dropping into
+                    low-level Javascript code</p>
+
+            </li>
+            <li>
+                <p>
+                    <a href="http://publishinggeekly.com/wp-content/uploads/2011/06/sxedit/sxedit.html" class="bodylink">A Saxon-CE XML editor</a>
+                </p>
+                <p> The application, developed by Gerrit Imsieke of le-tex publishing services GmbH,
+                    demonstrates a WYSYWIG style XML editor with TEI as the sample vocabulary. </p>
+            </li>
+            <li>
+                <p>
+                    <a href="http://www.ibm.com/developerworks/library/x-healthcaresaxon/index.html" class="bodylink">Use XSLT 2.0 in the browser to enhance views of clinical documents</a>
+
+                </p>
+                <p> Piers Hollott, of Sierra Systems, has published a paper describing how to
+                    implement a client-side healthcare application using Saxon-CE and the Health
+                    Level 7 (HL7) Clinical Document Architecture (CDA). </p>
+            </li>
+            <li>
+                <p>
+                    <a href="http://qutoric.com/xslt/analyser/xpathtool.html" class="bodylink">An XPath Analyser</a>
+                </p>
+                <p>Phil Fearon, currently on the Saxonica team, developed this tool to demonstrate
+                    Saxon-CE. It shows the benefits of using the plain-text parsing capabilities of
+                    XSLT 2.0. Note how responsive this app is during 'press-and-hold' keydown
+                    operations for highlighting XPath steps.</p>
+                <p>The XSLT here is doing a fair amount because each step is a <code>span</code>
+                    element and 2 sets of elements are first created, those to be highlighted and
+                    those to be unhighlighted. Any overlap between these sets is then removed before
+                    initiating <code>ixsl:set-attribute</code> on each element set to change the
+                    background colour.</p>
+            </li>
+        </ul>
+    </article>

@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<article id="samples" title="Sample Applications">
+   <h1>Sample Applications</h1>
+
+
+   <p>This section of the documentation describes three example applications available on the
+Saxonica web site.</p>
+   <ul>
+      <li>
+         <p><a class="bodylink" href="/samples/booklist">Book List</a></p>
+      </li>
+      <li>
+         <p><a class="bodylink" href="/samples/tour">Knight's Tour</a></p>
+      </li>
+      <li>
+         <p><a class="bodylink" href="/samples/jstest">JavaScript Interoperability</a></p>
+      </li>
+   </ul>
+   <section id="booklist" title="Book List">
+      <h1>Book List</h1>
+
+
+      <p>To try out the book list application, visit
+<a href="http://www.saxonica.com/ce/demos/books/books.html" class="bodylink">here</a>.</p>
+
+      <p>Wait for the list of books to appear (it may take a while if you are on a slow connection,
+as Saxon is being downloaded into your browser cache from the server). When it appears, try 
+clicking on column headings to sort the tables by a chosen column, or clicking the check 
+boxes to filter which books are displayed.</p>
+
+      <p>To see how it works, view the source of the HTML page ("view source" in your browser),
+and examine <a href="http://www.saxonica.com/ce/demos/books/books.xsl" class="bodylink">the stylesheet</a>.</p>
+
+      <p>Note how the HTML page contains two <code>script</code> elements, one to identify the
+        Saxon Javascript library, the other to identify the stylesheet and source document.</p>
+
+      <p>Note how the XSLT code addresses an area of the HTML page to be updated using
+<code>xsl:result-document</code>.</p>
+
+      <p>Note the event handlers in the stylesheet - the template rules with <code>mode="ixsl:onclick"</code>
+or <code>mode="ixsl:onmouseover"</code>. Note how these template rules update
+attributes of the HTML page using <code>ixsl:set-attribute</code>. Also see
+how user-defined attributes such as <code>data-order</code> and <code>data-type</code>
+are used to retain state information in the HTML tree, so that the sorting process can
+decide whether to sort ascending or descending, and whether to sort alphabetically or
+numerically.</p>
+
+      <p>Note how the <code>onmouseover</code> event handler reads the mouse coordinates by a call
+        on the <code>ixsl:event()</code> extension function which returns the current mouse event, 
+        and then uses these coordinates to position the tooltip.</p>
+
+   </section>
+   <section id="tour" title="Knight's Tour">
+      <h1>Knight's Tour</h1>
+
+
+      <p>To try out the knight's tour animation, visit
+<a href="http://www.saxonica.com/ce/demos/tour/tour.html" class="bodylink">here</a>.</p>
+
+      <p>Wait for the chessboard to appear (it may take a while if you are on a slow connection,
+as Saxon is being downloaded into your browser cache from the server). When it appears, click
+        on any square to start the knight's tour of the board.</p>
+
+      <p>To see how it works, view the source of the HTML page ("view source" in your browser),
+and examine <a href="http://www.saxonica.com/ce/demos/tour/tour.xsl" class="bodylink">the stylesheet</a>.</p>
+
+      <p>Much of the stylesheet is concerned with the logic of planning the tour; but this isn't new to
+Saxon-CE, so it will not be discussed here any further. For an explanation of this code, see Michael
+Kay's book <i>XSLT 2.0 and XPath 2.0 Programmer's Reference</i>.</p>
+
+      <p>Look for the code that responds to the initial mouse click and fires off the tour, by matching
+a click on a <code>div</code> element whose <code>id</code> attribute singles it out as representing
+        one of the squares on the board.</p>
+
+      <p>Look for the code that waits a short time before continuing the tour, using the
+<code>ixsl:schedule-action</code> extension instruction.</p>
+
+      <p>See how the <code>stop</code> button works: it doesn't actually interrupt execution, but
+        merely sets a flag in the HTML document tree which is examined by the code that moves the knight,
+        abandoning the tour when the user has seen enough.</p>
+   </section>
+   <section id="jstest" title="JavaScript Interoperability">
+      <h1>JavaScript Interoperability</h1>
+
+
+      <p>This sample application is
+<a href="http://www.saxonica.com/ce/demos/jstest/jstest.html" class="bodylink">here</a>.</p>
+
+      <p>The output isn't very pretty or very meaningful, but the XSLT code demonstrates the
+use of a number of ways of interacting with the browser environment, including the ability
+to invoke user-written JavaScript functions from within an XPath expression, and the ability
+to access browser objects such as the Window, the HTML Document, and the current Event.</p>
+
+      <p>To see how it works, view the source of the HTML page ("view source" in your browser),
+and examine <a href="http://www.saxonica.com/ce/demos/jstest/jstest.xsl" class="bodylink">the stylesheet</a>.</p>
+
+   </section>
+</article>

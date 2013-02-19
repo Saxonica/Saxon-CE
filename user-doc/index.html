@@ -1,0 +1,137 @@
+<!DOCTYPE HTML>
+<html>
+
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+
+<title>Saxon-CE Documentation</title>
+<meta http-equiv="X-UA-Compatible" content="IE=edge">
+<meta name="viewport" content="width=768px, minimum-scale=1.0, maximum-scale=1.0">
+<script type="text/javascript" src="Saxonce/Saxonce.nocache.js"></script>
+
+<!-- JS function called from XSLT to keep reference to previous list item -->
+<script type="text/javascript" src="cetree.js"></script>
+<script type="application/xslt+xml" language="xslt2.0" src="xsl/cetree.xsl" data-initial-template="main">
+</script>
+<link href="cetree.css" rel="stylesheet" type="text/css">
+
+</head>
+
+<body>
+
+<div id="wrap">
+
+<div id="header" class="unselectable">
+
+<!-- bread-crumb trail -->
+
+<ul class="trail" id="trail">
+
+<li id="trail1"><a href="http://saxonica.com">Saxonica ▷</a></li>
+
+<li id="trail2"><a href="http://www.saxonica.com/documentation/documentation.xml">Saxon ▷</a></li>
+
+</ul>
+            
+</div>
+         
+<!-- find box appears in top-right of display - normally hidden -->
+         
+<div class="found">
+
+<p class="foundClosed"></p>
+
+<p class="foundNext"></p>
+
+<p class="foundPrev"></p>
+
+<p id="findstatus" class="foundCount">searching...</p>
+
+</div>
+
+<div id="nav" class="unselectable">
+
+
+<!-- logo and search -->
+
+<div id="logo" style="">
+
+<p class="cetree" style="padding-left:10px">Saxon</p>
+
+<p class="arrowNone"></p>
+
+<p class="search"></p>
+<input id="search" style="float:right;padding-top:2px;margin-top:3px;width:120px">
+
+</div>
+            
+            
+<!-- tree-view -->
+            
+<ul id="list">
+<!-- completed by xslt - sample entry below: -->
+<!--
+<li class="closed" id="index-entries"><span class="item">Alphabetical Index</span></li>
+-->
+</ul>
+            
+</div>
+         
+<!-- main page -->
+         
+<div id="main" style="float:left">
+<p>&#160;</p>
+<p id="no_script" style="display:none">Loading documentation...</p>
+<!-- use script to show loading message only if javascript is enabled -->
+<script type="text/javascript">
+document.getElementById("no_script").style.display = "block";
+</script>
+<noscript>
+<p><em>JavaScript is disabled on this browser.</em> Please follow the link below for the Non-JavaScript site:</p>
+
+<p><a href="html/about/">Saxon Documentation (Non-JavaScript Version)</a></p>
+</noscript>
+
+</div>
+         
+<!-- footnote anchored to bottom of display -->
+         
+<div id="footer">
+
+<div id="info" class="footnote">
+
+<p>Saxon Developer Guide</p>
+
+</div>
+
+<div>
+
+<p class="arrowRight"></p>
+
+<p class="arrowLeft"></p> 
+               
+</div>
+
+<div id="test" style="display:none;clear:both">
+
+<div id="toolbar" class="tools">
+
+<p style="color:gray">Site Analyser </p><span class="button">Check for broken-links</span>
+
+<p style="color:#3050c0" id="status">&nbsp;</p>
+
+</div>
+
+<div id="results"></div>
+
+</div>
+            
+</div>
+         
+         
+</div>
+      
+</body>
+   
+</html>
+

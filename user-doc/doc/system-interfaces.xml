@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<article id="system-interfaces" title="System Programming Interfaces">
+   <h1>System Programming Interfaces</h1>
+
+   <p>As an XSLT processor, Saxon-CE provides several types of interface. Those that are mainly for the use of the XSLT developer have dedicated sections elsewhere in the documentation.</p>
+   <p>This section covers interfaces not used for routine XSLT development, but intended instead mainly for integrating 
+Saxon-CE with other systems such as browser plug-ins or applications hosting browser instances. There is no guarantee that
+these interfaces will remain stable in future releases.</p>
+   <section id="console" title="Console">
+      <h1>Console</h1>
+
+      <p>Most browsers today either ship with a developer console built in or exploit plug-ins for this purpose. Saxon-CE's processor sends output to the console by exploiting the relatively standard methods supplied by the <code>window.console</code> object. These are: <code>error, info, warn</code> and <code>log</code>, corresponding to Saxon-CE's SEVERE, WARNING, INFO and [FINE|FINER] logLevel thresholds respectively.</p>
+      <p>Trace output from Saxon-CE is enabled when logLevel is set to FINEST, the output is serialized in XML form. Trace output uses the <code>dirxml</code> console method if available - otherwise it falls back to standard log output. If an exception occurs within the trace the XML content is logged as non well-formed XML text.</p>
+      <p>Note that trace output can be quite voluminous, and that tracing can have a significant effect on performance.</p>
+   </section>
+   <section id="timeline" title="Timeline">
+      <h1>Timeline</h1>
+
+      <p>In some browsers, the standard console output is supplemented by a timeline view.</p>
+      <p>Saxon-CE writes timing information for all messages to such views using either the <code>timeStamp</code> or <code>markTimeline</code> console methods (whichever is supported).</p>
+      <p>Typically, timeline views only begin recording information from these method calls once the user has pressed a 'record' button.</p>
+   </section>
+   <section id="external" title="External">
+      <h1>External</h1>
+
+      <p>Certain types of application, such as XML editors, use the approach of embedding a web-browser within a host application implemented in a non-JavaScript language.</p>
+      <p>In such cases, the host application uses a bridge to allow a two-way interface between the JavaScript language and 
+the host-application's own language and object model. The standard method to make calls to the host applicaton from 
+the browser is through the <code>window.external</code> object. If the <code>external</code> object exists, 
+Saxon-CE checks for the existence of the <code>saxonErrorHandler</code> function. If found, all 'publish' calls by the 
+Saxon-CE logger are directed to this function, overriding any JavaScript errorhandlers set via the API.</p>
+      <p>The signature for the external function is:</p>
+      <p><code>saxonErrorHandler($message, $level)</code></p>
+      <p>The <code>message</code> argument is the log text, whilst the <code>level</code> argument holds the level at which the message was logged, for example, SEVERE is used for all unrecoverable errors.</p>
+      <p>Saxon-CE exstablishes whether this external function exists by calling it directly, the 'bridge' therefore does not need to provide a standard JavaScript object stack (such as implementing <code>apply</code> and <code>call</code>) to support the function - just the function itself.</p>
+      <p>This first 'test call' includes the Saxon-CE version details in the message argument. The level <code>INIT</code> is used to distinguish this from following messages.</p>
+      <p>Output logged via this function might be exploited in a number of ways; typical usage would be for an XSLT editor with a built-in browser to host Saxon-CE so that external output is exploited for interactive use (e.g. selecting a logged compile-error will highlight the relevant XSLT part). An early example of this can be found in a version of Qutoric's <a href="http://www.qutoric.com/xmlquire/ce/" class="bodylink">XMLQuire</a> editor that was extended for Saxon-CE.</p>
+      <p>For further details, see the <a class="bodylink" href="/coding/logging">Logging</a> and <a class="bodylink" href="/coding/tracing">Tracing</a> sections</p>
+   </section>
+</article>

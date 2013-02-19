@@ -1,0 +1,138 @@
+<?xml version="1.0" encoding="utf-8"?>
+<article id="conformance" title="Conformance">
+   <h1>Conformance to W3C Specifications</h1>
+        
+        
+        <p>This section of the documentation describes the extent of conformance
+        of Saxon-CE to the W3C XSLT 2.0 and related specifications.</p>
+        
+        <p>Strict conformance to standards has always been a high priority in the
+        development of Saxon. At the same time, Saxon has always innovated in the
+        development of conformant extensions which have often subsequently been
+        copied in other products and have eventually found their way into the standard.
+        Since Saxon-CE is working in a highly specialized environment, some extensions
+        are needed to take advantage of the facilities available. Wherever possible, these
+        have been implemented using the extensibility features provided in the W3C language
+        specification.</p>
+        
+    <section id="conformance20" title="XSLT 2.0 Conformance">
+      <h1>XSLT 2.0 Conformance</h1>
+        
+        
+        <p>Saxon-CE implements XSLT 2.0 at the minimum conformance level: that is, it
+            meets all the requirements for a "Basic XSLT 2.0 Processor" as defined in the W3C XSLT 2.0 specification.</p>
+        
+        <p>Some of the features that this excludes are:</p>
+        
+        <ul>
+            <li>
+            <p>Schema-awareness (for example, <code>xsl:import-schema</code>, and <code>validation="strict"</code>)</p>
+         </li>
+            <li>
+            <p>Support for derived data types such as <code>xs:int</code>, <code>xs:long</code>, <code>xs:NCName</code></p>
+         </li>
+        </ul>
+        
+        <p>There is no serializer, because output is either appended as a tree to the HTML DOM representing the target browser page,
+            or as a tree or tree-fragment to an XML DOM.
+            This means that language features associated with serialization are ignored. These include <code>xsl:output</code>,
+            <code>xsl:character-map</code>, <code>disable-output-escaping</code>, and the formatting attributes of
+            <code>xsl:result-document</code>.</p>
+        
+        <p>Optional features have been kept to a minimum. There is currently no support for collations other than the standard codepoint
+            collation, or for output (for example of dates and numbers) in locales other than English.</p>
+            
+        
+        
+    </section>
+   <section id="XML-conformance" title="XML Conformance">
+      <h1>XML Conformance</h1>
+        
+    
+        <p>Saxon relies on the XML parser provided with each browser, and inherits the restrictions and limitations of
+        the native browser. For example:</p>
+        
+        <ol>
+        
+        <li>
+            <p>On Internet Explorer, entity references are not supported (XML parse failure).</p>
+         </li>
+        <li>
+            <p>On Firefox, external entity references are not supported (they lead to a parsing failure)</p>
+         </li>
+        <li>
+            <p>On Safari, external entity references are not supported (the content of the entity is ignored)</p>
+         </li>
+        <li>
+            <p>In Opera there's an issue in that the <code>xml</code> namespace should be explicitly declared for the xml prefix 
+            when using xml attributes such as <code>xml:id</code>.
+            This is most apparent when using the <code>id()</code> function in Saxon-CE, because <code>xml:id</code> attributes 
+            appear in no namespace and therefore are not recongnized as IDs.</p>
+         </li>
+            
+        </ol>
+        
+        <p>Support for DTD-based ID and IDREF attributes is very patchy, so the best advice is to avoid
+        use of the <code>id()</code> and <code>idref()</code> functions. However, the <code>id()</code>
+        function may safely be used to find elements identified using an <code>xml:id</code> attribute.</p>
+    </section>
+   <section id="restrictions" title="Restrictions">
+      <h1>Restrictions</h1>
+        
+               
+        <p>Known restrictions include the following:</p>
+        
+        <ul>
+            <li>
+            <p>It is not possible to use XSLT keys to access the HTML document: 
+                they will not be updated when the document is modified in-situ.
+            (XSLT keys on XML source documents are fine, however.)</p>
+         </li>
+            
+            <li>
+            <p>The <code>id()</code> function when applied to an XML document will recognize elements identified
+            by <code>xml:id</code> attributes, but generally does not work on IDs defined as such in a DTD (on most browsers, the XML parser
+            does not read the external DTD). The <code>id()</code> function does work on the HTML document,
+            delivering the same result as the DOM method <code>getElementByID()</code>.)</p>
+            <p>For the same reason, the <code>idref()</code> function has no effect (the XML parser in general does
+            not report which attributes are of type IDREF)</p>
+         </li>
+            
+            <li>
+            <p>The <code>doc()</code> and <code>document()</code> functions are synchronous: this can lead to an unpleasant
+                user experience if fetching a document from a remote server is delayed (the source file for a transform may be fetched asynchronously -
+                depending on context).</p>
+         </li>
+            
+            <li>
+            <p>The <code>collection()</code> function returns an empty sequence for the default collection, and reports "unknown collection"
+            for any supplied URI.</p>
+         </li>
+            
+            <li>
+            <p>The <code>unparsed-entity-uri</code> and <code>unparsed-entity-public-id</code> functions have no effect
+            (they behave as if the named entity is not present in the document). This is because the XML parser in the browser,
+            in general, is not reporting the presence of unparsed entities.</p>
+         </li>
+            
+            <li>
+            <p>Conversion of double and float values to strings is not 100% conformant in all cases, although the
+            results will usually be acceptable. For example, the output might be <code>1E-6</code> instead
+            of <code>1.0E-6</code>, while negative zero is output as <code>0</code> instead of <code>-0</code>.</p>
+         </li>
+            
+            <li>
+            <p>In functions such as <code>format-number</code> and <code>format-date</code>, digits must be ASCII digits.
+            There is currently no localization for languages other than English.</p>
+         </li>
+                       
+            <li>
+            <p>The Saxon-CE engine does not perform serialization. This means that the attribute
+            <code>disable-output-escaping</code> is ignored. It also means that no <code>meta</code>
+            attributes are inserted into HTML or XHTML output, and no escaping of URI-valued attributes
+            takes place.</p>
+         </li>
+            
+        </ul>
+    </section>
+</article>

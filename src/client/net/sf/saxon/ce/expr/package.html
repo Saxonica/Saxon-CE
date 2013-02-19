@@ -1,0 +1,60 @@
+<html>
+
+<head>
+<title>Package overview for net.sf.saxon.expr</title>
+</head>
+
+<body>
+
+<p>This package provides classes associated with XPath expression handling. Generally, these
+classes are not intended to be used directly by user-written applications; the API for XPath
+evaluation is now provided by classes in the package <code>net.sf.saxon.xpath</code></p>
+
+<p>The principal classes are:</p>
+
+<p><b>Expression</b>:<br>
+This represents an XPath Expression. There is a static method Expression.make() which is
+used to construct an Expression from a String (it is a factory method rather than a
+ constructor, because it typically returns some subclass of Expression according
+  to the syntax supplied). Subclasses of Expression represent different kinds of expression
+  such as StringExpression and BooleanExpression. What they all have in common is an evaluate()
+  method, which evaluates the expression in a given context to yield a Value, and an iterate() method,
+  which treats the result of the expression as a sequence, and iterates over the items in the sequence.</p>
+
+<p><b>ExpressionParser</b>:<br>
+This class does the work of parsing both Expressions and Patterns. Applications should not call
+it directly. It uses the class Tokenizer for lexical analysis.</p>
+
+<p><b>StaticContext</b>:<br>
+This interface defines the information available at the time an expression is being parsed. This
+includes the names of variables, the bindings of namespace prefixes, the functions that are available,
+the names of collating sequences, and so on. When an XPath expression appears in a stylesheet, the
+class <code>net.sf.saxon.style.ExpressionContext</code> provides the StaticContext. For a free-standing XPath
+expression, the class <code>net.sf.saxon.xpath.StandaloneContext</code> is available, though a user-written
+class that implements <code>StaticContext</code> can also be used.</p>
+
+<p><b>XPathContext</b>:<br>
+This class defines the context information available at run-time, for example the context node, position,
+and size. (It actually does this by wrapping a SequenceIterator that represents the current sequence.)
+When expressions are used during an XSLT transformation, the XPathContext also provides access to the
+Controller, which contains all the context information about XSLT processing (for example the current template,
+the current group, and so on).</p>
+
+<p>Most of the classes in this package represent individual syntactic constructs found in XPath or XQuery expressions:
+for example <code>ValueComparison</code>, <code>UserFunctionCall</code>, and <code>RootExpression</code>. The objects
+that instantiate these classes form the nodes on the Abstract Syntax Tree constructed by the compiler and modified
+by the optimizer; at run-time their methods are used to drive a pipelined evaluation of the expression.</p>
+
+<p>The distinction between the compiled form of XSLT instructions and the compiled form of XPath expressions has
+become blurred. Generally, the compiled form of instructions is in the package <code>net.sf.saxon.instruct</code>
+(this includes expressions in XQuery that are equivalent to XSLT instructions, for example element constructors).
+However, some constructs such as conditional expressions now exist in both languages and may generate the same
+run-time constructs.</p>
+
+<hr>
+
+<p align="center"><i>Michael H. Kay<br>
+Saxonica Limited<br/>
+9 February 2005</i></p>
+</body>
+</html>

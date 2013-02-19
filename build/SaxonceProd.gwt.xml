@@ -1,0 +1,20 @@
+<!DOCTYPE module PUBLIC "-//Google Inc.//DTD Google Web Toolkit 2.0//EN"
+        "http://google-web-toolkit.googlecode.com/svn/releases/2.0/distro-source/core/src/gwt-module.dtd">
+<!-- The Production Saxonce GWT module used for the ant build for deployment - 
+     logging is disabled so that logging code is compiled out    --> 
+<module>
+<inherits name='com.google.gwt.user.User'/>
+<inherits name='com.google.gwt.xml.XML'/>
+<inherits name="com.google.gwt.logging.Logging"/>
+<inherits name='org.timepedia.exporter.Exporter'/>
+<set-property name="gwt.logging.logLevel" value="SEVERE"/>
+
+<set-property name="gwt.logging.enabled" value="FALSE"/>
+<!-- Only enable popupHandler through code - if no console available -->
+<set-property name="gwt.logging.popupHandler" value="DISABLED"/>
+<set-property name="gwt.logging.consoleHandler" value="DISABLED"/>
+<set-property name="gwt.logging.firebugHandler" value="DISABLED"/>
+<set-property name="export" value="yes"/>
+<entry-point class='client.net.sf.saxon.ce.Xslt20ProcessorImpl'/>
+</module>
+

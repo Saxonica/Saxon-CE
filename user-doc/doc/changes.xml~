@@ -1,0 +1,978 @@
+<?xml version="1.0" encoding="utf-8"?>
+<article id="changes" title="Change Log for Saxon-CE">
+   <h1>Change Log for Saxon-CE</h1>
+        
+        <p>This section of the Saxon-CE documentation provides a summary of changes made to the
+            software in successive releases.</p>
+        <ul>
+      <li>
+         <p><a class="bodylink" href="R1.1">Release 1.1 (February 2013)</a></p>
+      </li>
+      <li>
+         <p><a class="bodylink" href="R1.0">Release 1.0 (June 2012)</a></p>
+      </li>
+      <li>
+         <p><a class="bodylink" href="Beta2">Beta 0.2 (April 2012)</a></p>
+      </li>
+      <li>
+         <p><a class="bodylink" href="Beta1">Beta 0.1 (February 2012)</a></p>
+      </li>
+      <li>
+         <p><a class="bodylink" href="issuesB0.1">Issues fixed in Beta 0.1</a></p>
+      </li>
+      <li>
+         <p><a class="bodylink" href="alpha0.4">Alpha 0.4 (December 2011)</a></p>
+      </li>
+      <li>
+         <p><a class="bodylink" href="issues0.4">Issues fixed in Alpha 0.4</a></p>
+      </li>
+      <li>
+         <p><a class="bodylink" href="alpha0.3">Alpha 0.3 (September 2011)</a></p>
+      </li>
+      <li>
+         <p><a class="bodylink" href="alpha0.2">Alpha 0.2 (July 2011)</a></p>
+      </li>
+      <li>
+         <p><a class="bodylink" href="alpha0.1">Alpha 0.1 (March 2011)</a></p>
+      </li>
+   </ul>
+    <section id="R1.1" title="Release 1.1 (February 2013)">
+      <h1>Release 1.1 (February 2013)</h1>
+        
+        <p>The main change in this release is that it the product is now issued under an open source
+        license (Mozilla Public License 2.0). A few of the source files are available under other licenses
+        compatible with MPL 2.0, including the Apache 2.0 license and BSD-style licenses.</p>
+        <p>In consequence of this change, the mechanism for issuing and installing license files
+        on a registered server is no longer needed and has been removed.</p>
+        <p>The product has been rebuilt using GWT 2.5, which gives some performance improvements.</p>
+        <p>A number of bugs have been fixed. Details can be found on the development and support site
+            at <a href="http://saxonica.plan.io" class="bodylink">saxonica.plan.io</a></p>
+    </section>
+   <section id="R1.0" title="Release 1.0 (June 2012)">
+      <h1>Release 1.0 (June 2012)</h1>
+        
+        <p>Release 1.0 marks the first production release of Saxon-CE. Changes since the final beta
+            have been focused mainly on bug fixes and removing restrictions on types imposed by the
+            JavaScript API. Some new features have also been added. The changes are summarised on
+            the <a href="http://dev.saxonica.com/community/versions/3" class="bodylink">Saxon-CE community
+            site</a>where you can add feedback or your own change requests; the changes are also
+            summarised below:</p>
+        <p><strong>JavaScript API:</strong>There's a new XSLT20Processor function,
+                <code>transformToHTMLFragment</code>, this provides improved integration with
+            existing JavaScript libraries. Output can be appended directly to the DOM - avoiding
+            issues associated with serializing XML output from the
+            <code>transformToFragment</code>function before inserting it as HTML text.</p>
+        <p><strong>Client Object Events:</strong>Templates can now be matched to client events originating
+            outside of the DOM. This works in a similar way to DOM element events, but with the
+            template's match 'pattern' containing an IXSL function that returns the target client
+            object rather than matching a DOM element.</p>
+        <p><strong>External System Interface:</strong>Applications that host a web-browser, such as IDEs, can
+            now receive notification of errors and events from the Saxon-CE processor through a
+            callback to <code>window.external.saxonErrorHandler</code></p>
+        <p><strong>New Language Features:</strong>There's a new IXSL
+                instruction,<code>ixsl:set-property</code>, used for setting the values of
+            JavaScript object properties. Also, JavaScript object properties can now be referenced
+            for reading or writing using 'dot' character separated property names, e.g.
+                <code>location.href</code></p>
+        <p><strong>Bug fixes:</strong>A list of issues fixed in this release (filtered from the Saxon-CE
+            issues page) can be found on the community <a href="http://dev.saxonica.com/community/projects/saxon-ce/issues?set_filter=1&amp;f%5B%5D=status_id&amp;op%5Bstatus_id%5D=o&amp;f%5B%5D=tracker_id&amp;op%5Btracker_id%5D=%3D&amp;v%5Btracker_id%5D%5B%5D=1&amp;f%5B%5D=fixed_version_id&amp;op%5Bfixed_version_id%5D=%3D&amp;v%5Bfixed_version_id%5D%5B%5D=3&amp;f%5B%5D=&amp;c%5B%5D=tracker&amp;c%5B%5D=status&amp;c%5B%5D=priority&amp;c%5B%5D=subject&amp;c%5B%5D=fixed_version&amp;group_by=" class="bodylink">issues list</a>.</p>
+    </section>
+   <section id="Beta2" title="Beta 0.2 (April 2012)">
+      <h1>Beta 0.2 (April 2012)</h1>
+        
+        <p>This is the second public beta release of Saxon-CE, details are given below.</p>
+        <p><strong>JavaScript API:</strong>This beta release introduces a new JavaScript API for Saxon-CE to
+            provide a more flexible method for invoking XSLT 2.0 from within the HTML page (or even
+            another HTML page). The API Saxon-CE offers is modelled on that provided for XSLT 1.0 by
+            Mozilla and Webkit based browsers along with the Sarissa API wrapper which also supports
+            Internet Explorer. Saxon-CE extends this API to support the extra features inherent in
+            XSLT 2.0 and also Saxon-CE's additional capability to transform standard HTML using
+            XSLT.</p>
+        <p><strong>XML/HTML Output Options:</strong>The new capability for the creation of XML documents or
+            fragments allows better integration with other code and systems, it's also now possible
+            to update existing HTML pages other than the host page.</p>
+        <p><strong>Execution of Generated XSLT:</strong>The JavaScript API can be used to run any stylesheet
+            (using cached versions if available), including ones generated dynamically.</p>
+        <p><strong>Tracing and Diagnostics:</strong>Improved XSLT diagnostics are now provided in the form of
+            a trace capability that provides an XML structured view of the dynamic execution of XSLT
+            instructions within your stylesheet. This trace information can also be supplemented
+            using the <code>fn:trace()</code>XPath function. Additional timing information can also
+            be exploited using browser development tools that provide a time-line.</p>
+        <p><strong>Bug fixes:</strong>A list of issues fixed in this release (filtered from the Saxon-CE
+            issues page) can be found <a href="http://dev.saxonica.com/community/projects/saxon-ce/issues?set_filter=1&amp;f%5B%5D=tracker_id&amp;op%5Btracker_id%5D=%3D&amp;v%5Btracker_id%5D%5B%5D=1&amp;f%5B%5D=fixed_version_id&amp;op%5Bfixed_version_id%5D=%3D&amp;v%5Bfixed_version_id%5D%5B%5D=2&amp;f%5B%5D=&amp;c%5B%5D=tracker&amp;c%5B%5D=status&amp;c%5B%5D=priority&amp;c%5B%5D=subject&amp;c%5B%5D=assigned_to&amp;c%5B%5D=updated_on&amp;c%5B%5D=cf_2&amp;c%5B%5D=cf_3&amp;group_by=" class="bodylink">here</a>. Particular attention has been paid to fixing namespace and prefix issues
+            that affected SVG use both in HTML5 and XHTML. More details on these issues can be found
+            on the issues list included on the Saxon-CE project's community page.</p>
+    </section>
+   <section id="Beta1" title="Beta 0.1 (February 2012)">
+      <h1>Beta 0.1 (February 2012)</h1>
+        
+        <p>This first beta release of Saxon-CE follows a public alpha release phase that delivered
+            some most useful feedback. In this beta we've focussed on providing a more productive
+            platform for Saxon-CE development, improving processor performance and providing better
+            standards compliance.</p>
+        <p>For the end-user, Saxon-CE-driven interactive web pages are noticeably more responsive.
+            Bug fixes account for some of this performance improvement, but much is down to a
+            redesign of the way Saxon-CE handles events. The new design avoids the need to
+            re-register event-handlers on elements with HTML changes; this design also fixes issues
+            related both to the returned event object and the context node for specific event types.
+            The issue of unwanted event bubbling is also resolved through this change.</p>
+        <p>For the XSLT developer and tester, Saxon-CE now dispenses with the venerable message box
+            and instead provides configurable XSLT diagnostics in the form of more detailed error
+            and event logging. Log messages are output to the development console (such as Firebug),
+            with the logging threshold level set using a combination of a URL parameter and console
+            settings. For testing on browsers without a console, output is directed to a floating
+            and resizable HTML panel which will show only when required. 'Native' JavaScript event
+            handlers can also be used to monitor Saxon-CE log events.</p>
+        <p>A new regular expression engine for Saxon-CE (shared with the server-side product)
+            provides compliance with the <a href="http://www.w3.org/TR/xmlschema-2/#regexs" class="bodylink">XPath
+                2.0 standard</a>, one benefit of this is much broader support for Unicode character
+            sets than found in JavaScript.</p>
+        <p>There's a new IXSL instruction,<code>ixsl:remove-attribute</code>; this is the
+            counterpart to <code>ixsl:set-attribute</code>and is useful for HTML attributes whose
+            existence affects behaviour, such as the <code>disabled</code>attribute.</p>
+        <p>Importantly, Saxon-CE now requires a license file. When you register you will be asked to
+            provide the domain names for the license file, this is then sent to you by email and
+            (for the beta) expires 90 days after registration. Saxon-CE uses the license file to
+            verify the expiry date and, unless you're developing/testing on a local machine, it
+            checks that the product is hosted on a listed domain name.</p>
+        <p>A summary of the changes:</p>
+        <ul>
+            <li>
+                <p>Improved browser responsiveness for interactive XSLT</p>
+            </li>
+            <li>
+                <p>Configurable XSLT error and event logging replaces the browser
+                    <code>alert</code>.</p>
+            </li>
+            <li>
+                <p>A new standards compliant regular expression engine</p>
+            </li>
+            <li>
+                <p>A new IXSL instruction,<code>ixsl:remove-attribute</code></p>
+            </li>
+            <li>
+                <p>A Saxon-CE license file, is now required</p>
+            </li>
+            <li>
+                <p>Bug fixes. See <a href="../issuesB0.1" class="bodylink">Issues fixed in Beta 0.1</a>for
+                    details</p>
+            </li>
+        </ul>
+    </section>
+   <section id="issuesB0.1" title="Issues fixed in Beta 0.1">
+      <h1>Issues fixed in Beta 0.1</h1>
+        
+        <p>The table below lists a summary of the issues fixed in the Beta 0.1 release of
+            Saxon-CE</p>
+        <table>
+            <thead>
+                <tr>
+                    <td style="font-weight: bold">
+                        <p>
+                            <strong>#</strong>
+                        </p>
+                    </td>
+                    <td style="font-weight: bold">
+                        <p>
+                            <strong>Title</strong>
+                        </p>
+                    </td>
+                    <td style="font-weight: bold">
+                        <p>
+                            <strong>Description</strong>
+                        </p>
+                    </td>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <p>1</p>
+                    </td>
+                    <td>
+                        <p>The IIS7 web server fails to load XSL files, giving an HTTP 400
+                            Error.</p>
+                    </td>
+                    <td>
+                        <p>IIS7 baulks at the HTTPRequest header because it contains the
+                            'If-Modified-Since' property. An alternative method should be sought to
+                            ensure XSL files are not cached.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>2</p>
+                    </td>
+                    <td>
+                        <p>Processing a filter on a node sequence fails, for example
+                            $steps[$rgx].</p>
+                    </td>
+                    <td>
+                        <p>Closure optimisation causes issue because the filter expression is
+                            calculated late and the getAnother method fails to restore state.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>3</p>
+                    </td>
+                    <td>
+                        <p>Regular expressions give unexpected exceptions and fail to meet W3C
+                            specification</p>
+                    </td>
+                    <td>
+                        <p>The JavaScript regular expression engine does not support many W3C
+                            features.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>4</p>
+                    </td>
+                    <td>
+                        <p>Calling base-uri() on a node of the host page returns a zero-length
+                            string.</p>
+                    </td>
+                    <td>
+                        <p>Internally, the HTMLDocumentWrapper constructor does not set the base URI
+                            if the baseuri parameter value is null or the empty string.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>5</p>
+                    </td>
+                    <td>
+                        <p>The result-documnet href?select='.' expression fails</p>
+                    </td>
+                    <td>
+                        <p>If it belongs to the hosted html page, the context node should be part of
+                            the evaluation context when calling result-document.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>6</p>
+                    </td>
+                    <td>
+                        <p>Unclear error message if result-document fails</p>
+                    </td>
+                    <td>
+                        <p>Details of the href value and context node should be supplied.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>7</p>
+                    </td>
+                    <td>
+                        <p>Unexpected exception when attempting to access an attribute from the HTML
+                            document node.</p>
+                    </td>
+                    <td>
+                        <p>The empty sequence should be returned.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>8</p>
+                    </td>
+                    <td>
+                        <p>A delay occurs after an ixsl:schedule action</p>
+                    </td>
+                    <td>
+                        <p>Internally, the PendingUpdateList is not cleared before the scheduled
+                            action is called</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>9</p>
+                    </td>
+                    <td>
+                        <p>A disabled HTML button can't be enabled using XSLT</p>
+                    </td>
+                    <td>
+                        <p>An ixsl:remove-attribute instruction is required, so the 'disabled'
+                            attribute can be removed - setting the attribute value has no
+                            effect.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>10</p>
+                    </td>
+                    <td>
+                        <p>When only one attribute in the html page is modified, performance seems
+                            slow.</p>
+                    </td>
+                    <td>
+                        <p>Currently, event handling requires the processor to descend through the
+                            tree after each transform and update any event handling attributes on
+                            elements that match the template rules. Capturing events at the document
+                            node would resolve this.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>11</p>
+                    </td>
+                    <td>
+                        <p>Events continue to bubble after a matching template.</p>
+                    </td>
+                    <td>
+                        <p>The ability to set the rule in XSLT for when an event is matched negates
+                            the JavaScript need for an event bubble and actually makes it
+                            undesirable. Apply-templates provides a more controlled approach, if
+                            required</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>12</p>
+                    </td>
+                    <td>
+                        <p>The ixsl:event() function does not work consistently.</p>
+                    </td>
+                    <td>
+                        <p>An undefined object is returned in pre IE9 versions of Internet
+                            Explorer</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>13</p>
+                    </td>
+                    <td>
+                        <p>The context node is not valid for certain event types.</p>
+                    </td>
+                    <td>
+                        <p>For example, Firefox will throw an exception when the template rule '*'
+                            is set for the ixsl:onkeydown mode.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>14</p>
+                    </td>
+                    <td>
+                        <p>Alternative required to the 'alert' message box used for reporting
+                            errors</p>
+                    </td>
+                    <td>
+                        <p>More granular exception and event handling is required. This should be
+                            configurable logging system that outputs to the developer console or an
+                            alternative as a fall-back</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>15</p>
+                    </td>
+                    <td>
+                        <p>In IE browsers before IE8, the 'class' attribute can't be accessed</p>
+                    </td>
+                    <td>
+                        <p>Old browsers use 'className' at the attribute name to prevent a keyword
+                            conflict, as this isn't an issue with XSLT, the name 'class' should be
+                            used consistently.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>16</p>
+                    </td>
+                    <td>
+                        <p>When IXSL function calls fails there's not enough detail.</p>
+                    </td>
+                    <td>
+                        <p>The function name and location within the XSLT should be provided in the
+                            error message.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>17</p>
+                    </td>
+                    <td>
+                        <p>Attributes that have a zero-length string as a value can't be accessed by
+                            name.</p>
+                    </td>
+                    <td>
+                        <p>For example, with <code>&lt;p style=""&gt;</code>, the XPath
+                                <code>exists(p/@style)</code> returns false</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>18</p>
+                    </td>
+                    <td>
+                        <p>Internet Explorer fails to parse XML with an external DTD reference.</p>
+                    </td>
+                    <td>
+                        <p>Use of the responseText property of XMLHttpRequest does not work within
+                            the GWT implementation of XMLParser for IE that uses deferred
+                            binding.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>19</p>
+                    </td>
+                    <td>
+                        <p>The value of the 'name' attribute in <code>xsl:attribute</code>and
+                                <code>ixsl:set-attribute</code>must be a valid QName, but style
+                            property names may start with a '-' (hyphen) character. .</p>
+                    </td>
+                    <td>
+                        <p>The STYLE namespace is used to access style properties as if they were
+                            attributes, some property names start with a '-', like
+                                <code>-webkit-transition</code>. Such property names should be
+                            prefixed with a '_' to give a valid QName. e.g.<code>&lt;xsl:attribute
+                                name="style:_-webkit-transition"
+                            select="$animation"/&gt;</code>.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>20</p>
+                    </td>
+                    <td>
+                        <p>Accessing CSS style properties starting with a '-'</p>
+                    </td>
+                    <td>
+                        <p>(See 19 also) When using the STYLE namespace in XPaths to fetch style
+                            properties, if the style name begins with '-' then this should be
+                            prefixed with '_' (underscore) in the XPath so the QName is valid.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>21</p>
+                    </td>
+                    <td>
+                        <p><code>xsl:result-document</code>fails silently if there's no matching
+                            target node for the href.</p>
+                    </td>
+                    <td>
+                        <p>A 'non-fatal' warning should be logged.</p>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+   <section id="alpha0.4" title="Alpha 0.4 (December 2011)">
+      <h1>Alpha 0.4 (December 2011)</h1>
+        
+        <p>Changes in this release (current patch: A0.4.1) have focussed on the following areas:</p>
+        <ul>
+            <li>
+                <p>Improved cross-browser compatibility - mostly affecting Internet Explorer</p>
+            </li>
+            <li>
+                <p>Continued fixes for <a href="../issues0.4" class="bodylink">issues</a>identified either by W3C
+                    XSLT 2.0 tests or Saxon-CE users</p>
+            </li>
+            <li>
+                <p>Better JavaScript interoperability using <code>ixsl:eval()</code>, with calls now
+                    executing properly and within the root scope</p>
+            </li>
+            <li>
+                <p>More assistance given by runtime error messages</p>
+            </li>
+        </ul>
+        <p>Cross-browser compatibility is a priority for Saxon-CE. Internet Explorer has tended to
+            raise the most issues, though IE9 is noticeably better than previous versions. Whilst
+            covering versions back to IE6, effort has concentrated on IE9. Use of the
+                <code>&lt;!DOCTYPE html&gt;</code> declaration in web pages helps reduce
+            compatibility issues by ensuring this browser operates in 'standards mode'.</p>
+        <p>A number of bugs have been fixed in this release, but to pick just a few areas: the
+            attribute axis now has better cross-browser support, formatting of date/time function
+            results has better conformance, and finally, string-handling is improved with fixes for
+            substring and also for functions using regular expressions.</p>
+        <p>The <code>ixsl:eval()</code>extension function now works. To implement this, expressions
+            are injected into the DOM so they have full read/write access with root-level scope. So,
+            ixsl:eval() may be used to return a value immediately as a one-off; or, for repeated
+            evaluations, it can be used to create a global function which can then, in turn, be
+            called repeatedly (using <code>ixsl:call()</code>).</p>
+        <p>[Patch Release 0.4.1] With the <code>result-document</code>instruction, the
+                <code>href="?select='//div[1]'"</code>method for selecting the target node now works
+            as documented.</p>
+        <p>The expiry date for this release is 31 March 2012. A new release will be available before
+            that date.</p>
+    </section>
+   <section id="issues0.4" title="Issues fixed in Alpha 0.4">
+      <h1>Issues fixed in Alpha 0.4</h1>
+        
+        <p>The table below lists a summary of the issues fixed in the Alpha 0.4 release of
+            Saxon-CE</p>
+        <table>
+            <thead>
+                <tr>
+                    <td style="font-weight: bold">
+                        <p>
+                            <strong>#</strong>
+                        </p>
+                    </td>
+                    <td style="font-weight: bold">
+                        <p>
+                            <strong>Title</strong>
+                        </p>
+                    </td>
+                    <td style="font-weight: bold">
+                        <p>
+                            <strong>Description</strong>
+                        </p>
+                    </td>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>
+                        <p>1</p>
+                    </td>
+                    <td>
+                        <p>The XML declaration is included as a node in the XDM</p>
+                    </td>
+                    <td>
+                        <p>With internet explorer the XML Declaration is included as a
+                            processing-instruction at the root level of the XPath Data Model. This
+                            can cause unexpected XPath results if they access top-level nodes.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>2</p>
+                    </td>
+                    <td>
+                        <p>XPath that includes a data() call will not compile</p>
+                    </td>
+                    <td>
+                        <p>Compile time error warning shows</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>3</p>
+                    </td>
+                    <td>
+                        <p>Iterating on the result of xsl:copy-of instruction fails</p>
+                    </td>
+                    <td>
+                        <p>Run time exception occurs when an attempt is made to use the result of an
+                            xsl:copy-of instruction</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>4</p>
+                    </td>
+                    <td>
+                        <p>Static-base-uri function returns wrong result type</p>
+                    </td>
+                    <td>
+                        <p>Calling this function returns a xs:string instead of xs:anyURI</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>5</p>
+                    </td>
+                    <td>
+                        <p>Browser unresponsive on accessing an XSLT input parameter</p>
+                    </td>
+                    <td>
+                        <p>An attempt to resolve the name of an xsl:param at the top-level causes an
+                            infinite loop. Note: XSLT input parameters are not yet supported in CE,
+                            but this would cause an issue with XSLT ported from another source.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>6</p>
+                    </td>
+                    <td>
+                        <p>ClassCast exception thrown using xsl:analyse-string</p>
+                    </td>
+                    <td>
+                        <p>String is returned instead of a node, so using XPath that expects a node
+                            will throw an exception</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>7</p>
+                    </td>
+                    <td>
+                        <p>Using last() within xsl:analyse-string gives an error</p>
+                    </td>
+                    <td>
+                        <p>Iterating result of xsl:analyse-string fails because regex pattern is not
+                            reset at start</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>8</p>
+                    </td>
+                    <td>
+                        <p>Out of stack space exception when calling substring</p>
+                    </td>
+                    <td>
+                        <p>Optimisation within substring causes exception when setting the string
+                            length</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>9</p>
+                    </td>
+                    <td>
+                        <p>Casting a negative year with as xs:dateTime gives unexpected result</p>
+                    </td>
+                    <td>
+                        <p>Returns year value that is 2 higher than expected</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>10</p>
+                    </td>
+                    <td>
+                        <p>Casting a negative year with as xs:date gives an unexpected result</p>
+                    </td>
+                    <td>
+                        <p>Returns year value that is 2 higher than expected</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>11</p>
+                    </td>
+                    <td>
+                        <p>Casting 21999 as gYearMonth returns 1999</p>
+                    </td>
+                    <td>
+                        <p>When called with a year argument value with 6 digits,returns only the
+                            last 5 digits</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>12</p>
+                    </td>
+                    <td>
+                        <p>Casting xs:base64Binary('PM24') as xs:base64Binary returns the empty
+                            sequence</p>
+                    </td>
+                    <td>
+                        <p>Creating a Base64 value from a single token results in a returned empty
+                            sequence</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>13</p>
+                    </td>
+                    <td>
+                        <p>Casting 21999 as gYearMonth returns 1999</p>
+                    </td>
+                    <td>
+                        <p>When called with a year argument value with 6 digits,returns only the
+                            last 5 digits</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>14</p>
+                    </td>
+                    <td>
+                        <p>Casting xs:float(1.75e-3) returns number with trailing zeros</p>
+                    </td>
+                    <td>
+                        <p>Conversion to float results in number with trailing zeros</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>15</p>
+                    </td>
+                    <td>
+                        <p>xsl:number does not format numbers correctly</p>
+                    </td>
+                    <td>
+                        <p>The number format Ww is ignored because xsl:number returns a BigDecimal
+                            type and the number formatter only formats long types</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>16</p>
+                    </td>
+                    <td>
+                        <p>Exception thrown by 'disable-output-escaping' attribute in
+                            xsl:value-of</p>
+                    </td>
+                    <td>
+                        <p>An exception is thrown, but because there's no serialization, this
+                            attribute should be ignored, no exception should be thrown</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>17</p>
+                    </td>
+                    <td>
+                        <p>xs:time() function call on time with fractions of a second</p>
+                    </td>
+                    <td>
+                        <p>This function throws a NumberFormat exception because .006 is converted
+                            to ..006 when the time is parsed</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>18</p>
+                    </td>
+                    <td>
+                        <p>seconds-from-time() function returns trailing zeros</p>
+                    </td>
+                    <td>
+                        <p>Values from functions that are converted to the DecimalValue type
+                            (internally) do not have trailing zeros stripped this affects many
+                            functions</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>19</p>
+                    </td>
+                    <td>
+                        <p>formatDate using Ww pattern truncates values to 2 chars</p>
+                    </td>
+                    <td>
+                        <p>The formatDate function does not correctly recognize non-digit patterns
+                            and therefore truncates the text representation of years as if they were
+                            digits</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>20</p>
+                    </td>
+                    <td>
+                        <p>Unhelpful error when 'extension-element-prefixes' not set</p>
+                    </td>
+                    <td>
+                        <p>If the ixsl namespace prefix is (accidentally) not declared as an
+                            extension element prefix then the resulting error message when an ixsl
+                            element is treated as a literal result element does not help identify
+                            the root cause</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>21</p>
+                    </td>
+                    <td>
+                        <p>The ixsl:eval function always returns invalid values</p>
+                    </td>
+                    <td>
+                        <p>This function returns the lexical JavaScript instead of the result of the
+                            evaluation</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>22</p>
+                    </td>
+                    <td>
+                        <p>Node results from an ixsl:function can not be iterated as nodes</p>
+                    </td>
+                    <td>
+                        <p>The (internal) HTMLNodeWrapper is not used to wrap JavaScriptObjects that
+                            are node results returned from 'native' JavaScript calls - this causes
+                            exceptions when an attempt is made to iterate them as nodes. When
+                            required, the NodeWrapper must be converted back to a JavaScript
+                            object.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>23</p>
+                    </td>
+                    <td>
+                        <p>When evaluating $element/@style, the string '[object]' is returned</p>
+                    </td>
+                    <td>
+                        <p>Internet explorer returns a style object instead of a string containing
+                            the attribute value when the style attribute is accessed.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>24</p>
+                    </td>
+                    <td>
+                        <p>When an attempt is made to iterate the attribute axis, Internet Explorer
+                            thows an exception</p>
+                    </td>
+                    <td>
+                        <p>An XPath such as $element/@* results in an error because IE does not
+                            support the attributes property of an element</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>25</p>
+                    </td>
+                    <td>
+                        <p>An exception is thrown when an invalid attempt is made to set a style
+                            property</p>
+                    </td>
+                    <td>
+                        <p>All browsers, except IE, handle such style property errors silently.
+                            Behaviour with IE should be consistent with the other main browsers.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>26</p>
+                    </td>
+                    <td>
+                        <p>Unhelpful error message when a DOM exception is thrown when attempting to
+                            add an invalid text node to an element,</p>
+                    </td>
+                    <td>
+                        <p>The error message currently states that an invalid method or property was
+                            accessed, instead the message should give details of the text node being
+                            appended or inserted.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>27</p>
+                    </td>
+                    <td>
+                        <p>ClassCast exception thown by distrinct-values()</p>
+                    </td>
+                    <td>
+                        <p>This exception is thrown when 2 or more string values are contained
+                            within the sequence that is the argument of the function</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>28</p>
+                    </td>
+                    <td>
+                        <p>multiple xsl:key instructions not added to the key set</p>
+                    </td>
+                    <td>
+                        <p>This occurs when the 'use' attribute of xsl:key instructions is an atomic
+                            value. The cause is that the equals method of the Literal class does not
+                            test atomicValue types for equality, so the KeyManager does not add
+                            subsequent keys because they appear to be the same.</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>29</p>
+                    </td>
+                    <td>
+                        <p>result-document href?select= does not return a node if the atomic value
+                            of node is required</p>
+                    </td>
+                    <td>
+                        <p>For example using href=”?select=//div[@id='elect']” results in a
+                            'ClassCastException' - for some other expression no node is selected but
+                            there's no exception warning</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>30</p>
+                    </td>
+                    <td>
+                        <p>result-document href?select= raises an exception when any function is
+                            called within the XPath</p>
+                    </td>
+                    <td>
+                        <p>E.g. div[not(id='elect')] would raise an exception</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p>31</p>
+                    </td>
+                    <td>
+                        <p>result-document href?select= does not work with the data source XML
+                            set</p>
+                    </td>
+                    <td>
+                        <p>[Patched in A0.4.1]result-document href?select= does not select a node
+                            when the HTML <code>&lt;script&gt;</code>element sets the XML source in
+                            the <code>data-source</code> attribute</p>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </section>
+   <section id="alpha0.3" title="Alpha 0.3 (September 2011)">
+      <h1>Alpha 0.3 (September 2011)</h1>
+        
+        <p>The main change in this release is that it has been more thoroughly tested, and in the
+            course of this many bugs have been fixed. We now have a test framework for running all
+            the W3C XSLT 2.0 tests. They are not yet all passing, but we have made sufficient
+            progress towards this that it seems worth shipping a release containing bug fixes for
+            those problems we have identified so far.</p>
+        <p>In the &lt;script&lt; element referrring to the XSLT stylesheet, the attribute that
+            refers to the source XML document is now named <code>data-source</code>(was
+                <code>input</code>). It can be omitted if there is no source document.</p>
+        <p>In addition, two new optional attributes are available on this element:
+                <code>data-initial-template</code>defines the named template at which execution
+            should start, and <code>data-initial-mode</code>defines the mode in which execution
+            should start. In both cases the name should be written in Clark notation if there is a
+            namespace (that is,<code>{namespace}local</code>).</p>
+        <p>There is a known bug (also present in earlier releases): the
+            <code>ixsl:eval()</code>extension function does not work.</p>
+        <p>There is updated information on the limitations of the release in terms of XSLT 2.0
+            conformance, notably in the areas of regular expressions and formatting of numbers.</p>
+        <p>The expiry date for this release is 31 December 2011. A new release will be available
+            before that date.</p>
+    </section>
+   <section id="alpha0.2" title="Alpha 0.2 (July 2011)">
+      <h1>Alpha 0.2 (July 2011)</h1>
+        
+        <p>This is something of a stopgap release; a new version is under development, but was not
+            ready for release before the time-expiry of release 0.1.</p>
+        <p>A bug has been fixed that prevented many stylesheets working under Internet Explorer (the
+            content of a temporary tree created by xsl:result-document is now rooted at a
+            DocumentFragment node rather than an IFrame element.)</p>
+        <p>When a <code>style</code>attribute is written, its content is now parsed, and Saxon
+            updates the individual properties of the style object associated with the containing
+            element. This was happening automatically under Firefox, but not under Internet
+            Explorer.</p>
+        <p>Saxon no longer fails if the HTML DOM contains a DOCTYPE node.</p>
+        <p>The <code>id()</code>function has been verified to work in the HTML DOM, and it has been
+            made to work with <code>xml:id</code>attributes (but not DTD-defined IDs) in the XML
+            DOM.</p>
+        <p>The expiry date of the alpha trial has been extended to end October 2011.</p>
+    </section>
+   <section id="alpha0.1" title="Alpha 0.1 (March 2011)">
+      <h1>Alpha 0.1 (March 2011)</h1>
+        
+        <p>Alpha 0.1 is the first release of Saxon-CE. It is a technology preview; test coverage is
+            very incomplete, and all features and facilities are subject to change. The release has
+            been built to cease working on 30 June 2011.</p>
+        <p>The product is written in Java and has been cross-compiled into Javascript using the
+            Google Web Toolkit (GWT). It runs entirely client-side: there are no server
+            components.</p>
+        <p>The baseline for this release is Saxon 9.3 Home Edition. Much code has been removed from
+            that product (for example XQuery, updates, XSLT 3.0 and XPath 3.0 support,
+            serialization, Saxon extensions, the Tiny Tree, support for .NET) in the interests of
+            reducing the product size; some features have also been added to integrate into the
+            browser environment or to deal with the challenges imposed by the GWT technology.</p>
+    </section>
+</article>

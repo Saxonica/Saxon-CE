@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8"?>
+<article id="about" title="About Saxon-CE">
+   <h1>About Saxon-CE</h1>
+        
+        <p>XSLT 1.0 has been available in most desktop browsers for some years. The Saxonica web site uses it:
+            content is delivered in XML, and transformed by the browser's built-in XSLT 1.0
+            processor into HTML for display on the screen.</p>
+        <p>However, XSLT 1.0 in the browser has not been a great success, for several reasons:</p>
+        <ul>
+            <li>
+                <p>It has been slow coming; until recently, there were important browsers that did
+                    not support it. Today, new devices such as smartphones are appearing whose
+                    browsers do not include XSLT 1.0 support.</p>
+            </li>
+            <li>
+                <p>Browser vendors have failed to upgrade their processors to XSLT 2.0. The 1.0
+                    language is nearly 12 years old and its limitations are well known; most of them
+                    are remedied in XSLT 2.0, which offers vastly greater capability and
+                    productivity.</p>
+            </li>
+            <li>
+                <p>There are minor niggling differences between implementations, such as the lack of
+                    support for the namespace axis in Firefox, the treatment of whitespace by
+                    Microsoft, and the lack of support until recently for the
+                        <code>document()</code> function in Opera.</p>
+            </li>
+            <li>
+                <p>Perhaps most significantly, the web has moved on since XSLT was first introduced
+                    in 1999. In those days it was mainly about displaying static content and
+                    supporting navigation via hyperlinks. The main purpose of XSLT in the browser
+                    was to provide device independence. Many of the original problems which XSLT
+                    aimed to address are today adequately solved by CSS, while in the meantime web
+                    pages have become dynamic and interactive in a way that is beyond the original
+                    conception for XSLT.</p>
+            </li>
+            <li>
+                <p>Browser vendors, anxious to achieve market share more than anything else, have
+                    focused on the most popular technologies and have let other technologies
+                    languish despite their strategic potential. At the same time they have failed to
+                    provide an open platform where third-party implementors can deliver alternative
+                    tools and languages with satisfactory quality.</p>
+            </li>
+        </ul>
+        <p>Saxon-CE aims to remedy this situation.</p>
+        <p>Saxon-CE has become possible first because JavaScript implementations have been improving
+            dramatically, and secondly because Google's GWT (Google Web Toolkit) has made it
+            possible for substantial Java applications like Saxon to be cross-compiled into
+            JavaScript for execution within the browser.</p>
+        <p>Saxon-CE is not simply an XSLT 2.0 processor running in the browser, doing the kind of
+            things that an XSLT 1.0 processor did, but with more language features (though that in
+            itself is a great step forward). It also takes XSLT into the world of interactive
+            programming. With Saxon-CE it's not just a question of translating XML into
+            HTML-plus-JavaScript and then doing all the interesting user interaction in the
+            JavaScript; instead, user input and interaction is handled directly within the XSLT
+            code.</p>
+        <p>XSLT is ideally suited for this role. It's a language whose basic approach is to define
+            rules that respond to events by constructing XML or HTML content. It's a natural
+            extension of the language to make template rules respond to input events rather than
+            only to parsing events. The functional and declarative nature of the language makes it
+            ideally suited to this role, eliminating many of the bugs that plague JavaScript
+            development.</p>
+        <p>Saxon-CE reached its first production release (1.0) in June 2012, following on from two earlier
+            public beta releases. The current release (1.1) is dated February 2013, and the main change
+            is that the product is now released under an open source license (Mozilla Public License 2.0).
+        </p>
+        <p>The Saxon software has an enviable reputation as the leading XSLT processor: its
+            performance, reliability, conformance, and pace of innovation are second to none.
+            Saxon-CE builds on this history.</p>
+    <section id="design" title="Design Approach">
+      <h1>Design Approach</h1>
+        
+        <p>The design approach behind Saxon-CE is twofold:</p>
+        <ol>
+            <li>
+                <p>You should be able to do most things in XSLT without writing any JavaScript</p>
+            </li>
+            <li>
+                <p>If you do have to write any JavaScript, or make use of existing JavaScript
+                    components, the interface should be as seamless as the specifications allow.</p>
+            </li>
+        </ol>
+        <p>As far as rendering XML is concerned, you can start with the traditional approach of
+            writing a transformation that takes an XML document as input, and produces an HTML page
+            as output. In this case, the <code>xml-stylesheet</code> processing instruction is used
+            to invoke a small 'boot' stylesheet that loads the Saxon-CE processor before loading the
+            main stylesheet.</p>
+        <p>For newer projects, where it's possible to make changes that exploit Saxon-CE's
+            capabilities more fully, several additional strategies are available: Since there is an
+            HTML page, it makes sense to use it to create the page framework - the structure of
+            sections and images that will then be populated by content. The stylesheet can then use
+            the XSLT 2.0 <code>xsl:result-document</code> instruction to create as many pieces of
+            content as it wishes, posting each one to a separate container in the HTML page
+            framework.</p>
+        <p>At this stage you would traditionally include attributes such as <code>onclick</code> in
+            the generated HTML, each <code>onclick</code> providing a JavaScript event handler to
+            process user input. With Saxon-CE, however, there's a higher-level approach: you can
+            define template rules in the stylesheet that process these events. Each template rule
+            defines the set of HTML elements that it applies to (in its <code>match</code>
+            attribute), and the set of events that it applies to (in its <code>mode</code>
+            attribute: a set of standard mode-names such as <code>ixsl:onclick</code> is provided
+            for this purpose.)</p>
+        <p>These event-handling template rules can create or modify chunks of content in the HTML
+            page. The new content can be defined in the same way as the original content, using the
+            XSLT 2.0 <code>xsl:result-document</code> instruction. The stylesheet can also modify
+            individual attributes of HTML elements (for example, changing the visibility to
+            "hidden") using the extension instruction <code>ixsl:set-attribute</code>. This is done
+            without damaging the integrity of XSLT as a declarative language, because the updates
+            are all deferred until each event has been fully processed: the stylesheet sees an
+            immutable input structure, and generates an output which is a set of changes to be
+            applied later.</p>
+        <p>It is also possible to fire off templates for execution at a later time, thus allowing
+            animations to be constructed.</p>
+        <p>Where more detailed interaction with the browser platform is required, Saxon-CE provides
+            a set of extension functions allowing full manipulation of JavaScript objects from
+            within any XPath expression. One of the demonstration applications, for example, shows
+            how this can be used to read the current mouse coordinates as input to a decision on how
+            to render the HTML page.</p>
+    </section>
+   <section id="gwt" title="Saxon and GWT">
+      <h1>Saxon and GWT</h1>
+        
+        <p>Saxon-CE is built by cross-compiling a Java application into highly-optimized JavaScript;
+            the technology that does this is the Google Web Toolkit (GWT). If you're interested in
+            the internals, this section says a little bit about how this is achieved. If you're not
+            interested, you can safely ignore it.</p>
+        <p>Saxon-CE 1.1 is built using GWT 2.5. This delivers some useful improvements in performance,
+            especially in the size of the Javascript download.</p>
+        <p>The Java source code for Saxon-CE is about 62K non-comment lines, compared with around
+            140K for Saxon-HE and 240K for Saxon-EE. Most of the effort therefore went into deleting
+            code that was dispensible in the browser environment. This includes the XQuery
+            processor, the serializer, APIs such as JAXP, XQJ, and s9api, the TinyTree tree
+            implementation, and many other ancillary features.</p>
+        <p>It was then necessary to fill the gaps left by GWT's incomplete coverage of the Java
+            class library. For example, this meant porting the regular expression handling in Saxon
+            to use the JavaScript regex library in place of the Java one. A number of other classes
+            used by Saxon are not present in GWT, and had to be emulated. Other changes included
+            loading the code for built-in functions statically rather than by using reflection.</p>
+        <p>Other measures to reduce the size of the software included extracting the data used by
+            the <code>normalize-unicode()</code> function into a separate data file that is
+            downloaded only when this function is used.</p>
+        <p>There is a small amount of native Javascript to supplement the code generated by GWT. The
+            GWT DOM library masks some features offered by the native Javascript DOM, for example
+            access to <code>DocumentFragment</code> and <code>DocType</code> nodes, and the ability
+            to enumerate the attributes of an element. As well as filling these gaps, Saxon uses
+            native Javascript methods to support the extension functions that access properties of
+            Javascript objects, the <code>ixsl:eval</code> function to execute arbitrary Javascript,
+            and a method to retrieve XML documents synchronously from the server (GWT is used for
+            asynchronous requests).</p>
+        <p>The resulting JavaScript is a download of approximately 960Kb, which gives acceptable
+            response time to users with a reasonable modern internet connection. Once downloaded, of
+            course, the code will be held in browser cache. However, when designing a web site, it
+            may be advisable to ensure that users are prepared for a slight delay on their first
+            encounter.</p>
+        <p>GWT provides the capability to develop applications that are distributed between the
+            client and server. Saxon-CE, however, makes no use of this: all the code is client-side.
+            There is no requirement on the server to do anything more than delivering static HTML
+            and JavaScript content.</p>
+    </section>
+</article>

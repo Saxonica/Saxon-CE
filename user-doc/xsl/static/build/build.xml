@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- This ant build file generates a chunked static HTML website from the documentation
+     stored in the 'viewer_app' folder that is also used for the dymaically generated
+     website that uses Saxon-CE .-->
+
+<project basedir="." default="all" name="Saxon-CE: The XSLT and XQuery Processor"
+xmlns:dn="antlib:org.apache.ant.dotnet">
+
+<import file="build-constants.xml"/>
+
+<path id="saxonee.class.path">
+<pathelement location="${saxonee-classpath}"/>
+</path>
+
+<target name="html" description="Converts Saxon userdoc XML files to article/section HTML5 files">
+<xslt basedir="${catalog_base}" destdir="${www_root}/html"
+in="${catalog_base}/catalog.xml" out="${www_root}/out.xml"
+style="${xslt_base}/s-cetree.xsl">
+<classpath refid="saxonee.class.path"/>
+<factory name="com.saxonica.config.EnterpriseTransformerFactory"/>
+</xslt>
+
+<!-- remove empty output file -->
+<delete file="${www_root}/out.xml"/>
+
+</target>
+
+</project>

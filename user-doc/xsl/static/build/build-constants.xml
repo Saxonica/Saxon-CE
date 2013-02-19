@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project basedir="." default="all" name="Saxon: The XSLT and XQuery Processor: build constants"
+ xmlns:dn="antlib:org.apache.ant.dotnet">
+
+ <!-- root for generated website -->
+<property name="www_root" value="C:\saxonica-repo\userdoc\saxon9\viewer_app"/>
+
+<!-- location of the base document files under version control -->
+<property name="catalog_base" value="${www_root}/doc"/>
+
+<!-- location of the stylesheet -->
+<property name="xslt_base" value="${www_root}/xsl/static"/>
+
+<!-- installed path of the saxon ee xslt processor -->
+<property name="saxonee-classpath" value="C:\saxon-builds\9.3.0.9\eej\saxon9ee.jar"/>
+
+</project>

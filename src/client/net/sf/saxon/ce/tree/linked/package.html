@@ -1,0 +1,35 @@
+<html>
+
+<head>
+<title>Package overview for net.sf.saxon.tree</title>
+</head>
+
+<body>
+
+<p>This package defines the implementation of the "linked tree" structure. This
+structure can be used to represent both the source document and the stylesheet.
+It is no longer the default structure for source documents, but is always used for
+stylesheets and for schema documents, because it allows each element to be represented
+by a subclass of <code>Element</code> with application-specific functionality.</p>
+
+<p>The classes represent the various kinds of node on the tree. Most of them
+are not visible outside the package, with the notable exception of ElementImpl,
+which can be subclassed to contain properties for a particular kind of element.
+This capability is exploited especially in the stylesheet tree.</p>
+
+<p>As well as classes representing nodes, there are classes representing
+iterators over the various XPath axes, for example <code>ChildEnumeration</code>
+and <code>PrecedingEnumeration</code>.</p>
+
+<p>The <code>TreeBuilder</code> performs the work of constructing a tree, from a
+sequence of SAX-like <code>Receiver</code> events.</p>
+
+<p>The package also contains some helper classes such as <code>SystemIdMap</code>
+and <code>LineNumberMap</code> that are used also by the TinyTree implementation.</p>
+
+
+<p align="center"><i>Michael H. Kay<br/>
+Saxonica Limited<br/>
+9 February 2005</i></p>
+</body>
+</html>

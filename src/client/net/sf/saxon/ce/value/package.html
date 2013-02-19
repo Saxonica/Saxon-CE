@@ -1,0 +1,44 @@
+<html>
+
+<head>
+<title>Package overview for net.sf.saxon.value</title>
+</head>
+
+<body>
+
+<p>This package provides classes representing XPath values (that is, the results of
+an expression). There are different classes for different types of value.</p>
+
+<p>The principal class is:</p>
+
+<p><b>Value</b>: <br>
+This represents the result of evaluating an expression. But a Value is also an expression in its
+own right, reflecting the fact that literal values can be used syntactically wherever expressions
+can be used. <code>AtomicValue</code> is a subclass of <code>Value</code>
+that represents an atomic value: this in turn has subclasses for the different built-in data types:
+StringValue, NumericValue, BooleanValue, DateValue, and so on.</p>
+
+<p>There are two classes used to represent integer values: <code>IntegerValue</code> for integers that
+fit comfortably in 64 bits, and <code>BigIntegerValue</code> for anything longer. Built-in subtypes
+of xs:integer, such as <code>xs:int</code> and <code>xs:short</code>, are always represented using
+an <code>IntegerValue</code>, except for <code>xs:unsignedLong</code>, which uses a <code>BigIntegerValue</code>.</p>
+
+<p>In general a value is a sequence. A sequence that is instantiated in memory is represented by a
+<code>SequenceExtent</code> object. The code tries to pipeline execution so that a <code>SequenceExtent</code>
+is created as rarely as possible.</p>
+
+<p>When an expression is evaluated lazily, the result is a <code>Closure</code>. A Closure contains the original
+expression, and a copy of the run-time context at the time evaluation was requested: that is, all the local variables
+and other information that it depends on, such as the context item. There are two kinds of Closure, and the system
+decides at compile time which to use. An ordinary Closure re-evaluates the expression every time the value is referenced;
+this is used only when the compiler decides that the value is likely to be referenced only once. A MemoClosure remembers
+the value the first time it is needed, so that subsequent references do not cause repeated evaluation of the
+expression.</p>
+
+<hr>
+
+<p align="center"><i>Michael H. Kay<br/>
+Saxonica Limited<br/>
+9 February 2005</i></p>
+</body>
+</html>
