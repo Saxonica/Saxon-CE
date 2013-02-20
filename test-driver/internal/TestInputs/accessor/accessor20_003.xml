@@ -1,7 +1,0 @@
-<?xml version="1.0"?> 
-<doc att="top" xmlns:mynamespace="http://test.com">
-  <?mypi some data?>
-  <!-- This is the 1st comment -->
-  text-in-doc
-  <inner/>
-</doc>

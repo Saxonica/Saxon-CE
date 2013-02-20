@@ -1,9 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<out>
-<root_element>doc</root_element>
-<child_element>sub:test</child_element>
-<child_element>{http://test.com}test</child_element>
-<child_attribute>{http://expath.org/ns/zip}entry</child_attribute>
-</out>
-
-

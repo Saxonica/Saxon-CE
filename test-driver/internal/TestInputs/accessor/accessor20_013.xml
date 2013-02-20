@@ -1,2 +1,0 @@
-<?xml version="1.0"?> 
-<doc att="top" xmlns:sub="http://test.com"><?mypi some data?><!--This is the 1st comment-->outter-text<inner att2="blob">inner-text</inner></doc>
