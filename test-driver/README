@@ -1,0 +1,9 @@
+Saxon-CE test-driver
+========================
+
+
+Directory saxon-utils: contains the test-driver application, including the index.html required to run the app in the browser.
+
+Directory Saxonce: Is empty, but needs to contain the Saxon-CE release, required to run the test-driver app.
+
+

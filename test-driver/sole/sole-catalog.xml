@@ -1,0 +1,90 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testcases xmlns="http://www.w3.org/2005/05/xslt20-test-catalog" SourceOffsetPath="./" ResultOffsetPath="ExpectedTestResults/" InputOffsetPath="TestInputs/" testSuiteVersion="1.1.0">
+<citations>
+<citation-spec name="XSLT20">
+<description last-mod="2006-06-08" short-name="XSLT 2.0">XSL Transformations (XSLT) Version 2.0</description>
+<spec-URI>http://www.w3.org/TR/xslt20/</spec-URI>
+</citation-spec>
+<citation-spec name="XPath20">
+<description last-mod="2006-06-08" short-name="XPath 2.0">XML Path Language (XPath) 2.0</description>
+<spec-URI>http://www.w3.org/TR/xpath20/</spec-URI>
+</citation-spec>
+<citation-spec name="FuncOps">
+<description last-mod="2006-06-08" short-name="Functions and Operators">XQuery 1.0 and XPath 2.0 Functions and Operators</description>
+<spec-URI>http://www.w3.org/TR/xpath-functions/ </spec-URI>
+</citation-spec>
+</citations>
+<coverage>
+<coverage-type name="n/a" min="0"/>
+<coverage-type name="full" min="50"/>
+<coverage-type name="average" min="25"/>
+<coverage-type name="minimal" min="4"/>
+<coverage-type name="error" min="1"/>
+</coverage>
+
+<!--
+<testcase>
+<name>copy19</name>
+<creator>Michael Kay, Saxonica</creator>
+<category>Copy</category>
+<description>Test http handling of encoding 8859-1</description>
+<section number="11.9.2" title="Deep Copy" spec="XSLT20" version="2005-04-04"/>
+<input>
+<stylesheet role="principal" file="copy/copy19.xsl"/>
+<source-document role="principal" file="copy/copy19.xml"/>
+</input>
+<output same-as-1.0="true">
+<result-document role="principal" type="xml" file="copy/copy19.out"/>
+</output>
+</testcase>
+<testcase>
+<name>copy19-1</name>
+<creator>Phil Fearon, Saxonica</creator>
+<category>Copy</category>
+<description>Tests encoding of expected output file which has special char but is utf-8</description>
+<section number="11.9.2" title="Deep Copy" spec="XSLT20" version="2005-04-04"/>
+<input>
+<stylesheet role="principal" file="copy/copy19-1.xsl"/>
+<source-document role="principal" file="copy/copy19.xml"/>
+</input>
+<output same-as-1.0="true">
+<result-document role="principal" type="xml" file="copy/copy19-1.out"/>
+</output>
+</testcase>
+<testcase>
+<name>attribvaltemplate20_021_01</name>
+<creator origin="IBM">Vesela Parapounska</creator>
+<category>AttribValTemplate</category>
+<description>Test of single AVT in @stable of xsl:sort. AVT value has no literal element and comes from a node.</description>
+<section number="13.1" spec="XSLT20" version="2005-11-03"/>
+<section number="5.6" spec="XSLT20" version="2005-11-03"/>
+<origin organization="IBM">
+<copyright>Copyright IBM Corp. 2004, 2005, 2006.</copyright>
+</origin>
+<input>
+<stylesheet file="copy/attribvaltemplate20_021.xsl" role="principal"/>
+<source-document file="copy/attribvaltemplate20_021.xml" role="principal"/>
+</input>
+<output same-as-1.0="false">
+<result-document file="copy/attribvaltemplate20_021_01.out" role="principal" type="xml"/>
+</output>
+</testcase>
+-->
+<testcase>
+<name>embed20_020_01</name>
+<creator origin="IBM">Atosa Khoddamhazrati</creator>
+<category>Embed</category>
+<description>Test case in which a standalone standard stylesheet imports a standalone simplified stylesheet. </description>
+<section number="3.11" spec="XSLT20" version="2005-11-03"/>
+<origin organization="IBM">
+<copyright>Copyright IBM Corp. 2004, 2005, 2006.</copyright>
+</origin>
+<input>
+<stylesheet file="copy/bug98.xsl" role="principal"/>
+<source-document file="copy/bug98.xml" role="principal"/>
+</input>
+<output same-as-1.0="false">
+<result-document file="copy/bug98.out" role="principal" type="xml"/>
+</output>
+</testcase>
+</testcases>

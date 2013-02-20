@@ -1,0 +1,41 @@
+K 25
+svn:wc:ra_dav:version-url
+V 50
+/repos/saxon/!svn/ver/1769/tests/ce/ce-test-driver
+END
+test-driver.css
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/repos/saxon/!svn/ver/1687/tests/ce/ce-test-driver/test-driver.css
+END
+exceptions.xml
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/repos/saxon/!svn/ver/1685/tests/ce/ce-test-driver/exceptions.xml
+END
+test-driver.js
+K 25
+svn:wc:ra_dav:version-url
+V 65
+/repos/saxon/!svn/ver/1769/tests/ce/ce-test-driver/test-driver.js
+END
+compare-utils.xsl
+K 25
+svn:wc:ra_dav:version-url
+V 68
+/repos/saxon/!svn/ver/1711/tests/ce/ce-test-driver/compare-utils.xsl
+END
+test-driver.html
+K 25
+svn:wc:ra_dav:version-url
+V 67
+/repos/saxon/!svn/ver/1769/tests/ce/ce-test-driver/test-driver.html
+END
+test-driver.xsl
+K 25
+svn:wc:ra_dav:version-url
+V 66
+/repos/saxon/!svn/ver/1769/tests/ce/ce-test-driver/test-driver.xsl
+END

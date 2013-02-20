@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- this file is used by test-driver to provide a list of available categories to test -->
+<categories>
+<category name="Accessor" desc="accessor functions" lowercase_name="accessor" coverage="n/a">
+<ref spec="FO" id="accessors" section="2" title="Accessors"/>
+<ref spec="FO" id="func-node-name" section="2.1" title="fn:node-name"/>
+<ref spec="FO" id="func-nilled" section="2.2" title="fn:nilled"/>
+<ref spec="FO" id="func-string" section="2.3" title="fn:string"/>
+<ref spec="FO" id="func-data" section="2.4" title="fn:data"/>
+<ref spec="FO" id="func-document-uri" section="2.6" title="fn:document-uri"/>
+</category>
+<category name="AttrConstruct" desc="xsl:attribute" lowercase_name="attrconstruct" coverage="average">
+<ref spec="XSLT" id="creating-attributes" section="11.3" title="Creating Attribute Nodes Using xsl:attribute"/>
+<ref spec="XSLT" id="annotation-for-constructed-attribute" section="11.3.1" title="Setting the Type Annotation for a Constructed Attribute Node"/>
+<ref spec="XSLT" id="constructing-simple-content" section="5.7.2" title="Constructing Simple Content"/>
+</category>
+</categories>

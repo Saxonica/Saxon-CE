@@ -1,0 +1,3 @@
+<?xml version="1.0" encoding="UTF-8"?><out><doc_node>doc_typed_value="outter-textinner-text"</doc_node>
+<Elmt>typed_value="outter-textinner-text"</Elmt><Attr>typed_value="top"</Attr><PI>typed_value="some data"</PI><Cmt>typed_value="This is the 1st comment"</Cmt><Txt>typed_value="outter-text"</Txt>
+<Elmt>typed_value="inner-text"</Elmt><Attr>typed_value="blob"</Attr><Txt>typed_value="inner-text"</Txt>|up||up|http://test.com|done|</out>

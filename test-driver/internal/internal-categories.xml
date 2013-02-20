@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- this file is used by test-driver to provide a list of available categories to test -->
+<categories>
+<category name="NodeProps" desc="read node types names and values" lowercase_name="nodeprops" coverage="n/a">
+</category>
+<category name="ResultDocs" desc="number and properties of output result documents" lowercase_name="resultdocs" coverage="average">
+</category>
+</categories>

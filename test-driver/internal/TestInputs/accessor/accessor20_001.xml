@@ -1,0 +1,14 @@
+<?xml version="1.0"?> 
+<doc att="top" xmlns:mynamespace="http://test.com">
+  <?mypi some data?>
+  <!-- This is the 1st comment -->
+  text-in-doc
+  <inner att2="blob">
+    inner-text
+    <!-- This is the 2nd comment -->
+  </inner>
+  text-in-doc2
+  <inner2 blat="bar">
+    <sub>subtext</sub>final-text
+  </inner2>
+</doc>

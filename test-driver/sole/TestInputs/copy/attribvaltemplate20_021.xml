@@ -1,0 +1,12 @@
+<?xml version="1.0"?>
+<doc>
+	<case1>yes</case1>
+	<item num="1" attr="B">a</item>
+	<item num="2" attr="b">a</item>
+	<item num="3" attr="BB">a</item>
+	<item num="4" attr="Bb">a</item>
+	<item num="5" attr="bB">a</item>
+	<item num="6" attr="b">a</item>
+	<item num="7" attr="Bb">a</item>
+	<item num="8" attr="bb">a</item>
+</doc>

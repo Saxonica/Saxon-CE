@@ -1,0 +1,130 @@
+<?xml version="1.0"?>
+    <reference id="allpreprocerrs_ref">
+       <title>Source document title</title> <shortdesc> Short decription content</shortdesc>
+       <refbody>
+          <table id="allpperrs_tbl">
+             <tgroup cols="5">
+                <colspec colnum="1" colname="col1" colwidth="1*"/>
+                <colspec colnum="2" colname="col2" colwidth="1*"/>
+                <colspec colnum="3" colname="col3" colwidth="3*"/>
+                <colspec colnum="4" colname="col4" colwidth="3*"/>
+                <colspec colnum="5" colname="col5" colwidth="1*"/>
+                <thead>
+                   <row>
+                      <entry colname="col1" align="center">Type</entry>
+                      <entry colname="col2" align="center">Number</entry>
+                      <entry colname="col3" align="center">Message</entry>
+                      <entry colname="col4" align="center">Possible Cause</entry>
+                      <entry colname="col5" align="center">UltraLite</entry>
+                   </row>
+                </thead>
+                <tbody>
+                   <row>
+                      <entry colname="col1" align="left">
+                         <p>Error</p>
+                      </entry>
+                      <entry colname="col2">
+                         <p>2601</p>
+                      </entry>
+                      <entry colname="col3" align="left">
+                         <p>subscript value %1 too large</p>
+                      </entry>
+                      <entry colname="col4">
+                         <p>You have attempted to index a host variable that is an array with a value too large for the array.</p>
+                      </entry>
+                      <entry colname="col5">
+                         <p>False</p>
+                      </entry>
+                   </row>
+                   <row>
+                      <entry colname="col1" align="left">
+                         <p>Error</p>
+                      </entry>
+                      <entry colname="col2">
+                         <p>2602</p>
+                      </entry>
+                      <entry colname="col3" align="left">
+                         <p>combined pointer and arrays not supported for host types</p>
+                      </entry>
+                      <entry colname="col4">
+                         <p>You have used an array of pointers as a host variable. This is not legal.</p>
+                      </entry>
+                      <entry colname="col5">
+                         <p>False</p>
+                      </entry>
+                   </row>
+                   <row>
+                      <entry colname="col1" align="left">
+                         <p>Error</p>
+                      </entry>
+                      <entry colname="col2">
+                         <p>2603</p>
+                      </entry>
+                      <entry colname="col3" align="left">
+                         <p>combined pointer and arrays not supported for host types</p>
+                      </entry>
+                      <entry colname="col4">
+                         <p>You have attempted to declare a host variable as an array of character arrays. This is not a legal host variable type</p>
+                      </entry>
+                      <entry colname="col5">
+                         <p>False</p>
+                      </entry>
+                   </row>
+                   <row>
+                      <entry colname="col1" align="left">
+                         <p>Error</p>
+                      </entry>
+                      <entry colname="col2">
+                         <p>2604</p>
+                      </entry>
+                      <entry colname="col3" align="left">
+                         <p>VARCHAR type must have a length</p>
+                      </entry>
+                      <entry colname="col4">
+                         <p>You have attempted to declare a VARCHAR or BINARY host variable using the DECL_VARCHAR or DECL_BINARY macro but have not specified
+                            a size for the array.
+                         </p>
+                      </entry>
+                      <entry colname="col5">
+                         <p>False</p>
+                      </entry>
+                   </row>
+                   <row>
+                      <entry colname="col1" align="left">
+                         <p>Error</p>
+                      </entry>
+                      <entry colname="col2">
+                         <p>2605</p>
+                      </entry>
+                      <entry colname="col3" align="left">
+                         <p>arrays of VARCHAR not supported</p>
+                      </entry>
+                      <entry colname="col4">
+                         <p>You have attempted to declare a host variable as an array of VARCHAR or BINARY. This is not a legal host variable type.</p>
+                      </entry>
+                      <entry colname="col5">
+                         <p>False</p>
+                      </entry>
+                   </row>
+                   <row>
+                      <entry colname="col1" align="left">
+                         <p>Error</p>
+                      </entry>
+                      <entry colname="col2">
+                         <p>2606</p>
+                      </entry>
+                      <entry colname="col3" align="left">
+                         <p>VARCHAR host variables cannot be pointers</p>
+                      </entry>
+                      <entry colname="col4">
+                         <p>You have attempted to declare a host variable as a pointer to a VARCHAR or BINARY. This is not a legal host variable type.</p>
+                      </entry>
+                      <entry colname="col5">
+                         <p>False</p>
+                      </entry>
+                   </row>
+                </tbody>
+             </tgroup>
+          </table>
+       </refbody>
+    </reference>

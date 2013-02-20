@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?><out><doc_node>doc_name=""
+    </doc_node>
+<Elmt>name="doc"
+  </Elmt><Attr>name="att"
+  </Attr><Txt>name=""
+  </Txt><PI>name="mypi"
+  </PI><Txt>name=""
+  </Txt><Cmt>name=""
+  </Cmt><Txt>name=""
+  </Txt>
+<Elmt>name="inner"
+  </Elmt><Attr>name="att2"
+  </Attr><Txt>name=""
+  </Txt><Cmt>name=""
+  </Cmt><Txt>name=""
+  </Txt>|up|<Txt>name=""
+  </Txt>
+<Elmt>name="inner2"
+  </Elmt><Attr>name="blat"
+  </Attr><Txt>name=""
+  </Txt>
+<Elmt>name="sub"
+  </Elmt><Txt>name=""
+  </Txt>|up|<Txt>name=""
+  </Txt>|up|<Txt>name=""
+  </Txt>|up|mynamespace|done|</out>

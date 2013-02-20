@@ -1,0 +1,4 @@
+<?xml version="1.0"?> 
+<doc att="top" xmlns:sub="http://test.com" xmlns:zip="http://expath.org/ns/zip">
+<sub:test zip:entry="top">alpha</sub:test>
+</doc>

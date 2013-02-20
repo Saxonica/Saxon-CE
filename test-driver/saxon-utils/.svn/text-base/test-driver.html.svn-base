@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head> 
+<title>Test Driver</title>
+<script type="text/javascript" language="javascript" src="test-driver.js"></script>
+<script type="text/javascript" language="javascript" src="../Saxonce/Saxonce.nocache.js"></script>
+<script type="application/xslt+xml" language="xslt2.0" src="test-driver.xsl" data-source="../w3c-tests/expanded-catalog.xml"></script>
+<link rel="stylesheet" href="test-driver.css" type="text/css" />
+</head>
+<body>
+<div id="scripts"></div>
+<div id="heading">
+<div style="float:left; margin-right:20px">
+<select id="testtype" style="width:75px">
+<option value="w3c" data-title="W3C Test Suite">W3C</option>
+<option value="internal" data-title="Saxon-CE Tests">Internal</option>
+<option value="single" data-title="Single tests for debugger purposes">One-off</option>
+</select>
+</div>
+<h1>Test Driver: <span id="version">Saxon-CE </span><span>&#160;&#160;</span><span id="status" style="font-size:medium; background-color:blue; color:white; display:none"> Loading Tests...&#160;</span></h1>
+</div>
+<div id="monitor">
+<p><span>Testing </span><span id="count">0</span><span> of </span><span id="total">0</span><span>&#160;&#160;&#160;Passes: </span><span id="passes">0 Fails: 0</span>&#160;&#160;&#160; <span style="color:#101010;">Category description: </span><span id="description" style="color:#AAAAAA;">Run tests for all categories</span>
+</p>
+</div>
+<div id="control">
+&nbsp;Category:&nbsp;
+<select id="category" style="width:150px">
+<option value="[All]" data-title="Run tests for all categories">[All]</option>
+</select>
+&nbsp;Show:&nbsp;
+<select id="show" style="width:75px">
+<option value="fails" data-title="Show only failed test">Failures</option>
+<option value="all" data-title="Run tests for all categories">All</option>
+</select>
+<!-- inputs -->
+&nbsp;Start:&nbsp;<input id="testStartPos" type="text" value="1" style="width:30px;" />
+Tests:&nbsp;<input id="maxTestCount" type="text" value="100" style="width:30px" />
+<!-- buttons -->
+<button id="start" style="margin-right: 0px; margin-left: 30px" type="button">Start</button>
+<button id="stop" style="margin-right: 10px; margin-left: 0px" type="button" disabled="disabled">Stop</button>
+<button id="clear" style="margin-right: 10px; margin-left: 0px" type="button">Clear</button>
+
+<span id="option" style="font-weight:bold; display:none">[All]</span>
+<span id="showOption" style="font-weight:bold; display:none">fails</span>
+
+</div>
+<table>
+<colgroup>
+<col id="c1"/>
+<col id="c2"/>
+<col id="c3"/>
+<col id="c4"/>
+<col id="c5"/>
+<col id="c6"/>
+<col id="c7"/>
+<col id="c8"/>
+</colgroup>
+<thead>
+<tr>
+<td>#</td><td>Category</td><td>Stylesheet</td><td>Input</td><td>Result</td><td>Message</td><td>Result</td><td>Expected</td>
+</tr>
+</thead>
+<tbody id="results">
+
+</tbody>
+</table>
+<div id="container"></div>
+<div id="data">
+<h1>Data Content</h1>
+<div class="numbers">
+<p>1</p>
+<p>2</p>
+<p>4</p>
+</div>
+<div class="strings">
+<p>one</p>
+<p>two</p>
+<p>four</p>
+</div>
+</div>
+<h3>Output</h3>
+<div id="test">[Empty]</div>
+</body>
+</html>
