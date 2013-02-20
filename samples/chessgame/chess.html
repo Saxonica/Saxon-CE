@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+
+<html>
+<head>
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+
+<link type="text/css" rel="stylesheet" href="chess.css" />
+<script type="text/javascript" language="javascript" src="chessgame.js" ></script>
+<script type="text/javascript" language="javascript" src="SaxonceDebug/Saxonce.nocache.js"></script>
+
+<script id="user1Script" ></script>
+
+<title>Saxon-CE Chess</title>
+
+</head>
+
+<body>
+
+<!-- OPTIONAL: include this if you want history support -->
+<!--
+<iframe src="javascript:''" id="__gwt_historyFrame" tabIndex='-1' style="position:absolute;width:0;height:0;border:0"></iframe>
+-->
+
+<!-- RECOMMENDED if your web app will not function without JavaScript enabled -->
+<noscript>
+<div align="center" style="width: 22em; position: absolute; left: 50%; margin-left: -11em; color: red; background-color: white; border: 1px solid red; padding: 4px; font-family: sans-serif">
+Your web browser must have JavaScript enabled
+in order for this application to display correctly.
+</div>
+</noscript>
+<!-- test piece in top-left for basis of animation - must move 60px,60px for each square -->
+<!--
+<div id="mover">
+<a
+style="color:#000;
+display:block;
+left:15px;
+top:217px;
+font-size:60px;
+height:60px;
+z-index:100;
+position:absolute;
+text-decoration:none;
+text-shadow:0 1px #fff;
+width:60px; text-align:center;vertical-align:middle'">&#9820;</a></div>
+-->
+
+<div id="pin-form" style="position:absolute; top:60px; left:50px; background-color:#33ccff;border-style:solid;border-width:1px;border-color:#cacaca;z-index:10; padding:8px;display:none">
+<h1>Twitter Logon</h1>
+<div id="twitter-url"></div>
+<span id="pinSpan" style="display:inline">
+<label for="pinBx">
+PIN
+</label>
+<input id="pin-input" type="text" size="12" maxlength="100" value=""/>
+</span>
+<button id="pin-ok" type="button" style="left:50px">OK</button>
+<button id="pin-cancel" type="button" style="left:150px">Cancel</button>
+
+</div>
+
+<h1>Multi-user interaction using Saxon-CE</h1>
+<div id="container">
+<form>
+<label id="nextMove" for="inputBx"><span id="colour">White</span>'s next move (e.g. a2-b3)?</label>
+<input id="inputBx" type="text" size="24" maxlength="100" value=""/>
+
+
+<button id="submit" type="button" style="left:50px">Submit</button>
+
+</form>
+<div id="status" data-status="new"></div>
+<div id="data">
+<p>Initialising board...</p>
+</div>
+
+<br/>
+
+<div id="board"></div>
+
+<div id="twitter" >
+<h3>Twitter Players</h3>
+<p class="player" id="userlabel2">&#9813; White:</p>
+<input id="user1" type="text" value=""/>
+<input id="white-user" type="checkbox" style="width:30px;" checked=""></input><span id="white-label">self</span> <br /><br />
+<p class="player" id="userlabel2">&#9819; Black:</p>
+<input id="user2" type="text" value="" />
+<input id="black-user" type="checkbox" style="width:30px"></input><span id="black-label"></span> <br /><br />
+<div style="background-color:#dadada;padding-top:5px;padding-left:30px;margin-bottom:10px;">
+<input value="Request Move" id="fetchBtn" type="button" />
+<input value="Restore" id="restoreBtn" type="button" /><br/>
+<input value="End Game" id="endBtn" type="button" />
+<input value="Reset Board" id="resetBtn" type="button" />
+</div>
+<p class="moves">Move History</p>
+<div id="tpanel">
+<table>
+<colgroup>
+<col id="c1"/>
+<col id="c2"/>
+<col id="c3"/>
+</colgroup>
+<thead>
+<tr><td>#</td><td>White</td><td>Black</td></tr>
+</thead>
+<tbody id="moves">
+<!-- for scroll testing -->
+<!--
+<tr><td>1</td><td>a7-b8</td><td>h3-a4</td></tr>
+<tr><td>1</td><td>a7-b8</td><td>h3-a4</td></tr>
+<tr><td>1</td><td>a7-b8</td><td>h3-a4</td></tr>
+<tr><td>1</td><td>a7-b8</td><td>h3-a4</td></tr>
+<tr><td>1</td><td>a7-b8</td><td>h3-a4</td></tr>
+<tr><td>1</td><td>a7-b8</td><td>h3-a4</td></tr>
+<tr><td>1</td><td>a7-b8</td><td>h3-a4</td></tr>
+<tr><td>1</td><td>a7-b8</td><td>h3-a4</td></tr>
+<tr><td>1</td><td>a7-b8</td><td>h3-a4</td></tr><tr><td>1</td><td>a7-b8</td><td>h3-a4</td></tr>
+<tr><td>1</td><td>a7-b8</td><td>h3-a4</td></tr>
+<tr><td>1</td><td>a7-b8</td><td>h3-a4</td></tr>
+<tr><td>1</td><td>a7-b8</td><td>h3-a4</td></tr>
+<tr><td>1</td><td>a7-b8</td><td>h3-a4</td></tr><tr><td>1</td><td>a7-b8</td><td>h3-a4</td></tr>
+<tr><td>1</td><td>a7-b8</td><td>h3-a4</td></tr>
+<tr><td>1</td><td>a7-b8</td><td>h3-a4</td></tr>
+<tr><td>1</td><td>a7-b8</td><td>h3-a4</td></tr>
+<tr><td>1</td><td>a7-b8</td><td>h3-a4</td></tr>
+-->
+</tbody>
+</table>
+</div>
+</div>
+	
+	
+</div>
+</body>
+</html>

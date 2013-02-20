@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<?xml-stylesheet type="text/xsl" href="qtn.boot.xsl"?>
+<library>
+<books>
+<book>
+<title>War and Peace</title>
+<isbn>225577</isbn>
+</book>
+<book>
+<title>Vilette</title>
+<isbn>338877</isbn>
+</book>
+</books>
+</library>
+

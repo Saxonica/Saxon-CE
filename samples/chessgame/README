@@ -1,0 +1,17 @@
+Saxon-CE Chess game application demo
+
+=============================
+
+This demo was used for the XMLPrague 2013 paper: Multi-user interaction using client-side XSLT
+Authors: Michael Kay and O'Neil Delpratt
+
+
+
+==============================
+
+This saxon-ce application is intended to operate with twitter to communicate the chess game moves
+between two remote players. This communication we achieved via a proxy server (namely Servlex with Twitter API). 
+It is also possible to play the chess game application in offline mode without the need of a server.
+
+Given that there are several solutions for the proxy server and that the twitter authentication access requires the storage of security tokens, we
+have not included the server component in this sample application, but we can provide it upon request.
