@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project basedir="." name="Saxon-CE Compiler (to JavaScript): build constants">
+
+  <!-- Used by build.xml, this path is in the same repsitory as the build -->
+ <property name="notices_path" value="../notices"/>
+ <property name="samples_path" value="../samples"/>
+ <property name="source_path" value="../src" />
+ <property name="temp_path" value="temp" />
+ <property name="deploy_path" value="deploy" />
+ 
+ <!-- Configure path to GWT SDK -->
+ <property name="gwt.sdk" location="../lib/gwt/gwt-2.5.0"/>
+ <property name="ce.version" value="1.1" />
+
+</project>

@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!-- 
+     build.xml: Ant build file for Saxon-CE - 27/01/2012
+     this should be located in the src/ce directory - it creates 2
+     SaxonCE builds, one for XSLT debug purposes, the other for end-users
+-->
+<project name="Saxonce" default="build" basedir=".">
+    
+    <import file="build-constants.xml"/>
+    
+    <!-- Arguments to gwtc and devmode target add -style PRETTY here to see no obfuscated code -->
+    <property name="gwt.args" value="-XenableClosureCompiler"/>
+    
+    
+    <path id="project.class.path">
+        <pathelement location="${temp_path}/WEB-INF/classes"/>
+        <pathelement location="${gwt.sdk}/gwt-user.jar"/>
+        <fileset dir="${gwt.sdk}" includes="gwt-dev*.jar"/>
+        <!-- Add any additional non-server libs (such as JUnit) -->
+        <fileset dir="${temp_path}/WEB-INF/lib" includes="**/*.jar"/>
+    </path>
+    
+    <target name="libs" description="Copy libs to WEB-INF/lib">
+        <mkdir dir="${temp_path}/WEB-INF/lib"/>
+        <copy todir="${temp_path}/WEB-INF/lib" file="${gwt.sdk}/gwt-servlet.jar"/>
+        <copy todir="${temp_path}/WEB-INF/lib" file="${gwt.sdk}/gwt-servlet-deps.jar"/>
+        <!-- Add any additional server libs that need to be copied -->
+    </target>
+    
+    <target name="javac" depends="libs" description="Compile java source to bytecode">
+        <mkdir dir="${temp_path}/WEB-INF/classes"/>
+        <javac srcdir="${source_path}" includes="**" encoding="utf-8" destdir="${temp_path}/WEB-INF/classes" source="1.5"
+            target="1.5" nowarn="true" debug="true" debuglevel="lines,vars,source">
+            <classpath refid="project.class.path"/>
+        </javac>
+        <copy todir="${temp_path}/WEB-INF/classes">
+            <fileset dir="." excludes="**/*.java"/>
+        </copy>
+    </target>
+    
+    <target name="gwtc" depends="javac" description="GWT compile to JavaScript (production mode)">
+        <!-- remove previous builds -->
+        <delete dir="${deploy_path}/Saxonce" failonerror="false"/>
+        <delete dir="${deploy_path}/SaxonceDebug" failonerror="false"/>
+        <!-- First build the debug variant -->
+        
+        <!-- set the gwt.logging.enabled property to true if it's false (it should be already) -->
+        <replace file="Saxonce.gwt.xml" token="&quot;gwt.logging.enabled&quot; value=&quot;FALSE&quot;"
+            value="&quot;gwt.logging.enabled&quot; value=&quot;TRUE&quot;"/>
+        
+        <java failonerror="true" fork="true" classname="com.google.gwt.dev.Compiler">
+            <classpath>
+                <pathelement location="${source_path}"/>
+                <path refid="project.class.path"/>
+                <pathelement location="${gwt.sdk}/validation-api-1.0.0.GA.jar"/>
+                <pathelement location="${gwt.sdk}/validation-api-1.0.0.GA-sources.jar"/>
+            </classpath>
+            <!-- add jvmarg -Xss16M or similar if you see a StackOverflowError -->
+            <jvmarg value="-Xmx256M"/>
+            <arg line="-war"/>
+            <arg value="${temp_path}"/>
+            <!-- Additional arguments like -style PRETTY or -logLevel DEBUG -->
+            <arg line="${gwt.args}"/>
+            <arg value="Saxonce"/>
+        </java>
+        
+        <!-- Now do the XHTML gwt bugfix, replacing the 2 .write methods -->
+        <replace file="${temp_path}/Saxonce/Saxonce.nocache.js" token="m.write(gb+b+hb)"
+            value="var script=document.createElement(&quot;script&quot;);script.setAttribute(&quot;id&quot;, b);m.getElementsByTagName(&quot;head&quot;)[0].appendChild(script)"/>
+        <!--
+<replace file="${temp_path}/Saxonce/Saxonce.nocache.js" token='m.write($b)' value='var script=document.createElement("script");script.setAttribute("defer", "defer");script.innerHTML="Saxonce.onInjectionDone(&apos;Saxonce&apos;)";m.getElementsByTagName("head")[0].appendChild(script)'/>
+-->
+        <replace file="${temp_path}/Saxonce/Saxonce.nocache.js" token="m.write($b)"
+            value="try{var script=document.createElement(&quot;script&quot;);script.setAttribute(&quot;defer&quot;, &quot;defer&quot;);script.innerHTML=&quot;Saxonce.onInjectionDone(&apos;Saxonce&apos;)&quot;;m.getElementsByTagName(&quot;head&quot;)[0].appendChild(script)}catch(e9){m.write($b)}"/>
+        
+        <move file="${temp_path}/Saxonce" tofile="${deploy_path}/SaxonceDebug"/>
+        <delete>
+            <fileset dir="${deploy_path}/SaxonceDebug" includes="*.gwt.rpc"/>
+        </delete>
+        
+        <copy todir="${deploy_path}/SaxonceDebug">
+            <fileset dir="${source_path}/resources"/>
+        </copy>
+        <!-- set the gwt.logging.enabled property to false -->
+        <replace file="Saxonce.gwt.xml" token="&quot;gwt.logging.enabled&quot; value=&quot;TRUE&quot;"
+            value="&quot;gwt.logging.enabled&quot; value=&quot;FALSE&quot;"/>
+        <!--  Now build the production variant -->
+        <java failonerror="true" fork="true" classname="com.google.gwt.dev.Compiler">
+            <classpath>
+                <pathelement location="${source_path}"/>
+                <path refid="project.class.path"/>
+                <pathelement location="${gwt.sdk}/validation-api-1.0.0.GA.jar"/>
+                <pathelement location="${gwt.sdk}/validation-api-1.0.0.GA-sources.jar"/>
+            </classpath>
+            <!-- add jvmarg -Xss16M or similar if you see a StackOverflowError -->
+            <jvmarg value="-Xmx256M"/>
+            <arg line="-war"/>
+            <arg value="${temp_path}"/>
+            <!-- Additional arguments like -style PRETTY or -logLevel DEBUG -->
+            <arg line="${gwt.args}"/>
+            <arg value="Saxonce"/>
+        </java>
+        
+        <!-- restore the gwt.logging.enabled property to true so it works in dev mode also -->
+        <replace file="Saxonce.gwt.xml" token="&quot;gwt.logging.enabled&quot; value=&quot;FALSE&quot;"
+            value="&quot;gwt.logging.enabled&quot; value=&quot;TRUE&quot;"/>
+        
+        <!-- Now do the XHTML gwt bugfix, replacing the 2 .write methods -->
+        <replace file="${temp_path}/Saxonce/Saxonce.nocache.js" token="m.write(gb+b+hb)"
+            value="var script=document.createElement(&quot;script&quot;);script.setAttribute(&quot;id&quot;, b);m.getElementsByTagName(&quot;head&quot;)[0].appendChild(script)"/>
+        <!--
+<replace file="${temp_path}/Saxonce/Saxonce.nocache.js" token='m.write($b)' value='var script=document.createElement("script");script.setAttribute("defer", "defer");script.innerHTML="Saxonce.onInjectionDone(&apos;Saxonce&apos;)";m.getElementsByTagName("head")[0].appendChild(script)'/>
+-->
+        <replace file="${temp_path}/Saxonce/Saxonce.nocache.js" token="m.write($b)"
+            value="try{var script=document.createElement(&quot;script&quot;);script.setAttribute(&quot;defer&quot;, &quot;defer&quot;);script.innerHTML=&quot;Saxonce.onInjectionDone(&apos;Saxonce&apos;)&quot;;m.getElementsByTagName(&quot;head&quot;)[0].appendChild(script)}catch(e9){m.write($b)}"/>
+        
+        <move file="${temp_path}/Saxonce" tofile="${deploy_path}/Saxonce"/>
+        
+        <copy todir="${deploy_path}/notices">
+            <fileset dir="${notices_path}" includes="*.txt"/>
+        </copy>
+<!--        <copy todir="deploy/samples">
+            <fileset dir="${samples_path}" includes="*.*"/>
+        </copy>-->
+        <copy todir="${temp_path}/WEB-INF/lib" file="${gwt.sdk}/gwt-servlet-deps.jar"/>
+        <!-- remove unwanted files -->
+        <delete>
+            <fileset dir="${deploy_path}/Saxonce" includes="*.cache.png, *.gwt.rpc"/>
+        </delete>
+        <copy todir="${deploy_path}/Saxonce">
+            <fileset dir="${source_path}/resources"/>
+        </copy>
+        
+        <delete dir="${temp_path}" failonerror="false"/>
+        <delete dir="${deploy_path}/Saxonce/regex" failonerror="false"/>
+        <delete dir="${deploy_path}/SaxonceDebug/regex" failonerror="false"/>
+        <delete failonerror="false">
+            <fileset dir="${deploy_path}/Saxonce" includes="Saxonce.css, Saxonce.html, hosted.html"/>
+        </delete>
+        <delete failonerror="false">
+            <!-- hosted.html file is kept for development mode for debug version, but not needed for release -->
+            <fileset dir="${deploy_path}/SaxonceDebug" includes="Saxonce.css, Saxonce.html"/>
+        </delete>
+        
+    </target>
+    
+    <target name="build" depends="gwtc" description="Build this project"/>
+    
+    <target name="release" depends="build" description="Create a ${temp_path} file">
+        <delete dir="../releases/${ce.version}"/>
+        <zip destfile="../releases/${ce.version}/Saxon-CE_${ce.version}.zip" basedir="${deploy_path}"/>
+        <delete dir="${deploy_path}"/>
+    </target>
+    
+    <target name="clean" description="Cleans this project">
+        <delete dir="${temp_path}/WEB-INF/classes" failonerror="false"/>
+    </target>
+    
+</project>
