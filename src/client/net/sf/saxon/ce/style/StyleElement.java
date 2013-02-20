@@ -675,7 +675,7 @@ public abstract class StyleElement extends ElementImpl
                 } else {
                     URI collationURI;
                     try {
-                        collationURI = new URI(uri);
+                        collationURI = new URI(uri, true);
                         if (!collationURI.isAbsolute()) {
                             URI base = new URI(getBaseURI());
                             collationURI = base.resolve(collationURI.toString());

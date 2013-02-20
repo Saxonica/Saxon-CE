@@ -64,9 +64,9 @@ public class ResolveURI extends SystemFunction {
         }
 
         try {
-            URI absoluteURI = new URI(base);
+            URI absoluteURI = new URI(base, true);
             if (!absoluteURI.isAbsolute()) {
-                URI relativeURI = new URI(relative);
+                URI relativeURI = new URI(relative, true);
                 if (relativeURI.isAbsolute()) {
                     return new AnyURIValue(relative);
                 }
@@ -135,7 +135,7 @@ public class ResolveURI extends SystemFunction {
         URI absoluteURI;
         // System.err.println("makeAbsolute " + relativeURI + " against base " + base);
         if (relativeURI == null) {
-            absoluteURI = new URI(ResolveURI.escapeSpaces(base));
+            absoluteURI = new URI(ResolveURI.escapeSpaces(base), true);
             if (!absoluteURI.isAbsolute()) {
                 throw new URI.URISyntaxException(base + ": Relative URI not supplied, so base URI must be absolute");
             } else {
@@ -146,7 +146,7 @@ public class ResolveURI extends SystemFunction {
         base = ResolveURI.escapeSpaces(base);
         try {
             if (base==null || base.length() == 0) {
-                absoluteURI = new URI(relativeURI);
+                absoluteURI = new URI(relativeURI, true);
                 if (!absoluteURI.isAbsolute()) {
                     String expandedBase = ResolveURI.tryToExpand(base);
                     if (!expandedBase.equals(base)) { // prevent infinite recursion
@@ -173,7 +173,7 @@ public class ResolveURI extends SystemFunction {
                     }
                 }
                 try {
-                    new URI(relativeURI);   // for validation only
+                    new URI(relativeURI, true);   // for validation only
                 } catch (URI.URISyntaxException e) {
                     throw new URI.URISyntaxException(base + ": Invalid relative URI: " + e.getMessage());
                 }

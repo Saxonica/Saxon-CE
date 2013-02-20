@@ -178,7 +178,7 @@ public class ForEachGroup extends Instruction
             String collation = ((StringLiteral)collationNameExpression).getStringValue();
             URI collationURI;
             try {
-                collationURI = new URI(collation);
+                collationURI = new URI(collation, true);
                 if (!collationURI.isAbsolute()) {
                     URI base = new URI(baseURI);
                     collationURI = base.resolve(collationURI.toString());
@@ -426,7 +426,7 @@ public class ForEachGroup extends Instruction
             String cname = collationValue.getStringValue();
             URI collationURI;
             try {
-                collationURI = new URI(cname);
+                collationURI = new URI(cname, true);
                 if (!collationURI.isAbsolute()) {
                     if (baseURI == null) {
                         dynamicError("Cannot resolve relative collation URI '" + cname +

@@ -332,7 +332,7 @@ public class SortKeyDefinition {
             String cname = collationName.evaluateAsString(context).toString();
             URI collationURI;
             try {
-                collationURI = new URI(cname);
+                collationURI = new URI(cname, true);
                 if (!collationURI.isAbsolute()) {
                     if (baseURI == null) {
                         throw new XPathException("Collation URI is relative, and base URI is unknown");

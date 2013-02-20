@@ -128,7 +128,7 @@ public final class XSLForEachGroup extends StyleElement {
                     String collation = ((StringLiteral)collationName).getStringValue();
                     URI collationURI;
                     try {
-                        collationURI = new URI(collation);
+                        collationURI = new URI(collation, true);
                         if (!collationURI.isAbsolute()) {
                             URI base = new URI(getBaseURI());
                             collationURI = base.resolve(collationURI.toString());

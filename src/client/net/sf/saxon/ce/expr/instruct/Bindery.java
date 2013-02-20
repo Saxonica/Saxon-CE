@@ -83,7 +83,7 @@ public final class Bindery  {
         if (obj instanceof DocumentInfo) {
             String systemId = ((DocumentInfo)obj).getSystemId();
             try {
-                if (systemId != null && new URI(systemId).isAbsolute()) {
+                if (systemId != null && new URI(systemId, true).isAbsolute()) {
                     DocumentPool pool = context.getController().getDocumentPool();
                     if (pool.find(systemId) == null) {
                         pool.add(((DocumentInfo)obj), systemId);

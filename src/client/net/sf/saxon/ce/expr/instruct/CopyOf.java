@@ -236,7 +236,7 @@ public class CopyOf extends Instruction {
         String xmlBase = Navigator.getAttributeValue(source, NamespaceConstant.XML, "base");
         if (xmlBase != null) {
             try {
-                URI xmlBaseUri = new URI(xmlBase);
+                URI xmlBaseUri = new URI(xmlBase, true);
                 if (xmlBaseUri.isAbsolute()) {
                     newBaseUri = xmlBase;
                 } else if (staticBaseUri != null) {

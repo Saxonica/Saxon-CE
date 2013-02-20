@@ -149,7 +149,7 @@ public class XSLSort extends StyleElement {
         if (collationName instanceof StringLiteral) {
             String collationString = ((StringLiteral)collationName).getStringValue();
             try {
-                URI collationURI = new URI(collationString);
+                URI collationURI = new URI(collationString, true);
                 if (!collationURI.isAbsolute()) {
                     URI base = new URI(getBaseURI());
                     collationURI = base.resolve(collationURI.toString());

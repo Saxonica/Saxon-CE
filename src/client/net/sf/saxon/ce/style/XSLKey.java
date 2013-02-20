@@ -155,7 +155,7 @@ public class XSLKey extends StyleElement implements StylesheetProcedure {
         if (collationName != null) {
             URI collationURI;
             try {
-                collationURI = new URI(collationName);
+                collationURI = new URI(collationName, true);
                 if (!collationURI.isAbsolute()) {
                     URI base = new URI(getBaseURI());
                     collationURI = base.resolve(collationURI.toString());

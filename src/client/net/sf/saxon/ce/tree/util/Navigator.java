@@ -61,7 +61,7 @@ public final class Navigator {
         if (xmlBase != null) {
             URI baseURI;
             try {
-                baseURI = new URI(xmlBase);
+                baseURI = new URI(xmlBase, true);
                 if (!baseURI.isAbsolute()) {
                     NodeInfo parent = node.getParent();
                     if (parent == null) {

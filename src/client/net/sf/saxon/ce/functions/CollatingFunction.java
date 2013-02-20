@@ -105,7 +105,7 @@ public abstract class CollatingFunction extends SystemFunction {
                 String collationName = collationVal.getStringValue();
                 URI collationURI;
                 try {
-                    collationURI = new URI(collationName);
+                    collationURI = new URI(collationName, true);
                     if (!collationURI.isAbsolute()) {
                         saveBaseURI(env, true);
                         if (expressionBaseURI == null) {
@@ -192,7 +192,7 @@ public abstract class CollatingFunction extends SystemFunction {
                 String collationName = collationValue.getStringValue();
                 URI collationURI;
                 try {
-                    collationURI = new URI(collationName);
+                    collationURI = new URI(collationName, true);
                     if (!collationURI.isAbsolute()) {
                         if (expressionBaseURI == null) {
                             XPathException err = new XPathException("Cannot resolve relative collation URI '" + collationName +
