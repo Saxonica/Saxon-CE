@@ -1,0 +1,166 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified" targetNamespace="http://www.saxonica.com/ns/doc/functions" xmlns:functions="http://www.saxonica.com/ns/doc/functions" xmlns:xsl="http://www.w3.org/1999/XSL/Transform" xmlns:user="u">
+ <xs:import schemaLocation="saxon-doc-schema.xsd"/>
+   <xs:element name="conformance">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="functions:functions"/>
+        <xs:any namespace="##other" processContents="skip" minOccurs="0"/>
+      </xs:sequence>
+    </xs:complexType>
+   </xs:element>
+  
+  <xs:element name="apis">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="functions:api" maxOccurs="unbounded"/>
+      </xs:sequence>
+      <xs:attribute name="section" use="required" type="xs:string"/>
+      <xs:attribute name="title" use="required" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
+  
+  <xs:element name="api">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="functions:title" maxOccurs="unbounded"/>
+        <xs:element ref="functions:description"/>
+        <xs:element ref="functions:footer" minOccurs="0"/>
+        <xs:element ref="functions:functions" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element ref="functions:properties" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+      <xs:attribute name="name" type="xs:NCName"/>
+    </xs:complexType>  
+  </xs:element>
+
+  <xs:element name="functions">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="functions:function"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="function">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="functions:name"/>
+        <xs:element ref="functions:signatures"/>
+        <xs:choice>
+          <xs:element ref="functions:status"/>
+          <xs:element ref="functions:status-ok"/>
+        </xs:choice>
+        <xs:element ref="functions:description" minOccurs="0"/>
+        <xs:element minOccurs="0" ref="functions:details"/>
+        <xs:element minOccurs="0" ref="functions:notes"/>
+        <xs:element minOccurs="0" ref="functions:tests"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  
+  <xs:element name="properties">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="functions:property"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  
+  <xs:element name="property">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="functions:name"/>
+        <xs:choice>
+          <xs:element ref="functions:status"/>
+          <xs:element ref="functions:status-ok"/>
+        </xs:choice>
+        <xs:element ref="functions:description" minOccurs="0"/>
+        <xs:element minOccurs="0" ref="functions:details"/>
+        <xs:element minOccurs="0" ref="functions:notes"/>
+        <xs:element minOccurs="0" ref="functions:tests"/>
+      </xs:sequence>
+      <xs:attribute name="required" type="xs:string"/>
+      <xs:attribute name="type" use="required" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="signatures">
+    <xs:complexType>
+        <xs:sequence>
+            <xs:element ref="functions:proto" maxOccurs="unbounded"/>
+        </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+  
+  <xs:element name="proto">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="functions:arg" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element ref="functions:in-spec" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element ref="functions:description" minOccurs="0" maxOccurs="1"/>
+      </xs:sequence>
+      <xs:attribute name="name" type="xs:NCName"/>
+      <xs:attribute name="return-type" type="xs:string"/>
+    </xs:complexType>  
+  </xs:element>
+  
+  <xs:element name="name" type="xs:string"/>
+  <xs:element name="title" type="xs:string"/>
+  <xs:element name="in-spec" type="xs:NCName"/>
+  
+  <xs:element name="arg">
+    <xs:complexType>
+      <xs:attribute name="name" use="required" type="xs:NCName"/>
+      <xs:attribute name="type" use="required" type="xs:string"/>
+      <xs:attribute name="desc" use="optional" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="result">
+    <xs:complexType>
+      <xs:attribute name="occurs"/>
+      <xs:attribute name="type" use="required" type="xs:string"/>
+    </xs:complexType>
+  </xs:element>
+  
+  <xs:element name="status" type="functions:multipara"/>
+  <xs:element name="details" type="functions:multipara"/>
+  
+  <xs:element name="status-ok">
+    <xs:complexType>
+      <xs:sequence/>
+    </xs:complexType>
+  </xs:element>
+
+  
+   <xs:complexType name="multipara">
+      <xs:sequence minOccurs="0" maxOccurs="unbounded">
+        <xs:choice>
+		       <xs:element ref="div"/>
+          <xs:element ref="subtitle"/>
+           <xs:element ref="p"/>
+           <xs:element ref="table"/>
+           <xs:element ref="ul"/>
+           <xs:element ref="example"/>
+        </xs:choice>
+      </xs:sequence>
+   </xs:complexType>
+  
+
+  <xs:element name="description" type="functions:multipara"/>
+  <xs:element name="footer" type="functions:multipara"/>
+
+ 
+  <xs:element name="notes" type="inline"/>
+ 
+  <xs:element name="tests">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="functions:test"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="test" type="xs:NCName"/>
+
+</xs:schema>

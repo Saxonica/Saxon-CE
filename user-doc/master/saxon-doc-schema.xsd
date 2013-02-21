@@ -1,0 +1,271 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!-- Requires XSD 1.1 -->
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema" elementFormDefault="qualified">
+  <xs:import namespace="http://www.w3.org/XML/1998/namespace"/>  
+  <xs:element name="section">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="title"/>
+        <xs:element ref="block-level" minOccurs="0" maxOccurs="unbounded"/>
+        <xs:element ref="page" minOccurs="0" maxOccurs="unbounded"/>
+      </xs:sequence>
+      <xs:attribute ref="xml:id" use="required"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="title" type="xs:string"/>
+  <xs:element name="link">
+    <xs:complexType>
+      <xs:attribute name="href" use="required" type="xs:anyURI"/>
+      <xs:attribute name="rel" use="required" type="xs:NCName"/>
+      <xs:attribute name="type" use="required"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="div">
+    <xs:complexType>
+      <xs:choice maxOccurs="unbounded">
+        <xs:element ref="block-level"/>
+        <xs:element ref="a"/>
+      </xs:choice>
+      <xs:attribute name="align" use="optional" type="xs:NCName"/>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="page">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element ref="title"/>
+        <xs:choice maxOccurs="unbounded">
+          <xs:element ref="block-level"/>
+          <xs:element ref="pageindex"/>          
+          <xs:element ref="subpageindex"/>
+          <xs:element ref="subpage"/>
+        </xs:choice>
+      </xs:sequence>
+      <xs:attribute name="size" type="xs:double" use="optional"/>
+      <xs:attribute ref="xml:id" use="required"/>
+    </xs:complexType>
+  </xs:element>
+
+  <!--<xs:element name="h3" type="heading"/>-->
+
+
+  <xs:element name="block-level" abstract="true"/>
+
+  <xs:element name="subpage">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element name="title" type="xs:string"/>  
+        <xs:choice maxOccurs="unbounded">
+          <xs:element ref="block-level"/>
+          <!--<xs:element ref="h3"/>-->
+        </xs:choice>
+      </xs:sequence>  
+      <xs:attribute ref="xml:id" use="required"/>
+      <xs:attribute name="summary" type="xs:string" use="optional"/>
+      <xs:attribute name="size" type="xs:double" use="optional"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="ol" substitutionGroup="block-level" type="list-type"/>
+
+  <xs:element name="ul" substitutionGroup="block-level" type="list-type"/>
+  
+  <xs:complexType name="list-type">
+      <xs:sequence>
+        <xs:element ref="li" maxOccurs="unbounded"/>
+      </xs:sequence>  
+  </xs:complexType>
+
+  <xs:element name="li">
+    <xs:alternative test="not(@content = 'para')">
+        <xs:complexType>
+            <xs:choice minOccurs="0" maxOccurs="unbounded">
+              <xs:element ref="block-level"/>
+            </xs:choice>
+            <xs:attribute name="content" type="para-or-nothing" use="optional"/>
+        </xs:complexType>
+    </xs:alternative>
+    <xs:alternative>
+        <xs:complexType>
+          <xs:complexContent>  
+            <xs:extension base="inline">
+              <xs:attribute name="content" type="para-or-nothing" use="optional"/>
+            </xs:extension>
+          </xs:complexContent>
+       </xs:complexType>
+    </xs:alternative>
+  </xs:element>
+
+  <xs:element name="p" substitutionGroup="block-level">
+    <xs:complexType>
+      <xs:complexContent>
+        <xs:extension base="inline">
+          <xs:attribute name="test" use="optional" type="xs:string"/>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="box" substitutionGroup="block-level">
+    <xs:complexType mixed="true">
+      <xs:complexContent>
+        <xs:extension base="inline"/>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  
+  <xs:element name="subtitle" substitutionGroup="block-level" type="xs:string"/>
+  
+  <xs:element name="index" type="inline"/>
+
+  <xs:element name="b" type="inline"/>
+  <xs:element name="code">
+    <xs:complexType mixed="true">
+      <xs:complexContent>
+        <xs:extension base="inline">
+          <xs:attribute name="java" type="xs:anyURI" use="optional"/>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+  <xs:element name="i" type="inline"/>
+  <xs:element name="a">
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:extension base="xs:string">
+          <xs:attribute name="href" type="xs:anyURI"/>
+        </xs:extension>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="xref">
+    <xs:complexType>
+      <xs:simpleContent>
+        <xs:extension base="xs:string">
+          <xs:attribute name="section" type="xs:NCName"/>
+          <xs:attribute name="page" type="xs:NCName"/>
+          <xs:attribute name="subpage" type="xs:NCName"/>
+        </xs:extension>
+      </xs:simpleContent>
+    </xs:complexType>
+  </xs:element>
+  
+  <xs:complexType name="heading" mixed="true">
+    <xs:attribute name="id" use="optional" type="xs:ID"/>
+  </xs:complexType>
+
+  <xs:element name="defect" substitutionGroup="block-level">
+    <xs:complexType mixed="true">
+      <xs:complexContent>
+        <xs:extension base="inline">
+          <xs:attribute name="id" use="required" type="xs:integer"/>
+        </xs:extension>
+      </xs:complexContent>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="example" substitutionGroup="block-level" type="inline"/>
+
+  <xs:element name="html-example" substitutionGroup="block-level">
+    <xs:complexType>
+      <xs:sequence minOccurs="0" maxOccurs="unbounded">
+        <xs:any processContents="skip"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="command" substitutionGroup="block-level" type="inline"/>
+  
+  <xs:complexType name="inline" mixed="true">
+    <xs:choice minOccurs="0" maxOccurs="unbounded">
+      <xs:element ref="a"/>
+      <xs:element ref="b"/>
+      <xs:element ref="code"/>
+      <xs:element ref="i"/>
+      <xs:element ref="xref"/>
+      <xs:element ref="index"/>
+      <xs:element name="br"/>
+    </xs:choice>
+  </xs:complexType>
+
+  <xs:element name="table" substitutionGroup="block-level">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element minOccurs="0" ref="thead"/>
+        <xs:element minOccurs="0" ref="tbody"/>
+        <xs:element minOccurs="0" maxOccurs="unbounded" ref="tr"/>
+      </xs:sequence>
+      <xs:attribute name="border" type="xs:integer"/>
+    </xs:complexType>
+  </xs:element>
+
+
+  <xs:element name="thead">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="tr"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="tbody">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="tr"/>
+      </xs:sequence>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="tr">
+    <xs:complexType>
+      <xs:sequence>
+        <xs:element maxOccurs="unbounded" ref="td"/>
+      </xs:sequence>
+      <xs:attribute name="style"/>
+    </xs:complexType>
+  </xs:element>
+
+  <xs:element name="td">
+    <xs:alternative test="not(@content = 'para')">
+        <xs:complexType>
+            <xs:choice minOccurs="0" maxOccurs="unbounded">
+              <xs:element ref="block-level"/>
+            </xs:choice>
+            <xs:attribute name="content" type="para-or-nothing" use="optional"/>
+            <xs:attribute name="valign" type="xs:NCName"/>
+            <xs:attribute name="align" type="xs:NCName"/>
+            <xs:attribute name="colspan" type="xs:integer"/>
+            <xs:attribute name="width"/>
+            <xs:attribute name="style"/>
+        </xs:complexType>
+    </xs:alternative>
+    <xs:alternative>
+        <xs:complexType>
+          <xs:complexContent>  
+            <xs:extension base="inline">
+              <xs:attribute name="content" type="para-or-nothing" use="optional"/>
+              <xs:attribute name="valign" type="xs:NCName"/>
+              <xs:attribute name="align" type="xs:NCName"/>
+              <xs:attribute name="colspan" type="xs:integer"/>
+              <xs:attribute name="width"/>
+            </xs:extension>
+          </xs:complexContent>
+       </xs:complexType>
+    </xs:alternative>    
+  </xs:element>
+  
+  <xs:element name="pageindex">
+    <xs:complexType/>
+  </xs:element>
+
+  <xs:element name="subpageindex">
+    <xs:complexType/>
+  </xs:element>
+  
+  <xs:simpleType name="para-or-nothing">
+    <xs:restriction base="xs:string">
+        <xs:enumeration value="para"/>
+    </xs:restriction>
+  </xs:simpleType>  
+  
+</xs:schema>

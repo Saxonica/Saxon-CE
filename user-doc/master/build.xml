@@ -1,0 +1,108 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- Purpose: This ant build file generates the Saxon-CE documentation. An HTML variaant
+ of the website is created for clients that don't have xslt processing
+ to run the make-menu.xsl .-->
+
+<!-- The scripts to generate the HTML version of the documentation are not
+  currently operational. The only operational part of this build file is
+  the part that generates api.xml from api-data.xml. This is target="api" -->
+
+
+<project basedir="." default="api" name="Saxon-CE: The XSLT and XQuery Processor (Documentation)">
+
+  <import file="build-constants.xml"/>
+
+  <path id="saxonee.class.path">
+    <pathelement location="${saxonee-classpath}"/>
+  </path>
+
+  <target name="split" depends="api" description="Creates the xml files and directories">
+    <xslt basedir="${catalog_base}" destdir="${www_root}" in="${catalog_base}/catalog.xml"
+      out="${www_root}/out.xml" style="${catalog_base}/page-splitter.xsl">
+      <classpath refid="saxonee.class.path"/>
+      <factory name="com.saxonica.config.EnterpriseTransformerFactory">
+        <attribute name="http://saxon.sf.net/feature/schema-validation" value="1"/>
+        <attribute name="http://saxon.sf.net/feature/xsltSchemaAware" value="true"/>
+        <attribute name="http://saxon.sf.net/feature/xsd-version" value="1.1"/>
+      </factory>
+    </xslt>
+    <!-- remove empty output file -->
+    <delete file="${www_root}/out.xml"/>
+  </target>
+
+  <target name="api" description="Preprocess that creates the Saxon-CE API documentation">
+    <xslt basedir="${master}" destdir="${deploy}" in="${master}/api-data.xml"
+      out="${deploy}/api.xml" style="${master}/preprocess-apis.xsl">
+      <classpath>
+        <pathelement location="lib/saxon9ee.jar"/>
+        <pathelement location="lib"/>
+      </classpath> 
+      <factory name="com.saxonica.config.EnterpriseTransformerFactory">
+        <attribute name="http://saxon.sf.net/feature/schema-validation" value="1"/>
+        <attribute name="http://saxon.sf.net/feature/xsltSchemaAware" value="true"/>
+        <attribute name="http://saxon.sf.net/feature/xsd-version" value="1.1"/>
+      </factory>
+    </xslt>
+  </target>
+
+
+  <target name="prepare" depends="split" description="Create notices zip folder and files for html">
+
+    <copy todir="${www_root}\img">
+      <fileset dir="C:\saxonica-repo\userdoc\img"/>
+    </copy>
+
+    <copy file="C:\saxonica-repo\userdoc\skeleton\saxondocs.css" todir="${www_root}"/>
+    <copy file="C:\saxonica-repo\userdoc\saxon-ce\src\doc\make-menu.xsl" todir="${www_root}"/>
+
+    <zip destfile="${www_root}/notices.zip" basedir="${catalog_base}/notices" includes="*.txt"/>
+
+    <copy todir="${html.dir}">
+      <fileset dir="${www_root}">
+        <exclude name="**/*.xml"/>
+        <exclude name="**/*.xsl"/>
+        <exclude name="contents.html"/>
+        <exclude name="**/html/"/>
+      </fileset>
+    </copy>
+
+    <copy file="${www_root}\contents.xml" todir="."/>
+
+  </target>
+
+
+  <!-- Build all html pages and change links with xml extensions to html -->
+
+  <target name="all" depends="prepare" description="Build all pages">
+
+    <!-- create html versions of all files (including contents.html) and convert links to html -->
+    <xslt basedir="${www_root}" destdir="${www_root}/html/" includes="**/*.xml, contents.html"
+      style="make-menu_change-links.xsl"
+      excludes="**/papers/ideadb-1.1/docbook-css-0.4/*.*, contents.xml">
+      <classpath refid="saxonee.class.path"/>
+      <factory name="com.saxonica.config.EnterpriseTransformerFactory">
+        <attribute name="http://saxon.sf.net/feature/xsltSchemaAware" value="false"/>
+        <attribute name="http://saxon.sf.net/feature/xsd-version" value="1.1"/>
+      </factory>
+    </xslt>
+
+    <!-- add menu to contents.html with xml links - output is non-xml -->
+    <xslt basedir="${www_root}" destdir="${www_root}/html/" in="${www_root}/contents.html"
+      out="${www_root}/xml-contents.html" style="gen-make-menu.xsl">
+      <param name="ishtml" expression="no"/>
+      <classpath refid="saxonee.class.path"/>
+      <factory name="com.saxonica.config.EnterpriseTransformerFactory">
+        <attribute name="http://saxon.sf.net/feature/xsltSchemaAware" value="false"/>
+        <attribute name="http://saxon.sf.net/feature/xsd-version" value="1.1"/>
+      </factory>
+    </xslt>
+
+
+    <!-- overwrite orignal contents.html with new version that has menu -->
+    <delete file="${www_root}/contents.html"/>
+    <move file="${www_root}/xml-contents.html" tofile="${www_root}/contents.html"/>
+
+  </target>
+
+</project>

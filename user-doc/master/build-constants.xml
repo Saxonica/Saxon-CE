@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<project basedir="." default="all" name="Saxon: The XSLT and XQuery Processor: build constants">
+
+ <!-- root for generated website -->
+ <property name="www_root" value="C:\gen-saxonce-docs-out"/>
+ <!-- location for html variant of website -->
+ <property name="html.dir" value="${www_root}/html"/>
+ <!-- location of the base document files under version control -->
+ <property name="master" value="."/>
+ <!-- location of the published XML files -->
+ <property name="deploy" value="../doc"/>
+ <!-- location of the image directory - which is copied -->
+ <property name="img_dir" value="C:\saxonica-repo\userdoc\img"/>
+ 
+
+ 
+
+</project>

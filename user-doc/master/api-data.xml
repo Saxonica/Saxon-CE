@@ -1,0 +1,893 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<apis xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xsi:schemaLocation="http://www.saxonica.com/ns/doc/functions apis-schema.xsd"
+    xmlns="http://www.saxonica.com/ns/doc/functions" section="api" title="JavaScript API">
+    <api name="intro">
+        <title>Introduction</title>
+        <description>
+
+            <p xmlns="">The JavaScript API for Saxon-CE is loaded using a standard HTML
+                    <code>script</code> element:</p>
+            <example xmlns=""><![CDATA[<script type="text/javascript" language="javascript" src="../Saxon/Saxon.nocache.js"></script>
+]]></example>
+            <p xmlns="">When using this API, it's important to ensure the Saxon-CE library is loaded
+                first. The global <code>onSaxonLoad</code> callback function is provided to
+                facilitate this during an HTML page load. Saxon-CE will make a call to this once it
+                has loaded.</p>
+            <p xmlns="">The API is centred around two principal objects:</p>
+            <subtitle xmlns="">XSLT20Processor</subtitle>
+            <p xmlns=""><xref section="api" page="xslt20processor">XSLT20Processor</xref> is modeled
+                on the JavaScript XSLTProcessor API as implemented by Opera, Mozilla, Safari and
+                Chrome browsers (<a href="http://www.dev.abiss.gr/sarissa/">Sarissa</a> provides a
+                wrapper compatible with Internet Explorer). It provides a set of methods used to
+                initiate XSLT transforms on XML or direct XSLT-based HTML updates. This standard API
+                has been extended to: (a) access functionality new to XSLT 2.0, (b) provide extra
+                features specific to HTML processing, and (c) support asynchronous processing.</p>
+            <subtitle xmlns="">Saxon</subtitle>
+            <p xmlns="">The <xref section="api" page="saxon">Saxon</xref> object provides a factory
+                method for instantiating <code>XSLT20Processor</code> and a <code>run</code>
+                function for invoking transforms more declaratively by using a JavaScript literal
+                object to describe the transform. It also includes a small set of utility functions
+                for managing XML resources and controlling the logging of messages from
+                    <code>XSLT20Processor</code> object instances.</p>
+
+            <subtitle xmlns="">&#160;</subtitle>
+            <p xmlns="">Links to all JavaScript API Sections:</p>
+        </description>
+
+    </api>
+    <!--
+<api name="using">
+<title>Code Samples</title>
+<description>
+
+<subtitle xmlns="">Updating the HTML page on page-load</subtitle>
+<p xmlns=""><xref section="api" page="saxon">XSLT20Processor</xref>
+is modeled on the JavaScript XSLTProcessor API as implemented by Opera, Mozilla, Safari and Chrome browsers (<a href="http://www.dev.abiss.gr/sarissa/">Sarissa</a> provides a wrapper compatible with Internet Explorer). It provides a set of methods to facilitate XSLT transforms on XML or direct XSLT-based HTML updates. Extensions have been added to this API for 2 main reasons: 1) to access features added in XSLT 2.0, and 2) to take full advantage of Saxon-CE's enhanced HTML-handling features.</p>
+<subtitle xmlns="">Creating an HTML document fragment</subtitle>
+<p xmlns=""><xref section="api" page="saxon">Saxon</xref> comprises a set of static utility methods for: 1) managing XML resources in a browser-independent way, and 2) controlling the logging of messages from XSLT20Processor object instances.</p>
+
+<subtitle xmlns="">&#160;</subtitle>
+<p xmlns="">Links to all JavaScript API Sections:</p>
+</description>
+
+</api>
+-->
+    <api name="saxon">
+        <title>Saxon</title>
+        <description>
+            <p xmlns="">This is used as a static object, providing a set of utility functions
+                for:</p>
+            <ul xmlns="">
+                <li><p>Creating new instances of the
+                        <xref section="api" page="xslt20processor">XSLT20Processor</xref>
+                    object</p></li>
+                <li><p>Initiating a simple XSLT transform declaratively</p></li>
+                <li><p>Working with XML resources</p></li>
+                <li><p>Configuration and house-keeping tasks</p></li>
+            </ul>
+        </description>
+        <functions>
+            <function>
+                <name>newXSLT20Processor</name>
+                <signatures>
+                    <proto name="newXSLT20Processor" return-type="XSLT20Processor">
+                        <arg name="xslt" type="Document?"
+                            desc="The XML Document containing the stylesheet."/>
+                        <description>
+                            <p xmlns="">The factory method for creating a new
+                                <xref section="api" page="xslt20processor">XSLT20Processor</xref>
+                                object.</p>
+                        </description>
+                    </proto>
+                </signatures>
+                <status-ok/>
+                <details>
+                    <p xmlns="">The optional <code>xslt</code> argument is used to specify the
+                        stylesheet to be used when one of the transform functions of this object is
+                        called. The function,
+                        <xref section="api" page="saxon" subpage="requestXML">requestXML</xref>,
+                        provides a cross-browser method for getting a Document instance of the
+                        stylesheet. </p>
+                    <p xmlns=""> If the <code>xslt</code> argument is null when XSLT20Procssor is
+                        initialised using this function, the
+                        <xref section="api" page="xslt20processor" subpage="importStylesheet">importStylesheet</xref>
+                        function should always be called first, before initiating a transform.</p>
+                    <p xmlns="">It's possible to use a number of XSLT20Processor instances. This may
+                        be useful either when you want to exploit a number of previously compiled
+                        stylesheets, or when working with different HTML target pages (events from
+                        the host page are broadcast to all processors that have stylesheets with
+                            <code>ixsl:event</code> templates).</p>
+                    <p xmlns="">If the stylesheet contains references to other stylesheet
+                    modules in <code>xsl:include</code> or <code>xsl:import</code> declarations,
+                    the other modules will be fetched automatically. For this to work, however,
+                    Saxon-CE needs to know the base URI to use. There are several ways to supply this
+                    information:</p>
+                    <ul xmlns="">
+                        <li><p>By default, Saxon-CE uses the URI of the HTML page as the base URI for the stylesheet.
+                        This works fine if the HTML page and the stylesheet are in the same directory on the
+                        server, but will cause problems if not. A possible workaround is to always load the
+                        principal stylesheet module from the directory containing the HTML, if necessary by
+                        creating a simple stub stylesheet that contains only an <code>xsl:include</code>
+                        pointing to the "real" stylesheet.</p></li>
+                        <li><p>If the stylesheet document is loaded using the <code>Saxon.requestXML</code>
+                        method, then the URI passed to that method is remembered as the base URI of the stylesheet
+                        module when it is eventually fetched.</p></li>
+                        <li><p>It is possible to include an <code>xml:base</code> attribute in the <code>xsl:stylesheet</code>
+                        element of the principal stylesheet module, containing the absolute URI from which the stylesheet
+                        is loaded. This might be generated as part of the script for deploying the stylesheet.</p></li>
+                        <li><p>It is also possible (though probably inconvenient) for all <code>xsl:include</code>
+                        and <code>xsl:import</code> declarations to use absolute URIs.</p></li>
+                    </ul>
+                </details>
+            </function>
+            <function>
+                <name>requestXML</name>
+                <signatures>
+                    <proto name="requestXML" return-type="Document">
+                        <arg name="uri" type="String" desc="The URI of the document to fetch"/>
+                        <description>
+                            <p xmlns="">Emulates an XMLHTTPRequest, effectively returning an XML
+                                document object.</p>
+                        </description>
+                    </proto>
+                </signatures>
+                <status-ok/>
+                <details>
+                    <p xmlns="">This method creates a placeholder for a document object that can be
+                        used as an argument wherever a <code>Document</code> object is required by
+                        an API method, such as <code>transformToDocument()</code>. The use of such a
+                        placeholder allows Saxon-CE to determine whether to retrieve the document
+                        synchonously or asynchronously, depending on the context in which it is
+                        used.</p>
+                    <p xmlns=""><i>Note: Typically, XML resources that are used as XSLT stylesheets
+                            are fetched synchronously, whilst those loaded as data are fetched
+                            asynchronously while the XSLT compiles.</i></p>
+                </details>
+            </function>
+            <function>
+                <name>parseXML</name>
+                <signatures>
+                    <proto name="parseXML" return-type="Document">
+                        <arg name="arg" type="String" desc="The XML string to be converted."/>
+                        <description>
+                            <p xmlns="">Returns a new XML document object created from the lexical
+                                XML String passed as an argument.</p>
+                        </description>
+                    </proto>
+                </signatures>
+                <status-ok/>
+                <details>
+                    <p xmlns="">This is a cross-browser method for parsing an XML string and
+                        converting it to an XML document object.</p>
+                </details>
+            </function>
+            <function>
+                <name>serializeXML</name>
+                <signatures>
+                    <proto name="serializeXML" return-type="String">
+                        <arg name="xml" type="Node" desc="The Node to serialize"/>
+                        <description>
+                            <p xmlns="">Returns a String that represents a serialization of the XML
+                                Node argument.</p>
+                        </description>
+                    </proto>
+                </signatures>
+                <status-ok/>
+                <details>
+                    <p xmlns="">This method provides a simple cross-browser wrapper for serialising
+                        a XML DOM node. Results may therefore vary according to the host browser
+                        used. For example, when serialising a DocumentFragment containing a number
+                        of top-level elements, Internet Explorer only serializes the first
+                        element.</p>
+                </details>
+            </function>
+            <function>
+                <name>run</name>
+                <signatures>
+                    <proto name="run" return-type="XSLT20Processor">
+                        <arg name="cmd" type="Command?" desc="The URI of the stylesheet."/>
+                        <description>
+                            <p xmlns="">Uses JavaScript literal object properties to execute an XSLT
+                                transform.</p>
+                        </description>
+                    </proto>
+                </signatures>
+                <status-ok/>
+                <!--
+<xref section="api" page="command" subpage="getLogLevel">
+-->
+                <details>
+                    <p xmlns="">A call to this function uses a single
+                        <xref section="api" page="command">Command</xref> object parameter to
+                        describe the XSLT transform to run. The Command object is designed to be
+                        used as JavaScript literal:</p>
+                    <example xmlns=""> var onSaxonLoad = function() { var xrows =
+                        document.getElementById("extra").getElementsByTagName("tr"); Saxon.run( {
+                        stylesheet: "display-geo.xsl", source: "geo-files.xml" parameters: { mass:
+                        225, rows: xrows, title: "Intro" }, }); } </example>
+                    <p xmlns="">This function returns a newly created
+                        <xref section="api" page="xslt20processor">XSLT20Processor</xref> object.
+                        Use this object's <code>getResultDocument</code> and
+                            <code>getResultDocuments</code> functions to get any output results from
+                        the tranform. Note that the principal output document is returned by a call
+                        to <code>getResultDocumemt</code> with no parameter value.</p>
+                    <p xmlns="">The <code>run</code> method serves as a wrapper for the 3
+                        lower-level transform calls of the API: <code>transformToDocument,
+                            transformToFragment</code> and <code>updateHTMLDocument</code>. The
+                        latter of these is the default function, use the <code>method</code>
+                        property with the function name to specify an alternative transform.</p>
+                </details>
+            </function>
+            <function>
+                <name>getErrorHandler</name>
+                <signatures>
+                    <proto name="getErrorHandler" return-type="Function">
+                        <description>
+                            <p xmlns="">Returns a reference to the function set as the Saxon error
+                                handler.</p>
+                        </description>
+                    </proto>
+                </signatures>
+                <status-ok/>
+                <details>
+                    <p xmlns="">This function corresponds to the
+                        <xref section="api" page="saxon" subpage="setErrorHandler">setErrorHandler</xref>
+                        function and returns <code>null</code> if no error handler was set.</p>
+                </details>
+            </function>
+            <function>
+                <name>setErrorHandler</name>
+                <signatures>
+                    <proto name="setErrorHandler">
+                        <arg name="handler" type="Function"
+                            desc="The function to which callbacks will be made on events or errors"/>
+                        <description>
+                            <p xmlns="">Sets a callback function to allow your own code to manage
+                                events and errors occurring in the XSLT20Processor object.</p>
+                        </description>
+                    </proto>
+                </signatures>
+                <status-ok/>
+                <details>
+                    <p xmlns="">The error and event handling capability this callback provides is
+                        for use with the Debug variant of Saxon only. The threshold for this
+                        callback is controlled by the Logging
+                        <xref section="api" page="saxon" subpage="setLogLevel">setLogLevel</xref>
+                        method, or a URI argument - see the
+                        <xref section="coding" page="logging">Logging</xref> section for further
+                        details.</p>
+                    <p xmlns="">The <code>$handler</code> function argument signature should hava a
+                        single <code>error</code> argument. The <code>error</code> object which is
+                        passed in the callback can then be used to get details on the error or
+                        event. It has 3 properties: <code>message</code>, <code>level</code> and
+                            <code>time</code>. If no error handler is set, any JavaScript or XSLT
+                        exceptions are thrown so that your code can manage them.</p>
+                    <p xmlns=""><i>Sample JavaScript code:</i></p>
+                    <example xmlns=""> var errors = new Array(); function doPageUpdate() { errors =
+                        new Array(); // ------ SET ERROR HANDLER --------
+                        Saxon.setErrorHandler(handler); Saxon.setLogLevel("FINE"); (...) // update
+                        the HTML page var result = proc.updateHTMLDocument(xml); // show a window
+                        alert listing any compile-time or run-time errors if (errors.length > 0) {
+                        window.alert(errors.toString()); } } // ------ DECLARE ERROR HANDLER
+                        -------- function handler(saxonError) { errors.push(saxonError.message + " "
+                        + saxonError.level + " " + saxonError.time); } </example>
+                </details>
+            </function>
+            <function>
+                <name>getVersion</name>
+                <signatures>
+                    <proto name="getVersion" return-type="String">
+                        <description>
+                            <p xmlns="">Returns the version number of the Saxon-CE processor.</p>
+                        </description>
+                    </proto>
+                </signatures>
+                <status-ok/>
+            </function>
+            <function>
+                <name>getLogLevel</name>
+                <signatures>
+                    <proto name="getLogLevel" return-type="String">
+                        <description>
+                            <p xmlns="">Returns the level at which events, warning and errors are
+                                logged.</p>
+                        </description>
+                    </proto>
+                </signatures>
+                <status-ok/>
+                <details>
+                    <p xmlns="">There are 7 logging levels, ranging from SEVERE to FINEST. See the
+                        <xref section="coding" page="logging">Logging</xref> section fur further
+                        details. </p>
+                    <p xmlns="">Note that the log level is set using
+                            <code><xref section="api" page="saxon" subpage="setLogLevel">setLogLevel</xref></code>
+                        or by a <code>logLevel</code> URI argument.</p>
+                </details>
+            </function>
+            <function>
+                <name>setLogLevel</name>
+                <signatures>
+                    <proto name="setLogLevel">
+                        <arg name="level" type="String?"
+                            desc="The threshold at which events or errors are logged."/>
+                        <description>
+                            <p xmlns="">Sets the level at which events, warning and errors are
+                                logged.</p>
+                        </description>
+                    </proto>
+                </signatures>
+                <status-ok/>
+                <details>
+                    <p xmlns="">There are 7 logging levels, ranging from SEVERE to FINEST. See the
+                        <xref section="coding" page="logging">Logging</xref> section fur further
+                        details. </p>
+                </details>
+            </function>
+        </functions>
+    </api>
+    <api name="xslt20processor">
+        <title>XSLT20Processor</title>
+        <description>
+            <p xmlns="">The XSLT20Processor object provides the various functions used to perform an
+                XSLT 2.0 transform. This section describes all the available functions, but the
+                following (along with the object constructor) are probably going to be used most
+                often:</p>
+            <table xmlns="">
+                <tr>
+                    <td>
+                        <p><b>1. Configure:</b></p>
+                    </td>
+                    <td>
+                        <p>setParameter</p>
+                    </td>
+                    <td>
+                        <p>setInitialTemplate</p>
+                    </td>
+                    <td>
+                        <p>setMode</p>
+                    </td>
+                </tr>
+                <tr>
+                    <td>
+                        <p><b>2. Transform:</b></p>
+                    </td>
+                    <td>
+                        <p>updateHTMLDocument</p>
+                    </td>
+                    <td>
+                        <p>transformToDocument</p>
+                    </td>
+                    <td>
+                        <p>transformToFragment</p>
+                    </td>
+                </tr>
+            </table>
+            <p xmlns=""><i>When using the API on page-load, you should ensure Saxon-CE is loaded
+                    first by including your code within the global <code>onSaxonLoad</code>
+                    function. This function is called as soon as the HTML page has loaded and
+                    Saxon-CE has been initialized.</i></p>
+            <p xmlns="">XSLT20Processor instances are created using the
+                <xref section="api" page="saxon" subpage="newXSLT20Processor">newXSLT20Processor</xref>
+                factory method of the static <xref section="api" page="saxon">Saxon</xref> object
+                (which also provides a set of XML utility functions along with functions for
+                controlling error logging). </p>
+            <!--
+<p xmlns=""></p>
+-->
+        </description>
+        <functions>
+            <function>
+                <name>updateHTMLDocument</name>
+                <signatures>
+                    <proto name="updateHTMLDocument" return-type="String">
+                        <arg name="source" type="Node?"
+                            desc="The source document or node to be transformed"/>
+                        <arg name="target" type="Document?"
+                            desc="The HTML Document object to update"/>
+                        <description>
+                            <p xmlns="">Initiates an XSLT transform on an existing HTML
+                                document.</p>
+                        </description>
+                    </proto>
+                </signatures>
+                <status-ok/>
+                <details>
+                    <p xmlns="">The initial template must be set (using
+                            <code>setInitialTemplate</code>) when the <code>source</code> parameter
+                        is <code>null</code>. If the <code>target</code> parameter value is null,
+                        then the host HTML page is the target for all output.</p>
+                    <p xmlns="">updateHTMLDocument() is most commonly used with
+                            <code>xsl:result-document</code> to update parts of the document
+                        identified by the <code>href</code> attribute. The principal XSLT output (if
+                        any) is inserted at the end of the HTML <code>body</code> element.</p>
+                    <p xmlns=""><i>Note: An error is raised if the source is set to the same
+                            document as the target. To read nodes in the HTML you're updating within
+                            the XSLT, use the <code>ixsl:page()</code> function which returns the
+                            Document node of the host page.</i></p>
+                </details>
+            </function>
+            <function>
+                <name>transformToDocument</name>
+                <signatures>
+                    <proto name="transformToDocument" return-type="Document">
+                        <arg name="source" type="Node?"
+                            desc="The source document or node to be transformed."/>
+                        <description>
+                            <p xmlns="">Returns the result of an XSLT transform as a Document
+                                object.</p>
+                        </description>
+                    </proto>
+                </signatures>
+                <status-ok/>
+                <details>
+                    <p xmlns="">If no source document is supplied then an initialTemplate must be
+                        set.</p>
+                </details>
+            </function>
+            <function>
+                <name>transformToFragment</name>
+                <signatures>
+                    <proto name="transformToFragment" return-type="DocumentFragment">
+                        <arg name="source" type="Node?"
+                            desc="The source document or node to be transformed."/>
+                        <arg name="ownerDocument" type="Document?"
+                            desc="The owner document for the fragment"/>
+                        <description>
+                            <p xmlns="">Returns the result of an XSLT transform as a
+                                DocumentFragment object.</p>
+                        </description>
+                    </proto>
+                </signatures>
+                <status-ok/>
+                <details>
+                    <p xmlns="">If no source document is supplied then an initialTemplate must be
+                        set. A DocumentFragment is useful because it can be it allows a set of nodes
+                        to be appended to the DOM without a container element.</p>
+                    <p xmlns="">All DocumentFragments must have an owner document, if none is
+                        supplied as a parameter a new XML document is created for this purpose.</p>
+                </details>
+            </function>
+            <function>
+                <name>transformToHTMLFragment</name>
+                <signatures>
+                    <proto name="transformToHTMLFragment" return-type="DocumentFragment">
+                        <arg name="source" type="Node?"
+                            desc="The source document or node to be transformed"/>
+                        <arg name="ownerDocument" type="Document?"
+                            desc="The owner document for the HTML fragment"/>
+                        <description>
+                            <p xmlns="">Returns the result of an XSLT transform as one or more HTML
+                                DocumentFragment objects.</p>
+                        </description>
+                    </proto>
+                </signatures>
+                <status-ok/>
+                <details>
+                    <p xmlns="">If no source document is supplied then an initialTemplate must be
+                        set. All DocumentFragments must have an owner document, if none is supplied
+                        as a parameter the owner is set to the host HTML document.</p>
+                    <p xmlns="">This function returns a collection of HTML fragments that can be
+                        appended directly to the DOM. Each returned fragment can contain a number of
+                        nodes, but can be appended to an HTML DOM element as a single node. The
+                        <xref section="api" page="xslt20processor" subpage="getResultDocument">getResultDocument</xref>
+                        and
+                        <xref section="api" page="xslt20processor" subpage="getResultDocument">getResultDocuments</xref>
+                        functions are used to retrieve each result fragment. Note that the
+                        <xref section="api" page="xslt20processor" subpage="updateHTMLDocument">updateHTMLDocument</xref>
+                        function provides similar functionality, but fragment updates are peformed
+                        entirely within the XSLT using the <code>xsl:result-document</code>
+                        instruction's <code>href</code> attribute to specify the target node for
+                        each result fragment. </p>
+                </details>
+            </function>
+            <function>
+                <name>setInitialTemplate</name>
+                <signatures>
+                    <proto name="setInitialTemplate">
+                        <arg name="name" type="String" desc="The template name"/>
+                        <description>
+                            <p xmlns="">Sets the name for the initial template to be called for the
+                                XSLT transform</p>
+                        </description>
+                    </proto>
+                </signatures>
+                <status-ok/>
+                <details>
+                    <p xmlns="">To set a namespace-qualified name, use the James-Clark notation:
+                            <code>{uri}local</code>.</p>
+                </details>
+            </function>
+            <function>
+                <name>getInitialTemplate</name>
+                <signatures>
+                    <proto name="getInitialTemplate" return-type="String">
+                        <description>
+                            <p xmlns="">Gets the name set for the XSLT transform initial
+                                template</p>
+                        </description>
+                    </proto>
+                </signatures>
+                <status-ok/>
+                <details>
+                    <p xmlns="">If the returned name has a namespace, then the James-Clark notation
+                        is used: <code>{uri}local</code>.</p>
+                </details>
+            </function>
+            <function>
+                <name>setInitialMode</name>
+                <signatures>
+                    <proto name="setInitialMode">
+                        <arg name="name" type="String" desc="The mode name"/>
+                        <description>
+                            <p xmlns="">Sets the name for the initial mode to be called for the XSLT
+                                transform</p>
+                        </description>
+                    </proto>
+                </signatures>
+                <status-ok/>
+                <details>
+                    <p xmlns="">To set a namespace-qualified name, use the James-Clark notation:
+                            <code>{uri}local</code>.</p>
+                </details>
+            </function>
+            <function>
+                <name>getInitialMode</name>
+                <signatures>
+                    <proto name="getInitialMode" return-type="String">
+                        <description>
+                            <p xmlns="">Gets the initial mode set for the XSLT transform.</p>
+                        </description>
+                    </proto>
+                </signatures>
+                <status-ok/>
+                <details>
+                    <p xmlns="">If the returned name has a namespace, then the result is formatted
+                        using the James-Clark notation: <code>{uri}local</code>.</p>
+                </details>
+            </function>
+
+            <function>
+                <name>setSuccess</name>
+                <signatures>
+                    <proto name="setSuccess">
+                        <arg name="callback" type="Function" desc="The callback function"/>
+                        <description>
+                            <p xmlns="">Following a transform, a callback is made to this
+                                function</p>
+                        </description>
+                    </proto>
+                </signatures>
+                <status-ok/>
+                <details>
+                    <p xmlns="">The callback function has the signature <code>success(proc)</code>
+                        where <code>proc</code> is the instance of XSLT20Processor performing the
+                        transform.</p>
+                    <p xmlns="">If <code>success</code> is not set, then processing will be
+                        synchronous for calls to <code>transformToDocument</code> and
+                            <code>transformToFragment</code>. The <code>updateHTMLDocument</code>
+                        function can potentially always run asynchronously as it has no return
+                        values (it simply updates the target HTML document). </p>
+                </details>
+            </function>
+            <function>
+                <name>getSuccess</name>
+                <signatures>
+                    <proto name="getSuccess" return-type="Function">
+                        <description>
+                            <p xmlns="">Returns the callback function set by
+                                <code>setSuccess</code></p>
+                        </description>
+                    </proto>
+                </signatures>
+                <status-ok/>
+            </function>
+
+            <function>
+                <name>setParameter</name>
+                <signatures>
+                    <proto name="setParameter" return-type="Void">
+                        <arg name="namespace" type="String"
+                            desc="The namespace for the parameter name or null"/>
+                        <arg name="name" type="String" desc="The parameter name"/>
+                        <arg name="value" type="Object" desc="The parameter value"/>
+                        <description>
+                            <p xmlns="">Sets named parameters for the XSLT transform</p>
+                        </description>
+                    </proto>
+                </signatures>
+                <status-ok/>
+                <details>
+                    <p xmlns="">Supplied parameter types may be <code>String</code>,
+                            <code>Double</code>, <code>Node</code> or <code>Array</code>. Array
+                        items may be any of these types, except<code> Array</code>.</p>
+                    <p xmlns=""><i>Sample JavaScript code:</i></p>
+                    <example xmlns=""> ... // initialise processor var proc = new
+                        XSLT20Processor(xsl); // a node parameter: proc.setParameter(null,
+                        "fElementArray", document.getElementsByTagName("h2")); // a string array
+                        parameter proc.setParameter(null, "fArray", ["one", "two"]); // a string
+                        parameter proc.setParameter(null, "fString", "my value"); var result =
+                        proc.transformToDocument(Saxon.requestXML('data.xml')); </example>
+                </details>
+            </function>
+            <function>
+                <name>getParameter</name>
+                <signatures>
+                    <proto name="getParameter" return-type="Object">
+                        <arg name="namespace" type="String"
+                            desc="The namespace for the parameter name or null"/>
+                        <arg name="name" type="String" desc="The parameter name"/>
+                        <description>
+                            <p xmlns="">Gets the value of the named XSLT transform parameter.</p>
+                        </description>
+                    </proto>
+                </signatures>
+                <status-ok/>
+                <details>
+                    <p xmlns="">This is the counterpart to the
+                        <a href="setParameter.xml">setParameter</a> method</p>
+                </details>
+            </function>
+            <function>
+                <name>clearParameters</name>
+                <signatures>
+                    <proto name="clearParameters">
+                        <description>
+                            <p xmlns="">Removes all parameters set for the XSLT20Processor
+                                instance.</p>
+                        </description>
+                    </proto>
+                </signatures>
+                <status-ok/>
+                <details>
+                    <p xmlns="">See: <a href="setParameter.xml">setParameter</a> and
+                        <a href="getParameter.xml">getParameter</a></p>
+                </details>
+            </function>
+            <function>
+                <name>removeParameter</name>
+                <signatures>
+                    <proto name="removeParameter">
+                        <arg name="name" type="String" desc="The parameter name"/>
+                        <description>
+                            <p xmlns="">Removes the named parameter.</p>
+                        </description>
+                    </proto>
+                </signatures>
+                <status-ok/>
+                <details>
+                    <p xmlns="">See: <a href="setParameter.xml">setParameter</a> and
+                        <a href="getParameter.xml">getParameter</a></p>
+                </details>
+            </function>
+            <function>
+                <name>reset</name>
+                <signatures>
+                    <proto name="reset">
+                        <description>
+                            <p xmlns="">Resets the XSLT20Processor object to its original state.</p>
+                        </description>
+                    </proto>
+                </signatures>
+                <status-ok/>
+                <details>
+                    <p xmlns="">Clears the XSLT20Processor instance settings for parameters,
+                        imported stylesheet, initial template and initial mode</p>
+                </details>
+            </function>
+            <function>
+                <name>setBaseOutputURI</name>
+                <signatures>
+                    <proto name="setBaseOutputURI">
+                        <arg name="uri" type="String?" desc="The base URI for output documents"/>
+                        <description>
+                            <p xmlns="">Set the base URI for resolving output URIs from an XSLT
+                                transform</p>
+                        </description>
+                    </proto>
+                </signatures>
+                <status-ok/>
+                <details>
+                    <p xmlns="">If no uri is supplied, the base output uri is reset.</p>
+                </details>
+            </function>
+            <function>
+                <name>getResultDocument</name>
+                <signatures>
+                    <proto name="getResultDocument" return-type="Document|DocumentFragment">
+                        <arg name="uri" type="String" desc="The URI of the result document"/>
+                        <description>
+                            <p xmlns="">Returns a result document created by the
+                                    <i>xsl:result-document</i> instruction</p>
+                        </description>
+                    </proto>
+                </signatures>
+                <status-ok/>
+                <details>
+                    <p xmlns="">Result documents created when calling the
+                            <code>XSLT20Processor</code> functions
+                        <xref section="api" page="xslt20processor" subpage="transformToDocument">transformToDocument</xref>
+                        or
+                        <xref section="api" page="xslt20processor" subpage="transformToFragment">transformToFragment</xref>
+                        each have a unique URI. The <code>uri</code> parameter identifies the
+                        specific document to return, the result is <code>null</code> if no result
+                        document was output with a matching URI.</p>
+                    <p xmlns="">When getResultDocument is called with no parameter or a null or
+                        empty-string parameter value, the principal output document, if any, is
+                        returned.</p>
+                    <p xmlns="">This function can be used in combination with
+                        <xref section="api" page="xslt20processor" subpage="getResultDocuments">GetResultDocuments()</xref>
+                        which returns a String array of all result document URIs from the last XSLT
+                        transform.</p>
+                </details>
+
+            </function>
+            <function>
+                <name>getResultDocuments</name>
+                <signatures>
+                    <proto name="getResultDocuments" return-type="String Array">
+                        <description>
+                            <p xmlns="">Returns any array of result document URIs that were output
+                                by the previous XSLT transform.</p>
+                        </description>
+                    </proto>
+                </signatures>
+                <status-ok/>
+                <details>
+                    <p xmlns="">Note: You can use the
+                        <xref section="api" page="xslt20processor" subpage="getResultDocuments">getResultDocument(uri)</xref>
+                        function to get a reference to the <code>Document</code> or
+                            <code>DocumentFragment</code> identified by each URI.</p>
+                </details>
+
+            </function>
+            <function>
+                <name>importStylesheet</name>
+                <signatures>
+                    <proto name="importStylesheet">
+                        <arg name="xsl" type="Document"
+                            desc="The XML Document containing the stylesheet to import"/>
+                        <description>
+                            <p xmlns="">Sets the stylesheet to be used for an XSLT transform</p>
+                        </description>
+                    </proto>
+                </signatures>
+                <status-ok/>
+                <details>
+                    <p xmlns="">Note that the XSLT20Processor
+                        <xref section="api" page="xslt20processor" subpage="_Constructor">constructor</xref>
+                        can also be used to set the stylesheet.</p>
+                </details>
+            </function>
+        </functions>
+    </api>
+    <api name="command">
+        <title>Command</title>
+        <description>
+            <p xmlns="">The Command object is used exclusively by the Saxon object's
+                <xref section="api" page="saxon" subpage="run">run</xref> function. It's designed to
+                be used as a JavaScript literal object and effectively wraps the Saxon-CE API with a
+                set of properties so you can run an XSLT transform on an HTML page in a more
+                declarative way.</p>
+            <p xmlns="">If you need to include a namespace in an XSLT parameter name, use the Clark
+                notation: <code>{uri}local</code> - for example
+                    <code>{http://saxonica.com/units}mass-kg</code></p>
+            <p xmlns="">In the properties listed below, only <code>stylesheet</code> (shown in
+                italics) is mandatory, but either <code>initialTemplate</code> or
+                    <code>source</code> must also be set, to ensure that the stylesheet has an entry
+                point.</p>
+        </description>
+        <footer>
+
+            <p xmlns="">An example of how the literal <code>Command</code> object can be used with
+                the Saxon <code>run</code> method is shown below. This sample also shows how to use
+                the <code>onSaxonLoad</code> function to ensure the Saxon-CE library loads fully
+                before any JavaScript API calls are made on the library.</p>
+            <example xmlns=""> // Using Saxon.run method with the Command object to start an HTML
+                page transform: var onSaxonLoad = function() { Saxon.run( { stylesheet:
+                "display-geo.xsl", source: "geo-files.xml", initialMode: "pull", parameters: {
+                mass-kg: 225, point: [128, 79], label: "Definitions" }, errorHandler: saxonHandler
+                }); } // equivalent using the procedural JavaScript API: var onSaxonLoad =
+                function() { var xml = Saxon.requestXML(geo-files.xml); var xsl =
+                Saxon.requestXML("display-geo.xsl"); var proc = new XSLT20Processor(xsl);
+                proc.setParameter(null, "mass-kg", 225); proc.setParameter(null, "point", [128,
+                79]); proc.setParameter(null, "label", "Definitions");
+                proc.setErrorHandler(saxonHandler); proc.updateHTMLDocument(xml, null); } </example>
+        </footer>
+        <properties>
+            <property required="no" type="String">
+                <name>initialTemplate</name>
+                <status-ok/>
+                <description>
+                    <p xmlns="">The initial template for the transform</p>
+                </description>
+            </property>
+            <property required="no" type="String">
+                <name>initialMode</name>
+                <status-ok/>
+                <description>
+                    <p xmlns="">The initial mode for the transform</p>
+                </description>
+                <details>
+                    <p xmlns="">This must be set if no <code>source</code> property is set.</p>
+                </details>
+            </property>
+            <property required="no" type="String|Document">
+                <name>source</name>
+                <status-ok/>
+                <description>
+                    <p xmlns="">The XML document source for the transform</p>
+                </description>
+                <details>
+                    <p xmlns="">An error will be thrown if <code>source</code> or
+                            <code>initialTemplate</code> property is set.</p>
+                    <p xmlns="">Use either a string holding the URI of the stylesheet, or an XML
+                        Document object containing the stylesheet.</p>
+                </details>
+            </property>
+            <property required="no" type="Function">
+                <name>errorHandler</name>
+                <status-ok/>
+                <description>
+                    <p xmlns="">The callback function for handling processing errors.</p>
+                </description>
+                <details>
+                    <p xmlns=""><i>This is only available for the Debug version of Saxon-CE.</i></p>
+                </details>
+            </property>
+            <property required="no" type="Function">
+                <name>success</name>
+                <status-ok/>
+                <description>
+                    <p xmlns="">The success callback function - called after a transform.</p>
+                </description>
+            </property>
+            <property required="no" type="String">
+                <name>logLevel</name>
+                <status-ok/>
+                <description>
+                    <p xmlns="">Sets the error and event logging threshold.</p>
+                </description>
+                <details>
+                    <p xmlns="">Permitted values range from SEVERE to FINEST, or OFF when no logging
+                        is required.</p>
+                </details>
+            </property>
+            <property required="no" type="String">
+                <name>method</name>
+                <status-ok/>
+                <description>
+                    <p xmlns="">The transform method to use [Default:
+                            <code>updateHTMLDocument</code>]</p>
+                </description>
+                <details>
+                    <p xmlns="">Available methods are: <code>transformToDocument transformToFragment
+                            updateHTMLDocument</code></p>
+                </details>
+            </property>
+            <property required="yes" type="String|Document">
+                <name>stylesheet</name>
+                <status-ok/>
+                <description>
+                    <p xmlns="">Sets the stylesheet for the transform</p>
+                </description>
+                <details>
+                    <p xmlns="">Use either a string holding the URI of the stylesheet, or an XML
+                        Document object containing the stylesheet.</p>
+                </details>
+            </property>
+            <property required="no" type="Map:Name&#x2192;Value">
+                <name>parameters</name>
+                <status-ok/>
+                <description>
+                    <p xmlns="">XSLT parameters are set from the matching values of properties of
+                        the parameters object.</p>
+                </description>
+                <details>
+                    <p xmlns=""/>
+                </details>
+            </property>
+        </properties>
+    </api>
+</apis>
