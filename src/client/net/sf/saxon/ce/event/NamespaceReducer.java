@@ -128,7 +128,7 @@ public class NamespaceReducer extends ProxyReceiver implements NamespaceResolver
 
         if (pendingUndeclarations != null) {
             for (int p=0; p<pendingUndeclarations.length; p++) {
-                if ((nscode.getPrefix().equals(pendingUndeclarations[p].getPrefix()))) {
+                if (pendingUndeclarations[p]!= null && (nscode.getPrefix().equals(pendingUndeclarations[p].getPrefix()))) {
                     pendingUndeclarations[p] = null;
                     //break;
                 }

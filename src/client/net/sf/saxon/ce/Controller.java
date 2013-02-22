@@ -1266,11 +1266,14 @@ public class Controller {
 //                root.removeChild(child);
 //            }
 //        }
-
+    	
         HTMLWriter writer = new HTMLWriter();
         writer.setPipelineConfiguration(pipe);
+        NamespaceReducer reducer = new NamespaceReducer();
+        reducer.setUnderlyingReceiver(writer);
+        reducer.setPipelineConfiguration(pipe);
         writer.setNode(root);
-        Receiver receiver = writer;
+        Receiver receiver = reducer;
 
 
 

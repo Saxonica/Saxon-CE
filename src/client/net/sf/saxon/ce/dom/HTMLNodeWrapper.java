@@ -383,6 +383,9 @@ public class HTMLNodeWrapper implements NodeInfo, VirtualNode, SiblingCountingNo
 		} else {
 			v = n.value;
 		}
+		if(v == undefined){
+			return v;
+		}
 		return String(v);
 	}-*/;
 	
