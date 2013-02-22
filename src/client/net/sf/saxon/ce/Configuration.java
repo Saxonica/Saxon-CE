@@ -1,8 +1,5 @@
 package client.net.sf.saxon.ce;
 
-import java.util.logging.Logger;
-
-import client.net.sf.saxon.ce.client.HTTPHandler;
 import client.net.sf.saxon.ce.dom.HTMLDocumentWrapper;
 import client.net.sf.saxon.ce.dom.HTMLDocumentWrapper.DocType;
 import client.net.sf.saxon.ce.dom.XMLDOM;
@@ -26,12 +23,11 @@ import client.net.sf.saxon.ce.type.BuiltInType;
 import client.net.sf.saxon.ce.type.SchemaType;
 import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.Whitespace;
-
-import com.google.gwt.core.client.GWT;
-import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.dom.client.Document;
 import com.google.gwt.dom.client.Node;
 import com.google.gwt.user.client.Window;
+
+import java.util.logging.Logger;
 //import com.google.gwt.xml.client.Document;
 //import com.google.gwt.xml.client.XMLParser;
 //import com.google.gwt.xml.client.impl.*;
@@ -101,7 +97,6 @@ public class Configuration {
     private CompilerInfo defaultXsltCompilerInfo = new CompilerInfo();
     private DocumentPool sourceDocumentPool = new DocumentPool();
     private Logger logger = Logger.getLogger("Configuration");
-    private static DocumentInfo hostPage;
 
 
 
@@ -607,7 +602,7 @@ public class Configuration {
     public DocumentInfo buildDocument(final String url) throws XPathException {
         if (url.equals("html:document")) {
             // special case this URI
-        	return hostPage;
+        	return getHostPage();
         }
         
         String xml;
