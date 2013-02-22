@@ -1,0 +1,48 @@
+==============================
+
+Saxon-CE 1.1 is the latest major release of the open-source edition of Saxon Client Edition.
+
+
+The current maintenance release is Saxon-CE 1.1
+
+The documentation for Saxon is at http://www.saxonica.com/ce/user-doc/index.html
+and includes a detailed list of changes for each release.
+
+Download file Saxon-CE_1.1.zip 
+(URL: https://github.com/Saxonica/Saxon-CE/blob/master/releases/1.1/Saxon-CE_1.1.zip). 
+Installation instructions are at http://www.saxonica.com/ce/user-doc/1.1/index.html#!starting
+
+The file saxon-resources9-4.zip contains documentation, sample files, test drivers and other miscellaneous resources. 
+It is common to both platforms, and is not normally updated when new maintenance releases appear.
+
+The project is maintained on github: https://github.com/Saxonica/Saxon-CE
+The project contains: source code; build files; the releases; sample files; tests and the user-doc as HTML and as a Saxon-CE application
+
+The following bugs are cleared in 1.1, issued 2012-02-22. Bugs are listed under the number used on the Saxonica Community site at
+https://saxonica.plan.io/projects/saxon-ce/issues :
+
+Bug #1511: JavaScript API: Principal output after calling transformToDocument or transformToFragment can't always be accessed
+Bug #1516: Class cast exception occurs when trying to use a JavaScript DOM document node within XSLT
+Bug #1526: Transform subelement of nested structure
+Bug #1527: Value of adjacent text nodes in the DOM not aggregated properly
+Bug #1531: XML DOM [IE7 and earlier]: Adding a prefixed and namespaced XML attribute causes an exception
+Bug #1533: Using the trace feature causes an unhandled exception if the stylesheet uses XSLT parameters or certain global variable expressions
+Bug #1535: JavaScript API: Processing-instruction and comment nodes are not written to the XML output
+Bug #1539: Trace outputs for xsl:sequence instructions have no attributes to identify them
+Bug #1545: Basic Arithmetic goes wrong
+Bug #1556: adding ?logLevel=FINE throws error
+Bug #1559: Error message in case where DTD causes IE XML parser to fail is unclear
+Bug #1560: Issue with the 'use-when' attribute
+Bug #1563: Unhelpful error message when using the '/' root node expression with no context item
+Bug #1570: Internet Explorer Tables: Attribute colspan, rowspan, cellPadding and cellSpacing have no effect on table
+Bug #1582: When using a DOM object for the XSLT stylesheet with the JavaScript API relative xsl:import/include URIs are not resolved properly
+Bug #1587: How can I handle errors of the type 'xml input file does not exist?
+Bug #1588: The fn:normalize-unicode() function produces unexpected results for non-ascii characters
+Bug #1590: Event processing, preventDefault
+Bug #1591: Internet Explorer - Ver 8 and previous: Setting a class attribute value gives '[object]' instead of the real string value
+Bug #1592: Namespace handling of output xml documents
+Bug #1603: Cannot load XML with same URI as the host page
+Bug #1613: @xsl:result-document@ triggers a re-load of the page?
+Bug #1633: License file URI resolved incorrectly
+Bug #1634: importStylesheet($uri) doesn't work
+Bug #1697: Namespaces are stripped in output.
