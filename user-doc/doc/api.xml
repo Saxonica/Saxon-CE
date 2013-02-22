@@ -1,41 +1,50 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<section xml:id="api">
-   <title>JavaScript API</title>
-   <page xml:id="intro">
-      <title>Introduction</title>
+<?xml version="1.0" encoding="utf-8"?>
+<article id="api" title="JavaScript API">
+   <h1>JavaScript API</h1>
+      
       <p>The JavaScript API for Saxon-CE is loaded using a standard HTML
                     <code>script</code> element:</p>
-      <example>&lt;script type="text/javascript" language="javascript" src="../Saxon/Saxon.nocache.js"&gt;&lt;/script&gt;
-</example>
+      <samp><![CDATA[<script type="text/javascript" language="javascript" src="../Saxon/Saxon.nocache.js"></script>
+]]></samp>
       <p>When using this API, it's important to ensure the Saxon-CE library is loaded
                 first. The global <code>onSaxonLoad</code> callback function is provided to
                 facilitate this during an HTML page load. Saxon-CE will make a call to this once it
                 has loaded.</p>
       <p>The API is centred around two principal objects:</p>
-      <subtitle>XSLT20Processor</subtitle>
+      <h2 class="subtitle">XSLT20Processor</h2>
       <p>
-         <xref section="api" page="xslt20processor">XSLT20Processor</xref> is modeled
+         <a class="bodylink" href="/api/xslt20processor">XSLT20Processor</a> is modeled
                 on the JavaScript XSLTProcessor API as implemented by Opera, Mozilla, Safari and
-                Chrome browsers (<a href="http://www.dev.abiss.gr/sarissa/">Sarissa</a> provides a
+                Chrome browsers (<a href="http://www.dev.abiss.gr/sarissa/" class="bodylink">Sarissa</a> provides a
                 wrapper compatible with Internet Explorer). It provides a set of methods used to
                 initiate XSLT transforms on XML or direct XSLT-based HTML updates. This standard API
                 has been extended to: (a) access functionality new to XSLT 2.0, (b) provide extra
                 features specific to HTML processing, and (c) support asynchronous processing.</p>
-      <subtitle>Saxon</subtitle>
-      <p>The <xref section="api" page="saxon">Saxon</xref> object provides a factory
+      <h2 class="subtitle">Saxon</h2>
+      <p>The <a class="bodylink" href="/api/saxon">Saxon</a> object provides a factory
                 method for instantiating <code>XSLT20Processor</code> and a <code>run</code>
                 function for invoking transforms more declaratively by using a JavaScript literal
                 object to describe the transform. It also includes a small set of utility functions
                 for managing XML resources and controlling the logging of messages from
                     <code>XSLT20Processor</code> object instances.</p>
-      <subtitle> </subtitle>
+      <h2 class="subtitle"> </h2>
       <p>Links to all JavaScript API Sections:</p>
-      <pageindex/>
-   </page>
-   <page xml:id="command">
-      <title>Command</title>
+      <ul>
+      <li>
+         <p><a class="bodylink" href="command">Command</a></p>
+      </li>
+      <li>
+         <p><a class="bodylink" href="saxon">Saxon</a></p>
+      </li>
+      <li>
+         <p><a class="bodylink" href="xslt20processor">XSLT20Processor</a></p>
+      </li>
+   </ul>
+   <section id="command" title="Command">
+      <h1>Command</h1>
+      
       <p>The Command object is used exclusively by the Saxon object's
-                <xref section="api" page="saxon" subpage="run">run</xref> function. It's designed to
+                <a class="bodylink" href="/api/saxon/run">run</a> function. It's designed to
                 be used as a JavaScript literal object and effectively wraps the Saxon-CE API with a
                 set of properties so you can run an XSLT transform on an HTML page in a more
                 declarative way.</p>
@@ -47,23 +56,23 @@
                 italics) is mandatory, but either <code>initialTemplate</code> or
                     <code>source</code> must also be set, to ensure that the stylesheet has an entry
                 point.</p>
-      <subtitle>Properties</subtitle>
+      <h2 class="subtitle">Properties</h2>
       <table>
          <thead>
             <tr>
                <td>
                   <p>
-                     <b>Property</b>
+                     <strong>Property</strong>
                   </p>
                </td>
                <td>
                   <p>
-                     <b>Type</b>
+                     <strong>Type</strong>
                   </p>
                </td>
                <td>
                   <p>
-                     <b>Description</b>
+                     <strong>Description</strong>
                   </p>
                </td>
             </tr>
@@ -172,12 +181,12 @@
             </td>
          </tr>
       </table>
-      <subtitle>Notes</subtitle>
+      <h2 class="subtitle">Notes</h2>
       <p>An example of how the literal <code>Command</code> object can be used with
                 the Saxon <code>run</code> method is shown below. This sample also shows how to use
                 the <code>onSaxonLoad</code> function to ensure the Saxon-CE library loads fully
                 before any JavaScript API calls are made on the library.</p>
-      <example> // Using Saxon.run method with the Command object to start an HTML
+      <samp><![CDATA[ // Using Saxon.run method with the Command object to start an HTML
                 page transform: var onSaxonLoad = function() { Saxon.run( { stylesheet:
                 "display-geo.xsl", source: "geo-files.xml", initialMode: "pull", parameters: {
                 mass-kg: 225, point: [128, 79], label: "Definitions" }, errorHandler: saxonHandler
@@ -186,16 +195,17 @@
                 Saxon.requestXML("display-geo.xsl"); var proc = new XSLT20Processor(xsl);
                 proc.setParameter(null, "mass-kg", 225); proc.setParameter(null, "point", [128,
                 79]); proc.setParameter(null, "label", "Definitions");
-                proc.setErrorHandler(saxonHandler); proc.updateHTMLDocument(xml, null); } </example>
-   </page>
-   <page xml:id="saxon">
-      <title>Saxon</title>
+                proc.setErrorHandler(saxonHandler); proc.updateHTMLDocument(xml, null); } ]]></samp>
+   </section>
+   <section id="saxon" title="Saxon">
+      <h1>Saxon</h1>
+      
       <p>This is used as a static object, providing a set of utility functions
                 for:</p>
       <ul>
          <li>
             <p>Creating new instances of the
-                        <xref section="api" page="xslt20processor">XSLT20Processor</xref>
+                        <a class="bodylink" href="/api/xslt20processor">XSLT20Processor</a>
                     object</p>
          </li>
          <li>
@@ -208,18 +218,18 @@
             <p>Configuration and house-keeping tasks</p>
          </li>
       </ul>
-      <subtitle>Functions</subtitle>
+      <h2 class="subtitle">Functions</h2>
       <table>
          <thead>
             <tr>
                <td>
                   <p>
-                     <b>Function</b>
+                     <strong>Function</strong>
                   </p>
                </td>
                <td>
                   <p>
-                     <b>Description</b>
+                     <strong>Description</strong>
                   </p>
                </td>
             </tr>
@@ -228,7 +238,7 @@
             <td valign="top">
                <p>
                   <code>
-                     <xref section="api" page="saxon" subpage="getErrorHandler">getErrorHandler()</xref>
+                     <a class="bodylink" href="/api/saxon/getErrorHandler">getErrorHandler()</a>
                   </code>
                </p>
             </td>
@@ -241,7 +251,7 @@
             <td valign="top">
                <p>
                   <code>
-                     <xref section="api" page="saxon" subpage="getLogLevel">getLogLevel()</xref>
+                     <a class="bodylink" href="/api/saxon/getLogLevel">getLogLevel()</a>
                   </code>
                </p>
             </td>
@@ -254,7 +264,7 @@
             <td valign="top">
                <p>
                   <code>
-                     <xref section="api" page="saxon" subpage="getVersion">getVersion()</xref>
+                     <a class="bodylink" href="/api/saxon/getVersion">getVersion()</a>
                   </code>
                </p>
             </td>
@@ -266,7 +276,7 @@
             <td valign="top">
                <p>
                   <code>
-                     <xref section="api" page="saxon" subpage="newXSLT20Processor">newXSLT20Processor(xslt)</xref>
+                     <a class="bodylink" href="/api/saxon/newXSLT20Processor">newXSLT20Processor(xslt)</a>
                   </code>
                </p>
             </td>
@@ -280,7 +290,7 @@
             <td valign="top">
                <p>
                   <code>
-                     <xref section="api" page="saxon" subpage="parseXML">parseXML(arg)</xref>
+                     <a class="bodylink" href="/api/saxon/parseXML">parseXML(arg)</a>
                   </code>
                </p>
             </td>
@@ -293,7 +303,7 @@
             <td valign="top">
                <p>
                   <code>
-                     <xref section="api" page="saxon" subpage="requestXML">requestXML(uri)</xref>
+                     <a class="bodylink" href="/api/saxon/requestXML">requestXML(uri)</a>
                   </code>
                </p>
             </td>
@@ -306,7 +316,7 @@
             <td valign="top">
                <p>
                   <code>
-                     <xref section="api" page="saxon" subpage="run">run(cmd)</xref>
+                     <a class="bodylink" href="/api/saxon/run">run(cmd)</a>
                   </code>
                </p>
             </td>
@@ -319,7 +329,7 @@
             <td valign="top">
                <p>
                   <code>
-                     <xref section="api" page="saxon" subpage="serializeXML">serializeXML(xml)</xref>
+                     <a class="bodylink" href="/api/saxon/serializeXML">serializeXML(xml)</a>
                   </code>
                </p>
             </td>
@@ -332,7 +342,7 @@
             <td valign="top">
                <p>
                   <code>
-                     <xref section="api" page="saxon" subpage="setErrorHandler">setErrorHandler(handler)</xref>
+                     <a class="bodylink" href="/api/saxon/setErrorHandler">setErrorHandler(handler)</a>
                   </code>
                </p>
             </td>
@@ -345,7 +355,7 @@
             <td valign="top">
                <p>
                   <code>
-                     <xref section="api" page="saxon" subpage="setLogLevel">setLogLevel(level)</xref>
+                     <a class="bodylink" href="/api/saxon/setLogLevel">setLogLevel(level)</a>
                   </code>
                </p>
             </td>
@@ -355,10 +365,11 @@
             </td>
          </tr>
       </table>
-      <subpage xml:id="getErrorHandler">
-         <title>getErrorHandler</title>
-         <subtitle>getErrorHandler() → Function</subtitle>
-         <p xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">Returns a reference to the function set as the Saxon error
+      <section id="getErrorHandler" title="getErrorHandler">
+         <h1>getErrorHandler</h1>
+         
+         <h2 class="subtitle">getErrorHandler() → Function</h2>
+         <p>Returns a reference to the function set as the Saxon error
                                 handler.</p>
          <table>
             <tr>
@@ -384,15 +395,16 @@
                </td>
             </tr>
          </table>
-         <subtitle>Details</subtitle>
+         <h2 class="subtitle">Details</h2>
          <p>This function corresponds to the
-                        <xref section="api" page="saxon" subpage="setErrorHandler">setErrorHandler</xref>
+                        <a class="bodylink" href="/api/saxon/setErrorHandler">setErrorHandler</a>
                         function and returns <code>null</code> if no error handler was set.</p>
-      </subpage>
-      <subpage xml:id="getLogLevel">
-         <title>getLogLevel</title>
-         <subtitle>getLogLevel() → String</subtitle>
-         <p xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">Returns the level at which events, warning and errors are
+      </section>
+      <section id="getLogLevel" title="getLogLevel">
+         <h1>getLogLevel</h1>
+         
+         <h2 class="subtitle">getLogLevel() → String</h2>
+         <p>Returns the level at which events, warning and errors are
                                 logged.</p>
          <table>
             <tr>
@@ -418,20 +430,21 @@
                </td>
             </tr>
          </table>
-         <subtitle>Details</subtitle>
+         <h2 class="subtitle">Details</h2>
          <p>There are 7 logging levels, ranging from SEVERE to FINEST. See the
-                        <xref section="coding" page="logging">Logging</xref> section fur further
+                        <a class="bodylink" href="/coding/logging">Logging</a> section fur further
                         details. </p>
          <p>Note that the log level is set using
                             <code>
-               <xref section="api" page="saxon" subpage="setLogLevel">setLogLevel</xref>
+               <a class="bodylink" href="/api/saxon/setLogLevel">setLogLevel</a>
             </code>
                         or by a <code>logLevel</code> URI argument.</p>
-      </subpage>
-      <subpage xml:id="getVersion">
-         <title>getVersion</title>
-         <subtitle>getVersion() → String</subtitle>
-         <p xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">Returns the version number of the Saxon-CE processor.</p>
+      </section>
+      <section id="getVersion" title="getVersion">
+         <h1>getVersion</h1>
+         
+         <h2 class="subtitle">getVersion() → String</h2>
+         <p>Returns the version number of the Saxon-CE processor.</p>
          <table>
             <tr>
                <td width="470"
@@ -456,13 +469,14 @@
                </td>
             </tr>
          </table>
-         <subtitle>Details</subtitle>
-      </subpage>
-      <subpage xml:id="newXSLT20Processor">
-         <title>newXSLT20Processor</title>
-         <subtitle>newXSLT20Processor($xslt as Document?) → XSLT20Processor</subtitle>
-         <p xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">The factory method for creating a new
-                                <xref section="api" page="xslt20processor">XSLT20Processor</xref>
+         <h2 class="subtitle">Details</h2>
+      </section>
+      <section id="newXSLT20Processor" title="newXSLT20Processor">
+         <h1>newXSLT20Processor</h1>
+         
+         <h2 class="subtitle">newXSLT20Processor($xslt as Document?) → XSLT20Processor</h2>
+         <p>The factory method for creating a new
+                                <a class="bodylink" href="/api/xslt20processor">XSLT20Processor</a>
                                 object.</p>
          <table>
             <tr>
@@ -502,16 +516,16 @@
                </td>
             </tr>
          </table>
-         <subtitle>Details</subtitle>
+         <h2 class="subtitle">Details</h2>
          <p>The optional <code>xslt</code> argument is used to specify the
                         stylesheet to be used when one of the transform functions of this object is
                         called. The function,
-                        <xref section="api" page="saxon" subpage="requestXML">requestXML</xref>,
+                        <a class="bodylink" href="/api/saxon/requestXML">requestXML</a>,
                         provides a cross-browser method for getting a Document instance of the
                         stylesheet. </p>
          <p> If the <code>xslt</code> argument is null when XSLT20Procssor is
                         initialised using this function, the
-                        <xref section="api" page="xslt20processor" subpage="importStylesheet">importStylesheet</xref>
+                        <a class="bodylink" href="/api/xslt20processor/importStylesheet">importStylesheet</a>
                         function should always be called first, before initiating a transform.</p>
          <p>It's possible to use a number of XSLT20Processor instances. This may
                         be useful either when you want to exploit a number of previously compiled
@@ -547,11 +561,12 @@
                         and <code>xsl:import</code> declarations to use absolute URIs.</p>
             </li>
          </ul>
-      </subpage>
-      <subpage xml:id="parseXML">
-         <title>parseXML</title>
-         <subtitle>parseXML($arg as String) → Document</subtitle>
-         <p xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">Returns a new XML document object created from the lexical
+      </section>
+      <section id="parseXML" title="parseXML">
+         <h1>parseXML</h1>
+         
+         <h2 class="subtitle">parseXML($arg as String) → Document</h2>
+         <p>Returns a new XML document object created from the lexical
                                 XML String passed as an argument.</p>
          <table>
             <tr>
@@ -591,14 +606,15 @@
                </td>
             </tr>
          </table>
-         <subtitle>Details</subtitle>
+         <h2 class="subtitle">Details</h2>
          <p>This is a cross-browser method for parsing an XML string and
                         converting it to an XML document object.</p>
-      </subpage>
-      <subpage xml:id="requestXML">
-         <title>requestXML</title>
-         <subtitle>requestXML($uri as String) → Document</subtitle>
-         <p xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">Emulates an XMLHTTPRequest, effectively returning an XML
+      </section>
+      <section id="requestXML" title="requestXML">
+         <h1>requestXML</h1>
+         
+         <h2 class="subtitle">requestXML($uri as String) → Document</h2>
+         <p>Emulates an XMLHTTPRequest, effectively returning an XML
                                 document object.</p>
          <table>
             <tr>
@@ -638,7 +654,7 @@
                </td>
             </tr>
          </table>
-         <subtitle>Details</subtitle>
+         <h2 class="subtitle">Details</h2>
          <p>This method creates a placeholder for a document object that can be
                         used as an argument wherever a <code>Document</code> object is required by
                         an API method, such as <code>transformToDocument()</code>. The use of such a
@@ -650,11 +666,12 @@
                             are fetched synchronously, whilst those loaded as data are fetched
                             asynchronously while the XSLT compiles.</i>
          </p>
-      </subpage>
-      <subpage xml:id="run">
-         <title>run</title>
-         <subtitle>run($cmd as Command?) → XSLT20Processor</subtitle>
-         <p xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">Uses JavaScript literal object properties to execute an XSLT
+      </section>
+      <section id="run" title="run">
+         <h1>run</h1>
+         
+         <h2 class="subtitle">run($cmd as Command?) → XSLT20Processor</h2>
+         <p>Uses JavaScript literal object properties to execute an XSLT
                                 transform.</p>
          <table>
             <tr>
@@ -694,17 +711,17 @@
                </td>
             </tr>
          </table>
-         <subtitle>Details</subtitle>
+         <h2 class="subtitle">Details</h2>
          <p>A call to this function uses a single
-                        <xref section="api" page="command">Command</xref> object parameter to
+                        <a class="bodylink" href="/api/command">Command</a> object parameter to
                         describe the XSLT transform to run. The Command object is designed to be
                         used as JavaScript literal:</p>
-         <example> var onSaxonLoad = function() { var xrows =
+         <samp><![CDATA[ var onSaxonLoad = function() { var xrows =
                         document.getElementById("extra").getElementsByTagName("tr"); Saxon.run( {
                         stylesheet: "display-geo.xsl", source: "geo-files.xml" parameters: { mass:
-                        225, rows: xrows, title: "Intro" }, }); } </example>
+                        225, rows: xrows, title: "Intro" }, }); } ]]></samp>
          <p>This function returns a newly created
-                        <xref section="api" page="xslt20processor">XSLT20Processor</xref> object.
+                        <a class="bodylink" href="/api/xslt20processor">XSLT20Processor</a> object.
                         Use this object's <code>getResultDocument</code> and
                             <code>getResultDocuments</code> functions to get any output results from
                         the tranform. Note that the principal output document is returned by a call
@@ -714,11 +731,12 @@
                             transformToFragment</code> and <code>updateHTMLDocument</code>. The
                         latter of these is the default function, use the <code>method</code>
                         property with the function name to specify an alternative transform.</p>
-      </subpage>
-      <subpage xml:id="serializeXML">
-         <title>serializeXML</title>
-         <subtitle>serializeXML($xml as Node) → String</subtitle>
-         <p xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">Returns a String that represents a serialization of the XML
+      </section>
+      <section id="serializeXML" title="serializeXML">
+         <h1>serializeXML</h1>
+         
+         <h2 class="subtitle">serializeXML($xml as Node) → String</h2>
+         <p>Returns a String that represents a serialization of the XML
                                 Node argument.</p>
          <table>
             <tr>
@@ -758,17 +776,18 @@
                </td>
             </tr>
          </table>
-         <subtitle>Details</subtitle>
+         <h2 class="subtitle">Details</h2>
          <p>This method provides a simple cross-browser wrapper for serialising
                         a XML DOM node. Results may therefore vary according to the host browser
                         used. For example, when serialising a DocumentFragment containing a number
                         of top-level elements, Internet Explorer only serializes the first
                         element.</p>
-      </subpage>
-      <subpage xml:id="setErrorHandler">
-         <title>setErrorHandler</title>
-         <subtitle>setErrorHandler($handler as Function) → </subtitle>
-         <p xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">Sets a callback function to allow your own code to manage
+      </section>
+      <section id="setErrorHandler" title="setErrorHandler">
+         <h1>setErrorHandler</h1>
+         
+         <h2 class="subtitle">setErrorHandler($handler as Function) → </h2>
+         <p>Sets a callback function to allow your own code to manage
                                 events and errors occurring in the XSLT20Processor object.</p>
          <table>
             <tr>
@@ -808,13 +827,13 @@
                </td>
             </tr>
          </table>
-         <subtitle>Details</subtitle>
+         <h2 class="subtitle">Details</h2>
          <p>The error and event handling capability this callback provides is
                         for use with the Debug variant of Saxon only. The threshold for this
                         callback is controlled by the Logging
-                        <xref section="api" page="saxon" subpage="setLogLevel">setLogLevel</xref>
+                        <a class="bodylink" href="/api/saxon/setLogLevel">setLogLevel</a>
                         method, or a URI argument - see the
-                        <xref section="coding" page="logging">Logging</xref> section for further
+                        <a class="bodylink" href="/coding/logging">Logging</a> section for further
                         details.</p>
          <p>The <code>$handler</code> function argument signature should hava a
                         single <code>error</code> argument. The <code>error</code> object which is
@@ -825,19 +844,20 @@
          <p>
             <i>Sample JavaScript code:</i>
          </p>
-         <example> var errors = new Array(); function doPageUpdate() { errors =
+         <samp><![CDATA[ var errors = new Array(); function doPageUpdate() { errors =
                         new Array(); // ------ SET ERROR HANDLER --------
                         Saxon.setErrorHandler(handler); Saxon.setLogLevel("FINE"); (...) // update
                         the HTML page var result = proc.updateHTMLDocument(xml); // show a window
-                        alert listing any compile-time or run-time errors if (errors.length &gt; 0) {
+                        alert listing any compile-time or run-time errors if (errors.length > 0) {
                         window.alert(errors.toString()); } } // ------ DECLARE ERROR HANDLER
                         -------- function handler(saxonError) { errors.push(saxonError.message + " "
-                        + saxonError.level + " " + saxonError.time); } </example>
-      </subpage>
-      <subpage xml:id="setLogLevel">
-         <title>setLogLevel</title>
-         <subtitle>setLogLevel($level as String?) → </subtitle>
-         <p xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">Sets the level at which events, warning and errors are
+                        + saxonError.level + " " + saxonError.time); } ]]></samp>
+      </section>
+      <section id="setLogLevel" title="setLogLevel">
+         <h1>setLogLevel</h1>
+         
+         <h2 class="subtitle">setLogLevel($level as String?) → </h2>
+         <p>Sets the level at which events, warning and errors are
                                 logged.</p>
          <table>
             <tr>
@@ -877,14 +897,15 @@
                </td>
             </tr>
          </table>
-         <subtitle>Details</subtitle>
+         <h2 class="subtitle">Details</h2>
          <p>There are 7 logging levels, ranging from SEVERE to FINEST. See the
-                        <xref section="coding" page="logging">Logging</xref> section fur further
+                        <a class="bodylink" href="/coding/logging">Logging</a> section fur further
                         details. </p>
-      </subpage>
-   </page>
-   <page xml:id="xslt20processor">
-      <title>XSLT20Processor</title>
+      </section>
+   </section>
+   <section id="xslt20processor" title="XSLT20Processor">
+      <h1>XSLT20Processor</h1>
+      
       <p>The XSLT20Processor object provides the various functions used to perform an
                 XSLT 2.0 transform. This section describes all the available functions, but the
                 following (along with the object constructor) are probably going to be used most
@@ -893,7 +914,7 @@
          <tr>
             <td>
                <p>
-                  <b>1. Configure:</b>
+                  <strong>1. Configure:</strong>
                </p>
             </td>
             <td>
@@ -909,7 +930,7 @@
          <tr>
             <td>
                <p>
-                  <b>2. Transform:</b>
+                  <strong>2. Transform:</strong>
                </p>
             </td>
             <td>
@@ -930,22 +951,22 @@
                     Saxon-CE has been initialized.</i>
       </p>
       <p>XSLT20Processor instances are created using the
-                <xref section="api" page="saxon" subpage="newXSLT20Processor">newXSLT20Processor</xref>
-                factory method of the static <xref section="api" page="saxon">Saxon</xref> object
+                <a class="bodylink" href="/api/saxon/newXSLT20Processor">newXSLT20Processor</a>
+                factory method of the static <a class="bodylink" href="/api/saxon">Saxon</a> object
                 (which also provides a set of XML utility functions along with functions for
                 controlling error logging). </p>
-      <subtitle>Functions</subtitle>
+      <h2 class="subtitle">Functions</h2>
       <table>
          <thead>
             <tr>
                <td>
                   <p>
-                     <b>Function</b>
+                     <strong>Function</strong>
                   </p>
                </td>
                <td>
                   <p>
-                     <b>Description</b>
+                     <strong>Description</strong>
                   </p>
                </td>
             </tr>
@@ -954,7 +975,7 @@
             <td valign="top">
                <p>
                   <code>
-                     <xref section="api" page="xslt20processor" subpage="clearParameters">clearParameters()</xref>
+                     <a class="bodylink" href="/api/xslt20processor/clearParameters">clearParameters()</a>
                   </code>
                </p>
             </td>
@@ -967,7 +988,7 @@
             <td valign="top">
                <p>
                   <code>
-                     <xref section="api" page="xslt20processor" subpage="getInitialMode">getInitialMode()</xref>
+                     <a class="bodylink" href="/api/xslt20processor/getInitialMode">getInitialMode()</a>
                   </code>
                </p>
             </td>
@@ -979,7 +1000,7 @@
             <td valign="top">
                <p>
                   <code>
-                     <xref section="api" page="xslt20processor" subpage="getInitialTemplate">getInitialTemplate()</xref>
+                     <a class="bodylink" href="/api/xslt20processor/getInitialTemplate">getInitialTemplate()</a>
                   </code>
                </p>
             </td>
@@ -992,7 +1013,7 @@
             <td valign="top">
                <p>
                   <code>
-                     <xref section="api" page="xslt20processor" subpage="getParameter">getParameter(namespace, name)</xref>
+                     <a class="bodylink" href="/api/xslt20processor/getParameter">getParameter(namespace, name)</a>
                   </code>
                </p>
             </td>
@@ -1004,7 +1025,7 @@
             <td valign="top">
                <p>
                   <code>
-                     <xref section="api" page="xslt20processor" subpage="getResultDocument">getResultDocument(uri)</xref>
+                     <a class="bodylink" href="/api/xslt20processor/getResultDocument">getResultDocument(uri)</a>
                   </code>
                </p>
             </td>
@@ -1017,7 +1038,7 @@
             <td valign="top">
                <p>
                   <code>
-                     <xref section="api" page="xslt20processor" subpage="getResultDocuments">getResultDocuments()</xref>
+                     <a class="bodylink" href="/api/xslt20processor/getResultDocuments">getResultDocuments()</a>
                   </code>
                </p>
             </td>
@@ -1030,7 +1051,7 @@
             <td valign="top">
                <p>
                   <code>
-                     <xref section="api" page="xslt20processor" subpage="getSuccess">getSuccess()</xref>
+                     <a class="bodylink" href="/api/xslt20processor/getSuccess">getSuccess()</a>
                   </code>
                </p>
             </td>
@@ -1043,7 +1064,7 @@
             <td valign="top">
                <p>
                   <code>
-                     <xref section="api" page="xslt20processor" subpage="importStylesheet">importStylesheet(xsl)</xref>
+                     <a class="bodylink" href="/api/xslt20processor/importStylesheet">importStylesheet(xsl)</a>
                   </code>
                </p>
             </td>
@@ -1055,7 +1076,7 @@
             <td valign="top">
                <p>
                   <code>
-                     <xref section="api" page="xslt20processor" subpage="removeParameter">removeParameter(name)</xref>
+                     <a class="bodylink" href="/api/xslt20processor/removeParameter">removeParameter(name)</a>
                   </code>
                </p>
             </td>
@@ -1067,7 +1088,7 @@
             <td valign="top">
                <p>
                   <code>
-                     <xref section="api" page="xslt20processor" subpage="reset">reset()</xref>
+                     <a class="bodylink" href="/api/xslt20processor/reset">reset()</a>
                   </code>
                </p>
             </td>
@@ -1079,7 +1100,7 @@
             <td valign="top">
                <p>
                   <code>
-                     <xref section="api" page="xslt20processor" subpage="setBaseOutputURI">setBaseOutputURI(uri)</xref>
+                     <a class="bodylink" href="/api/xslt20processor/setBaseOutputURI">setBaseOutputURI(uri)</a>
                   </code>
                </p>
             </td>
@@ -1092,7 +1113,7 @@
             <td valign="top">
                <p>
                   <code>
-                     <xref section="api" page="xslt20processor" subpage="setInitialMode">setInitialMode(name)</xref>
+                     <a class="bodylink" href="/api/xslt20processor/setInitialMode">setInitialMode(name)</a>
                   </code>
                </p>
             </td>
@@ -1105,7 +1126,7 @@
             <td valign="top">
                <p>
                   <code>
-                     <xref section="api" page="xslt20processor" subpage="setInitialTemplate">setInitialTemplate(name)</xref>
+                     <a class="bodylink" href="/api/xslt20processor/setInitialTemplate">setInitialTemplate(name)</a>
                   </code>
                </p>
             </td>
@@ -1118,7 +1139,7 @@
             <td valign="top">
                <p>
                   <code>
-                     <xref section="api" page="xslt20processor" subpage="setParameter">setParameter(namespace, name, value)</xref>
+                     <a class="bodylink" href="/api/xslt20processor/setParameter">setParameter(namespace, name, value)</a>
                   </code>
                </p>
             </td>
@@ -1130,7 +1151,7 @@
             <td valign="top">
                <p>
                   <code>
-                     <xref section="api" page="xslt20processor" subpage="setSuccess">setSuccess(callback)</xref>
+                     <a class="bodylink" href="/api/xslt20processor/setSuccess">setSuccess(callback)</a>
                   </code>
                </p>
             </td>
@@ -1143,7 +1164,7 @@
             <td valign="top">
                <p>
                   <code>
-                     <xref section="api" page="xslt20processor" subpage="transformToDocument">transformToDocument(source)</xref>
+                     <a class="bodylink" href="/api/xslt20processor/transformToDocument">transformToDocument(source)</a>
                   </code>
                </p>
             </td>
@@ -1156,7 +1177,7 @@
             <td valign="top">
                <p>
                   <code>
-                     <xref section="api" page="xslt20processor" subpage="transformToFragment">transformToFragment(source, ownerDocument)</xref>
+                     <a class="bodylink" href="/api/xslt20processor/transformToFragment">transformToFragment(source, ownerDocument)</a>
                   </code>
                </p>
             </td>
@@ -1169,9 +1190,7 @@
             <td valign="top">
                <p>
                   <code>
-                     <xref section="api"
-                           page="xslt20processor"
-                           subpage="transformToHTMLFragment">transformToHTMLFragment(source, ownerDocument)</xref>
+                     <a class="bodylink" href="/api/xslt20processor/transformToHTMLFragment">transformToHTMLFragment(source, ownerDocument)</a>
                   </code>
                </p>
             </td>
@@ -1184,7 +1203,7 @@
             <td valign="top">
                <p>
                   <code>
-                     <xref section="api" page="xslt20processor" subpage="updateHTMLDocument">updateHTMLDocument(source, target)</xref>
+                     <a class="bodylink" href="/api/xslt20processor/updateHTMLDocument">updateHTMLDocument(source, target)</a>
                   </code>
                </p>
             </td>
@@ -1194,10 +1213,11 @@
             </td>
          </tr>
       </table>
-      <subpage xml:id="clearParameters">
-         <title>clearParameters</title>
-         <subtitle>clearParameters() → </subtitle>
-         <p xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">Removes all parameters set for the XSLT20Processor
+      <section id="clearParameters" title="clearParameters">
+         <h1>clearParameters</h1>
+         
+         <h2 class="subtitle">clearParameters() → </h2>
+         <p>Removes all parameters set for the XSLT20Processor
                                 instance.</p>
          <table>
             <tr>
@@ -1223,15 +1243,16 @@
                </td>
             </tr>
          </table>
-         <subtitle>Details</subtitle>
-         <p>See: <a href="setParameter.xml">setParameter</a> and
-                        <a href="getParameter.xml">getParameter</a>
+         <h2 class="subtitle">Details</h2>
+         <p>See: <a href="../setParameter" class="bodylink">setParameter</a> and
+                        <a href="../getParameter" class="bodylink">getParameter</a>
          </p>
-      </subpage>
-      <subpage xml:id="getInitialMode">
-         <title>getInitialMode</title>
-         <subtitle>getInitialMode() → String</subtitle>
-         <p xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">Gets the initial mode set for the XSLT transform.</p>
+      </section>
+      <section id="getInitialMode" title="getInitialMode">
+         <h1>getInitialMode</h1>
+         
+         <h2 class="subtitle">getInitialMode() → String</h2>
+         <p>Gets the initial mode set for the XSLT transform.</p>
          <table>
             <tr>
                <td width="470"
@@ -1256,14 +1277,15 @@
                </td>
             </tr>
          </table>
-         <subtitle>Details</subtitle>
+         <h2 class="subtitle">Details</h2>
          <p>If the returned name has a namespace, then the result is formatted
                         using the James-Clark notation: <code>{uri}local</code>.</p>
-      </subpage>
-      <subpage xml:id="getInitialTemplate">
-         <title>getInitialTemplate</title>
-         <subtitle>getInitialTemplate() → String</subtitle>
-         <p xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">Gets the name set for the XSLT transform initial
+      </section>
+      <section id="getInitialTemplate" title="getInitialTemplate">
+         <h1>getInitialTemplate</h1>
+         
+         <h2 class="subtitle">getInitialTemplate() → String</h2>
+         <p>Gets the name set for the XSLT transform initial
                                 template</p>
          <table>
             <tr>
@@ -1289,14 +1311,15 @@
                </td>
             </tr>
          </table>
-         <subtitle>Details</subtitle>
+         <h2 class="subtitle">Details</h2>
          <p>If the returned name has a namespace, then the James-Clark notation
                         is used: <code>{uri}local</code>.</p>
-      </subpage>
-      <subpage xml:id="getParameter">
-         <title>getParameter</title>
-         <subtitle>getParameter($namespace as String, $name as String) → Object</subtitle>
-         <p xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">Gets the value of the named XSLT transform parameter.</p>
+      </section>
+      <section id="getParameter" title="getParameter">
+         <h1>getParameter</h1>
+         
+         <h2 class="subtitle">getParameter($namespace as String, $name as String) → Object</h2>
+         <p>Gets the value of the named XSLT transform parameter.</p>
          <table>
             <tr>
                <td width="470"
@@ -1349,14 +1372,15 @@
                </td>
             </tr>
          </table>
-         <subtitle>Details</subtitle>
+         <h2 class="subtitle">Details</h2>
          <p>This is the counterpart to the
-                        <a href="setParameter.xml">setParameter</a> method</p>
-      </subpage>
-      <subpage xml:id="getResultDocument">
-         <title>getResultDocument</title>
-         <subtitle>getResultDocument($uri as String) → Document|DocumentFragment</subtitle>
-         <p xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">Returns a result document created by the
+                        <a href="../setParameter" class="bodylink">setParameter</a> method</p>
+      </section>
+      <section id="getResultDocument" title="getResultDocument">
+         <h1>getResultDocument</h1>
+         
+         <h2 class="subtitle">getResultDocument($uri as String) → Document|DocumentFragment</h2>
+         <p>Returns a result document created by the
                                     <i>xsl:result-document</i> instruction</p>
          <table>
             <tr>
@@ -1396,12 +1420,12 @@
                </td>
             </tr>
          </table>
-         <subtitle>Details</subtitle>
+         <h2 class="subtitle">Details</h2>
          <p>Result documents created when calling the
                             <code>XSLT20Processor</code> functions
-                        <xref section="api" page="xslt20processor" subpage="transformToDocument">transformToDocument</xref>
+                        <a class="bodylink" href="/api/xslt20processor/transformToDocument">transformToDocument</a>
                         or
-                        <xref section="api" page="xslt20processor" subpage="transformToFragment">transformToFragment</xref>
+                        <a class="bodylink" href="/api/xslt20processor/transformToFragment">transformToFragment</a>
                         each have a unique URI. The <code>uri</code> parameter identifies the
                         specific document to return, the result is <code>null</code> if no result
                         document was output with a matching URI.</p>
@@ -1409,14 +1433,15 @@
                         empty-string parameter value, the principal output document, if any, is
                         returned.</p>
          <p>This function can be used in combination with
-                        <xref section="api" page="xslt20processor" subpage="getResultDocuments">GetResultDocuments()</xref>
+                        <a class="bodylink" href="/api/xslt20processor/getResultDocuments">GetResultDocuments()</a>
                         which returns a String array of all result document URIs from the last XSLT
                         transform.</p>
-      </subpage>
-      <subpage xml:id="getResultDocuments">
-         <title>getResultDocuments</title>
-         <subtitle>getResultDocuments() → String Array</subtitle>
-         <p xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">Returns any array of result document URIs that were output
+      </section>
+      <section id="getResultDocuments" title="getResultDocuments">
+         <h1>getResultDocuments</h1>
+         
+         <h2 class="subtitle">getResultDocuments() → String Array</h2>
+         <p>Returns any array of result document URIs that were output
                                 by the previous XSLT transform.</p>
          <table>
             <tr>
@@ -1442,16 +1467,17 @@
                </td>
             </tr>
          </table>
-         <subtitle>Details</subtitle>
+         <h2 class="subtitle">Details</h2>
          <p>Note: You can use the
-                        <xref section="api" page="xslt20processor" subpage="getResultDocuments">getResultDocument(uri)</xref>
+                        <a class="bodylink" href="/api/xslt20processor/getResultDocuments">getResultDocument(uri)</a>
                         function to get a reference to the <code>Document</code> or
                             <code>DocumentFragment</code> identified by each URI.</p>
-      </subpage>
-      <subpage xml:id="getSuccess">
-         <title>getSuccess</title>
-         <subtitle>getSuccess() → Function</subtitle>
-         <p xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">Returns the callback function set by
+      </section>
+      <section id="getSuccess" title="getSuccess">
+         <h1>getSuccess</h1>
+         
+         <h2 class="subtitle">getSuccess() → Function</h2>
+         <p>Returns the callback function set by
                                 <code>setSuccess</code>
          </p>
          <table>
@@ -1478,12 +1504,13 @@
                </td>
             </tr>
          </table>
-         <subtitle>Details</subtitle>
-      </subpage>
-      <subpage xml:id="importStylesheet">
-         <title>importStylesheet</title>
-         <subtitle>importStylesheet($xsl as Document) → </subtitle>
-         <p xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">Sets the stylesheet to be used for an XSLT transform</p>
+         <h2 class="subtitle">Details</h2>
+      </section>
+      <section id="importStylesheet" title="importStylesheet">
+         <h1>importStylesheet</h1>
+         
+         <h2 class="subtitle">importStylesheet($xsl as Document) → </h2>
+         <p>Sets the stylesheet to be used for an XSLT transform</p>
          <table>
             <tr>
                <td width="470"
@@ -1522,15 +1549,16 @@
                </td>
             </tr>
          </table>
-         <subtitle>Details</subtitle>
+         <h2 class="subtitle">Details</h2>
          <p>Note that the XSLT20Processor
-                        <xref section="api" page="xslt20processor" subpage="_Constructor">constructor</xref>
+                        <a class="bodylink" href="/api/xslt20processor/_Constructor">constructor</a>
                         can also be used to set the stylesheet.</p>
-      </subpage>
-      <subpage xml:id="removeParameter">
-         <title>removeParameter</title>
-         <subtitle>removeParameter($name as String) → </subtitle>
-         <p xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">Removes the named parameter.</p>
+      </section>
+      <section id="removeParameter" title="removeParameter">
+         <h1>removeParameter</h1>
+         
+         <h2 class="subtitle">removeParameter($name as String) → </h2>
+         <p>Removes the named parameter.</p>
          <table>
             <tr>
                <td width="470"
@@ -1569,15 +1597,16 @@
                </td>
             </tr>
          </table>
-         <subtitle>Details</subtitle>
-         <p>See: <a href="setParameter.xml">setParameter</a> and
-                        <a href="getParameter.xml">getParameter</a>
+         <h2 class="subtitle">Details</h2>
+         <p>See: <a href="../setParameter" class="bodylink">setParameter</a> and
+                        <a href="../getParameter" class="bodylink">getParameter</a>
          </p>
-      </subpage>
-      <subpage xml:id="reset">
-         <title>reset</title>
-         <subtitle>reset() → </subtitle>
-         <p xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">Resets the XSLT20Processor object to its original state.</p>
+      </section>
+      <section id="reset" title="reset">
+         <h1>reset</h1>
+         
+         <h2 class="subtitle">reset() → </h2>
+         <p>Resets the XSLT20Processor object to its original state.</p>
          <table>
             <tr>
                <td width="470"
@@ -1602,14 +1631,15 @@
                </td>
             </tr>
          </table>
-         <subtitle>Details</subtitle>
+         <h2 class="subtitle">Details</h2>
          <p>Clears the XSLT20Processor instance settings for parameters,
                         imported stylesheet, initial template and initial mode</p>
-      </subpage>
-      <subpage xml:id="setBaseOutputURI">
-         <title>setBaseOutputURI</title>
-         <subtitle>setBaseOutputURI($uri as String?) → </subtitle>
-         <p xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">Set the base URI for resolving output URIs from an XSLT
+      </section>
+      <section id="setBaseOutputURI" title="setBaseOutputURI">
+         <h1>setBaseOutputURI</h1>
+         
+         <h2 class="subtitle">setBaseOutputURI($uri as String?) → </h2>
+         <p>Set the base URI for resolving output URIs from an XSLT
                                 transform</p>
          <table>
             <tr>
@@ -1649,13 +1679,14 @@
                </td>
             </tr>
          </table>
-         <subtitle>Details</subtitle>
+         <h2 class="subtitle">Details</h2>
          <p>If no uri is supplied, the base output uri is reset.</p>
-      </subpage>
-      <subpage xml:id="setInitialMode">
-         <title>setInitialMode</title>
-         <subtitle>setInitialMode($name as String) → </subtitle>
-         <p xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">Sets the name for the initial mode to be called for the XSLT
+      </section>
+      <section id="setInitialMode" title="setInitialMode">
+         <h1>setInitialMode</h1>
+         
+         <h2 class="subtitle">setInitialMode($name as String) → </h2>
+         <p>Sets the name for the initial mode to be called for the XSLT
                                 transform</p>
          <table>
             <tr>
@@ -1695,14 +1726,15 @@
                </td>
             </tr>
          </table>
-         <subtitle>Details</subtitle>
+         <h2 class="subtitle">Details</h2>
          <p>To set a namespace-qualified name, use the James-Clark notation:
                             <code>{uri}local</code>.</p>
-      </subpage>
-      <subpage xml:id="setInitialTemplate">
-         <title>setInitialTemplate</title>
-         <subtitle>setInitialTemplate($name as String) → </subtitle>
-         <p xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">Sets the name for the initial template to be called for the
+      </section>
+      <section id="setInitialTemplate" title="setInitialTemplate">
+         <h1>setInitialTemplate</h1>
+         
+         <h2 class="subtitle">setInitialTemplate($name as String) → </h2>
+         <p>Sets the name for the initial template to be called for the
                                 XSLT transform</p>
          <table>
             <tr>
@@ -1742,14 +1774,15 @@
                </td>
             </tr>
          </table>
-         <subtitle>Details</subtitle>
+         <h2 class="subtitle">Details</h2>
          <p>To set a namespace-qualified name, use the James-Clark notation:
                             <code>{uri}local</code>.</p>
-      </subpage>
-      <subpage xml:id="setParameter">
-         <title>setParameter</title>
-         <subtitle>setParameter($namespace as String, $name as String, $value as Object) → Void</subtitle>
-         <p xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">Sets named parameters for the XSLT transform</p>
+      </section>
+      <section id="setParameter" title="setParameter">
+         <h1>setParameter</h1>
+         
+         <h2 class="subtitle">setParameter($namespace as String, $name as String, $value as Object) → Void</h2>
+         <p>Sets named parameters for the XSLT transform</p>
          <table>
             <tr>
                <td width="470"
@@ -1816,24 +1849,25 @@
                </td>
             </tr>
          </table>
-         <subtitle>Details</subtitle>
+         <h2 class="subtitle">Details</h2>
          <p>Supplied parameter types may be <code>String</code>,
                             <code>Double</code>, <code>Node</code> or <code>Array</code>. Array
                         items may be any of these types, except<code> Array</code>.</p>
          <p>
             <i>Sample JavaScript code:</i>
          </p>
-         <example> ... // initialise processor var proc = new
+         <samp><![CDATA[ ... // initialise processor var proc = new
                         XSLT20Processor(xsl); // a node parameter: proc.setParameter(null,
                         "fElementArray", document.getElementsByTagName("h2")); // a string array
                         parameter proc.setParameter(null, "fArray", ["one", "two"]); // a string
                         parameter proc.setParameter(null, "fString", "my value"); var result =
-                        proc.transformToDocument(Saxon.requestXML('data.xml')); </example>
-      </subpage>
-      <subpage xml:id="setSuccess">
-         <title>setSuccess</title>
-         <subtitle>setSuccess($callback as Function) → </subtitle>
-         <p xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">Following a transform, a callback is made to this
+                        proc.transformToDocument(Saxon.requestXML('data.xml')); ]]></samp>
+      </section>
+      <section id="setSuccess" title="setSuccess">
+         <h1>setSuccess</h1>
+         
+         <h2 class="subtitle">setSuccess($callback as Function) → </h2>
+         <p>Following a transform, a callback is made to this
                                 function</p>
          <table>
             <tr>
@@ -1873,7 +1907,7 @@
                </td>
             </tr>
          </table>
-         <subtitle>Details</subtitle>
+         <h2 class="subtitle">Details</h2>
          <p>The callback function has the signature <code>success(proc)</code>
                         where <code>proc</code> is the instance of XSLT20Processor performing the
                         transform.</p>
@@ -1882,11 +1916,12 @@
                             <code>transformToFragment</code>. The <code>updateHTMLDocument</code>
                         function can potentially always run asynchronously as it has no return
                         values (it simply updates the target HTML document). </p>
-      </subpage>
-      <subpage xml:id="transformToDocument">
-         <title>transformToDocument</title>
-         <subtitle>transformToDocument($source as Node?) → Document</subtitle>
-         <p xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">Returns the result of an XSLT transform as a Document
+      </section>
+      <section id="transformToDocument" title="transformToDocument">
+         <h1>transformToDocument</h1>
+         
+         <h2 class="subtitle">transformToDocument($source as Node?) → Document</h2>
+         <p>Returns the result of an XSLT transform as a Document
                                 object.</p>
          <table>
             <tr>
@@ -1926,14 +1961,15 @@
                </td>
             </tr>
          </table>
-         <subtitle>Details</subtitle>
+         <h2 class="subtitle">Details</h2>
          <p>If no source document is supplied then an initialTemplate must be
                         set.</p>
-      </subpage>
-      <subpage xml:id="transformToFragment">
-         <title>transformToFragment</title>
-         <subtitle>transformToFragment($source as Node?, $ownerDocument as Document?) → DocumentFragment</subtitle>
-         <p xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">Returns the result of an XSLT transform as a
+      </section>
+      <section id="transformToFragment" title="transformToFragment">
+         <h1>transformToFragment</h1>
+         
+         <h2 class="subtitle">transformToFragment($source as Node?, $ownerDocument as Document?) → DocumentFragment</h2>
+         <p>Returns the result of an XSLT transform as a
                                 DocumentFragment object.</p>
          <table>
             <tr>
@@ -1987,17 +2023,18 @@
                </td>
             </tr>
          </table>
-         <subtitle>Details</subtitle>
+         <h2 class="subtitle">Details</h2>
          <p>If no source document is supplied then an initialTemplate must be
                         set. A DocumentFragment is useful because it can be it allows a set of nodes
                         to be appended to the DOM without a container element.</p>
          <p>All DocumentFragments must have an owner document, if none is
                         supplied as a parameter a new XML document is created for this purpose.</p>
-      </subpage>
-      <subpage xml:id="transformToHTMLFragment">
-         <title>transformToHTMLFragment</title>
-         <subtitle>transformToHTMLFragment($source as Node?, $ownerDocument as Document?) → DocumentFragment</subtitle>
-         <p xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">Returns the result of an XSLT transform as one or more HTML
+      </section>
+      <section id="transformToHTMLFragment" title="transformToHTMLFragment">
+         <h1>transformToHTMLFragment</h1>
+         
+         <h2 class="subtitle">transformToHTMLFragment($source as Node?, $ownerDocument as Document?) → DocumentFragment</h2>
+         <p>Returns the result of an XSLT transform as one or more HTML
                                 DocumentFragment objects.</p>
          <table>
             <tr>
@@ -2051,27 +2088,28 @@
                </td>
             </tr>
          </table>
-         <subtitle>Details</subtitle>
+         <h2 class="subtitle">Details</h2>
          <p>If no source document is supplied then an initialTemplate must be
                         set. All DocumentFragments must have an owner document, if none is supplied
                         as a parameter the owner is set to the host HTML document.</p>
          <p>This function returns a collection of HTML fragments that can be
                         appended directly to the DOM. Each returned fragment can contain a number of
                         nodes, but can be appended to an HTML DOM element as a single node. The
-                        <xref section="api" page="xslt20processor" subpage="getResultDocument">getResultDocument</xref>
+                        <a class="bodylink" href="/api/xslt20processor/getResultDocument">getResultDocument</a>
                         and
-                        <xref section="api" page="xslt20processor" subpage="getResultDocument">getResultDocuments</xref>
+                        <a class="bodylink" href="/api/xslt20processor/getResultDocument">getResultDocuments</a>
                         functions are used to retrieve each result fragment. Note that the
-                        <xref section="api" page="xslt20processor" subpage="updateHTMLDocument">updateHTMLDocument</xref>
+                        <a class="bodylink" href="/api/xslt20processor/updateHTMLDocument">updateHTMLDocument</a>
                         function provides similar functionality, but fragment updates are peformed
                         entirely within the XSLT using the <code>xsl:result-document</code>
                         instruction's <code>href</code> attribute to specify the target node for
                         each result fragment. </p>
-      </subpage>
-      <subpage xml:id="updateHTMLDocument">
-         <title>updateHTMLDocument</title>
-         <subtitle>updateHTMLDocument($source as Node?, $target as Document?) → String</subtitle>
-         <p xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">Initiates an XSLT transform on an existing HTML
+      </section>
+      <section id="updateHTMLDocument" title="updateHTMLDocument">
+         <h1>updateHTMLDocument</h1>
+         
+         <h2 class="subtitle">updateHTMLDocument($source as Node?, $target as Document?) → String</h2>
+         <p>Initiates an XSLT transform on an existing HTML
                                 document.</p>
          <table>
             <tr>
@@ -2125,7 +2163,7 @@
                </td>
             </tr>
          </table>
-         <subtitle>Details</subtitle>
+         <h2 class="subtitle">Details</h2>
          <p>The initial template must be set (using
                             <code>setInitialTemplate</code>) when the <code>source</code> parameter
                         is <code>null</code>. If the <code>target</code> parameter value is null,
@@ -2140,6 +2178,6 @@
                             the XSLT, use the <code>ixsl:page()</code> function which returns the
                             Document node of the host page.</i>
          </p>
-      </subpage>
-   </page>
-</section>
+      </section>
+   </section>
+</article>
