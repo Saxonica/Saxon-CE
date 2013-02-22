@@ -211,8 +211,13 @@ public class HTMLWriter implements Receiver {
         // way compliant with the XSLT2.0 specification - using xsl:output attributes
         Element element = null;
         if (uri != null && !uri.isEmpty()) {
-        	// no svg specific prefix now used, for compliance with HTML5
-            element = createElementNS(document, uri, localName);
+        	if(mode == WriteMode.XML && !prefix.equals("")) {
+        		element =  createElementNS(document, uri, prefix+":"+localName);
+        		
+        	} else {
+        		// no svg specific prefix now used, for compliance with HTML5
+        		element = createElementNS(document, uri, localName);
+        	}
         }
         
         // if there's no namespace - or no namespace support
@@ -264,16 +269,15 @@ public class HTMLWriter implements Receiver {
     }
 
     public void namespace (NamespaceBinding nsBinding, int properties) throws XPathException {
-        //try {
-//        	String prefix = namePool.getPrefixFromNamespaceCode(namespaceCode);
-//    		String uri = namePool.getURIFromNamespaceCode(namespaceCode);
-//    		Element element = (Element)currentNode;
-//            if (!(uri.equals(NamespaceConstant.XML))) {
-//                addNamespace(element, prefix, uri);
-//            }
-//        } catch (DOMException err) {
-//            throw new XPathException(err);
-//        }
+       if(mode == WriteMode.XML) {
+        	String prefix = nsBinding.getPrefix();
+    		String uri = nsBinding.getURI();
+    		Element element = (Element)currentNode;
+            if (!(uri.equals(NamespaceConstant.XML))) {
+                addNamespace(element, prefix, uri);
+            }
+       }
+       
     }
 
     public void attribute(int nameCode, CharSequence value)
@@ -535,13 +539,7 @@ public class HTMLWriter implements Receiver {
         if (node.getNodeType() == Node.DOCUMENT_NODE) {
             document = (Document)node;
         } else {
-            document = currentNode.getOwnerDocument();
-            if (document == null) {
-                // which might be because currentNode() is a parentless ElementOverNodeInfo.
-                // we create a DocumentOverNodeInfo, which is immutable, and will cause the DOMWriter to fail
-                //document = new DocumentOverNodeInfo();
-                // TODO:CLAXON - check this
-            }
+            document = currentNode.getOwnerDocument();            
         }
         if (mode == WriteMode.NONE) {
         	Controller.APIcommand cmd = pipe.getController().getApiCommand();
