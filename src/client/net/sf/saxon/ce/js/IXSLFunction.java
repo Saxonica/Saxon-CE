@@ -2,24 +2,24 @@ package client.net.sf.saxon.ce.js;
 
 import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.dom.HTMLDocumentWrapper;
-import client.net.sf.saxon.ce.dom.HTMLNodeWrapper;
 import client.net.sf.saxon.ce.dom.HTMLDocumentWrapper.DocType;
+import client.net.sf.saxon.ce.dom.HTMLNodeWrapper;
 import client.net.sf.saxon.ce.dom.XMLDOM;
 import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
-import client.net.sf.saxon.ce.om.*;
+import client.net.sf.saxon.ce.om.Item;
+import client.net.sf.saxon.ce.om.SequenceIterator;
+import client.net.sf.saxon.ce.om.StructuredQName;
+import client.net.sf.saxon.ce.om.ValueRepresentation;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.EmptyIterator;
 import client.net.sf.saxon.ce.tree.iter.JsArrayIterator;
 import client.net.sf.saxon.ce.tree.iter.SingletonIterator;
-import client.net.sf.saxon.ce.tree.util.URI;
 import client.net.sf.saxon.ce.type.AnyItemType;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.*;
 import client.net.sf.saxon.ce.value.StringValue;
-
-import com.google.gwt.core.client.Callback;
 import com.google.gwt.core.client.JavaScriptException;
 import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.core.client.JsArray;
@@ -28,7 +28,6 @@ import com.google.gwt.dom.client.Document;
 import com.google.gwt.dom.client.Node;
 import com.google.gwt.user.client.Event;
 
-import java.util.ArrayList;
 import java.util.logging.Logger;
 
 /**
@@ -216,19 +215,11 @@ public class IXSLFunction extends FunctionCall {
     }-*/;
   
     public static Object convertToJavaScript(ValueRepresentation val) throws XPathException {
-    	int seqLength = 1;
-    	if (val == null) {
+    	if (val == null || val instanceof EmptySequence) {
     		return null;
     	}
-    	if (val instanceof SequenceExtent) {
-    		seqLength = ((SequenceExtent)val).getLength();
-    	}
-        if (seqLength == 0) {
-            return null;
-        } else if (seqLength == 1) {
-        	if (val instanceof EmptySequence) {
-        		return null;
-        	} else if (val instanceof StringValue) {
+        if (val instanceof Item) {
+            if (val instanceof StringValue) {
 	            return ((StringValue)val).getStringValue();
 	        } else if (val instanceof BooleanValue) {
 	            return ((BooleanValue)val).getBooleanValue();
@@ -238,41 +229,35 @@ public class IXSLFunction extends FunctionCall {
 	        	  return ((HTMLNodeWrapper)val).getUnderlyingNode();
 	        } else if (val instanceof JSObjectValue) {
 	            return ((JSObjectValue)val).getJavaScriptObject();
-	        }
-        }
-        // if we get this far - assume an array or singleton item:
-        if (val instanceof SingletonItem) {
-        	SequenceIterator iterator = SingletonItem.getIterator(val);
-    		ValueRepresentation objValue = (ValueRepresentation)iterator.next();
-    		if (objValue == null) {
-    			return null;
-    		}
-    		return convertToJavaScript(objValue);
-        	
+	        } else {
+                throw new XPathException("Cannot convert " + val.getClass() + " to Javascript object");
+            }
         } else {
-        	return convertSequenceToArray(val, seqLength);
+            int seqLength = ((Value)val).getLength();
+            if (seqLength == 0) {
+                return null;
+            } else if (seqLength == 1) {
+                return convertToJavaScript(((Value)val).asItem());
+            } else {
+                return convertSequenceToArray(val, seqLength);
+            }
         }
     }
     
     private static JavaScriptObject convertSequenceToArray(ValueRepresentation val, int seqLength) throws XPathException {
-    	try {
-        	JavaScriptObject jsItems = jsArray(seqLength);
-        	SequenceIterator iterator = Value.getIterator(val);
-        	int i = 0;
-        	while (true) {
-        		ValueRepresentation objValue = (ValueRepresentation)iterator.next();
-        		//Object obj = iterator.next();
-        		if (objValue == null) {
-        			break;
-        		}
-        		Object jsObject = convertToJavaScript(objValue);
-        		jsSetArrayItem(jsItems, i, jsObject);
-        		i++;	        		
-        	}
-      	    return jsItems;
-    	} catch(XPathException xe) {
-    		throw xe;
-    	}
+        JavaScriptObject jsItems = jsArray(seqLength);
+        SequenceIterator iterator = Value.getIterator(val);
+        int i = 0;
+        while (true) {
+            Item item = iterator.next();
+            if (item == null) {
+                break;
+            }
+            Object jsObject = convertToJavaScript(item);
+            jsSetArrayItem(jsItems, i, jsObject);
+            i++;
+        }
+        return jsItems;
     }
 
     private Object getValueFromTypeValuePair(JavaScriptObject pair) {

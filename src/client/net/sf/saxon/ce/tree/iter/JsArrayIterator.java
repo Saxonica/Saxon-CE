@@ -1,17 +1,16 @@
 package client.net.sf.saxon.ce.tree.iter;
 
-import java.util.logging.Logger;
-
 import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.expr.LastPositionFinder;
 import client.net.sf.saxon.ce.js.IXSLFunction;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.trans.XPathException;
-
+import client.net.sf.saxon.ce.value.Value;
 import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.core.client.JsArray;
-import client.net.sf.saxon.ce.value.Value;;
+
+import java.util.logging.Logger;
 
 /**
 * Class JsArrayIterator, iterates over a sequence of items held in a Javascript array
