@@ -7,11 +7,17 @@ import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.dom.client.Document;
 import com.google.gwt.dom.client.Node;
 
+/**
+ * A collection of static utility methods for accessing the XML capabilities (parsing and
+ * serializing) of the browser Javascript platform. These are used in preference to the
+ * XML capabilities offered in the GWT library.
+ */
+
 public class XMLDOM {
 	       
 	  /**
-	   * Create a XML XML DOM Document object
-	   * @return New XML DOM Document 
+	   * Create a new XML DOM Document object
+	   * @return a new empty XML DOM Document
 	   */
 
 	  public static native Document createDocument(String baseURI) /*-{
