@@ -228,6 +228,7 @@ public final class SequenceType {
      *
      * @param primaryType The item type
      * @param cardinality The required cardinality
+     * @return the corresponding sequence type
      */
 
     public static SequenceType makeSequenceType(ItemType primaryType, int cardinality) {

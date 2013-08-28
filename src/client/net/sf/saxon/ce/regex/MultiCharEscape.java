@@ -13,7 +13,7 @@ import java.util.List;
 public class MultiCharEscape {
 
     public final static IntPredicate ESCAPE_s =
-            new IntSetPredicate(IntArraySet.make(new int[]{9, 10, 13, 32}, 4));
+            new IntSetPredicate(IntHashSet.fromArray(new int[]{9, 10, 13, 32}));
 
     public final static IntPredicate ESCAPE_S = new IntComplementPredicate(ESCAPE_s);
 

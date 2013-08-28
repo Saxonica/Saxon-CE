@@ -65,6 +65,14 @@ public class IntHashSet extends AbstractIntSet implements IntSet, Serializable {
         setCapacity(capacity);
     }
 
+    public static IntHashSet fromArray(int[] members) {
+        IntHashSet ihs = new IntHashSet(members.length);
+        for (int m : members) {
+            ihs.add(m);
+        }
+        return ihs;
+    }
+
     public IntSet copy() {
         if (_size == 0) {
             return IntEmptySet.getInstance();

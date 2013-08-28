@@ -1,8 +1,7 @@
 package client.net.sf.saxon.ce.regex;
 
-import client.net.sf.saxon.ce.expr.z.IntArraySet;
-import client.net.sf.saxon.ce.expr.z.IntToIntHashMap;
 import client.net.sf.saxon.ce.expr.z.IntHashMap;
+import client.net.sf.saxon.ce.expr.z.IntToIntHashMap;
 import client.net.sf.saxon.ce.expr.z.IntToIntMap;
 
 /**
@@ -47,12 +46,14 @@ public class CaseVariants {
         } else {
             int[] result = polyVariants.get(code);
             if (result == null) {
-                return IntArraySet.EMPTY_INT_ARRAY;
+                return EMPTY_INT_ARRAY;
             } else {
                 return result;
             }
         }
     }
+
+    public static final int[] EMPTY_INT_ARRAY = {};
 
     /**
      * Get the case variants of roman letters (A-Z, a-z), other than the letters A-Z and a-z themselves

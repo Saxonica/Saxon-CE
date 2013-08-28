@@ -1,13 +1,17 @@
 package client.net.sf.saxon.ce.functions;
 
+import client.net.sf.saxon.ce.expr.StaticProperty;
 import client.net.sf.saxon.ce.om.StandardNames;
+import client.net.sf.saxon.ce.pattern.AnyNodeTest;
+import client.net.sf.saxon.ce.pattern.NodeKindTest;
+import client.net.sf.saxon.ce.type.AnyItemType;
+import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.value.EmptySequence;
 import client.net.sf.saxon.ce.value.SequenceType;
 import client.net.sf.saxon.ce.value.Value;
 
 import java.util.HashMap;
-
-import com.google.gwt.logging.client.LogConfiguration;
 
 /**
  * This class contains static data tables defining the properties of standard functions. "Standard functions"
@@ -40,16 +44,89 @@ public abstract class StandardFunction {
      * @param name          the function name
      * @param skeleton      instance of the class used to implement the function
      * @param type          the sequence type of the result of the function
+     * @param argTypes      information about the argument types, expressed using a micro-syntax as follows.
+     * There is a sequence of space-separated entries, one per argument. If the argument is optional, this
+     * starts with "?". The rest of the string is either "*", meaning any type allowed, or an item type followed
+     * by an occurrence indicator. The item type is for example i=integer, a=atomic, d=double, s=string, n=numeric,
+     * N=node, E=element, I=item, dt=dateTime, dur=duration, tim=time, dtd=dayTimeDuration, q=qName.
      * @return the entry describing the function. The entry is incomplete, it does not yet contain information
      *         about the function arguments.
      */
 
     public static Entry register(String name,
                                  SystemFunction skeleton,
-                                 SequenceType type
-    ) {
+                                 SequenceType type,
+                                 String argTypes) {
         Entry e = makeEntry(name, skeleton, type, CORE);
         functionTable.put(name, e);
+        if (!argTypes.equals("")) {
+            String[] args = argTypes.split("\\s");
+            for (String arg : args) {
+                if (arg.equals("*")) {
+                    e.mandatoryArg(SequenceType.ANY_SEQUENCE);
+                } else {
+                    boolean optional = false;
+                    String it;
+                    if (arg.startsWith("?")) {
+                        optional = true;
+                        arg = arg.substring(1);
+                    }
+                    int card = StaticProperty.EXACTLY_ONE;
+                    if (arg.endsWith("*")) {
+                        card = StaticProperty.ALLOWS_ZERO_OR_MORE;
+                        it = arg.substring(0, arg.length() - 1);
+                    } else if (arg.endsWith("?")) {
+                        card = StaticProperty.ALLOWS_ZERO_OR_ONE;
+                        it = arg.substring(0, arg.length() - 1);
+                    } else if (arg.endsWith("+")) {
+                        card = StaticProperty.ALLOWS_ONE_OR_MORE;
+                        it = arg.substring(0, arg.length() - 1);
+                    } else {
+                        it = arg;
+                    }
+                    ItemType t;
+                    if (it.equals("I")) {
+                        t = AnyItemType.getInstance();
+                    } else if (it.equals("N")) {
+                        t = AnyNodeTest.getInstance();
+                    } else if (it.equals("E")) {
+                        t = NodeKindTest.ELEMENT;
+                    } else if (it.equals("a")) {
+                        t = BuiltInAtomicType.ANY_ATOMIC;
+                    } else if (it.equals("i")) {
+                        t = BuiltInAtomicType.INTEGER;
+                    } else if (it.equals("d")) {
+                        t = BuiltInAtomicType.DOUBLE;
+                    } else if (it.equals("n")) {
+                        t = BuiltInAtomicType.NUMERIC;
+                    } else if (it.equals("s")) {
+                        t = BuiltInAtomicType.STRING;
+                    } else if (it.equals("b")) {
+                        t = BuiltInAtomicType.BOOLEAN;
+                    } else if (it.equals("dt")) {
+                        t = BuiltInAtomicType.DATE_TIME;
+                    } else if (it.equals("dat")) {
+                        t = BuiltInAtomicType.DATE;
+                    } else if (it.equals("tim")) {
+                        t = BuiltInAtomicType.TIME;
+                    } else if (it.equals("dur")) {
+                        t = BuiltInAtomicType.DURATION;
+                    } else if (it.equals("dtd")) {
+                        t = BuiltInAtomicType.DAY_TIME_DURATION;
+                    } else if (it.equals("q")) {
+                        t = BuiltInAtomicType.QNAME;
+                    } else {
+                        throw new IllegalArgumentException(it);
+                    }
+                    SequenceType st = SequenceType.makeSequenceType(t, card);
+                    if (optional) {
+                        e.optionalArg(st);
+                    } else {
+                        e.mandatoryArg(st);
+                    }
+                }
+            }
+        }
         return e;
     }
 
@@ -59,6 +136,7 @@ public abstract class StandardFunction {
      * @param name         the function name
      * @param skeleton     instance of the class used to implement the function
      * @param type         the sequence type of the result of the function
+     * @param applicability the host languages to which the function is applicable
      * @return the entry describing the function. The entry is incomplete, it does not yet contain information
      *         about the function arguments.
      */
@@ -87,486 +165,485 @@ public abstract class StandardFunction {
 
     static {
         Entry e;
-        e = register("abs", new Rounding(Rounding.ABS), SequenceType.OPTIONAL_NUMERIC);
+        e = register("abs", new Rounding(Rounding.ABS), SequenceType.OPTIONAL_NUMERIC, "n?");
         e.sameItemTypeAsFirstArgument = true;
-        e.mandatoryArg(SequenceType.OPTIONAL_NUMERIC);
+//        e.mandatoryArg(SequenceType.OPTIONAL_NUMERIC);
 
-        e = register("adjust-date-to-timezone", new Adjust(), SequenceType.OPTIONAL_DATE);
-        e.mandatoryArg(SequenceType.OPTIONAL_DATE);
-        e.optionalArg(SequenceType.OPTIONAL_DAY_TIME_DURATION);
+        register("adjust-date-to-timezone", new Adjust(), SequenceType.OPTIONAL_DATE, "dat? ?dtd?");
+//        e.mandatoryArg(SequenceType.OPTIONAL_DATE);
+//        e.optionalArg(SequenceType.OPTIONAL_DAY_TIME_DURATION);
 
-        e = register("adjust-dateTime-to-timezone", new Adjust(), SequenceType.OPTIONAL_DATE_TIME);
-        e.mandatoryArg(SequenceType.OPTIONAL_DATE_TIME);
-        e.optionalArg(SequenceType.OPTIONAL_DAY_TIME_DURATION);
+        register("adjust-dateTime-to-timezone", new Adjust(), SequenceType.OPTIONAL_DATE_TIME, "dt? ?dtd?");
+//        e.mandatoryArg(SequenceType.OPTIONAL_DATE_TIME);
+//        e.optionalArg(SequenceType.OPTIONAL_DAY_TIME_DURATION);
 
-        e = register("adjust-time-to-timezone", new Adjust(), SequenceType.OPTIONAL_TIME);
-        e.mandatoryArg(SequenceType.OPTIONAL_TIME);
-        e.optionalArg(SequenceType.OPTIONAL_DAY_TIME_DURATION);
+        register("adjust-time-to-timezone", new Adjust(), SequenceType.OPTIONAL_TIME, "tim? ?dtd?");
+//        e.mandatoryArg(SequenceType.OPTIONAL_TIME);
+//        e.optionalArg(SequenceType.OPTIONAL_DAY_TIME_DURATION);
 
-        e = register("avg", new Average(), SequenceType.OPTIONAL_ATOMIC);
+        register("avg", new Average(), SequenceType.OPTIONAL_ATOMIC, "a*");
         // can't say "same as first argument" because the avg of a set of integers is decimal
-        e.optionalArg(SequenceType.ATOMIC_SEQUENCE);
+//        e.mandatoryArg(SequenceType.ATOMIC_SEQUENCE);
 
-        e = register("base-uri", new BaseURI(), SequenceType.OPTIONAL_ANY_URI);
-        e.mandatoryArg(SequenceType.OPTIONAL_NODE);
+        register("base-uri", new BaseURI(), SequenceType.OPTIONAL_ANY_URI, "N?");
+//        e.mandatoryArg(SequenceType.OPTIONAL_NODE);
 
-        e = register("boolean", new BooleanFn(BooleanFn.BOOLEAN), SequenceType.SINGLE_BOOLEAN);
-        e.mandatoryArg(SequenceType.ANY_SEQUENCE);
+        register("boolean", new BooleanFn(BooleanFn.BOOLEAN), SequenceType.SINGLE_BOOLEAN, "*");
+//        e.mandatoryArg(SequenceType.ANY_SEQUENCE);
 
-        e = register("ceiling", new Rounding(Rounding.CEILING), SequenceType.OPTIONAL_NUMERIC);
+        e = register("ceiling", new Rounding(Rounding.CEILING), SequenceType.OPTIONAL_NUMERIC, "n?");
         e.sameItemTypeAsFirstArgument = true;
-        e.mandatoryArg(SequenceType.OPTIONAL_NUMERIC);
+//        e.mandatoryArg(SequenceType.OPTIONAL_NUMERIC);
 
-        e = register("codepoint-equal", new CodepointEqual(), SequenceType.OPTIONAL_BOOLEAN);
-        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
-        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
+        register("codepoint-equal", new CodepointEqual(), SequenceType.OPTIONAL_BOOLEAN, "s? s?");
+//        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
+//        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
 
-        e = register("codepoints-to-string", new CodepointsToString(), SequenceType.SINGLE_STRING);
+        register("codepoints-to-string", new CodepointsToString(), SequenceType.SINGLE_STRING, "i*");
         e.mandatoryArg(SequenceType.INTEGER_SEQUENCE);
 
-        e = register("compare", new Compare(), SequenceType.OPTIONAL_INTEGER);
-        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
-        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
-        e.optionalArg(SequenceType.SINGLE_STRING);
+        register("compare", new Compare(), SequenceType.OPTIONAL_INTEGER, "s? s? ?s");
+//        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
+//        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
+//        e.optionalArg(SequenceType.SINGLE_STRING);
 
-        e = register("concat", new Concat(), SequenceType.SINGLE_STRING);
-        e.mandatoryArg(SequenceType.OPTIONAL_ATOMIC);
+        e = register("concat", new Concat(), SequenceType.SINGLE_STRING, "a?");
+//        e.mandatoryArg(SequenceType.OPTIONAL_ATOMIC);
         e.maxArguments = Integer.MAX_VALUE;
         // Note, this has a variable number of arguments so it is treated specially
 
-        e = register("contains", new Contains(), SequenceType.SINGLE_BOOLEAN);
-        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
-        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
-        e.optionalArg(SequenceType.SINGLE_STRING);
+        register("contains", new Contains(), SequenceType.SINGLE_BOOLEAN, "s? s? ?s");
+//        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
+//        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
+//        e.optionalArg(SequenceType.SINGLE_STRING);
 
 
-        e = register("count", new Count(), SequenceType.SINGLE_INTEGER);
-        e.mandatoryArg(SequenceType.ANY_SEQUENCE);
+        register("count", new Count(), SequenceType.SINGLE_INTEGER, "*");
+//        e.mandatoryArg(SequenceType.ANY_SEQUENCE);
 
-        e = register("current", new Current(), SequenceType.SINGLE_ITEM);
+        e = register("current", new Current(), SequenceType.SINGLE_ITEM, "");
         e.applicability = XSLT;
 
-        register("current-date", new CurrentDateTime(), SequenceType.SINGLE_DATE);
+        register("current-date", new CurrentDateTime(), SequenceType.SINGLE_DATE, "");
 
-        register("current-dateTime", new CurrentDateTime(), SequenceType.SINGLE_DATE_TIME);
+        register("current-dateTime", new CurrentDateTime(), SequenceType.SINGLE_DATE_TIME, "");
 
-        register("current-time", new CurrentDateTime(), SequenceType.SINGLE_TIME);
+        register("current-time", new CurrentDateTime(), SequenceType.SINGLE_TIME, "");
 
-        register("current-group", new CurrentGroup(), SequenceType.ANY_SEQUENCE);
+        register("current-group", new CurrentGroup(), SequenceType.ANY_SEQUENCE, "");
         e.applicability = XSLT;
 
-        register("current-grouping-key", new CurrentGroupingKey(),
-                SequenceType.OPTIONAL_ATOMIC);
+        register("current-grouping-key", new CurrentGroupingKey(), SequenceType.OPTIONAL_ATOMIC, "");
         e.applicability = XSLT;
 
-        e = register("dateTime", new DateTimeConstructor(), SequenceType.OPTIONAL_DATE_TIME);
-        e.mandatoryArg(SequenceType.OPTIONAL_DATE);
-        e.mandatoryArg(SequenceType.OPTIONAL_TIME);
+        register("dateTime", new DateTimeConstructor(), SequenceType.OPTIONAL_DATE_TIME, "dat? tim?");
+//        e.mandatoryArg(SequenceType.OPTIONAL_DATE);
+//        e.mandatoryArg(SequenceType.OPTIONAL_TIME);
 
-        e = register("day-from-date", new Component((Component.DAY << 16) + StandardNames.XS_DATE),
-                SequenceType.OPTIONAL_INTEGER);
-        e.mandatoryArg(SequenceType.OPTIONAL_DATE);
+        register("day-from-date", new Component((Component.DAY << 16) + StandardNames.XS_DATE),
+                SequenceType.OPTIONAL_INTEGER, "dat?");
+//        e.mandatoryArg(SequenceType.OPTIONAL_DATE);
 
-        e = register("day-from-dateTime", new Component((Component.DAY << 16) + StandardNames.XS_DATE_TIME),
-                SequenceType.OPTIONAL_INTEGER);
-        e.mandatoryArg(SequenceType.OPTIONAL_DATE_TIME);
+        register("day-from-dateTime", new Component((Component.DAY << 16) + StandardNames.XS_DATE_TIME),
+                SequenceType.OPTIONAL_INTEGER, "dt?");
+//        e.mandatoryArg(SequenceType.OPTIONAL_DATE_TIME);
 
-        e = register("days-from-duration", new Component((Component.DAY << 16) + StandardNames.XS_DURATION),
-                SequenceType.OPTIONAL_INTEGER);
-        e.mandatoryArg(SequenceType.OPTIONAL_DURATION);
+        register("days-from-duration", new Component((Component.DAY << 16) + StandardNames.XS_DURATION),
+                SequenceType.OPTIONAL_INTEGER, "dur?");
+//        e.mandatoryArg(SequenceType.OPTIONAL_DURATION);
 
-        e = register("deep-equal", new DeepEqual(), SequenceType.SINGLE_BOOLEAN);
-        e.mandatoryArg(SequenceType.ANY_SEQUENCE);
-        e.mandatoryArg(SequenceType.ANY_SEQUENCE);
-        e.optionalArg(SequenceType.SINGLE_STRING);
+        register("deep-equal", new DeepEqual(), SequenceType.SINGLE_BOOLEAN, "* * s?");
+//        e.mandatoryArg(SequenceType.ANY_SEQUENCE);
+//        e.mandatoryArg(SequenceType.ANY_SEQUENCE);
+//        e.optionalArg(SequenceType.SINGLE_STRING);
 
-        e = register("distinct-values", new DistinctValues(), SequenceType.ATOMIC_SEQUENCE);
-        e.mandatoryArg(SequenceType.ATOMIC_SEQUENCE);
-        e.optionalArg(SequenceType.SINGLE_STRING);
+        register("distinct-values", new DistinctValues(), SequenceType.ATOMIC_SEQUENCE, "a* ?s");
+//        e.mandatoryArg(SequenceType.ATOMIC_SEQUENCE);
+//        e.optionalArg(SequenceType.SINGLE_STRING);
 
-        e = register("doc", new Doc(), SequenceType.OPTIONAL_DOCUMENT);
-        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
+        register("doc", new Doc(), SequenceType.OPTIONAL_DOCUMENT, "s?");
+//        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
 
-        e = register("doc-available", new DocAvailable(), SequenceType.SINGLE_BOOLEAN);
-        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
+        register("doc-available", new DocAvailable(), SequenceType.SINGLE_BOOLEAN, "s?");
+//        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
 
-        e = register("document", new DocumentFn(), SequenceType.NODE_SEQUENCE);
+        e = register("document", new DocumentFn(), SequenceType.NODE_SEQUENCE, "* ?N");
         e.applicability = XSLT;
-        e.mandatoryArg(SequenceType.ANY_SEQUENCE);
-        e.optionalArg(SequenceType.SINGLE_NODE);
+//        e.mandatoryArg(SequenceType.ANY_SEQUENCE);
+//        e.optionalArg(SequenceType.SINGLE_NODE);
 
-        e = register("document-uri", new NamePart(NamePart.DOCUMENT_URI), SequenceType.OPTIONAL_ANY_URI);
-        e.mandatoryArg(SequenceType.NODE_SEQUENCE);
+        register("document-uri", new NamePart(NamePart.DOCUMENT_URI), SequenceType.OPTIONAL_ANY_URI, "N*");
+//        e.mandatoryArg(SequenceType.NODE_SEQUENCE);
 
-        e = register("empty", new Empty(), SequenceType.SINGLE_BOOLEAN);
-        e.mandatoryArg(SequenceType.ANY_SEQUENCE);
+        register("empty", new Empty(), SequenceType.SINGLE_BOOLEAN, "*");
+//        e.mandatoryArg(SequenceType.ANY_SEQUENCE);
 
-        e = register("ends-with", new EndsWith(), SequenceType.SINGLE_BOOLEAN);
-        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
-        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
-        e.optionalArg(SequenceType.SINGLE_STRING);
+        register("ends-with", new EndsWith(), SequenceType.SINGLE_BOOLEAN, "s? s? ?s");
+//        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
+//        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
+//        e.optionalArg(SequenceType.SINGLE_STRING);
 
         e = register("element-available", new Available(Available.ELEMENT_AVAILABLE),
-                SequenceType.SINGLE_BOOLEAN);
+                SequenceType.SINGLE_BOOLEAN, "s");
         e.applicability = XSLT | USE_WHEN;
-        e.mandatoryArg(SequenceType.SINGLE_STRING);
+//        e.mandatoryArg(SequenceType.SINGLE_STRING);
 
-        e = register("element-with-id", new Id(), SequenceType.ELEMENT_SEQUENCE);
-        e.mandatoryArg(SequenceType.STRING_SEQUENCE);
-        e.optionalArg(SequenceType.SINGLE_NODE);
+        register("element-with-id", new Id(), SequenceType.ELEMENT_SEQUENCE, "s* ?N");
+//        e.mandatoryArg(SequenceType.STRING_SEQUENCE);
+//        e.optionalArg(SequenceType.SINGLE_NODE);
 
-        e = register("encode-for-uri", new EscapeURI(EscapeURI.ENCODE_FOR_URI), SequenceType.SINGLE_STRING);
-        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
+        register("encode-for-uri", new EscapeURI(EscapeURI.ENCODE_FOR_URI), SequenceType.SINGLE_STRING, "s?");
+//        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
 
-        e = register("escape-html-uri", new EscapeURI(EscapeURI.HTML_URI), SequenceType.SINGLE_STRING);
-        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
+        register("escape-html-uri", new EscapeURI(EscapeURI.HTML_URI), SequenceType.SINGLE_STRING, "s?");
+//        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
 
-        e = register("error", new Error(), SequenceType.OPTIONAL_ITEM);
+        register("error", new Error(), SequenceType.OPTIONAL_ITEM, "?q? ?s ?I");
         // The return type is chosen so that use of the error() function will never give a static type error,
         // on the basis that item()? overlaps every other type, and it's almost impossible to make any
         // unwarranted inferences from it, except perhaps count(error()) lt 2.
-        e.optionalArg(SequenceType.OPTIONAL_QNAME);
-        e.optionalArg(SequenceType.SINGLE_STRING);
-        e.optionalArg(SequenceType.ANY_SEQUENCE);
+//        e.optionalArg(SequenceType.OPTIONAL_QNAME);
+//        e.optionalArg(SequenceType.SINGLE_STRING);
+//        e.optionalArg(SequenceType.ANY_SEQUENCE);
 
-        e = register("exists", new Exists(), SequenceType.SINGLE_BOOLEAN);
-        e.mandatoryArg(SequenceType.ANY_SEQUENCE);
+        register("exists", new Exists(), SequenceType.SINGLE_BOOLEAN, "*");
+//        e.mandatoryArg(SequenceType.ANY_SEQUENCE);
 
-        e = register("floor", new Rounding(Rounding.FLOOR), SequenceType.OPTIONAL_NUMERIC);
+        e = register("floor", new Rounding(Rounding.FLOOR), SequenceType.OPTIONAL_NUMERIC, "n?");
         e.sameItemTypeAsFirstArgument = true;
-        e.mandatoryArg(SequenceType.OPTIONAL_NUMERIC);
+//        e.mandatoryArg(SequenceType.OPTIONAL_NUMERIC);
 
-        e = register("format-date", new FormatDate(StandardNames.XS_DATE), SequenceType.SINGLE_STRING);
+        e = register("format-date", new FormatDate(StandardNames.XS_DATE), SequenceType.SINGLE_STRING, "dat? s ?s? ?s? ?s?");
         e.applicability = XSLT;
-        e.mandatoryArg(SequenceType.OPTIONAL_DATE);
-        e.mandatoryArg(SequenceType.SINGLE_STRING);
-        e.optionalArg(SequenceType.OPTIONAL_STRING);
-        e.optionalArg(SequenceType.OPTIONAL_STRING);
-        e.optionalArg(SequenceType.OPTIONAL_STRING);
+//        e.mandatoryArg(SequenceType.OPTIONAL_DATE);
+//        e.mandatoryArg(SequenceType.SINGLE_STRING);
+//        e.optionalArg(SequenceType.OPTIONAL_STRING);
+//        e.optionalArg(SequenceType.OPTIONAL_STRING);
+//        e.optionalArg(SequenceType.OPTIONAL_STRING);
 
-        e = register("format-dateTime", new FormatDate(StandardNames.XS_DATE_TIME), SequenceType.SINGLE_STRING);
+        e = register("format-dateTime", new FormatDate(StandardNames.XS_DATE_TIME), SequenceType.SINGLE_STRING, "dt? s ?s? ?s? ?s?");
         e.applicability = XSLT;
-        e.mandatoryArg(SequenceType.OPTIONAL_DATE_TIME);
-        e.mandatoryArg(SequenceType.SINGLE_STRING);
-        e.optionalArg(SequenceType.OPTIONAL_STRING);
-        e.optionalArg(SequenceType.OPTIONAL_STRING);
-        e.optionalArg(SequenceType.OPTIONAL_STRING);
+//        e.mandatoryArg(SequenceType.OPTIONAL_DATE_TIME);
+//        e.mandatoryArg(SequenceType.SINGLE_STRING);
+//        e.optionalArg(SequenceType.OPTIONAL_STRING);
+//        e.optionalArg(SequenceType.OPTIONAL_STRING);
+//        e.optionalArg(SequenceType.OPTIONAL_STRING);
 
-        e = register("format-number", new FormatNumber(), SequenceType.SINGLE_STRING);
+        e = register("format-number", new FormatNumber(), SequenceType.SINGLE_STRING, "n? s ?s");
         e.applicability = XSLT;
-        e.mandatoryArg(SequenceType.OPTIONAL_NUMERIC);
-        e.mandatoryArg(SequenceType.SINGLE_STRING);
-        e.optionalArg(SequenceType.SINGLE_STRING);
+//        e.mandatoryArg(SequenceType.OPTIONAL_NUMERIC);
+//        e.mandatoryArg(SequenceType.SINGLE_STRING);
+//        e.optionalArg(SequenceType.SINGLE_STRING);
 
-        e = register("format-time", new FormatDate(StandardNames.XS_TIME), SequenceType.SINGLE_STRING);
+        e = register("format-time", new FormatDate(StandardNames.XS_TIME), SequenceType.SINGLE_STRING, "tim? s ?s? ?s? ?s?");
         e.applicability = XSLT;
-        e.mandatoryArg(SequenceType.OPTIONAL_TIME);
-        e.mandatoryArg(SequenceType.SINGLE_STRING);
-        e.optionalArg(SequenceType.OPTIONAL_STRING);
-        e.optionalArg(SequenceType.OPTIONAL_STRING);
-        e.optionalArg(SequenceType.OPTIONAL_STRING);
+//        e.mandatoryArg(SequenceType.OPTIONAL_TIME);
+//        e.mandatoryArg(SequenceType.SINGLE_STRING);
+//        e.optionalArg(SequenceType.OPTIONAL_STRING);
+//        e.optionalArg(SequenceType.OPTIONAL_STRING);
+//        e.optionalArg(SequenceType.OPTIONAL_STRING);
 
-        e = register("function-available", new Available(Available.FUNCTION_AVAILABLE), SequenceType.SINGLE_BOOLEAN);
+        e = register("function-available", new Available(Available.FUNCTION_AVAILABLE), SequenceType.SINGLE_BOOLEAN, "s ?i");
         e.applicability = XSLT | USE_WHEN;
-        e.mandatoryArg(SequenceType.SINGLE_STRING);
-        e.optionalArg(SequenceType.SINGLE_INTEGER);
+//        e.mandatoryArg(SequenceType.SINGLE_STRING);
+//        e.optionalArg(SequenceType.SINGLE_INTEGER);
 
-        e = register("generate-id", new NamePart(NamePart.GENERATE_ID), SequenceType.SINGLE_STRING);
+        e = register("generate-id", new NamePart(NamePart.GENERATE_ID), SequenceType.SINGLE_STRING, "N?");
         e.applicability = XSLT;
-        e.mandatoryArg(SequenceType.OPTIONAL_NODE);
+//        e.mandatoryArg(SequenceType.OPTIONAL_NODE);
 
-        e = register("hours-from-dateTime", new Component((Component.HOURS << 16) + StandardNames.XS_DATE_TIME),
-                SequenceType.OPTIONAL_INTEGER);
-        e.mandatoryArg(SequenceType.OPTIONAL_DATE_TIME);
+        register("hours-from-dateTime", new Component((Component.HOURS << 16) + StandardNames.XS_DATE_TIME),
+                SequenceType.OPTIONAL_INTEGER, "dt?");
+//        e.mandatoryArg(SequenceType.OPTIONAL_DATE_TIME);
 
-        e = register("hours-from-duration", new Component((Component.HOURS << 16) + StandardNames.XS_DURATION),
-                SequenceType.OPTIONAL_INTEGER);
-        e.mandatoryArg(SequenceType.OPTIONAL_DURATION);
+        register("hours-from-duration", new Component((Component.HOURS << 16) + StandardNames.XS_DURATION),
+                SequenceType.OPTIONAL_INTEGER, "dur?");
+//        e.mandatoryArg(SequenceType.OPTIONAL_DURATION);
 
-        e = register("hours-from-time", new Component((Component.HOURS << 16) + StandardNames.XS_TIME),
-                SequenceType.OPTIONAL_INTEGER);
-        e.mandatoryArg(SequenceType.OPTIONAL_TIME);
+        register("hours-from-time", new Component((Component.HOURS << 16) + StandardNames.XS_TIME),
+                SequenceType.OPTIONAL_INTEGER, "tim?");
+//        e.mandatoryArg(SequenceType.OPTIONAL_TIME);
 
-        e = register("id", new Id(), SequenceType.ELEMENT_SEQUENCE);
-        e.mandatoryArg(SequenceType.STRING_SEQUENCE);
-        e.optionalArg(SequenceType.SINGLE_NODE);
+        register("id", new Id(), SequenceType.ELEMENT_SEQUENCE, "s* ?N");
+//        e.mandatoryArg(SequenceType.STRING_SEQUENCE);
+//        e.optionalArg(SequenceType.SINGLE_NODE);
 
-        register("implicit-timezone", new CurrentDateTime(), SequenceType.SINGLE_DAY_TIME_DURATION);
+        register("implicit-timezone", new CurrentDateTime(), SequenceType.SINGLE_DAY_TIME_DURATION, "");
 
-        e = register("in-scope-prefixes", new InScopePrefixes(), SequenceType.STRING_SEQUENCE);
-        e.mandatoryArg(SequenceType.SINGLE_ELEMENT);
+        register("in-scope-prefixes", new InScopePrefixes(), SequenceType.STRING_SEQUENCE, "E");
+//        e.mandatoryArg(SequenceType.SINGLE_ELEMENT);
 
-        e = register("index-of", new IndexOf(), SequenceType.INTEGER_SEQUENCE);
-        e.mandatoryArg(SequenceType.ATOMIC_SEQUENCE);
-        e.mandatoryArg(SequenceType.SINGLE_ATOMIC);
-        e.optionalArg(SequenceType.SINGLE_STRING);
+        register("index-of", new IndexOf(), SequenceType.INTEGER_SEQUENCE, "a* a ?s");
+//        e.mandatoryArg(SequenceType.ATOMIC_SEQUENCE);
+//        e.mandatoryArg(SequenceType.SINGLE_ATOMIC);
+//        e.optionalArg(SequenceType.SINGLE_STRING);
 
-        e = register("insert-before", new Insert(), SequenceType.ANY_SEQUENCE);
-        e.mandatoryArg(SequenceType.ANY_SEQUENCE);
-        e.mandatoryArg(SequenceType.SINGLE_INTEGER);
-        e.mandatoryArg(SequenceType.ANY_SEQUENCE);
+        register("insert-before", new Insert(), SequenceType.ANY_SEQUENCE, "* i *");
+//        e.mandatoryArg(SequenceType.ANY_SEQUENCE);
+//        e.mandatoryArg(SequenceType.SINGLE_INTEGER);
+//        e.mandatoryArg(SequenceType.ANY_SEQUENCE);
 
-        e = register("iri-to-uri", new EscapeURI(EscapeURI.IRI_TO_URI), SequenceType.SINGLE_STRING);
-        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
+        register("iri-to-uri", new EscapeURI(EscapeURI.IRI_TO_URI), SequenceType.SINGLE_STRING, "s?");
+//        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
 
-        e = register("key", new KeyFn(), SequenceType.NODE_SEQUENCE);
+        e = register("key", new KeyFn(), SequenceType.NODE_SEQUENCE, "s a* ?N");
         e.applicability = XSLT;
-        e.mandatoryArg(SequenceType.SINGLE_STRING);
-        e.mandatoryArg(SequenceType.ATOMIC_SEQUENCE);
-        e.optionalArg(SequenceType.SINGLE_NODE);
+//        e.mandatoryArg(SequenceType.SINGLE_STRING);
+//        e.mandatoryArg(SequenceType.ATOMIC_SEQUENCE);
+//        e.optionalArg(SequenceType.SINGLE_NODE);
 
-        e = register("lang", new Lang(), SequenceType.SINGLE_BOOLEAN);
-        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
-        e.optionalArg(SequenceType.SINGLE_NODE);
+        register("lang", new Lang(), SequenceType.SINGLE_BOOLEAN, "s? ?N");
+//        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
+//        e.optionalArg(SequenceType.SINGLE_NODE);
 
-        register("last", new Last(), SequenceType.SINGLE_INTEGER);
+        register("last", new Last(), SequenceType.SINGLE_INTEGER, "");
 
-        e = register("local-name", new NamePart(NamePart.LOCAL_NAME), SequenceType.SINGLE_STRING);
-        e.mandatoryArg(SequenceType.OPTIONAL_NODE);
+        register("local-name", new NamePart(NamePart.LOCAL_NAME), SequenceType.SINGLE_STRING, "N?");
+//        e.mandatoryArg(SequenceType.OPTIONAL_NODE);
 
-        e = register("local-name-from-QName", new Component((Component.LOCALNAME << 16) + StandardNames.XS_QNAME),
-                SequenceType.OPTIONAL_STRING);
-        e.mandatoryArg(SequenceType.OPTIONAL_QNAME);
+        register("local-name-from-QName", new Component((Component.LOCALNAME << 16) + StandardNames.XS_QNAME),
+                SequenceType.OPTIONAL_STRING, "q?");
+//        e.mandatoryArg(SequenceType.OPTIONAL_QNAME);
 
-        e = register("lower-case", new ForceCase(ForceCase.LOWERCASE), SequenceType.SINGLE_STRING);
-        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
+        register("lower-case", new ForceCase(ForceCase.LOWERCASE), SequenceType.SINGLE_STRING, "s?");
+//        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
 
-        e = register("matches", new Matches(), SequenceType.SINGLE_BOOLEAN);
-        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
-        e.mandatoryArg(SequenceType.SINGLE_STRING);
-        e.optionalArg(SequenceType.SINGLE_STRING);
+        register("matches", new Matches(), SequenceType.SINGLE_BOOLEAN, "s? s ?s");
+//        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
+//        e.mandatoryArg(SequenceType.SINGLE_STRING);
+//        e.optionalArg(SequenceType.SINGLE_STRING);
 
-        e = register("max", new Minimax(Minimax.MAX), SequenceType.OPTIONAL_ATOMIC);
-        e.mandatoryArg(SequenceType.ATOMIC_SEQUENCE);
-        e.optionalArg(SequenceType.SINGLE_STRING);
+        register("max", new Minimax(Minimax.MAX), SequenceType.OPTIONAL_ATOMIC, "a* ?s");
+//        e.mandatoryArg(SequenceType.ATOMIC_SEQUENCE);
+//        e.optionalArg(SequenceType.SINGLE_STRING);
 
-        e = register("min", new Minimax(Minimax.MIN), SequenceType.OPTIONAL_ATOMIC);
-        e.mandatoryArg(SequenceType.ATOMIC_SEQUENCE);
-        e.optionalArg(SequenceType.SINGLE_STRING);
+        register("min", new Minimax(Minimax.MIN), SequenceType.OPTIONAL_ATOMIC, "a* ?s");
+//        e.mandatoryArg(SequenceType.ATOMIC_SEQUENCE);
+//        e.optionalArg(SequenceType.SINGLE_STRING);
 
-        e = register("minutes-from-dateTime", new Component((Component.MINUTES << 16) + StandardNames.XS_DATE_TIME),
-                SequenceType.OPTIONAL_INTEGER);
-        e.mandatoryArg(SequenceType.OPTIONAL_DATE_TIME);
+        register("minutes-from-dateTime", new Component((Component.MINUTES << 16) + StandardNames.XS_DATE_TIME),
+                SequenceType.OPTIONAL_INTEGER, "dt?");
+//        e.mandatoryArg(SequenceType.OPTIONAL_DATE_TIME);
 
-        e = register("minutes-from-duration", new Component((Component.MINUTES << 16) + StandardNames.XS_DURATION),
-                SequenceType.OPTIONAL_INTEGER);
-        e.mandatoryArg(SequenceType.OPTIONAL_DURATION);
+        register("minutes-from-duration", new Component((Component.MINUTES << 16) + StandardNames.XS_DURATION),
+                SequenceType.OPTIONAL_INTEGER, "dur?");
+//        e.mandatoryArg(SequenceType.OPTIONAL_DURATION);
 
-        e = register("minutes-from-time", new Component((Component.MINUTES << 16) + StandardNames.XS_TIME),
-                SequenceType.OPTIONAL_INTEGER);
-        e.mandatoryArg(SequenceType.OPTIONAL_TIME);
+        register("minutes-from-time", new Component((Component.MINUTES << 16) + StandardNames.XS_TIME),
+                SequenceType.OPTIONAL_INTEGER, "tim?");
+//        e.mandatoryArg(SequenceType.OPTIONAL_TIME);
 
-        e = register("month-from-date", new Component((Component.MONTH << 16) + StandardNames.XS_DATE),
-                SequenceType.OPTIONAL_INTEGER);
-        e.mandatoryArg(SequenceType.OPTIONAL_DATE);
+        register("month-from-date", new Component((Component.MONTH << 16) + StandardNames.XS_DATE),
+                SequenceType.OPTIONAL_INTEGER, "dat?");
+//        e.mandatoryArg(SequenceType.OPTIONAL_DATE);
 
-        e = register("month-from-dateTime", new Component((Component.MONTH << 16) + StandardNames.XS_DATE_TIME),
-                SequenceType.OPTIONAL_INTEGER);
-        e.mandatoryArg(SequenceType.OPTIONAL_DATE_TIME);
+        register("month-from-dateTime", new Component((Component.MONTH << 16) + StandardNames.XS_DATE_TIME),
+                SequenceType.OPTIONAL_INTEGER, "dt?");
+//        e.mandatoryArg(SequenceType.OPTIONAL_DATE_TIME);
 
-        e = register("months-from-duration", new Component((Component.MONTH << 16) + StandardNames.XS_DURATION),
-                SequenceType.OPTIONAL_INTEGER);
-        e.mandatoryArg(SequenceType.OPTIONAL_DURATION);
+        register("months-from-duration", new Component((Component.MONTH << 16) + StandardNames.XS_DURATION),
+                SequenceType.OPTIONAL_INTEGER, "dur?");
+//        e.mandatoryArg(SequenceType.OPTIONAL_DURATION);
 
-        e = register("name", new NamePart(NamePart.NAME), SequenceType.SINGLE_STRING);
-        e.mandatoryArg(SequenceType.OPTIONAL_NODE);
+        register("name", new NamePart(NamePart.NAME), SequenceType.SINGLE_STRING, "N?");
+//        e.mandatoryArg(SequenceType.OPTIONAL_NODE);
 
-        e = register("namespace-uri", new NamePart(NamePart.NAMESPACE_URI), SequenceType.SINGLE_ANY_URI);
-        e.mandatoryArg(SequenceType.OPTIONAL_NODE);
+        register("namespace-uri", new NamePart(NamePart.NAMESPACE_URI), SequenceType.SINGLE_ANY_URI, "N?");
+//        e.mandatoryArg(SequenceType.OPTIONAL_NODE);
 
-        e = register("namespace-uri-for-prefix", new NamespaceForPrefix(), SequenceType.OPTIONAL_ANY_URI);
-        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
-        e.mandatoryArg(SequenceType.SINGLE_ELEMENT);
+        register("namespace-uri-for-prefix", new NamespaceForPrefix(), SequenceType.OPTIONAL_ANY_URI, "s? E");
+//        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
+//        e.mandatoryArg(SequenceType.SINGLE_ELEMENT);
 
-        e = register("namespace-uri-from-QName", new Component((Component.NAMESPACE << 16) + StandardNames.XS_QNAME),
-                SequenceType.OPTIONAL_ANY_URI);
-        e.mandatoryArg(SequenceType.OPTIONAL_QNAME);
+        register("namespace-uri-from-QName", new Component((Component.NAMESPACE << 16) + StandardNames.XS_QNAME),
+                SequenceType.OPTIONAL_ANY_URI, "q?");
+//        e.mandatoryArg(SequenceType.OPTIONAL_QNAME);
 
-        e = register("node-name", new NamePart(NamePart.NODE_NAME), SequenceType.OPTIONAL_QNAME);
-        e.mandatoryArg(SequenceType.OPTIONAL_NODE);
+        register("node-name", new NamePart(NamePart.NODE_NAME), SequenceType.OPTIONAL_QNAME, "N?");
+//        e.mandatoryArg(SequenceType.OPTIONAL_NODE);
 
-        e = register("not", new BooleanFn(BooleanFn.NOT), SequenceType.SINGLE_BOOLEAN);
-        e.mandatoryArg(SequenceType.ANY_SEQUENCE);
+        register("not", new BooleanFn(BooleanFn.NOT), SequenceType.SINGLE_BOOLEAN, "*");
+//        e.mandatoryArg(SequenceType.ANY_SEQUENCE);
 
-        register("normalize-space", new NormalizeSpace(), SequenceType.SINGLE_STRING);
-        register("normalize-space#0", new NormalizeSpace(), SequenceType.SINGLE_STRING);
+        register("normalize-space", new NormalizeSpace(), SequenceType.SINGLE_STRING, "");
+        register("normalize-space#0", new NormalizeSpace(), SequenceType.SINGLE_STRING, "");
 
-        e = register("normalize-space#1", new NormalizeSpace(), SequenceType.SINGLE_STRING);
-        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
+        register("normalize-space#1", new NormalizeSpace(), SequenceType.SINGLE_STRING, "s?");
+//        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
 
-        e = register("normalize-unicode", new NormalizeUnicode(), SequenceType.SINGLE_STRING);
-        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
-        e.optionalArg(SequenceType.SINGLE_STRING);
+        register("normalize-unicode", new NormalizeUnicode(), SequenceType.SINGLE_STRING, "s? ?s");
+//        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
+//        e.optionalArg(SequenceType.SINGLE_STRING);
 
-        e = register("number", new NumberFn(), SequenceType.SINGLE_DOUBLE);
-        e.mandatoryArg(SequenceType.OPTIONAL_ATOMIC);
+        register("number", new NumberFn(), SequenceType.SINGLE_DOUBLE, "a?");
+//        e.mandatoryArg(SequenceType.OPTIONAL_ATOMIC);
 
-        register("position", new Position(), SequenceType.SINGLE_INTEGER);
+        register("position", new Position(), SequenceType.SINGLE_INTEGER, "");
 
-        e = register("prefix-from-QName", new Component((Component.PREFIX << 16) + StandardNames.XS_QNAME),
-                SequenceType.OPTIONAL_STRING);
-        e.mandatoryArg(SequenceType.OPTIONAL_QNAME);
+        register("prefix-from-QName", new Component((Component.PREFIX << 16) + StandardNames.XS_QNAME),
+                SequenceType.OPTIONAL_STRING, "q?");
+//        e.mandatoryArg(SequenceType.OPTIONAL_QNAME);
 
-        e = register("QName", new QNameFn(), SequenceType.SINGLE_QNAME);
-        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
-        e.mandatoryArg(SequenceType.SINGLE_STRING);
+        register("QName", new QNameFn(), SequenceType.SINGLE_QNAME, "s? s");
+//        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
+//        e.mandatoryArg(SequenceType.SINGLE_STRING);
 
-        e = register("regex-group", new RegexGroup(), SequenceType.SINGLE_STRING);
+        e = register("regex-group", new RegexGroup(), SequenceType.SINGLE_STRING, "i");
         e.applicability = XSLT;
-        e.mandatoryArg(SequenceType.SINGLE_INTEGER);
+//        e.mandatoryArg(SequenceType.SINGLE_INTEGER);
 
-        e = register("remove", new Remove(), SequenceType.ANY_SEQUENCE);
+        e = register("remove", new Remove(), SequenceType.ANY_SEQUENCE, "* i");
         e.sameItemTypeAsFirstArgument = true;
-        e.mandatoryArg(SequenceType.ANY_SEQUENCE);
-        e.mandatoryArg(SequenceType.SINGLE_INTEGER);
+//        e.mandatoryArg(SequenceType.ANY_SEQUENCE);
+//        e.mandatoryArg(SequenceType.SINGLE_INTEGER);
 
-        e = register("replace", new Replace(), SequenceType.SINGLE_STRING);
-        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
-        e.mandatoryArg(SequenceType.SINGLE_STRING);
-        e.mandatoryArg(SequenceType.SINGLE_STRING);
-        e.optionalArg(SequenceType.SINGLE_STRING);
+        register("replace", new Replace(), SequenceType.SINGLE_STRING, "s? s s ?s");
+//        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
+//        e.mandatoryArg(SequenceType.SINGLE_STRING);
+//        e.mandatoryArg(SequenceType.SINGLE_STRING);
+//        e.optionalArg(SequenceType.SINGLE_STRING);
 
-        e = register("resolve-QName", new ResolveQName(), SequenceType.OPTIONAL_QNAME);
-        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
-        e.mandatoryArg(SequenceType.SINGLE_ELEMENT);
+        register("resolve-QName", new ResolveQName(), SequenceType.OPTIONAL_QNAME, "q? E");
+//        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
+//        e.mandatoryArg(SequenceType.SINGLE_ELEMENT);
 
-        e = register("resolve-uri", new ResolveURI(), SequenceType.OPTIONAL_ANY_URI);
-        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
-        e.optionalArg(SequenceType.SINGLE_STRING);
+        register("resolve-uri", new ResolveURI(), SequenceType.OPTIONAL_ANY_URI, "s? ?s");
+//        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
+//        e.optionalArg(SequenceType.SINGLE_STRING);
 
-        e = register("reverse", new Reverse(), SequenceType.ANY_SEQUENCE);
-        e.mandatoryArg(SequenceType.ANY_SEQUENCE);
+        register("reverse", new Reverse(), SequenceType.ANY_SEQUENCE, "*");
+//        e.mandatoryArg(SequenceType.ANY_SEQUENCE);
 
-        e = register("root", new Root(), SequenceType.OPTIONAL_NODE);
-        e.optionalArg(SequenceType.OPTIONAL_NODE);
+        register("root", new Root(), SequenceType.OPTIONAL_NODE, "?N?");
+//        e.optionalArg(SequenceType.OPTIONAL_NODE);
 
-        e = register("round", new Rounding(Rounding.ROUND), SequenceType.OPTIONAL_NUMERIC);
+        e = register("round", new Rounding(Rounding.ROUND), SequenceType.OPTIONAL_NUMERIC, "n?");
         e.sameItemTypeAsFirstArgument = true;
-        e.mandatoryArg(SequenceType.OPTIONAL_NUMERIC);
+//        e.mandatoryArg(SequenceType.OPTIONAL_NUMERIC);
 
-        e = register("round-half-to-even", new Rounding(Rounding.HALF_EVEN), SequenceType.OPTIONAL_NUMERIC);
+        e = register("round-half-to-even", new Rounding(Rounding.HALF_EVEN), SequenceType.OPTIONAL_NUMERIC, "n? i");
         e.sameItemTypeAsFirstArgument = true;
-        e.mandatoryArg(SequenceType.OPTIONAL_NUMERIC);
-        e.mandatoryArg(SequenceType.SINGLE_INTEGER);
+//        e.mandatoryArg(SequenceType.OPTIONAL_NUMERIC);
+//        e.mandatoryArg(SequenceType.SINGLE_INTEGER);
 
-        e = register("seconds-from-dateTime", new Component((Component.SECONDS << 16) + StandardNames.XS_DATE_TIME),
-                SequenceType.OPTIONAL_DECIMAL);
-        e.mandatoryArg(SequenceType.OPTIONAL_DATE_TIME);
+        register("seconds-from-dateTime", new Component((Component.SECONDS << 16) + StandardNames.XS_DATE_TIME),
+                SequenceType.OPTIONAL_DECIMAL, "dt?");
+//        e.mandatoryArg(SequenceType.OPTIONAL_DATE_TIME);
 
-        e = register("seconds-from-duration", new Component((Component.SECONDS << 16) + StandardNames.XS_DURATION),
-                SequenceType.OPTIONAL_DECIMAL);
-        e.mandatoryArg(SequenceType.OPTIONAL_DURATION);
+        register("seconds-from-duration", new Component((Component.SECONDS << 16) + StandardNames.XS_DURATION),
+                SequenceType.OPTIONAL_DECIMAL, "dur?");
+//        e.mandatoryArg(SequenceType.OPTIONAL_DURATION);
 
-        e = register("seconds-from-time", new Component((Component.SECONDS << 16) + StandardNames.XS_TIME),
-                SequenceType.OPTIONAL_DECIMAL);
-        e.mandatoryArg(SequenceType.OPTIONAL_TIME);
+        register("seconds-from-time", new Component((Component.SECONDS << 16) + StandardNames.XS_TIME),
+                SequenceType.OPTIONAL_DECIMAL, "tim?");
+//        e.mandatoryArg(SequenceType.OPTIONAL_TIME);
 
-        e = register("starts-with", new StartsWith(), SequenceType.SINGLE_BOOLEAN);
-        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
-        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
-        e.optionalArg(SequenceType.SINGLE_STRING);
+        register("starts-with", new StartsWith(), SequenceType.SINGLE_BOOLEAN, "s? s? ?s");
+//        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
+//        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
+//        e.optionalArg(SequenceType.SINGLE_STRING);
 
-        e = register("string", new StringFn(), SequenceType.SINGLE_STRING);
-        e.mandatoryArg(SequenceType.OPTIONAL_ITEM);
+        register("string", new StringFn(), SequenceType.SINGLE_STRING, "I?");
+//        e.mandatoryArg(SequenceType.OPTIONAL_ITEM);
 
-        register("string-length", new StringLength(), SequenceType.SINGLE_INTEGER);
-        register("string-length#0", new StringLength(), SequenceType.SINGLE_INTEGER);
+        register("string-length", new StringLength(), SequenceType.SINGLE_INTEGER, "");
+        register("string-length#0", new StringLength(), SequenceType.SINGLE_INTEGER, "");
 
-        e = register("string-length#1", new StringLength(), SequenceType.SINGLE_INTEGER);
-        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
+        register("string-length#1", new StringLength(), SequenceType.SINGLE_INTEGER, "s?");
+//        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
 
-        e = register("string-join", new StringJoin(), SequenceType.SINGLE_STRING);
-        e.mandatoryArg(SequenceType.STRING_SEQUENCE);
-        e.mandatoryArg(SequenceType.SINGLE_STRING);
+        register("string-join", new StringJoin(), SequenceType.SINGLE_STRING, "s* s");
+//        e.mandatoryArg(SequenceType.STRING_SEQUENCE);
+//        e.mandatoryArg(SequenceType.SINGLE_STRING);
 
-        e = register("string-to-codepoints", new StringToCodepoints(), SequenceType.INTEGER_SEQUENCE);
-        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
+        register("string-to-codepoints", new StringToCodepoints(), SequenceType.INTEGER_SEQUENCE, "s?");
+//        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
 
-        e = register("subsequence", new Subsequence(), SequenceType.ANY_SEQUENCE);
+        e = register("subsequence", new Subsequence(), SequenceType.ANY_SEQUENCE, "* d ?d");
         e.sameItemTypeAsFirstArgument = true;
-        e.mandatoryArg(SequenceType.ANY_SEQUENCE);
-        e.mandatoryArg(SequenceType.SINGLE_DOUBLE);
-        e.optionalArg(SequenceType.SINGLE_DOUBLE);
+//        e.mandatoryArg(SequenceType.ANY_SEQUENCE);
+//        e.mandatoryArg(SequenceType.SINGLE_DOUBLE);
+//        e.optionalArg(SequenceType.SINGLE_DOUBLE);
 
-        e = register("substring", new Substring(), SequenceType.SINGLE_STRING);
-        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
-        e.mandatoryArg(SequenceType.SINGLE_DOUBLE);
-        e.optionalArg(SequenceType.SINGLE_DOUBLE);
+        register("substring", new Substring(), SequenceType.SINGLE_STRING, "s? d ?d");
+//        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
+//        e.mandatoryArg(SequenceType.SINGLE_DOUBLE);
+//        e.optionalArg(SequenceType.SINGLE_DOUBLE);
 
-        e = register("substring-after", new SubstringAfter(), SequenceType.SINGLE_STRING);
-        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
-        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
-        e.optionalArg(SequenceType.SINGLE_STRING);
+        register("substring-after", new SubstringAfter(), SequenceType.SINGLE_STRING, "s? s? ?s");
+//        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
+//        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
+//        e.optionalArg(SequenceType.SINGLE_STRING);
 
-        e = register("substring-before", new SubstringBefore(), SequenceType.SINGLE_STRING);
-        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
-        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
-        e.optionalArg(SequenceType.SINGLE_STRING);
+        register("substring-before", new SubstringBefore(), SequenceType.SINGLE_STRING ,"s? s? ?s");
+//        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
+//        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
+//        e.optionalArg(SequenceType.SINGLE_STRING);
 
-        e = register("sum", new Sum(), SequenceType.OPTIONAL_ATOMIC);
-        e.mandatoryArg(SequenceType.ATOMIC_SEQUENCE);
-        e.optionalArg(SequenceType.OPTIONAL_ATOMIC);
+        register("sum", new Sum(), SequenceType.OPTIONAL_ATOMIC, "a* a?");
+//        e.mandatoryArg(SequenceType.ATOMIC_SEQUENCE);
+//        e.optionalArg(SequenceType.OPTIONAL_ATOMIC);
 
-        e = register("system-property", new SystemProperty(), SequenceType.SINGLE_STRING);
+        e = register("system-property", new SystemProperty(), SequenceType.SINGLE_STRING, "s");
         e.applicability = XSLT | USE_WHEN;
-        e.mandatoryArg(SequenceType.SINGLE_STRING);
+//        e.mandatoryArg(SequenceType.SINGLE_STRING);
 
-        e = register("timezone-from-date", new Component((Component.TIMEZONE << 16) + StandardNames.XS_DATE),
-                SequenceType.OPTIONAL_DAY_TIME_DURATION);
-        e.mandatoryArg(SequenceType.OPTIONAL_DATE);
+        register("timezone-from-date", new Component((Component.TIMEZONE << 16) + StandardNames.XS_DATE),
+                SequenceType.OPTIONAL_DAY_TIME_DURATION, "dat?");
+//        e.mandatoryArg(SequenceType.OPTIONAL_DATE);
 
-        e = register("timezone-from-dateTime", new Component((Component.TIMEZONE << 16) + StandardNames.XS_DATE_TIME),
-                SequenceType.OPTIONAL_DAY_TIME_DURATION);
-        e.mandatoryArg(SequenceType.OPTIONAL_DATE_TIME);
+        register("timezone-from-dateTime", new Component((Component.TIMEZONE << 16) + StandardNames.XS_DATE_TIME),
+                SequenceType.OPTIONAL_DAY_TIME_DURATION, "dt?");
+//        e.mandatoryArg(SequenceType.OPTIONAL_DATE_TIME);
 
-        e = register("timezone-from-time", new Component((Component.TIMEZONE << 16) + StandardNames.XS_TIME),
-                SequenceType.OPTIONAL_DAY_TIME_DURATION);
-        e.mandatoryArg(SequenceType.OPTIONAL_TIME);
+        register("timezone-from-time", new Component((Component.TIMEZONE << 16) + StandardNames.XS_TIME),
+                SequenceType.OPTIONAL_DAY_TIME_DURATION, "tim?");
+//        e.mandatoryArg(SequenceType.OPTIONAL_TIME);
 
-        e = register("translate", new Translate(), SequenceType.SINGLE_STRING);
-        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
-        e.mandatoryArg(SequenceType.SINGLE_STRING);
-        e.mandatoryArg(SequenceType.SINGLE_STRING);
+        register("translate", new Translate(), SequenceType.SINGLE_STRING, "s? s s");
+//        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
+//        e.mandatoryArg(SequenceType.SINGLE_STRING);
+//        e.mandatoryArg(SequenceType.SINGLE_STRING);
 
-        e = register("tokenize", new Tokenize(), SequenceType.STRING_SEQUENCE);
-        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
-        e.mandatoryArg(SequenceType.SINGLE_STRING);
-        e.optionalArg(SequenceType.SINGLE_STRING);
+        register("tokenize", new Tokenize(), SequenceType.STRING_SEQUENCE, "s? s ?s");
+//        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
+//        e.mandatoryArg(SequenceType.SINGLE_STRING);
+//        e.optionalArg(SequenceType.SINGLE_STRING);
         
-        e = register("trace", new Trace(), SequenceType.ANY_SEQUENCE);
-        e.mandatoryArg(SequenceType.ANY_SEQUENCE);
-        e.mandatoryArg(SequenceType.SINGLE_STRING);
+        register("trace", new Trace(), SequenceType.ANY_SEQUENCE, "* s");
+//        e.mandatoryArg(SequenceType.ANY_SEQUENCE);
+//        e.mandatoryArg(SequenceType.SINGLE_STRING);
         
-        e = register("type-available", new Available(Available.TYPE_AVAILABLE), SequenceType.SINGLE_BOOLEAN);
+        e = register("type-available", new Available(Available.TYPE_AVAILABLE), SequenceType.SINGLE_BOOLEAN, "s");
         e.applicability = XSLT | USE_WHEN;
-        e.mandatoryArg(SequenceType.SINGLE_STRING);
+//        e.mandatoryArg(SequenceType.SINGLE_STRING);
 
-        e = register("upper-case", new ForceCase(ForceCase.UPPERCASE), SequenceType.SINGLE_STRING);
-        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
+        register("upper-case", new ForceCase(ForceCase.UPPERCASE), SequenceType.SINGLE_STRING, "s?");
+//        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
 
         e = register("unparsed-text", new UnparsedText(UnparsedText.UNPARSED_TEXT),
-                SequenceType.OPTIONAL_STRING);
+                SequenceType.OPTIONAL_STRING, "s? ?s");
         e.applicability = XSLT;
-        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
-        e.optionalArg(SequenceType.SINGLE_STRING);
+//        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
+//        e.optionalArg(SequenceType.SINGLE_STRING);
 
         e = register("unparsed-text-available", new UnparsedText(UnparsedText.UNPARSED_TEXT_AVAILABLE),
-                SequenceType.SINGLE_BOOLEAN);
+                SequenceType.SINGLE_BOOLEAN, "s s");
         e.applicability = XSLT;
-        e.mandatoryArg(SequenceType.SINGLE_STRING);
-        e.mandatoryArg(SequenceType.SINGLE_STRING);
+//        e.mandatoryArg(SequenceType.SINGLE_STRING);
+//        e.mandatoryArg(SequenceType.SINGLE_STRING);
 
-        e = register("year-from-date", new Component((Component.YEAR << 16) + StandardNames.XS_DATE),
-                SequenceType.OPTIONAL_INTEGER);
-        e.mandatoryArg(SequenceType.OPTIONAL_DATE);
+        register("year-from-date", new Component((Component.YEAR << 16) + StandardNames.XS_DATE),
+                SequenceType.OPTIONAL_INTEGER, "dat?");
+//        e.mandatoryArg(SequenceType.OPTIONAL_DATE);
 
-        e = register("year-from-dateTime", new Component((Component.YEAR << 16) + StandardNames.XS_DATE_TIME),
-                SequenceType.OPTIONAL_INTEGER);
-        e.mandatoryArg(SequenceType.OPTIONAL_DATE_TIME);
+        register("year-from-dateTime", new Component((Component.YEAR << 16) + StandardNames.XS_DATE_TIME),
+                SequenceType.OPTIONAL_INTEGER, "dt?");
+//        e.mandatoryArg(SequenceType.OPTIONAL_DATE_TIME);
 
-        e = register("years-from-duration", new Component((Component.YEAR << 16) + StandardNames.XS_DURATION),
-                SequenceType.OPTIONAL_INTEGER);
-        e.mandatoryArg(SequenceType.OPTIONAL_DURATION);
+        register("years-from-duration", new Component((Component.YEAR << 16) + StandardNames.XS_DURATION),
+                SequenceType.OPTIONAL_INTEGER, "dur?");
+//        e.mandatoryArg(SequenceType.OPTIONAL_DURATION);
 
     }
 
@@ -576,6 +653,7 @@ public abstract class StandardFunction {
      *
      * @param name the name of the function. This is an unprefixed local-name for functions in the
      *             system namespace
+     * @param arity the number of arguments
      * @return if the function name is known, an Entry containing information about the function. Otherwise,
      *         null
      */
