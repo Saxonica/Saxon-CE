@@ -2,8 +2,6 @@ package client.net.sf.saxon.ce.expr;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.NamePool;
 import client.net.sf.saxon.ce.om.SequenceIterator;
-import client.net.sf.saxon.ce.pattern.CombinedNodeTest;
-import client.net.sf.saxon.ce.pattern.NodeTest;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.*;
 import client.net.sf.saxon.ce.value.Cardinality;
@@ -192,25 +190,7 @@ public final class ItemChecker extends UnaryExpression {
      */
 
 	public ItemType getItemType(TypeHierarchy th) {
-        ItemType operandType = operand.getItemType(th);
-        int relationship = th.relationship(requiredItemType, operandType);
-        switch (relationship) {
-            case TypeHierarchy.OVERLAPS:
-                if (requiredItemType instanceof NodeTest && operandType instanceof NodeTest) {
-                    return new CombinedNodeTest((NodeTest)requiredItemType, Token.INTERSECT, (NodeTest)operandType);
-                } else {
-                    // we don't know how to intersect atomic types, it doesn't actually happen
-                    return requiredItemType;
-                }
-
-            case TypeHierarchy.SUBSUMES:
-            case TypeHierarchy.SAME_TYPE:
-                // shouldn't happen, but it doesn't matter
-                return operandType;
-            case TypeHierarchy.SUBSUMED_BY:
-            default:
-                return requiredItemType;
-        }
+        return requiredItemType;
     }
 
     /**

@@ -6,9 +6,7 @@ import client.net.sf.saxon.ce.expr.Expression;
 import client.net.sf.saxon.ce.expr.Literal;
 import client.net.sf.saxon.ce.expr.StaticContext;
 import client.net.sf.saxon.ce.expr.TraceExpression;
-import client.net.sf.saxon.ce.expr.instruct.ResultDocument;
 import client.net.sf.saxon.ce.expr.parser.CodeInjector;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.om.StructuredQName;
 
 
@@ -22,6 +20,7 @@ public class TraceCodeInjector implements CodeInjector {
     /**
      * If tracing, wrap an expression in a trace instruction
      *
+     *
      * @param exp         the expression to be wrapped
      * @param env         the static context
      * @param construct   integer constant identifying the kind of construct
@@ -29,7 +28,7 @@ public class TraceCodeInjector implements CodeInjector {
      * @return the expression that does the tracing
      */
 
-    public Expression inject(Expression exp, /*@NotNull*/ StaticContext env, int construct, StructuredQName qName) {
+    public Expression inject(Expression exp, /*@NotNull*/ StaticContext env, StructuredQName construct, StructuredQName qName) {
         if (exp instanceof Literal) {
             return exp;
         }

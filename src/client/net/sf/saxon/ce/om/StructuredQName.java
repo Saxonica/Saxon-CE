@@ -1,5 +1,6 @@
 package client.net.sf.saxon.ce.om;
 
+import client.net.sf.saxon.ce.lib.NamespaceConstant;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.value.Whitespace;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
@@ -13,7 +14,7 @@ import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
  * <p><i>Instances of this class are immutable.</i></p>
  */
 
-public class StructuredQName {
+public class StructuredQName implements Comparable<StructuredQName> {
 
     private final static String EMPTY_STRING = "";
 
@@ -223,6 +224,21 @@ public class StructuredQName {
         }
         return h;
     }
+
+    /**
+     * Compare QNames alphabetically. Used to establish document order for attribute nodes
+     */
+
+    public int compareTo(StructuredQName other) {
+        for (int i=0; i<prefixStart; i++) {
+            if (content[i] != other.content[i]) {
+                return (content[i] < other.content[i] ? -1 : +1);
+            }
+        }
+        return 0;
+    }
+
+    public final static StructuredQName XML_ID = new StructuredQName("xml", NamespaceConstant.XML, "id");
 
 }
 

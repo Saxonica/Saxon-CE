@@ -13,6 +13,7 @@ public class XSLTTraceCodeInjector extends TraceCodeInjector {
     /**
      * If tracing, wrap an expression in a trace instruction
      *
+     *
      * @param exp         the expression to be wrapped
      * @param env         the static context
      * @param construct   integer constant identifying the kind of construct
@@ -20,7 +21,7 @@ public class XSLTTraceCodeInjector extends TraceCodeInjector {
      * @return the expression that does the tracing
      */
 
-    public Expression inject(Expression exp, /*@NotNull*/ StaticContext env, int construct, StructuredQName qName) {
+    public Expression inject(Expression exp, /*@NotNull*/ StaticContext env, StructuredQName construct, StructuredQName qName) {
         if (XSLTTraceListener.tagName(construct) != null) {
             return super.inject(exp, env, construct, qName);
         } else {

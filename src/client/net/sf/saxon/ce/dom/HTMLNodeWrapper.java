@@ -1,14 +1,8 @@
 package client.net.sf.saxon.ce.dom;
 
-import java.util.ArrayList;
-
 import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.dom.HTMLDocumentWrapper.DocType;
 import client.net.sf.saxon.ce.event.Receiver;
-import client.net.sf.saxon.ce.expr.Container;
-import client.net.sf.saxon.ce.expr.Expression;
-import client.net.sf.saxon.ce.expr.StaticContext;
-import client.net.sf.saxon.ce.expr.StringLiteral;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
 import client.net.sf.saxon.ce.om.*;
 import client.net.sf.saxon.ce.pattern.AnyNodeTest;
@@ -25,14 +19,14 @@ import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.value.AtomicValue;
 import client.net.sf.saxon.ce.value.StringValue;
 import client.net.sf.saxon.ce.value.UntypedAtomicValue;
-
-import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.core.client.JsArray;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.Node;
 import com.google.gwt.dom.client.NodeList;
 import com.google.gwt.regexp.shared.MatchResult;
 import com.google.gwt.regexp.shared.RegExp;
+
+import java.util.ArrayList;
 //import com.google.gwt.xml.client.Attr;
 
 /**
@@ -46,7 +40,7 @@ import com.google.gwt.regexp.shared.RegExp;
 public class HTMLNodeWrapper implements NodeInfo, VirtualNode, SiblingCountingNode {
 
     protected Node node;
-    private int namecode = -1;
+    private StructuredQName qName;
     protected short nodeKind;
     private HTMLNodeWrapper parent;     // null means unknown
     protected HTMLDocumentWrapper docWrapper;
@@ -164,15 +158,6 @@ public class HTMLNodeWrapper implements NodeInfo, VirtualNode, SiblingCountingNo
     }
 
     /**
-     * Get the name pool for this node
-     * @return the NamePool
-     */
-
-    public NamePool getNamePool() {
-        return docWrapper.getNamePool();
-    }
-
-    /**
     * Return the type of node.
     * @return one of the values Node.ELEMENT, Node.TEXT, Node.ATTRIBUTE, etc.
     */
@@ -219,7 +204,8 @@ public class HTMLNodeWrapper implements NodeInfo, VirtualNode, SiblingCountingNo
         }
         HTMLNodeWrapper ow = (HTMLNodeWrapper)other;
         return getNodeKind()==ow.getNodeKind() &&
-            getNameCode()==ow.getNameCode() &&  // redundant, but gives a quick exit
+            getLocalPart().equals(ow.getLocalPart()) &&  // redundant, but gives a quick exit
+            getURI().equals(ow.getURI()) &&
             getSiblingPosition()==ow.getSiblingPosition() &&
             getParent().isSameNodeInfo(ow.getParent());
     }
@@ -433,10 +419,10 @@ public class HTMLNodeWrapper implements NodeInfo, VirtualNode, SiblingCountingNo
     * @see client.net.sf.saxon.ce.om.NamePool#allocate allocate
 	*/
 
-	public int getNameCode() {
-        if (namecode != -1) {
+	public StructuredQName getNodeName() {
+        if (qName != null) {
             // this is a memo function
-            return namecode;
+            return qName;
         }
         int nodeKind = getNodeKind();
         if (nodeKind == Type.ELEMENT || nodeKind == Type.ATTRIBUTE) {
@@ -444,29 +430,14 @@ public class HTMLNodeWrapper implements NodeInfo, VirtualNode, SiblingCountingNo
             if (prefix==null) {
                 prefix = "";
             }
-            namecode = docWrapper.getNamePool().allocate(prefix, getURI(), getLocalPart());
-            return namecode;
+            qName = new StructuredQName(prefix, getURI(), getLocalPart());
+            return qName;
         } else if (nodeKind == Type.PROCESSING_INSTRUCTION ) {
-            namecode = docWrapper.getNamePool().allocate("", "", getLocalPart());
-            return namecode;
+            qName = new StructuredQName("", "", getLocalPart());
+            return qName;
         } else {
-            return -1;
+            return null;
         }
-	}
-
-	/**
-	* Get fingerprint. The fingerprint is a coded form of the expanded name
-	* of the node: two nodes
-	* with the same name code have the same namespace URI and the same local name.
-	* A fingerprint of -1 should be returned for a node with no name.
-	*/
-
-	public int getFingerprint() {
-        int nc = getNameCode();
-        if (nc == -1) {
-            return -1;
-        }
-	    return nc&0xfffff;
 	}
 
     /**
@@ -709,11 +680,11 @@ public class HTMLNodeWrapper implements NodeInfo, VirtualNode, SiblingCountingNo
                     }
                 case Type.ATTRIBUTE:
                     ix = 0;
-                    int fp = getFingerprint();
+                    StructuredQName fp = getNodeName();
                     AxisIterator iter = parent.iterateAxis(Axis.ATTRIBUTE);
                     while (true) {
                         NodeInfo n = (NodeInfo)iter.next();
-                        if (n==null || n.getFingerprint()==fp) {
+                        if (n==null || n.getNodeName().equals(fp)) {
                             index = ix;
                             return ix;
                         }
@@ -722,11 +693,11 @@ public class HTMLNodeWrapper implements NodeInfo, VirtualNode, SiblingCountingNo
 
                 case Type.NAMESPACE:
                     ix = 0;
-                    fp = getFingerprint();
+                    fp = getNodeName();
                     iter = parent.iterateAxis(Axis.NAMESPACE);
                     while (true) {
                         NodeInfo n = (NodeInfo)iter.next();
-                        if (n==null || n.getFingerprint()==fp) {
+                        if (n==null || n.getNodeName().equals(fp)) {
                             index = ix;
                             return ix;
                         }
@@ -841,7 +812,7 @@ public class HTMLNodeWrapper implements NodeInfo, VirtualNode, SiblingCountingNo
     */
 
     public AxisIterator iterateAxis(byte axisNumber, NodeTest nodeTest) {
-        if (axisNumber == Axis.CHILD && nodeTest.getPrimitiveType() == Type.ELEMENT) {
+        if (axisNumber == Axis.CHILD && nodeTest.getRequiredNodeKind() == Type.ELEMENT) {
             // common case: avoid creating wrappers for the text nodes
             if (hasChildNodes()) {
                 return new Navigator.AxisFilter(
@@ -853,10 +824,10 @@ public class HTMLNodeWrapper implements NodeInfo, VirtualNode, SiblingCountingNo
 
         if (docWrapper.getDocType() != DocType.NONHTML && axisNumber == Axis.ATTRIBUTE && nodeTest instanceof NameTest) {
             if (nodeKind == Type.ELEMENT) {
-            	int fp = nodeTest.getFingerprint();
-                String uri = getNamePool().getURI(fp);
-                String name = getNamePool().getLocalName(fp);
-                String prefix = getNamePool().getPrefix(fp);
+            	StructuredQName fp = nodeTest.getRequiredNodeName();
+                String uri = fp.getNamespaceURI();
+                String name = fp.getLocalName();
+                String prefix = fp.getPrefix();
                 String value;
                 boolean keepUri = false;
                 if (NamespaceConstant.HTML_PROP.equals(uri)) {
@@ -1220,7 +1191,7 @@ public class HTMLNodeWrapper implements NodeInfo, VirtualNode, SiblingCountingNo
     */
 
     public void copy(Receiver out, int copyOptions) throws XPathException {
-        Navigator.copy(this, out, docWrapper.getNamePool(), copyOptions);
+        Navigator.copy(this, out, copyOptions);
     }
 
     /**

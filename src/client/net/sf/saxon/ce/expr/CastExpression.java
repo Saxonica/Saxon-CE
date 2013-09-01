@@ -2,6 +2,7 @@ package client.net.sf.saxon.ce.expr;
 
 import client.net.sf.saxon.ce.functions.StringFn;
 import client.net.sf.saxon.ce.om.*;
+import client.net.sf.saxon.ce.pattern.EmptySequenceTest;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.*;
 import client.net.sf.saxon.ce.value.*;
@@ -17,15 +18,15 @@ import java.util.HashMap;
 
 public final class CastExpression extends UnaryExpression  {
 
-    private AtomicType targetType;
-    private AtomicType targetPrimitiveType;
+    private BuiltInAtomicType targetType;
+    private BuiltInAtomicType targetPrimitiveType;
     private boolean allowEmpty = false;
-    private boolean derived = false;
     private boolean upcast = false;
 
-    static HashMap<Integer, int[]> castingTable = new HashMap(25);
+    static HashMap<BuiltInAtomicType, BuiltInAtomicType[]> castingTable =
+            new HashMap<BuiltInAtomicType, BuiltInAtomicType[]>(25);
 
-    static void addAllowedCasts(int source, int[] target) {
+    static void addAllowedCasts(BuiltInAtomicType source, BuiltInAtomicType[] target) {
         castingTable.put(source, target);
     }
 
@@ -34,69 +35,68 @@ public final class CastExpression extends UnaryExpression  {
      */
 
     static {
-        final int uat = StandardNames.XS_UNTYPED_ATOMIC;
-        final int str = StandardNames.XS_STRING;
-        final int flt = StandardNames.XS_FLOAT;
-        final int dbl = StandardNames.XS_DOUBLE;
-        final int dec = StandardNames.XS_DECIMAL;
-        final int ing = StandardNames.XS_INTEGER;
-        final int dur = StandardNames.XS_DURATION;
-        final int ymd = StandardNames.XS_YEAR_MONTH_DURATION;
-        final int dtd = StandardNames.XS_DAY_TIME_DURATION;
-        final int dtm = StandardNames.XS_DATE_TIME;
-        final int tim = StandardNames.XS_TIME;
-        final int dat = StandardNames.XS_DATE;
-        final int gym = StandardNames.XS_G_YEAR_MONTH;
-        final int gyr = StandardNames.XS_G_YEAR;
-        final int gmd = StandardNames.XS_G_MONTH_DAY;
-        final int gdy = StandardNames.XS_G_DAY;
-        final int gmo = StandardNames.XS_G_MONTH;
-        final int boo = StandardNames.XS_BOOLEAN;
-        final int b64 = StandardNames.XS_BASE64_BINARY;
-        final int hxb = StandardNames.XS_HEX_BINARY;
-        final int uri = StandardNames.XS_ANY_URI;
-        final int qnm = StandardNames.XS_QNAME;
-        //final int not = StandardNames.XS_NOTATION;
+        final BuiltInAtomicType uat = BuiltInAtomicType.UNTYPED_ATOMIC;
+        final BuiltInAtomicType str = BuiltInAtomicType.STRING;
+        final BuiltInAtomicType flt = BuiltInAtomicType.FLOAT;
+        final BuiltInAtomicType dbl = BuiltInAtomicType.DOUBLE;
+        final BuiltInAtomicType dec = BuiltInAtomicType.DECIMAL;
+        final BuiltInAtomicType ing = BuiltInAtomicType.INTEGER;
+        final BuiltInAtomicType dur = BuiltInAtomicType.DURATION;
+        final BuiltInAtomicType ymd = BuiltInAtomicType.YEAR_MONTH_DURATION;
+        final BuiltInAtomicType dtd = BuiltInAtomicType.DAY_TIME_DURATION;
+        final BuiltInAtomicType dtm = BuiltInAtomicType.DATE_TIME;
+        final BuiltInAtomicType tim = BuiltInAtomicType.TIME;
+        final BuiltInAtomicType dat = BuiltInAtomicType.DATE;
+        final BuiltInAtomicType gym = BuiltInAtomicType.G_YEAR_MONTH;
+        final BuiltInAtomicType gyr = BuiltInAtomicType.G_YEAR;
+        final BuiltInAtomicType gmd = BuiltInAtomicType.G_MONTH_DAY;
+        final BuiltInAtomicType gdy = BuiltInAtomicType.G_DAY;
+        final BuiltInAtomicType gmo = BuiltInAtomicType.G_MONTH;
+        final BuiltInAtomicType boo = BuiltInAtomicType.BOOLEAN;
+        final BuiltInAtomicType b64 = BuiltInAtomicType.BASE64_BINARY;
+        final BuiltInAtomicType hxb = BuiltInAtomicType.HEX_BINARY;
+        final BuiltInAtomicType uri = BuiltInAtomicType.ANY_URI;
+        final BuiltInAtomicType qnm = BuiltInAtomicType.QNAME;
 
-        final int[] t01 = {uat, str, flt, dbl, dec, ing, dur, ymd, dtd, dtm, tim, dat,
+        final BuiltInAtomicType[] t01 = {uat, str, flt, dbl, dec, ing, dur, ymd, dtd, dtm, tim, dat,
                           gym, gyr, gmd, gdy, gmo, boo, b64, hxb, uri};
         addAllowedCasts(uat, t01);
-        final int[] t02 = {uat, str, flt, dbl, dec, ing, dur, ymd, dtd, dtm, tim, dat,
+        final BuiltInAtomicType[] t02 = {uat, str, flt, dbl, dec, ing, dur, ymd, dtd, dtm, tim, dat,
                           gym, gyr, gmd, gdy, gmo, boo, b64, hxb, uri, qnm};
         addAllowedCasts(str, t02);
-        final int[] t03 = {uat, str, flt, dbl, dec, ing, boo};
+        final BuiltInAtomicType[] t03 = {uat, str, flt, dbl, dec, ing, boo};
         addAllowedCasts(flt, t03);
         addAllowedCasts(dbl, t03);
         addAllowedCasts(dec, t03);
         addAllowedCasts(ing, t03);
-        final int[] t04 = {uat, str, dur, ymd, dtd};
+        final BuiltInAtomicType[] t04 = {uat, str, dur, ymd, dtd};
         addAllowedCasts(dur, t04);
         addAllowedCasts(ymd, t04);
         addAllowedCasts(dtd, t04);
-        final int[] t05 = {uat, str, dtm, tim, dat, gym, gyr, gmd, gdy, gmo};
+        final BuiltInAtomicType[] t05 = {uat, str, dtm, tim, dat, gym, gyr, gmd, gdy, gmo};
         addAllowedCasts(dtm, t05);
-        final int[] t06 = {uat, str, tim};
+        final BuiltInAtomicType[] t06 = {uat, str, tim};
         addAllowedCasts(tim, t06);
-        final int[] t07 = {uat, str, dtm, dat, gym, gyr, gmd, gdy, gmo};
+        final BuiltInAtomicType[] t07 = {uat, str, dtm, dat, gym, gyr, gmd, gdy, gmo};
         addAllowedCasts(dat, t07);
-        final int[] t08 = {uat, str, gym};
+        final BuiltInAtomicType[] t08 = {uat, str, gym};
         addAllowedCasts(gym, t08);
-        final int[] t09 = {uat, str, gyr};
+        final BuiltInAtomicType[] t09 = {uat, str, gyr};
         addAllowedCasts(gyr, t09);
-        final int[] t10 = {uat, str, gmd};
+        final BuiltInAtomicType[] t10 = {uat, str, gmd};
         addAllowedCasts(gmd, t10);
-        final int[] t11 = {uat, str, gdy};
+        final BuiltInAtomicType[] t11 = {uat, str, gdy};
         addAllowedCasts(gdy, t11);
-        final int[] t12 = {uat, str, gmo};
+        final BuiltInAtomicType[] t12 = {uat, str, gmo};
         addAllowedCasts(gmo, t12);
-        final int[] t13 = {uat, str, flt, dbl, dec, ing, boo};
+        final BuiltInAtomicType[] t13 = {uat, str, flt, dbl, dec, ing, boo};
         addAllowedCasts(boo, t13);
-        final int[] t14 = {uat, str, b64, hxb};
+        final BuiltInAtomicType[] t14 = {uat, str, b64, hxb};
         addAllowedCasts(b64, t14);
         addAllowedCasts(hxb, t14);
-        final int[] t15 = {uat, str, uri};
+        final BuiltInAtomicType[] t15 = {uat, str, uri};
         addAllowedCasts(uri, t15);
-        final int[] t16 = {uat, str, qnm};
+        final BuiltInAtomicType[] t16 = {uat, str, qnm};
         addAllowedCasts(qnm, t16);
     }
 
@@ -108,19 +108,19 @@ public final class CastExpression extends UnaryExpression  {
      * or "M" (casting allowed but may fail for some values)
      */
 
-    public static boolean isPossibleCast(int source, int target) {
-        if (source == StandardNames.XS_ANY_ATOMIC_TYPE || source == Type.EMPTY) {
+    public static boolean isPossibleCast(BuiltInAtomicType source, BuiltInAtomicType target) {
+        if (source == BuiltInAtomicType.ANY_ATOMIC) {
             return true;
         }
-        if (source == StandardNames.XS_NUMERIC) {
-            source = StandardNames.XS_DOUBLE;
+        if (source == BuiltInAtomicType.NUMERIC) {
+            source = BuiltInAtomicType.DOUBLE;
         }
-        int[] targets = castingTable.get(source);
+        BuiltInAtomicType[] targets = castingTable.get(source);
         if (targets == null) {
             return false;
         }
-        for (int i=0; i<targets.length; i++) {
-            if (targets[i] == target) {
+        for (BuiltInAtomicType t : targets) {
+            if (t == target) {
                 return true;
             }
         }
@@ -135,12 +135,11 @@ public final class CastExpression extends UnaryExpression  {
      * an empty sequence as output. If false, an empty sequence is a type error.
      */
 
-    public CastExpression(Expression source, AtomicType target, boolean allowEmpty) {
+    public CastExpression(Expression source, BuiltInAtomicType target, boolean allowEmpty) {
         super(source);
         this.allowEmpty = allowEmpty;
         targetType = target;
-        targetPrimitiveType = (AtomicType)target.getPrimitiveItemType();
-        derived = (targetType.getFingerprint() != targetPrimitiveType.getFingerprint());
+        targetPrimitiveType = (BuiltInAtomicType)target.getPrimitiveItemType();
         adoptChildExpression(source);
     }
 
@@ -149,7 +148,7 @@ public final class CastExpression extends UnaryExpression  {
      * @return the target type
      */
 
-    public AtomicType getTargetType() {
+    public BuiltInAtomicType getTargetType() {
         return targetType;
     }
 
@@ -209,10 +208,12 @@ public final class CastExpression extends UnaryExpression  {
                 }
             }
         }
-        int p = sourceType.getPrimitiveType();
-        if (!isPossibleCast(p, targetType.getPrimitiveType())) {
-            typeError("Casting from " + sourceType + " to " + targetType +
-                    " can never succeed", "XPTY0004", null);
+        if (sourceType != EmptySequenceTest.getInstance()) {
+            BuiltInAtomicType p = sourceType.getAtomizedItemType();
+            if (!isPossibleCast(p, targetType)) {
+                typeError("Casting from " + sourceType + " to " + targetType +
+                        " can never succeed", "XPTY0004", null);
+            }
         }
 
         return this;
@@ -244,7 +245,7 @@ public final class CastExpression extends UnaryExpression  {
         if (targetType == BuiltInAtomicType.UNTYPED_ATOMIC) {
             if (operand instanceof StringFn) {
                 Expression e = ((StringFn)operand).getArguments()[0];
-                if (e.getItemType(th) instanceof AtomicType && e.getCardinality() == StaticProperty.EXACTLY_ONE) {
+                if (e.getItemType(th) instanceof BuiltInAtomicType && e.getCardinality() == StaticProperty.EXACTLY_ONE) {
                     operand = e;
                 }
             }
@@ -253,7 +254,7 @@ public final class CastExpression extends UnaryExpression  {
         if (operand instanceof StringFn) {
             Expression e = ((StringFn)operand).getArguments()[0];
             ItemType et = e.getItemType(th);
-            if (et instanceof AtomicType &&
+            if (et instanceof BuiltInAtomicType &&
                     e.getCardinality() == StaticProperty.EXACTLY_ONE &&
                     th.isSubType(et, targetType)) {
                 return e;
@@ -265,7 +266,7 @@ public final class CastExpression extends UnaryExpression  {
             if (th.isSubType(it, BuiltInAtomicType.STRING) || th.isSubType(it, BuiltInAtomicType.UNTYPED_ATOMIC)) {
                 Expression e = ((CastExpression)operand).getBaseExpression();
                 ItemType et = e.getItemType(th);
-                if (et instanceof AtomicType &&
+                if (et instanceof BuiltInAtomicType &&
                         e.getCardinality() == StaticProperty.EXACTLY_ONE &&
                         th.isSubType(et, targetType)) {
                     return e;
@@ -327,11 +328,7 @@ public final class CastExpression extends UnaryExpression  {
         }
         if (upcast) {
             // When casting to a supertype of the original type, we can bypass validation
-            AtomicValue result = (AtomicValue)value.convert(targetPrimitiveType, false);
-            if (derived) {
-                result = (AtomicValue)result.convert(targetType, false);
-            }
-            return result;
+            return (AtomicValue)value.convert(targetPrimitiveType, false);
         }
         ConversionResult result = value.convert(targetType, true);
         if (result instanceof ValidationFailure) {
@@ -392,7 +389,7 @@ public final class CastExpression extends UnaryExpression  {
      */
 
     public static AtomicValue castStringToQName(
-            CharSequence operand, AtomicType targetType, StaticContext env) throws XPathException {
+            CharSequence operand, BuiltInAtomicType targetType, StaticContext env) throws XPathException {
         try {
             CharSequence arg = Whitespace.trimWhitespace(operand);
             String parts[] = NameChecker.getQNameParts(arg);

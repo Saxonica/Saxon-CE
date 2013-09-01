@@ -4,6 +4,7 @@ import client.net.sf.saxon.ce.event.SequenceReceiver;
 import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.om.NameChecker;
 import client.net.sf.saxon.ce.om.StandardNames;
+import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.pattern.NodeKindTest;
 import client.net.sf.saxon.ce.trans.Err;
 import client.net.sf.saxon.ce.trans.XPathException;
@@ -163,9 +164,9 @@ public class ProcessingInstruction extends SimpleNodeConstructor {
         return data;
     }
 
-    public int evaluateNameCode(XPathContext context) throws XPathException {
+    public StructuredQName evaluateNameCode(XPathContext context) throws XPathException {
         String expandedName = evaluateName(context);
-        return context.getNamePool().allocate("", "", expandedName);
+        return new StructuredQName("", "", expandedName);
     }
 
     /**

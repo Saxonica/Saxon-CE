@@ -1,7 +1,5 @@
 package client.net.sf.saxon.ce.value;
 
-import client.net.sf.saxon.ce.om.StandardNames;
-import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.BuiltInAtomicType;
 import client.net.sf.saxon.ce.type.ConversionResult;
 import client.net.sf.saxon.ce.type.ValidationFailure;
@@ -37,33 +35,6 @@ public final class AnyURIValue extends StringValue {
         typeLabel = BuiltInAtomicType.ANY_URI;
     }
 
-    /**
-     * Constructor for a user-defined subtype of anyURI
-     * @param value the String value. Null is taken as equivalent to "".
-     * @param type  a user-defined subtype of anyURI. It is the caller's responsibility
-     *              to ensure that this is actually a subtype of anyURI, and that the value conforms
-     *              to the definition of this type.
-     */
-
-    public AnyURIValue(CharSequence value, AtomicType type) {
-        this.value = (value == null ? "" : Whitespace.collapseWhitespace(value).toString());
-        typeLabel = type;
-    }
-
-
-    /**
-     * Create a copy of this atomic value, with a different type label
-     * @param typeLabel the type label of the new copy. The caller is responsible for checking that
-     *                  the value actually conforms to this type.
-     */
-
-    public AtomicValue copyAsSubType(AtomicType typeLabel) {
-        AnyURIValue v = new AnyURIValue(value);
-        v.noSurrogates = noSurrogates;
-        v.typeLabel = typeLabel;
-        return v;
-    }
-
     public BuiltInAtomicType getPrimitiveType() {
         return BuiltInAtomicType.ANY_URI;
     }
@@ -75,102 +46,19 @@ public final class AnyURIValue extends StringValue {
      */
 
     public ConversionResult convertPrimitive(BuiltInAtomicType requiredType, boolean validate) {
-        int req = requiredType.getPrimitiveType();
-        switch (req) {
-            case StandardNames.XS_ANY_ATOMIC_TYPE:
-            case StandardNames.XS_ANY_URI:
-                return this;
-            case StandardNames.XS_UNTYPED_ATOMIC:
-                return new UntypedAtomicValue(value);
-            case StandardNames.XS_STRING:
-                return new StringValue(value);
-             default:
-                ValidationFailure err = new ValidationFailure("Cannot convert anyURI to " +
-                        requiredType.getDisplayName());
-                err.setErrorCode("XPTY0004");
-                return err;
-        }
-    }
-
-
-    public static String decode(String s) {
-        // Evaluates all escapes in s, applying UTF-8 decoding if needed.  Assumes
-        // that escapes are well-formed syntactically, i.e., of the form %XX.  If a
-        // sequence of escaped octets is not valid UTF-8 then the erroneous octets
-        // are replaced with '\uFFFD'.
-        // Exception: any "%" found between "[]" is left alone. It is an IPv6 literal
-        //            with a scope_id
-        //
-
-        // TODO:CLAXON implement this
-        return s;
-//        if (s == null) {
-//            return s;
-//        }
-//        int n = s.length();
-//        if (n == 0) {
-//            return s;
-//        }
-//        if (s.indexOf('%') < 0) {
-//            return s;
-//        }
-//
-//        FastStringBuffer sb = new FastStringBuffer(n);
-//
-//        // This is not horribly efficient, but it will do for now
-//        char c = s.charAt(0);
-//        boolean betweenBrackets = false;
-//
-//        for (int i = 0; i < n;) {
-//            assert c == s.charAt(i);    // Loop invariant
-//            if (c == '[') {
-//                betweenBrackets = true;
-//            } else if (betweenBrackets && c == ']') {
-//                betweenBrackets = false;
-//            }
-//            if (c != '%' || betweenBrackets) {
-//                sb.append(c);
-//                if (++i >= n) {
-//                    break;
-//                }
-//                c = s.charAt(i);
-//                continue;
-//            }
-//            bb.clear();
-//            for (; ;) {
-//                assert (n - i >= 2);
-//                bb.put(hex(s.charAt(++i), s.charAt(++i)));
-//                if (++i >= n) {
-//                    break;
-//                }
-//                c = s.charAt(i);
-//                if (c != '%') {
-//                    break;
-//                }
-//            }
-//            bb.flip();
-//            sb.append(utf8.decode(bb));
-//        }
-//
-//        return sb.toString();
-    }
-
-    private static byte hex(char high, char low) {
-        return (byte)((hexToDec(high)<<4) | hexToDec(low));
-    }
-
-    private static int hexToDec(char c) {
-        if (c >= '0' && c <= '9') {
-            return c - '0';
-        } else if (c >= 'a' && c <= 'f') {
-            return c - 'a' + 10;
-        } else if (c >= 'A' && c <= 'F') {
-            return c - 'A' + 10;
+        if (requiredType == BuiltInAtomicType.ANY_ATOMIC || requiredType == BuiltInAtomicType.ANY_URI) {
+            return this;
+        } else if (requiredType == BuiltInAtomicType.UNTYPED_ATOMIC) {
+            return new UntypedAtomicValue(value);
+        } else if (requiredType == BuiltInAtomicType.STRING) {
+            return new StringValue(value);
         } else {
-            return 0;
+            ValidationFailure err = new ValidationFailure("Cannot convert anyURI to " +
+                    requiredType.getDisplayName());
+            err.setErrorCode("XPTY0004");
+            return err;
         }
     }
-
 
 }
 

@@ -4,6 +4,7 @@ import client.net.sf.saxon.ce.event.PipelineConfiguration;
 import client.net.sf.saxon.ce.om.AttributeCollection;
 import client.net.sf.saxon.ce.om.NamespaceBinding;
 import client.net.sf.saxon.ce.om.NodeInfo;
+import client.net.sf.saxon.ce.om.StructuredQName;
 
 
 /**
@@ -17,9 +18,8 @@ public interface NodeFactory {
 
     /**
     * Create an Element node
-    * @param parent The parent element
-     * @param nameCode The element name
-     * @param typeCode
+     * @param parent The parent element
+      * @param nameCode The element name
      * @param attlist The attribute collection, excluding any namespace attributes
      * @param namespaces List of new namespace declarations for this element, as a sequence
 * of namespace codes representing pairs of strings: (prefix1, uri1), (prefix2, uri2)...
@@ -32,8 +32,7 @@ public interface NodeFactory {
 
     public ElementImpl makeElementNode(
             NodeInfo parent,
-            int nameCode,
-            int typeCode,
+            StructuredQName nameCode,
             AttributeCollection attlist,
             NamespaceBinding[] namespaces,
             int namespacesUsed,

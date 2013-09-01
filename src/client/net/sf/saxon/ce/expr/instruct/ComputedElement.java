@@ -12,13 +12,14 @@ import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.BuiltInAtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.TypeHierarchy;
-import client.net.sf.saxon.ce.value.*;
+import client.net.sf.saxon.ce.value.AtomicValue;
+import client.net.sf.saxon.ce.value.SequenceType;
 import client.net.sf.saxon.ce.value.StringValue;
+import client.net.sf.saxon.ce.value.Whitespace;
+import com.google.gwt.logging.client.LogConfiguration;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-
-import com.google.gwt.logging.client.LogConfiguration;
 
 
 /**
@@ -194,12 +195,13 @@ public class ComputedElement extends ElementCreator {
      * Callback from the superclass ElementCreator to get the nameCode
      * for the element name
      *
+     *
      * @param context The evaluation context (not used)
      * @param copiedNode
      * @return the name code for the element name
      */
 
-    public int getNameCode(XPathContext context, NodeInfo copiedNode)
+    public StructuredQName getNameCode(XPathContext context, NodeInfo copiedNode)
             throws XPathException {
 
         Controller controller = context.getController();
@@ -277,8 +279,7 @@ public class ComputedElement extends ElementCreator {
             dynamicError(message, "XTDE0835", context);
         }
 
-        // TODO: cache the generated names locally to reduce NamePool contention
-        return pool.allocate(prefix, uri, localName);
+        return new StructuredQName(prefix, uri, localName);
     }
 
     public String getNewBaseURI(XPathContext context, NodeInfo copiedNode) {
@@ -288,13 +289,14 @@ public class ComputedElement extends ElementCreator {
     /**
      * Callback to output namespace nodes for the new element.
      *
+     *
      * @param context The execution context
      * @param out     the Receiver where the namespace nodes are to be written
      * @param nameCode
      * @param copiedNode
      * @throws XPathException
      */
-    protected void outputNamespaceNodes(XPathContext context, Receiver out, int nameCode, NodeInfo copiedNode)
+    protected void outputNamespaceNodes(XPathContext context, Receiver out, StructuredQName nameCode, NodeInfo copiedNode)
             throws XPathException {
         // no action
     }

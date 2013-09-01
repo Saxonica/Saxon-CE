@@ -16,10 +16,10 @@ import client.net.sf.saxon.ce.om.NamePool;
  * the class NodeTest, are also Patterns as used in XSLT.
  *
  * <p>Saxon assumes that apart from {@link AnyItemType} (which corresponds to <code>item()</item>
- * and matches anything), every ItemType will be either an {@link AtomicType}, or a
+ * and matches anything), every ItemType will be either a {@link BuiltInAtomicType}, or a
  *  {@link client.net.sf.saxon.ce.pattern.NodeTest}. User-defined implementations of ItemType must therefore extend one of those
  * three classes/interfaces.</p>
- * @see AtomicType
+ * @see BuiltInAtomicType
  * @see client.net.sf.saxon.ce.pattern.NodeTest
 */
 
@@ -72,17 +72,6 @@ public interface ItemType  {
     public ItemType getPrimitiveItemType();
 
     /**
-     * Get the primitive type corresponding to this item type. For item(),
-     * this is Type.ITEM. For node(), it is Type.NODE. For specific node kinds,
-     * it is the value representing the node kind, for example Type.ELEMENT.
-     * For anyAtomicValue it is Type.ATOMIC_VALUE. For numeric it is Type.NUMBER.
-     * For other atomic types it is the primitive type as defined in XML Schema,
-     * except that INTEGER is considered to be a primitive type.
-     */
-
-    public int getPrimitiveType();
-
-    /**
      * Produce a representation of this type name for use in error messages.
      * Where this is a QName, it will use conventional prefixes
      * @param pool the name pool
@@ -99,7 +88,7 @@ public interface ItemType  {
      * of this type is atomized
      */
 
-    public AtomicType getAtomizedItemType();
+    public BuiltInAtomicType getAtomizedItemType();
 
 }
 

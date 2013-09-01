@@ -59,8 +59,8 @@ public class XSLElement extends StyleElement {
         String inheritAtt = null;
 
         for (int a = 0; a < atts.getLength(); a++) {
-            int nc = atts.getNameCode(a);
-            String f = getNamePool().getClarkName(nc);
+            StructuredQName qn = atts.getStructuredQName(a);
+            String f = qn.getClarkName();
             if (f.equals(StandardNames.NAME)) {
                 nameAtt = Whitespace.trim(atts.getValue(a));
             } else if (f.equals(StandardNames.NAMESPACE)) {
@@ -74,7 +74,7 @@ public class XSLElement extends StyleElement {
             } else if (f.equals(StandardNames.USE_ATTRIBUTE_SETS)) {
                 use = atts.getValue(a);
             } else {
-                checkUnknownAttribute(nc);
+                checkUnknownAttribute(qn);
             }
         }
 
@@ -160,7 +160,7 @@ public class XSLElement extends StyleElement {
             }
             if (nsuri != null) {
                 // Local name and namespace are both known statically: generate a FixedElement instruction
-                int nameCode = getNamePool().allocate(parts[0], nsuri, parts[1]);
+                StructuredQName nameCode = new StructuredQName(parts[0], nsuri, parts[1]);
                 FixedElement inst = new FixedElement(nameCode, null, inheritNamespaces);
                 inst.setBaseURI(getBaseURI());
                 if (LogConfiguration.loggingIsEnabled() && LogController.traceIsEnabled()) {

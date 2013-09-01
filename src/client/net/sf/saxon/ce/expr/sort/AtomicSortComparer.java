@@ -1,9 +1,9 @@
 package client.net.sf.saxon.ce.expr.sort;
 import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.lib.StringCollator;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.NoDynamicContextException;
+import client.net.sf.saxon.ce.type.BuiltInAtomicType;
 import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.value.*;
 import client.net.sf.saxon.ce.value.StringValue;
@@ -25,7 +25,7 @@ public class AtomicSortComparer implements AtomicComparer {
 
     private StringCollator collator;
     private transient XPathContext context;
-    private int itemType;
+    private BuiltInAtomicType itemType;
 
     /**
      * Factory method to get an atomic comparer suitable for sorting or for grouping (operations in which
@@ -38,35 +38,29 @@ public class AtomicSortComparer implements AtomicComparer {
      * @return a suitable AtomicComparer
      */
 
-    public static AtomicComparer makeSortComparer(StringCollator collator, int itemType, XPathContext context) {
-        switch (itemType) {
-            case StandardNames.XS_STRING:
-            case StandardNames.XS_UNTYPED_ATOMIC:
-            case StandardNames.XS_ANY_URI:
-                if (collator instanceof CodepointCollator) {
-                    return CodepointCollatingComparer.getInstance();
-                } else {
-                    return new CollatingAtomicComparer(collator);
-                }
-            case StandardNames.XS_INTEGER:
-            case StandardNames.XS_DECIMAL:
+    public static AtomicComparer makeSortComparer(StringCollator collator, BuiltInAtomicType itemType, XPathContext context) {
+        if (itemType == BuiltInAtomicType.STRING ||
+                itemType == BuiltInAtomicType.UNTYPED_ATOMIC ||
+                itemType == BuiltInAtomicType.ANY_URI) {
+            if (collator instanceof CodepointCollator) {
+                return CodepointCollatingComparer.getInstance();
+            } else {
+                return new CollatingAtomicComparer(collator);
+            }
+        } else if (itemType == BuiltInAtomicType.INTEGER || itemType == BuiltInAtomicType.DECIMAL) {
                 return DecimalSortComparer.getDecimalSortComparerInstance();
-            case StandardNames.XS_DOUBLE:
-            case StandardNames.XS_FLOAT:
-            case StandardNames.XS_NUMERIC:
+        } else if (itemType == BuiltInAtomicType.DOUBLE || itemType == BuiltInAtomicType.FLOAT || itemType == BuiltInAtomicType.NUMERIC) {
                 return DoubleSortComparer.getInstance();
-            case StandardNames.XS_DATE_TIME:
-            case StandardNames.XS_DATE:
-            case StandardNames.XS_TIME:
+        } else if (itemType == BuiltInAtomicType.DATE_TIME || itemType == BuiltInAtomicType.DATE || itemType == BuiltInAtomicType.TIME) {
                 return new CalendarValueComparer(context);
-            default:
+        } else {
             // use the general-purpose comparer that handles all types
-                return new AtomicSortComparer(collator, itemType, context);
+            return new AtomicSortComparer(collator, itemType, context);
         }
 
     }
 
-    protected AtomicSortComparer(StringCollator collator, int itemType, XPathContext context) {
+    protected AtomicSortComparer(StringCollator collator, BuiltInAtomicType itemType, XPathContext context) {
         this.collator = collator;
         if (collator == null) {
             this.collator = CodepointCollator.getInstance();
@@ -98,15 +92,6 @@ public class AtomicSortComparer implements AtomicComparer {
 
     public StringCollator getStringCollator() {
         return collator;
-    }
-
-    /**
-     * Get the requested item type
-     * @return the item type
-     */
-
-    public int getItemType() {
-        return itemType;
     }
 
     /**
@@ -188,38 +173,6 @@ public class AtomicSortComparer implements AtomicComparer {
 
     public boolean comparesEqual(AtomicValue a, AtomicValue b) throws NoDynamicContextException {
         return compareAtomicValues(a, b) == 0;
-    }
-
-    /**
-    * Get a comparison key for an object. This must satisfy the rule that if two objects are equal,
-    * then their comparison keys are equal, and vice versa. There is no requirement that the
-    * comparison keys should reflect the ordering of the underlying objects.
-    */
-
-    public ComparisonKey getComparisonKey(AtomicValue a) throws NoDynamicContextException {
-        if (a instanceof NumericValue) {
-            if (((NumericValue)a).isNaN()) {
-                // Deal with NaN specially. For this function, NaN is considered equal to itself
-                return new ComparisonKey(StandardNames.XS_NUMERIC, COLLATION_KEY_NaN);
-            } else {
-                return new ComparisonKey(StandardNames.XS_NUMERIC, a);
-            }
-        } else if (a instanceof StringValue) {
-            return new ComparisonKey(StandardNames.XS_STRING, a.getStringValue()); 
-        } else if (a instanceof CalendarValue) {
-            CalendarValue cv = (CalendarValue)a;
-            if (cv.hasTimezone()) {
-                return new ComparisonKey(a.getPrimitiveType().getFingerprint(), a);
-            } else {
-                cv = cv.adjustTimezone(context.getImplicitTimezone());
-                return new ComparisonKey(cv.getPrimitiveType().getFingerprint(), cv);
-            }
-        } else if (a instanceof DurationValue) {
-            // dayTimeDuration and yearMonthDuration are comparable in the special case of the zero duration
-            return new ComparisonKey(StandardNames.XS_DURATION, a);
-        } else {
-            return new ComparisonKey(a.getPrimitiveType().getFingerprint(), a);
-        }
     }
 
     protected static StructuredQName COLLATION_KEY_NaN =

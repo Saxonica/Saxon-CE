@@ -4,6 +4,7 @@ import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.expr.Expression;
 import client.net.sf.saxon.ce.expr.instruct.Procedure;
 import client.net.sf.saxon.ce.expr.instruct.SlotManager;
+import client.net.sf.saxon.ce.lib.NamespaceConstant;
 import client.net.sf.saxon.ce.lib.StringCollator;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.pattern.Pattern;
@@ -176,10 +177,8 @@ public class KeyDefinition extends Procedure {
         return null; 
     }
 
-	@Override
-	public int getConstructType() {
-		// TODO Auto-generated method stub
-		return 0;
+	public StructuredQName getConstructType() {
+		return new StructuredQName("xsl", NamespaceConstant.XSLT, "key");
 	}
 
 	@Override

@@ -156,7 +156,7 @@ public class NodeSetPattern extends Pattern {
 
     public int getNodeKind() {
         if (itemType instanceof NodeTest) {
-            return ((NodeTest)itemType).getPrimitiveType();
+            return ((NodeTest)itemType).getRequiredNodeKind();
         } else {
             return Type.NODE;
         }

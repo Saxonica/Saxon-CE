@@ -8,6 +8,7 @@ import client.net.sf.saxon.ce.expr.sort.SortKeyDefinition;
 import client.net.sf.saxon.ce.om.AttributeCollection;
 import client.net.sf.saxon.ce.om.Axis;
 import client.net.sf.saxon.ce.om.StandardNames;
+import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.value.Cardinality;
@@ -76,12 +77,12 @@ public class XSLForEach extends StyleElement {
 		String selectAtt = null;
 
 		for (int a=0; a<atts.getLength(); a++) {
-			int nc = atts.getNameCode(a);
-			String f = getNamePool().getClarkName(nc);
+			StructuredQName qn = atts.getStructuredQName(a);
+            String f = qn.getClarkName();
 			if (f.equals(StandardNames.SELECT)) {
         		selectAtt = atts.getValue(a);
             } else {
-        		checkUnknownAttribute(nc);
+        		checkUnknownAttribute(qn);
         	}
         }
 

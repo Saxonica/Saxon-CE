@@ -1,8 +1,8 @@
 package client.net.sf.saxon.ce.trace;
 
-import java.util.Iterator;
-
 import client.net.sf.saxon.ce.om.StructuredQName;
+
+import java.util.Iterator;
 
 
 /**
@@ -14,12 +14,11 @@ public interface InstructionInfo {
     // extends SaxonLocator in server-side Saxon
     /**
      * Get the type of construct. This will either be the fingerprint of a standard XSLT instruction name
-     * (values in {@link net.sf.saxon.om.StandardNames}: all less than 1024)
      * or it will be a constant in class {@link Location}.
      * @return an integer identifying the kind of construct
      */
 
-    public int getConstructType();              
+    public StructuredQName getConstructType();
 
     /**
      * Get a name identifying the object of the expression, for example a function name, template name,

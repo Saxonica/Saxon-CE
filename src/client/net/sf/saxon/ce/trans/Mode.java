@@ -14,12 +14,11 @@ import client.net.sf.saxon.ce.style.StylesheetModule;
 import client.net.sf.saxon.ce.tree.util.Navigator;
 import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.value.Whitespace;
+import com.google.gwt.core.client.JavaScriptObject;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
-
-import com.google.gwt.core.client.JavaScriptObject;
 
 /**
  * A Mode is a collection of rules; the selection of a rule to apply to a given element
@@ -50,8 +49,8 @@ public class Mode  {
     private Rule namespaceRuleChain = null;
     private Rule unnamedElementRuleChain = null;
     private Rule unnamedAttributeRuleChain = null;
-    private HashMap<Integer, Rule> namedElementRuleChains = new HashMap<Integer, Rule>(32);
-    private HashMap<Integer, Rule> namedAttributeRuleChains = new HashMap<Integer, Rule>(8);
+    private HashMap<StructuredQName, Rule> namedElementRuleChains = new HashMap<StructuredQName, Rule>(32);
+    private HashMap<StructuredQName, Rule> namedAttributeRuleChains = new HashMap<StructuredQName, Rule>(8);
 
     private Rule mostRecentRule;
     private int mostRecentModuleHash;
@@ -101,16 +100,16 @@ public class Mode  {
             unnamedAttributeRuleChain =
                     omniMode.unnamedAttributeRuleChain==null ? null : new Rule(omniMode.unnamedAttributeRuleChain);
 
-            namedElementRuleChains = new HashMap(omniMode.namedElementRuleChains.size());
-            Iterator<Integer> ii = omniMode.namedElementRuleChains.keySet().iterator();
+            namedElementRuleChains = new HashMap<StructuredQName, Rule>(omniMode.namedElementRuleChains.size());
+            Iterator<StructuredQName> ii = omniMode.namedElementRuleChains.keySet().iterator();
             while (ii.hasNext()) {
-                int fp = ii.next();
+                StructuredQName fp = ii.next();
                 Rule r = omniMode.namedElementRuleChains.get(fp);
                 namedElementRuleChains.put(fp, new Rule(r));
             }
             ii = omniMode.namedAttributeRuleChains.keySet().iterator();
             while (ii.hasNext()) {
-                int fp = ii.next();
+                StructuredQName fp = ii.next();
                 Rule r = omniMode.namedAttributeRuleChains.get(fp);
                 namedAttributeRuleChains.put(fp, new Rule(r));
             }
@@ -236,7 +235,7 @@ public class Mode  {
             } else if (test instanceof NodeKindTest) {
                 newRule.setAlwaysMatches(true);
             } else if (test instanceof NameTest) {
-                int kind = test.getPrimitiveType();
+                int kind = test.getRequiredNodeKind();
                 if (kind == Type.ELEMENT || kind == Type.ATTRIBUTE) {
                     newRule.setAlwaysMatches(true);
                 }
@@ -249,8 +248,8 @@ public class Mode  {
         int kind = pattern.getNodeKind();
         switch (kind) {
             case Type.ELEMENT: {
-                int fp = pattern.getFingerprint();
-                if (fp == -1) {
+                StructuredQName fp = pattern.getNodeTest().getRequiredNodeName();
+                if (fp == null) {
                     unnamedElementRuleChain = addRuleToList(newRule, unnamedElementRuleChain);
                 } else {
                     Rule chain = namedElementRuleChains.get(fp);
@@ -259,8 +258,8 @@ public class Mode  {
                 break;
             }
             case Type.ATTRIBUTE: {
-                int fp = pattern.getFingerprint();
-                if (fp == -1) {
+                StructuredQName fp = pattern.getNodeTest().getRequiredNodeName();
+                if (fp == null) {
                     unnamedAttributeRuleChain = addRuleToList(newRule, unnamedAttributeRuleChain);
                 } else {
                     Rule chain = namedAttributeRuleChains.get(fp);
@@ -411,7 +410,7 @@ public class Mode  {
 
             case Type.ELEMENT: {
                 unnamedNodeChain = unnamedElementRuleChain;
-                Rule namedNodeChain = namedElementRuleChains.get(node.getFingerprint());
+                Rule namedNodeChain = namedElementRuleChains.get(node.getNodeName());
                 if (namedNodeChain != null) {
                     bestRule = searchRuleChain(node, context, null, namedNodeChain);
                 }
@@ -419,7 +418,7 @@ public class Mode  {
             }
             case Type.ATTRIBUTE: {
                 unnamedNodeChain = unnamedAttributeRuleChain;
-                Rule namedNodeChain = namedAttributeRuleChains.get(node.getFingerprint());
+                Rule namedNodeChain = namedAttributeRuleChains.get(node.getNodeName());
                 if (namedNodeChain != null) {
                     bestRule = searchRuleChain(node, context, null, namedNodeChain);
                 }
@@ -532,13 +531,13 @@ public class Mode  {
                 break;
             case Type.ELEMENT: {
                 unnamedNodeChain = unnamedElementRuleChain;
-                Rule namedNodeChain = namedElementRuleChains.get(node.getFingerprint());
+                Rule namedNodeChain = namedElementRuleChains.get(node.getNodeName());
                 bestRule = searchRuleChain(node, context, null, namedNodeChain, filter);
                 break;
             }
             case Type.ATTRIBUTE: {
                 unnamedNodeChain = unnamedAttributeRuleChain;
-                Rule namedNodeChain = namedAttributeRuleChains.get(node.getFingerprint());
+                Rule namedNodeChain = namedAttributeRuleChains.get(node.getNodeName());
                 bestRule = searchRuleChain(node, context, null, namedNodeChain, filter);
                 break;
             }
@@ -719,7 +718,7 @@ public class Mode  {
     public void processRules(RuleAction action) throws XPathException {
         processRuleChain(documentRuleChain, action);
         processRuleChain(unnamedElementRuleChain, action);
-        Iterator<Integer> ii = namedElementRuleChains.keySet().iterator();
+        Iterator<StructuredQName> ii = namedElementRuleChains.keySet().iterator();
         while (ii.hasNext()) {
             Rule r = namedElementRuleChains.get(ii.next());
             processRuleChain(r, action);

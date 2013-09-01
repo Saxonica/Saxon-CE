@@ -1,5 +1,4 @@
 package client.net.sf.saxon.ce.pattern;
-import client.net.sf.saxon.ce.om.NamePool;
 import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.om.StructuredQName;
 
@@ -13,26 +12,24 @@ import client.net.sf.saxon.ce.om.StructuredQName;
 
 public final class LocalNameTest extends NodeTest {
 
-	private NamePool namePool;
 	private int nodeKind;
 	private String localName;
 
-	public LocalNameTest(NamePool pool, int nodeKind, String localName) {
-	    namePool = pool;
+	public LocalNameTest(int nodeKind, String localName) {
 		this.nodeKind = nodeKind;
 		this.localName = localName;
 	}
 
     /**
     * Test whether this node test is satisfied by a given node
-    * @param nodeType The type of node to be matched
-     * @param fingerprint identifies the expanded name of the node to be matched
+     * @param nodeType The type of node to be matched
+      * @param fingerprint identifies the expanded name of the node to be matched
      */
 
-    public boolean matches(int nodeType, int fingerprint, int annotation) {
-        if (fingerprint == -1) return false;
+    public boolean matches(int nodeType, StructuredQName fingerprint, int annotation) {
+        if (fingerprint == null) return false;
         if (nodeType != nodeKind) return false;
-        return localName.equals(namePool.getLocalName(fingerprint));
+        return localName.equals(fingerprint.getLocalName());
     }
 
     /**
@@ -78,7 +75,7 @@ public final class LocalNameTest extends NodeTest {
     * @return the type of node matched by this pattern. e.g. Type.ELEMENT or Type.TEXT
     */
 
-    public int getPrimitiveType() {
+    public int getRequiredNodeKind() {
         return nodeKind;
     }
 
@@ -108,7 +105,6 @@ public final class LocalNameTest extends NodeTest {
      */
     public boolean equals(Object other) {
         return other instanceof LocalNameTest &&
-                ((LocalNameTest)other).namePool == namePool &&
                 ((LocalNameTest)other).nodeKind == nodeKind &&
                 ((LocalNameTest)other).localName.equals(localName);
     }           

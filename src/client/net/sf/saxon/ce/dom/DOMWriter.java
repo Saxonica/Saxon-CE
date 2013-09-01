@@ -3,8 +3,8 @@ package client.net.sf.saxon.ce.dom;
 import client.net.sf.saxon.ce.event.PipelineConfiguration;
 import client.net.sf.saxon.ce.event.Receiver;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
-import client.net.sf.saxon.ce.om.NamePool;
 import client.net.sf.saxon.ce.om.NamespaceBinding;
+import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.value.Whitespace;
 import com.google.gwt.xml.client.*;
@@ -17,7 +17,6 @@ import com.google.gwt.xml.client.*;
 public class DOMWriter implements Receiver {
 
     private PipelineConfiguration pipe;
-    private NamePool namePool;
     private Node currentNode;
     private Document document;
     private Node nextSibling;
@@ -31,7 +30,6 @@ public class DOMWriter implements Receiver {
 
     public void setPipelineConfiguration(PipelineConfiguration pipe) {
         this.pipe = pipe;
-        namePool = pipe.getConfiguration().getNamePool();
     }
 
     /**
@@ -88,10 +86,10 @@ public class DOMWriter implements Receiver {
     * Start of an element.
     */
 
-    public void startElement(int nameCode, int properties) throws XPathException {
-        String qname = namePool.getDisplayName(nameCode);
-        String prefix = namePool.getPrefix(nameCode);
-        String uri = namePool.getURI(nameCode);
+    public void startElement(StructuredQName nameCode, int properties) throws XPathException {
+        String qname = nameCode.getDisplayName();
+        String prefix = nameCode.getPrefix();
+        String uri = nameCode.getNamespaceURI();
         try {
             Element element = document.createElement(qname);
             addNamespace(element, prefix, uri);
@@ -125,15 +123,15 @@ public class DOMWriter implements Receiver {
 //        }
     }
 
-    public void attribute(int nameCode, CharSequence value)
+    public void attribute(StructuredQName nameCode, CharSequence value)
     throws XPathException {
-        String qname = namePool.getDisplayName(nameCode);
+        String qname = nameCode.getDisplayName();
         try {
     		Element element = (Element)currentNode;
             element.setAttribute(qname, value.toString());
             if (qname.indexOf(':') >= 0) {
-                String prefix = namePool.getPrefix(nameCode);
-                String uri = namePool.getURI(nameCode);
+                String prefix = nameCode.getPrefix();
+                String uri = nameCode.getNamespaceURI();
                 addNamespace(element, prefix, uri);
             }
         } catch (DOMException err) {

@@ -3,11 +3,13 @@ package client.net.sf.saxon.ce.expr.sort;
 import client.net.sf.saxon.ce.expr.Expression;
 import client.net.sf.saxon.ce.expr.LastPositionFinder;
 import client.net.sf.saxon.ce.expr.XPathContext;
+import client.net.sf.saxon.ce.functions.DistinctValues;
 import client.net.sf.saxon.ce.lib.StringCollator;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.ListIterator;
+import client.net.sf.saxon.ce.type.BuiltInAtomicType;
 import client.net.sf.saxon.ce.value.AtomicValue;
 
 import java.util.ArrayList;
@@ -62,7 +64,7 @@ public class GroupByIterator implements GroupIterator, LastPositionFinder {
      * @param keyExpression the expression used to calculate the grouping key
      * @param keyContext dynamic context for calculating the grouping key
      * @param collator Collation to be used for comparing grouping keys
-     * @throws XPathException
+     * @throws XPathException on dynamic error
      */
 
     public GroupByIterator(SequenceIterator population, Expression keyExpression,
@@ -72,7 +74,7 @@ public class GroupByIterator implements GroupIterator, LastPositionFinder {
         this.keyExpression = keyExpression;
         this.keyContext = keyContext;
         this.collator = collator;
-        int type = keyExpression.getItemType(keyContext.getConfiguration().getTypeHierarchy()).getPrimitiveType();
+        BuiltInAtomicType type = (BuiltInAtomicType)keyExpression.getItemType(keyContext.getConfiguration().getTypeHierarchy());
         this.comparer = AtomicSortComparer.makeSortComparer(collator, type, keyContext);
         buildIndexedGroups();
     }
@@ -81,10 +83,11 @@ public class GroupByIterator implements GroupIterator, LastPositionFinder {
       * Build the grouping table forming groups of items with equal keys.
       * This form of grouping allows a member of the population to be present in zero
       * or more groups, one for each value of the grouping key.
+     * @throws XPathException on dynamic error
      */
 
     private void buildIndexedGroups() throws XPathException {
-        HashMap index = new HashMap(40);
+        HashMap<Object, List<Item>> index = new HashMap<Object, List<Item>>(40);
         XPathContext c2 = keyContext.newMinorContext();
         c2.setCurrentIterator(population);
         while (true) {
@@ -101,10 +104,10 @@ public class GroupByIterator implements GroupIterator, LastPositionFinder {
      * @param index the index of items
      * @param item the item from the population to be processed
      * @param c2 the XPath evaluation context
-     * @throws XPathException
+     * @throws XPathException on dynamic error
      */
 
-    protected void processItem(HashMap<ComparisonKey, List<Item>> index,
+    protected void processItem(HashMap<Object, List<Item>> index,
                                Item item, XPathContext c2) throws XPathException {
         SequenceIterator keys = keyExpression.iterate(c2);
         boolean firstKey = true;
@@ -113,7 +116,12 @@ public class GroupByIterator implements GroupIterator, LastPositionFinder {
             if (key==null) {
                 break;
             }
-            ComparisonKey comparisonKey = comparer.getComparisonKey(key);
+            Object comparisonKey;
+            if (key.isNaN()) {
+                comparisonKey = DistinctValues.class;
+            } else {
+                comparisonKey = key.getXPathComparable(false, collator, keyContext);
+            }
             List<Item> g = index.get(comparisonKey);
             if (g == null) {
                 List<Item> newGroup = new ArrayList<Item>(20);

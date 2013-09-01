@@ -32,15 +32,11 @@ public class JSObjectType implements ItemType {
         return AnyItemType.getInstance();
     }
 
-    public int getPrimitiveType() {
-        return Type.ITEM;
-    }
-
     public String toString(NamePool pool) {
         return "JavaScriptObject";
     }
 
-    public AtomicType getAtomizedItemType() {
+    public BuiltInAtomicType getAtomizedItemType() {
         return null;
     }
 }

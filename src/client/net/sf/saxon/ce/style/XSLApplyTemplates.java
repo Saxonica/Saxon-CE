@@ -53,15 +53,15 @@ public class XSLApplyTemplates extends StyleElement {
 		selectAtt = null;
 
 		for (int a=0; a<atts.getLength(); a++) {
-			int nc = atts.getNameCode(a);
-			String f = getNamePool().getClarkName(nc);
+			StructuredQName qn = atts.getStructuredQName(a);
+            String f = qn.getClarkName();
 			if (f.equals(StandardNames.MODE)) {
         		modeAttribute = Whitespace.trim(atts.getValue(a));
         	} else if (f.equals(StandardNames.SELECT)) {
         		selectAtt = atts.getValue(a);
                 defaultedSelectExpression = false;
             } else {
-        		checkUnknownAttribute(nc);
+        		checkUnknownAttribute(qn);
         	}
         }
 

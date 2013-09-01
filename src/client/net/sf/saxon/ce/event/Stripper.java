@@ -1,8 +1,8 @@
 package client.net.sf.saxon.ce.event;
 
 import client.net.sf.saxon.ce.expr.instruct.Template;
-import client.net.sf.saxon.ce.om.NamePool;
-import client.net.sf.saxon.ce.om.StandardNames;
+import client.net.sf.saxon.ce.lib.NamespaceConstant;
+import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.value.Whitespace;
 
@@ -50,7 +50,7 @@ public abstract class Stripper extends ProxyReceiver {
      * reported as errors
     */
 
-    public abstract byte isSpacePreserving(int fingerprint) throws XPathException;
+    public abstract byte isSpacePreserving(StructuredQName fingerprint) throws XPathException;
 
     public static final byte ALWAYS_PRESERVE = 0x01;    // whitespace always preserved (e.g. xsl:text)
     public static final byte ALWAYS_STRIP = 0x02;       // whitespace always stripped (e.g. xsl:choose)
@@ -70,7 +70,7 @@ public abstract class Stripper extends ProxyReceiver {
         super.open();
     }
 
-    public void startElement(int nameCode, int properties) throws XPathException
+    public void startElement(StructuredQName nameCode, int properties) throws XPathException
     {
     	// System.err.println("startElement " + nameCode);
         nextReceiver.startElement(nameCode, properties);
@@ -78,7 +78,7 @@ public abstract class Stripper extends ProxyReceiver {
         byte preserveParent = stripStack[top];
         byte preserve = (byte)(preserveParent & PRESERVE_PARENT);
 
-        byte elementStrip = isSpacePreserving(nameCode & NamePool.FP_MASK);
+        byte elementStrip = isSpacePreserving(nameCode);
         if (elementStrip == ALWAYS_PRESERVE) {
             preserve |= ALWAYS_PRESERVE;
         } else if (elementStrip == ALWAYS_STRIP) {
@@ -96,12 +96,12 @@ public abstract class Stripper extends ProxyReceiver {
         stripStack[top] = preserve;
     }
 
-    public void attribute(int nameCode, CharSequence value)
+    public void attribute(StructuredQName nameCode, CharSequence value)
     throws XPathException {
 
         // test for xml:space="preserve" | "default"
 
-        if ((nameCode & 0xfffff) == StandardNames.XML_SPACE) {
+        if (nameCode.equals(XML_SPACE)) {
             if (value.toString().equals("preserve")) {
                 stripStack[top] |= PRESERVE_PARENT;
             } else {
@@ -110,6 +110,8 @@ public abstract class Stripper extends ProxyReceiver {
         }
         nextReceiver.attribute(nameCode, value);
     }
+
+    private final static StructuredQName XML_SPACE = new StructuredQName("xml", NamespaceConstant.XML, "space");
 
     /**
     * Handle an end-of-element event

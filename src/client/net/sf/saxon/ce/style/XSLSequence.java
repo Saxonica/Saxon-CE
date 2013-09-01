@@ -69,12 +69,12 @@ public final class XSLSequence extends StyleElement {
 		AttributeCollection atts = getAttributeList();
 
 		for (int a=0; a<atts.getLength(); a++) {
-			int nc = atts.getNameCode(a);
-			String f = getNamePool().getClarkName(nc);
+			StructuredQName qn = atts.getStructuredQName(a);
+            String f = qn.getClarkName();
 			if (f.equals(StandardNames.SELECT)) {
         		selectAtt = atts.getValue(a);
         	} else {
-        		checkUnknownAttribute(nc);
+        		checkUnknownAttribute(qn);
         	}
         }
 

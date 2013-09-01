@@ -34,14 +34,14 @@ public class XSLNamespaceAlias extends StyleElement {
 		AttributeCollection atts = getAttributeList();
 
 		for (int a=0; a<atts.getLength(); a++) {
-			int nc = atts.getNameCode(a);
-			String f = getNamePool().getClarkName(nc);
+			StructuredQName qn = atts.getStructuredQName(a);
+            String f = qn.getClarkName();
 			if (f.equals(StandardNames.STYLESHEET_PREFIX)) {
         		stylesheetPrefix = Whitespace.trim(atts.getValue(a));
         	} else if (f.equals(StandardNames.RESULT_PREFIX)) {
         		resultPrefix = Whitespace.trim(atts.getValue(a));
         	} else {
-        		checkUnknownAttribute(nc);
+        		checkUnknownAttribute(qn);
         	}
         }
         if (stylesheetPrefix==null) {

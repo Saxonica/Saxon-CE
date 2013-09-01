@@ -4,10 +4,7 @@ import client.net.sf.saxon.ce.expr.Expression;
 import client.net.sf.saxon.ce.expr.ExpressionVisitor;
 import client.net.sf.saxon.ce.expr.instruct.AnalyzeString;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
-import client.net.sf.saxon.ce.om.AttributeCollection;
-import client.net.sf.saxon.ce.om.Axis;
-import client.net.sf.saxon.ce.om.NodeInfo;
-import client.net.sf.saxon.ce.om.StandardNames;
+import client.net.sf.saxon.ce.om.*;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.AxisIterator;
 import client.net.sf.saxon.ce.type.ItemType;
@@ -60,8 +57,8 @@ public class XSLAnalyzeString extends StyleElement {
 		AttributeCollection atts = getAttributeList();
 
 		for (int a=0; a<atts.getLength(); a++) {
-			int nc = atts.getNameCode(a);
-			String f = getNamePool().getClarkName(nc);
+			StructuredQName qn = atts.getStructuredQName(a);
+            String f = qn.getClarkName();
 			if (f.equals(StandardNames.REGEX)) {
         		regexAtt = atts.getValue(a);
 			} else if (f.equals(StandardNames.SELECT)) {
@@ -69,7 +66,7 @@ public class XSLAnalyzeString extends StyleElement {
 			} else if (f.equals(StandardNames.FLAGS)) {
         		flagsAtt = atts.getValue(a); // not trimmed, see bugzilla 4315
         	} else {
-        		checkUnknownAttribute(nc);
+        		checkUnknownAttribute(qn);
         	}
         }
 

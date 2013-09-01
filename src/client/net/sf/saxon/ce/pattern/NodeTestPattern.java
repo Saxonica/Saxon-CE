@@ -59,18 +59,7 @@ public class NodeTestPattern extends Pattern {
      */
 
     public int getNodeKind() {
-        return nodeTest.getPrimitiveType();
-    }
-
-    /**
-     * Determine the name fingerprint of nodes to which this pattern applies. Used for
-     * optimisation.
-     *
-     * @return A fingerprint that the nodes must match, or -1 if it can match multiple fingerprints
-     */
-
-    public int getFingerprint() {
-        return nodeTest.getFingerprint();   
+        return nodeTest.getRequiredNodeKind();
     }
 
     /**

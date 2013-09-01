@@ -13,7 +13,7 @@ import client.net.sf.saxon.ce.value.BooleanValue;
 
 public final class CastableExpression extends UnaryExpression {
 
-    AtomicType targetType;
+    BuiltInAtomicType targetType;
     boolean allowEmpty;
 
     /**
@@ -24,7 +24,7 @@ public final class CastableExpression extends UnaryExpression {
      * was written as "source castable as target?"
      */
 
-    public CastableExpression(Expression source, AtomicType target, boolean allowEmpty) {
+    public CastableExpression(Expression source, BuiltInAtomicType target, boolean allowEmpty) {
         super(source);
         targetType = target;
         this.allowEmpty = allowEmpty;
@@ -77,9 +77,7 @@ public final class CastableExpression extends UnaryExpression {
 //        }
 
         final TypeHierarchy th = visitor.getConfiguration().getTypeHierarchy();
-        if (!CastExpression.isPossibleCast(
-                operand.getItemType(th).getAtomizedItemType().getPrimitiveType(),
-                targetType.getPrimitiveType())) {
+        if (!CastExpression.isPossibleCast(operand.getItemType(th).getAtomizedItemType(), targetType)) {
             return Literal.makeLiteral(BooleanValue.FALSE);
         }
 

@@ -19,7 +19,7 @@ import java.util.HashMap;
 * This class represents a temporary tree whose root document node owns a single text node. <BR>
 */
 
-public final class TextFragmentValue implements DocumentInfo, FingerprintedNode {
+public final class TextFragmentValue implements DocumentInfo {
 
     private CharSequence text;
     private String baseURI;
@@ -59,15 +59,7 @@ public final class TextFragmentValue implements DocumentInfo, FingerprintedNode 
         return config;
     }
 
-	/**
-	* Get the name pool used for the names in this document
-	*/
-
-	public NamePool getNamePool() {
-		return config.getNamePool();
-	}
-
-	/**
+    /**
 	* Get the unique document number
 	*/
 
@@ -165,21 +157,14 @@ public final class TextFragmentValue implements DocumentInfo, FingerprintedNode 
         return -1;
     }
 
-	/**
-	* Get the name code of the node, used for displaying names
-	*/
-
-	public int getNameCode() {
-	    return -1;
-	}
-
-	/**
-	* Get the fingerprint of the node, used for matching names
-	*/
-
-	public int getFingerprint() {
-	    return -1;
-	}
+    /**
+     * Get the name of the node
+     *
+     * @return the name of the node, as a StructuredQName. Return null for an unnamed node.
+     */
+    public StructuredQName getNodeName() {
+        return null;
+    }
 
     /**
     * Get the prefix part of the name of this node. This is the name before the ":" if any.
@@ -438,7 +423,7 @@ public final class TextFragmentValue implements DocumentInfo, FingerprintedNode 
     * Inner class representing the text node; this is created on demand
     */
 
-    private class TextFragmentTextNode implements NodeInfo, FingerprintedNode {
+    private class TextFragmentTextNode implements NodeInfo {
 
         /**
         * Set the system ID for the entity containing the node.
@@ -455,12 +440,12 @@ public final class TextFragmentValue implements DocumentInfo, FingerprintedNode 
         }
 
         /**
-         * Get the name pool for this node
-         * @return the NamePool
+         * Get the name of the node
+         *
+         * @return the name of the node, as a StructuredQName. Return null for an unnamed node.
          */
-
-        public NamePool getNamePool() {
-            return config.getNamePool();
+        public StructuredQName getNodeName() {
+            return null;
         }
 
         /**
@@ -539,23 +524,6 @@ public final class TextFragmentValue implements DocumentInfo, FingerprintedNode 
             if (this==other) return 0;
             return +1;
         }
-
-    	/**
-    	* Get the name code of the node, used for displaying names
-    	*/
-
-    	public int getNameCode() {
-    	    return -1;
-    	}
-
-    	/**
-    	* Get the fingerprint of the node, used for matching names
-    	*/
-
-    	public int getFingerprint() {
-    	    return -1;
-    	}
-
 
         /**
         * Get the prefix part of the name of this node. This is the name before the ":" if any.

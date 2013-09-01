@@ -52,11 +52,11 @@ public final class AnyNodeTest extends NodeTest {
 
     /**
     * Test whether this node test is satisfied by a given node
-    * @param nodeType The type of node to be matched
-     * @param fingerprint identifies the expanded name of the node to be matched
+     * @param nodeType The type of node to be matched
+      * @param fingerprint identifies the expanded name of the node to be matched
      */
 
-    public final boolean matches(int nodeType, int fingerprint, int annotation) {
+    public final boolean matches(int nodeType, StructuredQName fingerprint, int annotation) {
         return nodeType != Type.PARENT_POINTER;
     }
 

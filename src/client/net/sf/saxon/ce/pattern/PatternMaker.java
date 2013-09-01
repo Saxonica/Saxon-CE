@@ -54,7 +54,7 @@ public class PatternMaker {
             if (test instanceof AnyNodeTest && (axis == Axis.CHILD || axis == Axis.DESCENDANT)) {
                 test = AnyChildNodeTest.getInstance();
             }
-            int kind = test.getPrimitiveType();
+            int kind = test.getRequiredNodeKind();
             if (axis == Axis.SELF && kind == Type.DOCUMENT) {
                 result = new NodeTestPattern(test);
             } else if (axis == Axis.ATTRIBUTE) {

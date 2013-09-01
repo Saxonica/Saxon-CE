@@ -2,11 +2,13 @@ package client.net.sf.saxon.ce.expr.sort;
 
 import client.net.sf.saxon.ce.expr.Expression;
 import client.net.sf.saxon.ce.expr.XPathContext;
+import client.net.sf.saxon.ce.functions.DistinctValues;
 import client.net.sf.saxon.ce.lib.StringCollator;
 import client.net.sf.saxon.ce.om.Item;
-import client.net.sf.saxon.ce.tree.iter.ListIterator;
 import client.net.sf.saxon.ce.om.SequenceIterator;
+import client.net.sf.saxon.ce.trans.NoDynamicContextException;
 import client.net.sf.saxon.ce.trans.XPathException;
+import client.net.sf.saxon.ce.tree.iter.ListIterator;
 import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.value.AtomicValue;
 
@@ -27,12 +29,12 @@ public class GroupAdjacentIterator implements GroupIterator {
     private SequenceIterator population;
     private Expression keyExpression;
     private StringCollator collator;
-    private AtomicComparer comparer;
-    private ComparisonKey currentComparisonKey;
+    //private AtomicComparer comparer;
+    private Object currentComparisonKey;
     private XPathContext baseContext;
     private XPathContext runningContext;
     private AtomicValue currentKey = null;
-    private List currentMembers;
+    private List<Item> currentMembers;
     private AtomicValue nextKey = null;
     private Item next;
     private Item current = null;
@@ -47,8 +49,6 @@ public class GroupAdjacentIterator implements GroupIterator {
         this.runningContext = baseContext.newMinorContext();
         runningContext.setCurrentIterator(population);
         this.collator = collator;
-        int type = keyExpression.getItemType(baseContext.getConfiguration().getTypeHierarchy()).getPrimitiveType();
-        this.comparer = AtomicSortComparer.makeSortComparer(collator, type, baseContext);
         next = population.next();
         if (next != null) {
             nextKey = (AtomicValue)keyExpression.evaluateItem(runningContext);
@@ -66,7 +66,8 @@ public class GroupAdjacentIterator implements GroupIterator {
             AtomicValue candidateKey =
                     (AtomicValue)keyExpression.evaluateItem(runningContext);
             try {
-                if (currentComparisonKey.equals(comparer.getComparisonKey(candidateKey))) {
+                Object compKey = comparisonKey(candidateKey);
+                if (currentComparisonKey.equals(compKey)) {
                     currentMembers.add(nextCandidate);
                 } else {
                     next = nextCandidate;
@@ -87,6 +88,14 @@ public class GroupAdjacentIterator implements GroupIterator {
         nextKey = null;
     }
 
+    private Object comparisonKey(AtomicValue candidateKey) throws NoDynamicContextException {
+        if (candidateKey.isNaN()) {
+            return DistinctValues.class;
+        } else {
+            return candidateKey.getXPathComparable(false, collator, baseContext);
+        }
+    }
+
     public AtomicValue getCurrentGroupingKey() {
         return currentKey;
     }
@@ -103,7 +112,7 @@ public class GroupAdjacentIterator implements GroupIterator {
         }
         current = next;
         currentKey = nextKey;
-        currentComparisonKey = comparer.getComparisonKey(currentKey);
+        currentComparisonKey = comparisonKey(currentKey);
         position++;
         advance();
         return current;

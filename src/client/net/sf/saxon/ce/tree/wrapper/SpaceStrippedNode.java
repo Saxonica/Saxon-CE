@@ -12,8 +12,10 @@ import client.net.sf.saxon.ce.tree.iter.EmptyIterator;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
 import client.net.sf.saxon.ce.tree.util.Navigator;
 import client.net.sf.saxon.ce.type.Type;
-import client.net.sf.saxon.ce.value.*;
-import client.net.sf.saxon.ce.value.StringValue;
+import client.net.sf.saxon.ce.value.AtomicValue;
+import client.net.sf.saxon.ce.value.UntypedAtomicValue;
+import client.net.sf.saxon.ce.value.Value;
+import client.net.sf.saxon.ce.value.Whitespace;
 
 
 /**
@@ -85,23 +87,7 @@ public class SpaceStrippedNode extends AbstractVirtualNode implements WrappingFu
      */
 
     public AtomicValue getTypedValue() {
-        // We rely on the fact that for all simple types other than string, whitespace is collapsed,
-        // so the atomized value of the stripped node is the same as the atomized value of its underlying
-        // node. Only when the simple type is string do we need to strip unwanted whitespace text nodes
-        AtomicValue baseVal = node.getTypedValue();
-        if (baseVal instanceof StringValue) {
-            int primitiveType = baseVal.getTypeLabel().getPrimitiveType();
-            switch (primitiveType) {
-                case StandardNames.XS_STRING:
-                    return new StringValue(getStringValueCS());
-                case StandardNames.XS_ANY_URI:
-                    return new AnyURIValue(getStringValueCS());
-                default:
-                    return new UntypedAtomicValue(getStringValueCS());
-            }
-        } else {
-            return baseVal;
-        }
+        return new UntypedAtomicValue(getStringValueCS());
     }
 
     /**
@@ -301,7 +287,8 @@ public class SpaceStrippedNode extends AbstractVirtualNode implements WrappingFu
             }
 
             try {
-                byte preserve = ((SpaceStrippedDocument)docWrapper).getStripper().isSpacePreserving(actualParent.getFingerprint());
+                StructuredQName parentName = new StructuredQName("", actualParent.getURI(), actualParent.getLocalPart());
+                byte preserve = ((SpaceStrippedDocument)docWrapper).getStripper().isSpacePreserving(parentName);
                 return preserve == Stripper.ALWAYS_PRESERVE;
             } catch (XPathException e) {
                 // Ambiguity between strip-space and preserve-space. Because we're in an axis iterator,
@@ -361,8 +348,7 @@ public class SpaceStrippedNode extends AbstractVirtualNode implements WrappingFu
          * Get properties of this iterator, as a bit-significant integer.
          *
          * @return the properties of this iterator. This will be some combination of
-         *         properties such as {@link #GROUNDED}, {@link #LAST_POSITION_FINDER},
-         *         and {@link #LOOKAHEAD}. It is always
+         *         properties such as {@link #GROUNDED}, {@link #LAST_POSITION_FINDER}. It is always
          *         acceptable to return the value zero, indicating that there are no known special properties.
          *         It is acceptable for the properties of the iterator to change depending on its state.
          */

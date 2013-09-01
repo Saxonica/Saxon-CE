@@ -16,20 +16,13 @@ import client.net.sf.saxon.ce.value.StringValue;
 class ProcInstImpl extends NodeImpl {
 
     String content;
-    int nameCode;
+    String localName;
 
-    public ProcInstImpl(int nameCode, String content) {
-        this.nameCode = nameCode;
+    public ProcInstImpl(String localName, String content) {
+        this.localName = localName;
         this.content = content;
     }
 
-	/**
-	* Get the nameCode of the node. This is used to locate the name in the NamePool
-	*/
-
-	public int getNameCode() {
-		return nameCode;
-	}
 
     public String getStringValue() {
         return content;

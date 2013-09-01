@@ -298,7 +298,7 @@ public class UserFunction extends Procedure {
         return call(actualArgs, controller.newXPathContext());
     }
     
-    public int getConstructType() {
+    public StructuredQName getConstructType() {
         return Location.FUNCTION;
     }
 

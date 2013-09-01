@@ -1,10 +1,11 @@
 package client.net.sf.saxon.ce.value;
 import client.net.sf.saxon.ce.expr.XPathContext;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.lib.StringCollator;
 import client.net.sf.saxon.ce.trans.Err;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.type.*;
+import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.ConversionResult;
+import client.net.sf.saxon.ce.type.ValidationFailure;
 
 /**
  * A boolean XPath value
@@ -52,7 +53,7 @@ public final class BooleanValue extends AtomicValue implements Comparable {
      * @param typeLabel the type label, xs:boolean or a subtype
      */
 
-    public BooleanValue(boolean value, AtomicType typeLabel) {
+    public BooleanValue(boolean value, BuiltInAtomicType typeLabel) {
         this.value = value;
         this.typeLabel = typeLabel;
     }
@@ -126,24 +127,20 @@ public final class BooleanValue extends AtomicValue implements Comparable {
      */
 
     public ConversionResult convertPrimitive(BuiltInAtomicType requiredType, boolean validate) {
-        switch(requiredType.getPrimitiveType()) {
-        case StandardNames.XS_BOOLEAN:
-        case StandardNames.XS_ANY_ATOMIC_TYPE:
+        if (requiredType == BuiltInAtomicType.ANY_ATOMIC || requiredType == BuiltInAtomicType.BOOLEAN) {
             return this;
-        case StandardNames.XS_NUMERIC:
-        case StandardNames.XS_INTEGER:
-            return (value ? IntegerValue.PLUS_ONE : IntegerValue.ZERO);
-        case StandardNames.XS_DECIMAL:
-            return (value ? DecimalValue.ONE : DecimalValue.ZERO);
-        case StandardNames.XS_FLOAT:
-            return (value ? FloatValue.ONE : FloatValue.ZERO);
-        case StandardNames.XS_DOUBLE:
-            return (value ? DoubleValue.ONE : DoubleValue.ZERO);
-        case StandardNames.XS_STRING:
-            return (value ? StringValue.TRUE : StringValue.FALSE);
-        case StandardNames.XS_UNTYPED_ATOMIC:
+        } else if (requiredType == BuiltInAtomicType.UNTYPED_ATOMIC) {
             return new UntypedAtomicValue(getStringValueCS());
-        default:
+        } else if (requiredType == BuiltInAtomicType.STRING) {
+            return (value ? StringValue.TRUE : StringValue.FALSE);
+        } else if (requiredType == BuiltInAtomicType.NUMERIC || requiredType == BuiltInAtomicType.INTEGER ||
+                requiredType == BuiltInAtomicType.DECIMAL) {
+            return (value ? IntegerValue.PLUS_ONE : IntegerValue.ZERO);
+        } else if (requiredType == BuiltInAtomicType.DOUBLE) {
+            return (value ? DoubleValue.ONE : DoubleValue.ZERO);
+        } else if (requiredType == BuiltInAtomicType.FLOAT) {
+            return (value ? FloatValue.ONE : FloatValue.ZERO);
+        } else {
             ValidationFailure err = new ValidationFailure("Cannot convert boolean to " +
                                      requiredType.getDisplayName());
             err.setErrorCode("XPTY0004");

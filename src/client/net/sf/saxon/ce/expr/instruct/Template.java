@@ -207,7 +207,7 @@ public class Template extends Procedure  {
     }
     
 //    // required for Trace
-    public int getConstructType() {
+    public StructuredQName getConstructType() {
         return Location.TEMPLATE;
     }
 }

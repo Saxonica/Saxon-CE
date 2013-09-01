@@ -3,9 +3,7 @@ package client.net.sf.saxon.ce.expr.instruct;
 import client.net.sf.saxon.ce.Controller;
 import client.net.sf.saxon.ce.event.*;
 import client.net.sf.saxon.ce.expr.*;
-import client.net.sf.saxon.ce.om.Item;
-import client.net.sf.saxon.ce.om.NodeInfo;
-import client.net.sf.saxon.ce.om.StandardNames;
+import client.net.sf.saxon.ce.om.*;
 import client.net.sf.saxon.ce.pattern.NodeKindTest;
 import client.net.sf.saxon.ce.pattern.NodeTest;
 import client.net.sf.saxon.ce.trans.XPathException;
@@ -75,7 +73,7 @@ public class Copy extends ElementCreator {
         ItemType selectItemType = select.getItemType(visitor.getConfiguration().getTypeHierarchy());
 
         if (selectItemType instanceof NodeTest) {
-            switch (selectItemType.getPrimitiveType()) {
+            switch (((NodeTest)selectItemType).getRequiredNodeKind()) {
                 // For elements and attributes, assume the type annotation will change
                 case Type.ELEMENT:
                     this.resultItemType = NodeKindTest.ELEMENT;
@@ -163,15 +161,16 @@ public class Copy extends ElementCreator {
 
     /**
      * Callback from ElementCreator when constructing an element
+     *
      * @param context XPath dynamic evaluation context
      * @param copiedNode the node being copied
      * @return the namecode of the element to be constructed
      * @throws XPathException
      */
 
-    public int getNameCode(XPathContext context, NodeInfo copiedNode)
+    public StructuredQName getNameCode(XPathContext context, NodeInfo copiedNode)
             throws XPathException {
-        return copiedNode.getNameCode();
+        return new StructuredQName(copiedNode.getPrefix(), copiedNode.getURI(), copiedNode.getLocalPart());
     }
 
     /**
@@ -187,6 +186,7 @@ public class Copy extends ElementCreator {
 
     /**
      * Callback to output namespace nodes for the new element.
+     *
      * @param context The execution context
      * @param receiver the Receiver where the namespace nodes are to be written
      * @param nameCode
@@ -194,13 +194,13 @@ public class Copy extends ElementCreator {
      * @throws XPathException
      */
 
-    protected void outputNamespaceNodes(XPathContext context, Receiver receiver, int nameCode, NodeInfo copiedNode)
+    protected void outputNamespaceNodes(XPathContext context, Receiver receiver, StructuredQName nameCode, NodeInfo copiedNode)
     throws XPathException {
         if (copyNamespaces) {
             NamespaceIterator.sendNamespaces(copiedNode, receiver);
         } else {
             // Always output the namespace of the element name itself
-            receiver.namespace(context.getNamePool().getNamespaceBinding(nameCode), 0);
+            receiver.namespace(new NamespaceBinding(nameCode.getPrefix(), nameCode.getNamespaceURI()), 0);
         }
     }
 
@@ -233,7 +233,8 @@ public class Copy extends ElementCreator {
 
         case Type.ATTRIBUTE:
             try {
-                context.getReceiver().attribute(source.getNameCode(), source.getStringValueCS());
+                StructuredQName qn = new StructuredQName(source.getPrefix(), source.getURI(), source.getLocalPart());
+                context.getReceiver().attribute(qn, source.getStringValueCS());
             } catch (NoOpenStartTagException err) {
                 err.setXPathContext(context);
                 throw dynamicError(getSourceLocator(), err, context);

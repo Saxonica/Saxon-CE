@@ -826,7 +826,7 @@ public abstract class Expression {
         throw e;
     }
     
-    public int getConstructType() {
+    public StructuredQName getConstructType() {
         return Location.XPATH_EXPRESSION;
     }
 

@@ -1,11 +1,6 @@
 package client.net.sf.saxon.ce.expr;
 
 
-import java.util.HashMap;
-import java.util.Iterator;
-
-import com.google.gwt.logging.client.LogConfiguration;
-
 import client.net.sf.saxon.ce.Controller;
 import client.net.sf.saxon.ce.LogController;
 import client.net.sf.saxon.ce.expr.instruct.Instruction;
@@ -21,6 +16,10 @@ import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.trans.update.PendingUpdateList;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.TypeHierarchy;
+import com.google.gwt.logging.client.LogConfiguration;
+
+import java.util.HashMap;
+import java.util.Iterator;
 
 /**
  * A wrapper expression used to trace expressions in XPath and XQuery.
@@ -30,7 +29,7 @@ public class TraceExpression extends Instruction implements InstructionInfo {
 
     private StructuredQName objectName;
     
-    private int constructType;
+    private StructuredQName constructType;
     /*@Nullable*/ private NamespaceResolver namespaceResolver = null;
     private HashMap<String, Object> properties = new HashMap<String, Object>(10);
     Expression child;   // the instruction or other expression to be traced
@@ -48,19 +47,19 @@ public class TraceExpression extends Instruction implements InstructionInfo {
 
     /**
      * Set the type of construct. This will generally be a constant
-     * in class {@link net.sf.saxon.trace.Location}
+     * in class {@link client.net.sf.saxon.ce.trace.Location}
      * @param type an integer code for the type of construct being traced
      */
 
-    public void setConstructType(int type) {
+    public void setConstructType(StructuredQName type) {
         constructType = type;
     }
 
     /**
      * Get the construct type. This will generally be a constant
-     * in class {@link net.sf.saxon.trace.Location}
+     * in class {@link client.net.sf.saxon.ce.trace.Location}
      */
-    public int getConstructType() {
+    public StructuredQName getConstructType() {
         return constructType;
     }
 
@@ -146,38 +145,12 @@ public class TraceExpression extends Instruction implements InstructionInfo {
         return this;
     }
 
-    /**
-     * Get the system identifier (that is the base URI) of the static context of the expression being
-     * traced. This returns the same result as getSystemId(), it is provided to satisfy the
-     * {@link net.sf.saxon.event.LocationProvider} interface.
-     * @param locationId not used
-     * @return the URI of the module containing the expression
-     */
-    public String getSystemId(long locationId) {
-        return getSystemId();
-    }
-     /**
-     * Get the line number of the expression being
-     * traced. This returns the same result as getLineNumber(), it is provided to satisfy the
-     * {@link net.sf.saxon.event.LocationProvider} interface.
-     * @param locationId not used
-     * @return the line number of the expression within its module
-     */
-
-    public int getLineNumber(long locationId) {
-        return getLineNumber();
-    }
-
-    public int getColumnNumber(long locationId) {
-    	return -1;
-        //return getColumnNumber(); //not supported by InstructionInfo
-    }
 
     /**
      * Simplify an expression. This performs any static optimization (by rewriting the expression
      * as a different expression). The default implementation does nothing.
      *
-     * @exception net.sf.saxon.trans.XPathException if an error is discovered during expression
+     * @throws XPathException  if an error is discovered during expression
      *     rewriting
      * @return the simplified expression
      * @param visitor an expression visitor
@@ -222,7 +195,7 @@ public class TraceExpression extends Instruction implements InstructionInfo {
      * @return if the offer is not accepted, return this expression unchanged.
      *         Otherwise return the result of rewriting the expression to promote
      *         this subexpression
-     * @throws net.sf.saxon.trans.XPathException
+     * @throws XPathException
      *          if any error is detected
      */
 
@@ -244,7 +217,7 @@ public class TraceExpression extends Instruction implements InstructionInfo {
      * and invokes the instruction being traced.
      * @param context the dynamic execution context
      * @return either null, or a tail call that the caller must invoke on return
-     * @throws net.sf.saxon.trans.XPathException
+     * @throws XPathException
      */
     public TailCall processLeavingTail(XPathContext context) throws XPathException {
         Controller controller = context.getController();
@@ -290,8 +263,8 @@ public class TraceExpression extends Instruction implements InstructionInfo {
 
     /**
      * Determine which aspects of the context the expression depends on. The result is
-     * a bitwise-or'ed value composed from constants such as {@link net.sf.saxon.expr.StaticProperty#DEPENDS_ON_CONTEXT_ITEM} and
-     * {@link net.sf.saxon.expr.StaticProperty#DEPENDS_ON_CURRENT_ITEM}. The default implementation combines the intrinsic
+     * a bitwise-or'ed value composed from constants such as {@link StaticProperty#DEPENDS_ON_CONTEXT_ITEM} and
+     * {@link StaticProperty#DEPENDS_ON_CURRENT_ITEM}. The default implementation combines the intrinsic
      * dependencies of this expression with the dependencies of the subexpressions,
      * computed recursively. This is overridden for expressions such as FilterExpression
      * where a subexpression's dependencies are not necessarily inherited by the parent
@@ -335,7 +308,7 @@ public class TraceExpression extends Instruction implements InstructionInfo {
      * this condition will be detected.
      *
      * @param context The context in which the expression is to be evaluated
-     * @exception net.sf.saxon.trans.XPathException if any dynamic error occurs evaluating the
+     * @throws XPathException if any dynamic error occurs evaluating the
      *     expression
      * @return the node or atomic value that results from evaluating the
      *     expression; or null to indicate that the result is an empty
@@ -361,7 +334,7 @@ public class TraceExpression extends Instruction implements InstructionInfo {
      * return singleton values: for non-singleton expressions, the subclass must
      * provide its own implementation.
      *
-     * @exception net.sf.saxon.trans.XPathException if any dynamic error occurs evaluating the
+     * @throws XPathException if any dynamic error occurs evaluating the
      *     expression
      * @param context supplies the context for evaluation
      * @return a SequenceIterator that can be used to iterate over the result
@@ -443,9 +416,7 @@ public class TraceExpression extends Instruction implements InstructionInfo {
     	}
     }
 
-	@Override
 	public int getLineNumber() {
-		// TODO Auto-generated method stub
 		return 0;
 	}
 }

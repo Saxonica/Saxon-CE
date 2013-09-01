@@ -20,7 +20,7 @@ import java.util.Iterator;
 
 public class ElementImpl extends ParentNodeImpl implements NamespaceResolver {
 
-    private int nameCode;
+    private StructuredQName elementName;
     private AttributeCollection attributeList;      // this excludes namespace attributes
     private NamespaceBinding[] namespaceList = null;             // list of namespace codes
 
@@ -32,11 +32,11 @@ public class ElementImpl extends ParentNodeImpl implements NamespaceResolver {
 
     /**
      * Set the name code. Used when creating a dummy element in the Stripper
-     * @param nameCode the integer name code representing the element name
+     * @param name the new element name
     */
 
-    public void setNameCode(int nameCode) {
-    	this.nameCode = nameCode;
+    public void setNodeName(StructuredQName name) {
+    	this.elementName = name;
     }
 
     /**
@@ -59,15 +59,15 @@ public class ElementImpl extends ParentNodeImpl implements NamespaceResolver {
 
     /**
      * Initialise a new ElementImpl with an element name
-     * @param nameCode  Integer representing the element name, with namespaces resolved
+     * @param qName the element name, with namespaces resolved
      * @param atts The attribute list: always null
      * @param parent  The parent node
      * @param sequenceNumber  Integer identifying this element within the document
      */
 
-    public void initialise(int nameCode, AttributeCollection atts, NodeInfo parent,
+    public void initialise(StructuredQName qName, AttributeCollection atts, NodeInfo parent,
                            int sequenceNumber) {
-        setNameCode(nameCode);
+        setNodeName(qName);
         setRawParent((ParentNodeImpl)parent);
         setRawSequenceNumber(sequenceNumber);
         attributeList = atts;
@@ -211,13 +211,9 @@ public class ElementImpl extends ParentNodeImpl implements NamespaceResolver {
         }
     }
 
-    /**
-	* Get the nameCode of the node. This is used to locate the name in the NamePool
-	*/
-
-	public int getNameCode() {
-		return nameCode;
-	}
+    public StructuredQName getNodeName() {
+        return elementName;
+    }
 
     /**
      * Get a character string that uniquely identifies this node
@@ -254,7 +250,7 @@ public class ElementImpl extends ParentNodeImpl implements NamespaceResolver {
 
     public void copy(Receiver out, int copyOptions) throws XPathException {
 
-        out.startElement(getNameCode(), 0);
+        out.startElement(new StructuredQName(getPrefix(), getURI(), getLocalPart()), 0);
 
         // output the namespaces
 
@@ -277,8 +273,8 @@ public class ElementImpl extends ParentNodeImpl implements NamespaceResolver {
 
         if (attributeList != null) {
             for (int i=0; i<attributeList.getLength(); i++) {
-                int nc = attributeList.getNameCode(i);
-                if (nc != -1) {
+                StructuredQName nc = attributeList.getStructuredQName(i);
+                if (nc != null) {
                     // if attribute hasn't been deleted
                     out.attribute(nc, attributeList.getValue(i));
                 }
@@ -317,14 +313,14 @@ public class ElementImpl extends ParentNodeImpl implements NamespaceResolver {
 
     public Iterator iteratePrefixes() {
         return new Iterator() {
-            private NamePool pool = null;
+            private boolean atStart = true;
             private Iterator<NamespaceBinding> iter = NamespaceIterator.iterateNamespaces(ElementImpl.this);
             public boolean hasNext() {
-                return (pool == null || iter.hasNext());
+                return (atStart || iter.hasNext());
             }
             public Object next() {
-                if (pool == null) {
-                    pool = getNamePool();
+                if (atStart) {
+                    atStart = false;
                     return "xml";
                 } else {
                     return iter.next().getPrefix();
@@ -425,16 +421,6 @@ public class ElementImpl extends ParentNodeImpl implements NamespaceResolver {
 
     public NamespaceBinding[] getNamespaceList() {
         return namespaceList;
-    }
-
-    /**
-    * Get the value of a given attribute of this node
-    * @param fingerprint The fingerprint of the attribute name
-    * @return the attribute value if it exists or null if not
-    */
-
-    public String getAttributeValue(int fingerprint) {
-    	return (attributeList == null ? null : attributeList.getValueByFingerprint(fingerprint));
     }
 
     /**

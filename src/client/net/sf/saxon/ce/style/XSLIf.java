@@ -1,4 +1,5 @@
 package client.net.sf.saxon.ce.style;
+import client.net.sf.saxon.ce.om.StructuredQName;
 import com.google.gwt.logging.client.LogConfiguration;
 
 import client.net.sf.saxon.ce.LogController;
@@ -73,12 +74,12 @@ public class XSLIf extends StyleElement {
 		AttributeCollection atts = se.getAttributeList();
 
 		for (int a=0; a<atts.getLength(); a++) {
-			int nc = atts.getNameCode(a);
-			String f = se.getNamePool().getClarkName(nc);
+			StructuredQName qn = atts.getStructuredQName(a);
+            String f = qn.getClarkName();
 			if (f.equals(StandardNames.TEST)) {
         		testAtt = atts.getValue(a);
         	} else {
-        		se.checkUnknownAttribute(nc);
+        		se.checkUnknownAttribute(qn);
         	}
         }
 
@@ -96,12 +97,12 @@ public class XSLIf extends StyleElement {
 		AttributeCollection atts = se.getAttributeList();
 
 		for (int a=0; a<atts.getLength(); a++) {
-			int nc = atts.getNameCode(a);
-			String f = se.getNamePool().getClarkName(nc);
+			StructuredQName qn = atts.getStructuredQName(a);
+            String f = qn.getClarkName();
 			if (f.equals(StandardNames.TEST)) {
         		testAtt = atts.getValue(a);
         	} else {
-        		se.checkUnknownAttribute(nc);
+        		se.checkUnknownAttribute(qn);
         	}
         }
 

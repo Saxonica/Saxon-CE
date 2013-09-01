@@ -23,7 +23,7 @@ public class LinkedTreeBuilder extends Builder
     private int[] size = new int[100];          // stack of number of children for each open node
     private int depth = 0;
     private ArrayList<NodeImpl[]> arrays = new ArrayList<NodeImpl[]>(20);       // reusable arrays for creating nodes
-    private int elementNameCode;
+    private StructuredQName elementNameCode;
     private AttributeCollection attributes;
     private NamespaceBinding[] namespaces;
     private int namespacesUsed;
@@ -148,7 +148,7 @@ public class LinkedTreeBuilder extends Builder
     * Notify the start of an element
     */
 
-    public void startElement(int nameCode, int properties) throws XPathException {
+    public void startElement(StructuredQName nameCode, int properties) throws XPathException {
         //System.err.println("LinkedTreeBuilder: " + this + " Start element depth=" + depth);
         if (currentNode == null) {
             startDocument();
@@ -175,7 +175,7 @@ public class LinkedTreeBuilder extends Builder
         namespaces[namespacesUsed++] = nsBinding;
     }
 
-    public void attribute(int nameCode, CharSequence value)
+    public void attribute(StructuredQName nameCode, CharSequence value)
     throws XPathException {
         if (contentStarted) {
             throw new IllegalStateException("attribute() called after startContent()");
@@ -204,7 +204,7 @@ public class LinkedTreeBuilder extends Builder
         }
 
         ElementImpl elem = nodeFactory.makeElementNode( 
-                currentNode, elementNameCode, StandardNames.XS_UNTYPED,
+                currentNode, elementNameCode,
                 attributes, nslist, namespacesUsed,
                 pipe,
                 getSystemId(), (allocateSequenceNumbers ? nextNodeNumber++ : -1));
@@ -280,8 +280,7 @@ public class LinkedTreeBuilder extends Builder
         if (!contentStarted) {
             throw new IllegalStateException("missing call on startContent()");
         }
-        int nameCode = namePool.allocate("", "", name);
-        ProcInstImpl pi = new ProcInstImpl(nameCode, remainder.toString());
+        ProcInstImpl pi = new ProcInstImpl(name, remainder.toString());
         currentNode.addChild(pi, size[depth]++);
     }
 
@@ -339,8 +338,7 @@ public class LinkedTreeBuilder extends Builder
 
         public ElementImpl makeElementNode(
                 NodeInfo parent,
-                int nameCode,
-                int typeCode,
+                StructuredQName nameCode,
                 AttributeCollection attlist,
                 NamespaceBinding[] namespaces,
                 int namespacesUsed,

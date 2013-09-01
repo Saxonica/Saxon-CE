@@ -6,6 +6,7 @@ import client.net.sf.saxon.ce.lib.Validation;
 import client.net.sf.saxon.ce.om.AttributeCollection;
 import client.net.sf.saxon.ce.om.Axis;
 import client.net.sf.saxon.ce.om.StandardNames;
+import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.pattern.NodeKindTest;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.value.SequenceType;
@@ -50,8 +51,8 @@ public class XSLCopy extends StyleElement {
         String inheritAtt = null;
 
         for (int a=0; a<atts.getLength(); a++) {
-			int nc = atts.getNameCode(a);
-			String f = getNamePool().getClarkName(nc);
+			StructuredQName qn = atts.getStructuredQName(a);
+            String f = qn.getClarkName();
 			if (f.equals(StandardNames.USE_ATTRIBUTE_SETS)) {
         		use = atts.getValue(a);
             } else if (f.equals(StandardNames.COPY_NAMESPACES)) {
@@ -63,7 +64,7 @@ public class XSLCopy extends StyleElement {
             } else if (f.equals(StandardNames.INHERIT_NAMESPACES)) {
                 inheritAtt = Whitespace.trim(atts.getValue(a));
         	} else {
-        		checkUnknownAttribute(nc);
+        		checkUnknownAttribute(qn);
         	}
         }
 

@@ -1,10 +1,11 @@
 package client.net.sf.saxon.ce.value;
 
 import client.net.sf.saxon.ce.expr.XPathContext;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
-import client.net.sf.saxon.ce.type.*;
+import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.ConversionResult;
+import client.net.sf.saxon.ce.type.ValidationFailure;
 
 
 /**
@@ -142,40 +143,29 @@ public class DateValue extends GDateValue implements Comparable {
      */
 
     public ConversionResult convertPrimitive(BuiltInAtomicType requiredType, boolean validate) {
-        switch (requiredType.getPrimitiveType()) {
-            case StandardNames.XS_DATE:
-            case StandardNames.XS_ANY_ATOMIC_TYPE:
-                return this;
-            case StandardNames.XS_DATE_TIME:
-                return toDateTime();
-
-            case StandardNames.XS_STRING:
-                return new StringValue(getStringValueCS());
-
-            case StandardNames.XS_UNTYPED_ATOMIC:
-                return new UntypedAtomicValue(getStringValueCS());
-
-            case StandardNames.XS_G_YEAR: {
-                return new GYearValue(year, getTimezoneInMinutes());
-            }
-            case StandardNames.XS_G_YEAR_MONTH: {
-                return new GYearMonthValue(year, month, getTimezoneInMinutes());
-            }
-            case StandardNames.XS_G_MONTH: {
-                return new GMonthValue(month, getTimezoneInMinutes());
-            }
-            case StandardNames.XS_G_MONTH_DAY: {
-                return new GMonthDayValue(month, day, getTimezoneInMinutes());
-            }
-            case StandardNames.XS_G_DAY: {
-                return new GDayValue(day, getTimezoneInMinutes());
-            }
-
-            default:
-                ValidationFailure err = new ValidationFailure("Cannot convert date to " +
-                        requiredType.getDisplayName());
-                err.setErrorCode("XPTY0004");
-                return err;
+        if (requiredType == BuiltInAtomicType.ANY_ATOMIC || requiredType == BuiltInAtomicType.DATE) {
+            return this;
+        } else if (requiredType == BuiltInAtomicType.UNTYPED_ATOMIC) {
+            return new UntypedAtomicValue(getStringValueCS());
+        } else if (requiredType == BuiltInAtomicType.STRING) {
+            return new StringValue(getStringValueCS());
+        } else if (requiredType == BuiltInAtomicType.DATE_TIME) {
+            return toDateTime();
+        } else if (requiredType == BuiltInAtomicType.G_YEAR) {
+            return new GYearValue(year, getTimezoneInMinutes());
+        } else if (requiredType == BuiltInAtomicType.G_YEAR_MONTH) {
+            return new GYearMonthValue(year, month, getTimezoneInMinutes());
+        } else if (requiredType == BuiltInAtomicType.G_MONTH) {
+            return new GMonthValue(month, getTimezoneInMinutes());
+        } else if (requiredType == BuiltInAtomicType.G_MONTH_DAY) {
+            return new GMonthDayValue(month, day, getTimezoneInMinutes());
+        } else if (requiredType == BuiltInAtomicType.G_DAY) {
+            return new GDayValue(day, getTimezoneInMinutes());
+        } else {
+            ValidationFailure err = new ValidationFailure("Cannot convert date to " +
+                    requiredType.getDisplayName());
+            err.setErrorCode("XPTY0004");
+            return err;
         }
     }
 

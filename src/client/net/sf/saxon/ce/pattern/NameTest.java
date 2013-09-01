@@ -1,7 +1,5 @@
 package client.net.sf.saxon.ce.pattern;
 
-import client.net.sf.saxon.ce.om.FingerprintedNode;
-import client.net.sf.saxon.ce.om.NamePool;
 import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.type.ItemType;
@@ -21,39 +19,32 @@ import java.util.HashSet;
 public class NameTest extends NodeTest {
 
 	private int nodeKind;
-	private int fingerprint;
-    private NamePool namePool;
-    private String uri = null;
-    private String localName = null;
+	private StructuredQName qName;
 
     /**
      * Create a NameTest to match nodes by name
-     * @param nodeKind the kind of node, for example {@link Type#ELEMENT}
+     *
+     * @param nodeKind the kind of node, for example {@link client.net.sf.saxon.ce.type.Type#ELEMENT}
      * @param uri the namespace URI of the required nodes. Supply "" to match nodes that are in
      * no namespace
      * @param localName the local name of the required nodes. Supply "" to match unnamed nodes
-     * @param namePool the namePool holding the name codes
      * @since 9.0
      */
 
-	public NameTest(int nodeKind, String uri, String localName, NamePool namePool) {
+	public NameTest(int nodeKind, String uri, String localName) {
 		this.nodeKind = nodeKind;
-		this.fingerprint = namePool.allocate("", uri, localName) & NamePool.FP_MASK;
-        this.namePool = namePool;
+		this.qName = new StructuredQName("", uri, localName);
 	}
 
     /**
      * Create a NameTest to match nodes by their nameCode allocated from the NamePool
      * @param nodeKind the kind of node, for example {@link Type#ELEMENT}
-     * @param nameCode the nameCode representing the name of the node
-     * @param namePool the namePool holding the name codes
-     * @since 8.4
+     * @param qName the required name of the node
      */
 
-	public NameTest(int nodeKind, int nameCode, NamePool namePool) {
+	public NameTest(int nodeKind, StructuredQName qName) {
 		this.nodeKind = nodeKind;
-		this.fingerprint = nameCode & 0xfffff;
-        this.namePool = namePool;
+		this.qName = qName;
 	}
 
 	/**
@@ -63,8 +54,7 @@ public class NameTest extends NodeTest {
 
 	public NameTest(NodeInfo node) {
 		this.nodeKind = node.getNodeKind();
-		this.fingerprint = node.getFingerprint();
-        this.namePool = node.getNamePool();
+		this.qName = node.getNodeName();
 	}
 
     /**
@@ -73,11 +63,8 @@ public class NameTest extends NodeTest {
      * @param nameCode identifies the expanded name of the node to be matched
      */
 
-    public boolean matches(int nodeKind, int nameCode, int annotation) {
-        // System.err.println("Matching node " + nameCode + " against " + this.fingerprint);
-        // System.err.println("  " + ((nameCode&0xfffff) == this.fingerprint && nodeType == this.nodeType));
-        return ((nameCode&0xfffff) == this.fingerprint && nodeKind == this.nodeKind);
-        // deliberately in this order for speed (first test is more likely to fail)
+    public boolean matches(int nodeKind, StructuredQName nameCode, int annotation) {
+        return nodeKind == this.nodeKind && nameCode.equals(qName);
     }
 
     /**
@@ -91,39 +78,18 @@ public class NameTest extends NodeTest {
         if (node.getNodeKind() != nodeKind) {
             return false;
         }
-
-        // Two different algorithms are used for name matching. If the fingerprint of the node is readily
-        // available, we use it to do an integer comparison. Otherwise, we do string comparisons on the URI
-        // and local name. In practice, Saxon's native node implementations use fingerprint matching, while
-        // DOM and JDOM nodes use string comparison of names
-
-        if (node instanceof FingerprintedNode) {
-            return node.getFingerprint() == fingerprint;
-        } else {
-            if (uri == null) {
-                uri = namePool.getURI(fingerprint);
-            }
-            if (localName == null) {
-                localName = namePool.getLocalName(fingerprint);
-            }
-            return localName.equals(node.getLocalPart()) && uri.equals(node.getURI());
-        }
+        StructuredQName name = node.getNodeName();
+        return (name==null ? qName==null : name.equals(qName));
     }
 
     /**
      * Test whether the NameTest matches a given QName
-     * @param qname the QName to be matched
+     * @param name the QName to be matched
      * @return true if the name matches
      */
 
-    public boolean matches(StructuredQName qname) {
-        if (uri == null) {
-            uri = namePool.getURI(fingerprint);
-        }
-        if (localName == null) {
-            localName = namePool.getLocalName(fingerprint);
-        }
-        return qname.getLocalName().equals(localName) && qname.getNamespaceURI().equals(uri);
+    public boolean matches(StructuredQName name) {
+        return (name==null ? qName==null : name.equals(qName));
     }
 
     /**
@@ -138,8 +104,8 @@ public class NameTest extends NodeTest {
 	* Get the fingerprint required
 	*/
 
-	public int getFingerprint() {
-		return fingerprint;
+	public StructuredQName getRequiredNodeName() {
+		return qName;
 	}
 
     /**
@@ -148,7 +114,7 @@ public class NameTest extends NodeTest {
     * @return the type of node matched by this pattern. e.g. Type.ELEMENT or Type.TEXT
     */
 
-    public int getPrimitiveType() {
+    public int getRequiredNodeKind() {
         return nodeKind;
     }
 
@@ -185,28 +151,25 @@ public class NameTest extends NodeTest {
      * The default implementation returns null.
      */
 
-    public HashSet<Integer> getRequiredNodeNames() {
-        HashSet<Integer> s = new HashSet<Integer>(1);
-        s.add(fingerprint);
+    public HashSet<StructuredQName> getRequiredNodeNames() {
+        HashSet<StructuredQName> s = new HashSet<StructuredQName>(1);
+        s.add(qName);
         return s;
     }
 
     public String toString() {
-        return toString(namePool);
-    }
-
-    public String toString(NamePool pool) {
         switch (nodeKind) {
             case Type.ELEMENT:
-                return pool.getClarkName(fingerprint);
+                return "element(" + qName.getClarkName() + ")";
             case Type.ATTRIBUTE:
-                return pool.getClarkName(fingerprint);
+                return "attribute(" + qName.getClarkName() + ")";
             case Type.PROCESSING_INSTRUCTION:
-                return "processing-instruction(" + pool.getDisplayName(fingerprint) + ')';
+                return "processing-instruction(" + qName.getLocalName() + ')';
             case Type.NAMESPACE:
-                return "namespace(" + pool.getDisplayName(fingerprint) + ')';
+                return "namespace(" + qName.getLocalName() + ')';
+            default:
+                return qName.getDisplayName();
         }
-        return pool.getDisplayName(fingerprint);
     }
 
     /**
@@ -214,7 +177,7 @@ public class NameTest extends NodeTest {
      */
 
     public int hashCode() {
-        return nodeKind<<20 ^ fingerprint;
+        return nodeKind<<20 ^ qName.hashCode();
     }
 
     /**
@@ -223,9 +186,8 @@ public class NameTest extends NodeTest {
 
     public boolean equals(Object other) {
         return other instanceof NameTest &&
-                ((NameTest)other).namePool == namePool &&
                 ((NameTest)other).nodeKind == nodeKind &&
-                ((NameTest)other).fingerprint == fingerprint;
+                ((NameTest)other).qName.equals(qName);
     }
 
 

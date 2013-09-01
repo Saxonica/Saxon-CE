@@ -9,6 +9,7 @@ import client.net.sf.saxon.ce.om.*;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.SingletonIterator;
 import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
+import client.net.sf.saxon.ce.type.BuiltInAtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.type.TypeHierarchy;
@@ -187,7 +188,7 @@ public final class LocationPathPattern extends Pattern {
             if (upwardsAxis == Axis.PARENT) {
                 // Check that this step in the pattern makes sense in the context of the parent step
                 AxisExpression step;
-                if (nodeTest.getPrimitiveType() == Type.ATTRIBUTE) {
+                if (nodeTest.getRequiredNodeKind() == Type.ATTRIBUTE) {
                     step = new AxisExpression(Axis.ATTRIBUTE, nodeTest);
                 } else {
                     step = new AxisExpression(Axis.CHILD, nodeTest);
@@ -230,7 +231,7 @@ public final class LocationPathPattern extends Pattern {
 
         // see if it's an element pattern with a single positional predicate of [1]
 
-        if (nodeTest.getPrimitiveType() == Type.ELEMENT && filters.length == 1) {
+        if (nodeTest.getRequiredNodeKind() == Type.ELEMENT && filters.length == 1) {
             if (Literal.isConstantOne(filters[0])) {
                 firstElementPattern = true;
                 specialFilter = true;
@@ -250,7 +251,7 @@ public final class LocationPathPattern extends Pattern {
         // see if it's an element pattern with a single positional predicate
         // of [position()=last()]
 
-        if (nodeTest.getPrimitiveType() == Type.ELEMENT &&
+        if (nodeTest.getRequiredNodeKind() == Type.ELEMENT &&
                 filters.length == 1 &&
                 filters[0] instanceof Last) {
             lastElementPattern = true;
@@ -401,7 +402,7 @@ public final class LocationPathPattern extends Pattern {
      */
 
     private Expression makeEquivalentExpression() {
-        byte axis = (nodeTest.getPrimitiveType() == Type.ATTRIBUTE ?
+        byte axis = (nodeTest.getRequiredNodeKind() == Type.ATTRIBUTE ?
                 Axis.ATTRIBUTE :
                 Axis.CHILD);
         Expression step = new AxisExpression(axis, nodeTest);
@@ -590,18 +591,7 @@ public final class LocationPathPattern extends Pattern {
      */
 
     public int getNodeKind() {
-        return nodeTest.getPrimitiveType();
-    }
-
-    /**
-     * Determine the fingerprint of nodes to which this pattern applies.
-     * Used for optimisation.
-     *
-     * @return the fingerprint of nodes matched by this pattern.
-     */
-
-    public int getFingerprint() {
-        return nodeTest.getFingerprint();
+        return nodeTest.getRequiredNodeKind();
     }
 
     /**
@@ -625,9 +615,9 @@ public final class LocationPathPattern extends Pattern {
 
     public boolean isPositional(TypeHierarchy th) {
         for (int i = 0; i < filters.length; i++) {
-            int type = filters[i].getItemType(th).getPrimitiveType();
-            if (type == StandardNames.XS_DOUBLE || type == StandardNames.XS_DECIMAL ||
-                    type == StandardNames.XS_INTEGER || type == StandardNames.XS_FLOAT || type == StandardNames.XS_ANY_ATOMIC_TYPE) {
+            ItemType type = filters[i].getItemType(th);
+            if (type == BuiltInAtomicType.DOUBLE || type == BuiltInAtomicType.DECIMAL ||
+                    type == BuiltInAtomicType.INTEGER || type == BuiltInAtomicType.FLOAT || type == BuiltInAtomicType.ANY_ATOMIC) {
                 return true;
             }
             if ((filters[i].getDependencies() &

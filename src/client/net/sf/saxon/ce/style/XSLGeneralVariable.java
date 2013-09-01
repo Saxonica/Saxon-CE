@@ -157,8 +157,8 @@ public abstract class XSLGeneralVariable extends StyleElement {
         String tunnelAtt = null;
 
 		for (int a=0; a<atts.getLength(); a++) {
-			int nc = atts.getNameCode(a);
-			String f = getNamePool().getClarkName(nc);
+            StructuredQName qn = atts.getStructuredQName(a);
+            String f = qn.getClarkName();
 			if (f.equals(StandardNames.NAME)) {
         		nameAtt = Whitespace.trim(atts.getValue(a)) ;
         	} else if (f.equals(StandardNames.SELECT)) {
@@ -170,7 +170,7 @@ public abstract class XSLGeneralVariable extends StyleElement {
             } else if (f.equals(StandardNames.TUNNEL) && allowsTunnelAttribute()) {
         		tunnelAtt = Whitespace.trim(atts.getValue(a)) ;
         	} else {
-        		checkUnknownAttribute(nc);
+        		checkUnknownAttribute(qn);
         	}
         }
 
@@ -412,8 +412,8 @@ public abstract class XSLGeneralVariable extends StyleElement {
     
     /**
      * Get the type of construct. This will be a constant in
-     * class {@link saxonce.trace.Location}. This method is part of the
-     * {@link saxon.trace.InstructionInfo} interface
+     * class Location. This method is part of the
+     * InstructionInfo interface
      */
     public int getConstructType() {
         return StandardNames.XSL_VARIABLE;

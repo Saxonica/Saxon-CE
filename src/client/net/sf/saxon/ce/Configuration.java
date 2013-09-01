@@ -19,8 +19,6 @@ import client.net.sf.saxon.ce.trans.CompilerInfo;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.DocumentNumberAllocator;
 import client.net.sf.saxon.ce.tree.util.URI;
-import client.net.sf.saxon.ce.type.BuiltInType;
-import client.net.sf.saxon.ce.type.SchemaType;
 import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.Whitespace;
 import com.google.gwt.dom.client.Document;
@@ -533,27 +531,6 @@ public class Configuration {
 
     public int getStripsWhiteSpace() {
         return defaultParseOptions.getStripSpace();
-    }
-
-
-     /**
-     * Get the top-level schema type definition with a given fingerprint.
-     * <p/>
-     * This method is intended for internal use and for use by advanced
-     * applications. (The SchemaType object returned cannot yet be considered
-     * a stable API, and may be superseded when a JAXP API for schema information
-     * is defined.)
-     *
-     * @param fingerprint the fingerprint of the schema type
-     * @return the schema type , or null if there is none
-     *         with this name.
-     */
-
-    public SchemaType getSchemaType(int fingerprint) {
-        if (fingerprint < 1023) {
-            return BuiltInType.getSchemaType(fingerprint);
-        }
-        return null;
     }
 
     /**

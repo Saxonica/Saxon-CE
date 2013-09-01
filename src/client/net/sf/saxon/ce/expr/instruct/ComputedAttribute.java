@@ -40,7 +40,6 @@ public final class ComputedAttribute extends AttributeCreator {
         this.attributeName = attributeName;
         this.namespace = namespace;
         this.nsContext = nsContext;
-        setOptions(0);
         adoptChildExpression(attributeName);
         adoptChildExpression(namespace);
     }
@@ -138,7 +137,7 @@ public final class ComputedAttribute extends AttributeCreator {
         // If the name is known statically, use a FixedAttribute instead
         if (attributeName instanceof Literal && (namespace == null || namespace instanceof Literal)) {
             XPathContext context = visitor.getStaticContext().makeEarlyEvaluationContext();
-            int nc = evaluateNameCode(context);
+            StructuredQName nc = evaluateNameCode(context);
             FixedAttribute fa = new FixedAttribute(nc);
             fa.setSelect(getContentExpression(), visitor.getConfiguration());
             return fa;
@@ -211,13 +210,14 @@ public final class ComputedAttribute extends AttributeCreator {
 
 
     /**
-     * Determine the name to be used for the attribute, as an integer name code
+     * Determine the name to be used for the attribute, as a StructuredQName
+     *
      * @param context Dynamic evaluation context
-     * @return the integer name code for the attribute name
+     * @return the StructuredQName for the attribute name
      * @throws XPathException
      */
 
-    public int evaluateNameCode(XPathContext context) throws XPathException {
+    public StructuredQName evaluateNameCode(XPathContext context) throws XPathException {
         NamePool pool = context.getNamePool();
 
         Item nameValue = attributeName.evaluateItem(context);
@@ -299,7 +299,7 @@ public final class ComputedAttribute extends AttributeCreator {
             dynamicError("Cannot create attribute in namespace " + uri, "XTDE0835", context);
         }
 
-        return pool.allocate(prefix, uri, localName);
+        return new StructuredQName(prefix, uri, localName);
     }
 
 }

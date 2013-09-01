@@ -52,8 +52,8 @@ public class XSLDecimalFormat extends StyleElement {
 		AttributeCollection atts = getAttributeList();
 
         for (int a=0; a<atts.getLength(); a++) {
-			int nc = atts.getNameCode(a);
-			String f = getNamePool().getClarkName(nc);
+			StructuredQName qn = atts.getStructuredQName(a);
+            String f = qn.getClarkName();
 			if (f.equals(StandardNames.NAME)) {
         		name = Whitespace.trim(atts.getValue(a));
         	} else if (f.equals(StandardNames.DECIMAL_SEPARATOR)) {
@@ -77,7 +77,7 @@ public class XSLDecimalFormat extends StyleElement {
         	} else if (f.equals(StandardNames.PATTERN_SEPARATOR)) {
         		patternSeparator = atts.getValue(a);
         	} else {
-        		checkUnknownAttribute(nc);
+        		checkUnknownAttribute(qn);
         	}
         }
     }

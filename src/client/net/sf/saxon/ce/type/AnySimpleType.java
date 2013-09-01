@@ -6,7 +6,7 @@ import client.net.sf.saxon.ce.om.StandardNames;
  * This class has a singleton instance which represents the XML Schema built-in type xs:anySimpleType
  */
 
-public final class AnySimpleType implements SchemaType {
+public final class AnySimpleType extends BuiltInType implements SchemaType {
 
     private static AnySimpleType theInstance = new AnySimpleType();
 

@@ -5,15 +5,16 @@ import client.net.sf.saxon.ce.expr.Literal;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.expr.instruct.ResultDocument;
 import client.net.sf.saxon.ce.lib.Validation;
-import client.net.sf.saxon.ce.om.*;
+import client.net.sf.saxon.ce.om.AttributeCollection;
+import client.net.sf.saxon.ce.om.Axis;
+import client.net.sf.saxon.ce.om.StandardNames;
+import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.value.EmptySequence;
 import client.net.sf.saxon.ce.value.Whitespace;
 
 import java.util.HashSet;
-
-import com.google.gwt.logging.client.LogConfiguration;
 
 /**
 * An xsl:result-document element in the stylesheet. <BR>
@@ -95,8 +96,8 @@ public class XSLResultDocument extends StyleElement {
 
 
 		for (int a=0; a<atts.getLength(); a++) {
-			int nc = atts.getNameCode(a);
-			String f = getNamePool().getClarkName(nc);
+			StructuredQName qn = atts.getStructuredQName(a);
+            String f = qn.getClarkName();
 			if (f.equals(StandardNames.METHOD)) {
         		methodAtt = Whitespace.trim(atts.getValue(a));
         	} else if (f.equals(StandardNames.HREF)) {
@@ -113,7 +114,7 @@ public class XSLResultDocument extends StyleElement {
                 Expression exp = makeAttributeValueTemplate(val);
                 //serializationAttributes.put(nc&0xfffff, exp);
         	} else {
-        		checkUnknownAttribute(nc);
+        		checkUnknownAttribute(qn);
         	}
         }
 

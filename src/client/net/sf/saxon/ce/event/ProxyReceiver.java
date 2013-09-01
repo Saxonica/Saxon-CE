@@ -4,6 +4,7 @@ import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.om.NamePool;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.NamespaceBinding;
+import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.XPathException;
 
 /**
@@ -118,7 +119,7 @@ public abstract class ProxyReceiver extends SequenceReceiver {
      * @param properties properties of the element node
      */
 
-    public void startElement(int nameCode, int properties) throws XPathException {
+    public void startElement(StructuredQName nameCode, int properties) throws XPathException {
         nextReceiver.startElement(nameCode, properties);
     }
 
@@ -144,12 +145,13 @@ public abstract class ProxyReceiver extends SequenceReceiver {
      * Notify an attribute. Attributes are notified after the startElement event, and before any
      * children. Namespaces and attributes may be intermingled.
      *
+     *
      * @param nameCode   The name of the attribute, as held in the name pool
      * @throws IllegalStateException: attempt to output an attribute when there is no open element
      *                                start tag
      */
 
-    public void attribute(int nameCode, CharSequence value)
+    public void attribute(StructuredQName nameCode, CharSequence value)
             throws XPathException {
         nextReceiver.attribute(nameCode, value);
     }

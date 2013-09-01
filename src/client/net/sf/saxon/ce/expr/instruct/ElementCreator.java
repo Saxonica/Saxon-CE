@@ -7,6 +7,7 @@ import client.net.sf.saxon.ce.expr.StaticProperty;
 import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.NodeInfo;
+import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.pattern.NodeKindTest;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
@@ -62,13 +63,14 @@ public abstract class ElementCreator extends ParentNodeConstructor {
 
     /**
      * Determine (at run-time) the name code of the element being constructed
+     *
      * @param context the XPath dynamic evaluation context
      * @param copiedNode
      * @return the integer name code representing the element name
      * @throws XPathException if a failure occurs
      */
 
-    public abstract int getNameCode(XPathContext context, NodeInfo copiedNode)
+    public abstract StructuredQName getNameCode(XPathContext context, NodeInfo copiedNode)
     throws XPathException;
 
     /**
@@ -84,6 +86,7 @@ public abstract class ElementCreator extends ParentNodeConstructor {
      * Callback to output namespace nodes for the new element. This method is responsible
      * for ensuring that a namespace node is always generated for the namespace of the element
      * name itself.
+     *
      * @param context The execution context
      * @param receiver the Receiver where the namespace nodes are to be written
      * @param nameCode the name code of the element being created
@@ -91,7 +94,7 @@ public abstract class ElementCreator extends ParentNodeConstructor {
      * @throws client.net.sf.saxon.ce.trans.XPathException
      */
 
-    protected abstract void outputNamespaceNodes(XPathContext context, Receiver receiver, int nameCode, NodeInfo copiedNode)
+    protected abstract void outputNamespaceNodes(XPathContext context, Receiver receiver, StructuredQName nameCode, NodeInfo copiedNode)
     throws XPathException;
 
     /**
@@ -128,7 +131,7 @@ public abstract class ElementCreator extends ParentNodeConstructor {
 
         try {
 
-            int nameCode = getNameCode(context, copiedNode);
+            StructuredQName nameCode = getNameCode(context, copiedNode);
 
             SequenceReceiver out = context.getReceiver();
 
@@ -179,7 +182,7 @@ public abstract class ElementCreator extends ParentNodeConstructor {
             PipelineConfiguration pipe = controller.makePipelineConfiguration();
             seq.setPipelineConfiguration(pipe);
 
-            int nameCode = getNameCode(c2, copiedNode);
+            StructuredQName nameCode = getNameCode(c2, copiedNode);
 
             c2.setTemporaryReceiver(seq);
             if (seq.getSystemId() == null) {

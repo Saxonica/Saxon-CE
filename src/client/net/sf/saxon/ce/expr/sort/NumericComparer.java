@@ -1,7 +1,6 @@
 package client.net.sf.saxon.ce.expr.sort;
 import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.lib.StringCollator;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.value.*;
 import client.net.sf.saxon.ce.type.StringToDouble;
 
@@ -108,28 +107,6 @@ public class NumericComparer implements AtomicComparer {
 
     public boolean comparesEqual(AtomicValue a, AtomicValue b) {
         return compareAtomicValues(a, b) == 0;
-    }
-
-    /**
-     * Get a comparison key for an object. This must satisfy the rule that if two objects are equal
-     * according to the XPath eq operator, then their comparison keys are equal according to the Java
-     * equals() method, and vice versa. There is no requirement that the
-     * comparison keys should reflect the ordering of the underlying objects.
-     */
-
-    public ComparisonKey getComparisonKey(AtomicValue a) {
-        if (a instanceof NumericValue) {
-            return new ComparisonKey(StandardNames.XS_NUMERIC, toDoubleValue(((NumericValue)a)));
-        } else if (a == null) {
-            return new ComparisonKey(StandardNames.XS_NUMERIC, "NaN");
-        } else {
-            try {
-                double d = StringToDouble.stringToNumber(a.getStringValueCS());
-                return new ComparisonKey(StandardNames.XS_NUMERIC, new DoubleValue(d));
-            } catch (NumberFormatException err) {
-                return new ComparisonKey(StandardNames.XS_NUMERIC, "NaN");
-            }
-        }
     }
 
     private static DoubleValue toDoubleValue(NumericValue nv) {

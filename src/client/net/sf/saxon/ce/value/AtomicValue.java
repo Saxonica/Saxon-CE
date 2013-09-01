@@ -27,7 +27,7 @@ import client.net.sf.saxon.ce.type.*;
 
 public abstract class AtomicValue extends Value implements Item, GroundedValue, ConversionResult {
 
-    protected AtomicType typeLabel;
+    protected BuiltInAtomicType typeLabel;
 
 
     /**
@@ -122,7 +122,7 @@ public abstract class AtomicValue extends Value implements Item, GroundedValue, 
      * @return for the default implementation: AnyItemType (not known)
      */
 
-    public AtomicType getTypeLabel() {
+    public BuiltInAtomicType getTypeLabel() {
         return typeLabel;
     }
 
@@ -136,26 +136,6 @@ public abstract class AtomicValue extends Value implements Item, GroundedValue, 
      */
 
     public abstract BuiltInAtomicType getPrimitiveType();
-
-    /**
-     * Convert the value to a given type. The result of the conversion will be an
-     * atomic value of the required type. This method works only where the target
-     * type is a built-in type.
-     *
-     * @param schemaType the required atomic type. This must not be a namespace-sensitive type such as
-     *        QName or NOTATION
-     * @param context the XPath dynamic context
-     * @return the result of the conversion, if conversion was possible. This
-     *         will always be an instance of the class corresponding to the type
-     *         of value requested
-     * @throws XPathException if conversion is not allowed for this
-     *                        required type, or if the particular value cannot be converted
-     */
-
-    public final AtomicValue convert(AtomicType schemaType, XPathContext context) throws XPathException {
-        // Note this method is used from XQuery compiled code
-        return convert(schemaType, true).asAtomic();
-    }
 
     /**
      * Convert a value to either (a) another primitive type, or (b) another built-in type derived
@@ -189,7 +169,7 @@ public abstract class AtomicValue extends Value implements Item, GroundedValue, 
      *         caller must check for this condition. Validation may fail even if validation was not requested.
      */
     
-    public final ConversionResult convert(AtomicType targetType, boolean validate) {
+    public final ConversionResult convert(BuiltInAtomicType targetType, boolean validate) {
     	return convertPrimitive((BuiltInAtomicType)targetType, validate);  
     }
 

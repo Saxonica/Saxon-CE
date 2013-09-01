@@ -3,6 +3,7 @@ package client.net.sf.saxon.ce.trace;
 import client.net.sf.saxon.ce.expr.parser.CodeInjector;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
 import client.net.sf.saxon.ce.om.StandardNames;
+import client.net.sf.saxon.ce.om.StructuredQName;
 
 /**
  * A Simple trace listener for XSLT that writes messages (by default) to the developer console
@@ -29,28 +30,22 @@ public class XSLTTraceListener extends AbstractTraceListener  {
      * trace events that are ignored by this trace listener.
      */
 
-    /*@Nullable*/ protected String tag(int construct) {
+    /*@Nullable*/ protected String tag(StructuredQName construct) {
         return tagName(construct);
     }
 
-    public static String tagName(int construct) {
-        if (construct < 1024) {
-            return StandardNames.getDisplayName(construct);
+    public static String tagName(StructuredQName construct) {
+        if (construct.equals(Location.LITERAL_RESULT_ELEMENT)) {
+            return "LRE";
+        } else if (construct.equals(Location.LITERAL_RESULT_ATTRIBUTE)) {
+            return "ATTR";
+        } else if (construct.equals(Location.LET_EXPRESSION)) {
+            return "xsl:variable";
+        } else if (construct.equals(Location.TRACE_CALL)) {
+            return "user-trace";
+        } else {
+            return construct.getDisplayName();
         }
-        switch (construct) {
-            case Location.LITERAL_RESULT_ELEMENT:
-                return "LRE";
-            case Location.LITERAL_RESULT_ATTRIBUTE:
-                return "ATTR";
-            case Location.LET_EXPRESSION:
-                return "xsl:variable";
-            case Location.EXTENSION_INSTRUCTION:
-                return "extension-instruction";
-            case Location.TRACE_CALL:
-                return "user-trace";
-            default:
-                return null;
-            }
     }
 
 }

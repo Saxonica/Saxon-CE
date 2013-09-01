@@ -129,7 +129,7 @@ public class TreeReceiver extends SequenceReceiver {
      * @param properties bit-significant properties of the element node
      */
 
-    public void startElement(int nameCode, int properties) throws XPathException {
+    public void startElement(StructuredQName nameCode, int properties) throws XPathException {
         if (inStartTag) {
             startContent();
         }
@@ -171,17 +171,18 @@ public class TreeReceiver extends SequenceReceiver {
     /**
      * Notify an attribute. Attributes are notified after the startElement event, and before any
      * children. Namespaces and attributes may be intermingled.
+     *
      * @param nameCode The name of the attribute, as held in the name pool
      * @throws IllegalStateException: attempt to output an attribute when there is no open element
      * start tag
      */
 
-    public void attribute(int nameCode, CharSequence value)
+    public void attribute(StructuredQName nameCode, CharSequence value)
             throws XPathException {
         boolean documentLevel = level==0 || isDocumentLevel[level-1];
         if (documentLevel || !inStartTag) {
             throw NoOpenStartTagException.makeNoOpenStartTagException(
-                    Type.ATTRIBUTE, getNamePool().getDisplayName(nameCode),
+                    Type.ATTRIBUTE, nameCode.getDisplayName(),
                     documentLevel);
         }
         nextReceiver.attribute(nameCode, value);

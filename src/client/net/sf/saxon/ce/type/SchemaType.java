@@ -16,13 +16,6 @@ package client.net.sf.saxon.ce.type;
 public interface SchemaType {
 
     /**
-     * Get the fingerprint of the name of this type
-     * @return the fingerprint. Returns an invented fingerprint for an anonymous type.
-     */
-
-    int getFingerprint();
-
-    /**
      * Get the display name of the type: that is, a lexical QName with an arbitrary prefix
      * @return a lexical QName identifying the type
      */

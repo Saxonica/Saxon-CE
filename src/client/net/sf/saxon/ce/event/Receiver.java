@@ -1,5 +1,6 @@
 package client.net.sf.saxon.ce.event;
 import client.net.sf.saxon.ce.om.NamespaceBinding;
+import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.XPathException;
 
 /**
@@ -62,10 +63,10 @@ public interface Receiver  {
      * Notify the start of an element
      * @param nameCode integer code identifying the name of the element within the name pool.
      * @param properties bit-significant properties of the element node. If there are no revelant
-* properties, zero is supplied. The definitions of the bits are in class {@link client.net.sf.saxon.ce.event.ReceiverOptions}
+     * properties, zero is supplied. The definitions of the bits are in class {@link ReceiverOptions}
      */
 
-    public void startElement(int nameCode, int properties)
+    public void startElement(StructuredQName nameCode, int properties)
             throws XPathException;
 
     /**
@@ -93,13 +94,14 @@ public interface Receiver  {
     /**
      * Notify an attribute. Attributes are notified after the startElement event, and before any
      * children. Namespaces and attributes may be intermingled.
-     * @param nameCode The name of the attribute, as held in the name pool
+     *
+     * @param nameCode The name of the attribute
      * @param value the string value of the attribute
      * @throws IllegalStateException: attempt to output an attribute when there is no open element
      * start tag
     */
 
-    public void attribute(int nameCode, CharSequence value)
+    public void attribute(StructuredQName nameCode, CharSequence value)
             throws XPathException;
 
     /**

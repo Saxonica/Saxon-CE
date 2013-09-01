@@ -4,10 +4,12 @@ import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.functions.StringFn;
 import client.net.sf.saxon.ce.om.Item;
-import client.net.sf.saxon.ce.tree.util.Orphan;
 import client.net.sf.saxon.ce.om.SequenceIterator;
-import client.net.sf.saxon.ce.tree.iter.SingletonIterator;
+import client.net.sf.saxon.ce.om.StructuredQName;
+import client.net.sf.saxon.ce.pattern.NodeTest;
 import client.net.sf.saxon.ce.trans.XPathException;
+import client.net.sf.saxon.ce.tree.iter.SingletonIterator;
+import client.net.sf.saxon.ce.tree.util.Orphan;
 import client.net.sf.saxon.ce.type.BuiltInAtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.TypeHierarchy;
@@ -205,9 +207,9 @@ public abstract class SimpleNodeConstructor extends Instruction {
         content = checkContent(content, context);
         final TypeHierarchy th = context.getConfiguration().getTypeHierarchy();
         Orphan o = new Orphan(context.getConfiguration());
-        o.setNodeKind((short)getItemType(th).getPrimitiveType());
+        o.setNodeKind(((NodeTest)getItemType(th)).getRequiredNodeKind());
         o.setStringValue(content);
-        o.setNameCode(evaluateNameCode(context));
+        o.setNodeName(evaluateNameCode(context));
         return o; 
     }
 
@@ -227,13 +229,14 @@ public abstract class SimpleNodeConstructor extends Instruction {
      * Run-time method to compute the name of the node being constructed. This is overridden
      * for nodes that have a name. The default implementation returns -1, which is suitable for
      * unnamed nodes such as comments
+     *
      * @param context the XPath dynamic evaluation context
      * @return the name pool nameCode identifying the name of the constructed node
      * @throws XPathException if any failure occurs
      */
 
-    public int evaluateNameCode(XPathContext context) throws XPathException {
-        return -1;
+    public StructuredQName evaluateNameCode(XPathContext context) throws XPathException {
+        return null;
     }
 
     public SequenceIterator iterate(XPathContext context) throws XPathException {

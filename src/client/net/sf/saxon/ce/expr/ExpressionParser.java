@@ -363,8 +363,8 @@ public class ExpressionParser {
                 case Token.CASTABLE_AS:
                     nextToken();
                     expect(Token.NAME);
-                    AtomicType at = getAtomicType(t.currentTokenValue);
-                    if (at.getFingerprint() == StandardNames.XS_ANY_ATOMIC_TYPE) {
+                    BuiltInAtomicType at = getAtomicType(t.currentTokenValue);
+                    if (at == BuiltInAtomicType.ANY_ATOMIC) {
                         grumble("No value is castable to xs:anyAtomicType", "XPST0080");
                     }
                     nextToken();
@@ -497,7 +497,7 @@ public class ExpressionParser {
 
     }
 
-    private Expression makeSingleTypeExpression(Expression lhs, int operator, AtomicType type, boolean allowEmpty)
+    private Expression makeSingleTypeExpression(Expression lhs, int operator, BuiltInAtomicType type, boolean allowEmpty)
     throws XPathException {
         switch (operator) {
             case Token.CASTABLE_AS:
@@ -665,7 +665,7 @@ public class ExpressionParser {
      * @throws XPathException if the QName is invalid or if no atomic type of that
      * name exists as a built-in type or a type in an imported schema
      */
-    private AtomicType getAtomicType(String qname) throws XPathException {
+    private BuiltInAtomicType getAtomicType(String qname) throws XPathException {
         String uri;
         String local;
         if (qname.startsWith("{")) {
@@ -700,24 +700,20 @@ public class ExpressionParser {
 //            }
 
         if (builtInNamespace) {
-            ItemType t = Type.getBuiltInItemType(uri, local);
+            BuiltInType t = BuiltInType.getSchemaType(local);
             if (t == null) {
                 grumble("Unknown atomic type " + qname, "XPST0051");
             }
             if (t instanceof BuiltInAtomicType) {
-                return (AtomicType)t;
+                return (BuiltInAtomicType)t;
             } else {
                 grumble("The type " + qname + " is not atomic", "XPST0051");
             }
         } else {
             if (NamespaceConstant.SCHEMA.equals(uri)) {
-                int fp = env.getNamePool().getFingerprint(uri, local);
-                if (fp == -1) {
-                    grumble("Unknown type " + qname, "XPST0051");
-                }
-                SchemaType st = env.getConfiguration().getSchemaType(fp);
-                if (st != null && st.isAtomicType()) {
-                    return (AtomicType)st;
+                BuiltInType st = BuiltInType.getSchemaType(local);
+                if (st instanceof BuiltInAtomicType) {
+                    return (BuiltInAtomicType)st;
                 } else {
                     grumble("Type (" + qname + ") is not a known atomic type", "XPST0051");
                     return null;
@@ -1275,8 +1271,8 @@ public class ExpressionParser {
         String typeName = t.currentTokenValue;
         boolean schemaDeclaration = (typeName.startsWith("schema-"));
         int primaryType = getSystemType(typeName);
-        int nameCode = -1;
-        int contentType;
+        StructuredQName nameCode = null;
+        StructuredQName contentType;
         boolean empty = false;
         nextToken();
         if (t.currentToken == Token.RPAR) {
@@ -1350,7 +1346,7 @@ public class ExpressionParser {
                         // Became an error as a result of XPath erratum XP.E7
                         grumble("Processing instruction name must be a valid NCName", "XPTY0004");
                     } else {
-                        nameCode = env.getNamePool().allocate("", "", piName);
+                        nameCode = new StructuredQName("", "", piName);
                     }
                 } else if (t.currentToken == Token.NAME) {
                     try {
@@ -1369,7 +1365,7 @@ public class ExpressionParser {
                 nextToken();
                 expect(Token.RPAR);
                 nextToken();
-                return new NameTest(Type.PROCESSING_INSTRUCTION, nameCode, env.getNamePool());
+                return new NameTest(Type.PROCESSING_INSTRUCTION, nameCode);
 
             case Type.ATTRIBUTE:
                 // drop through
@@ -1384,7 +1380,7 @@ public class ExpressionParser {
                         grumble("schema-element() and schema-attribute() must specify an actual name, not '*'");
                         return null;
                     }
-                    nameCode = -1;
+                    nameCode = null;
                 } else if (t.currentToken == Token.NAME) {
                     nodeName = t.currentTokenValue;
                     nameCode = makeNameCode(t.currentTokenValue, primaryType == Type.ELEMENT);
@@ -1395,7 +1391,7 @@ public class ExpressionParser {
                 nextToken();
                 if (t.currentToken == Token.RPAR) {
                     nextToken();
-                    if (nameCode == -1) {
+                    if (nameCode == null) {
                         // element(*) or attribute(*)
                         return NodeKindTest.makeNodeKindTest(primaryType);
                     } else {
@@ -1407,7 +1403,7 @@ public class ExpressionParser {
                                 grumble("There is no declaration for attribute @" + nodeName + " in an imported schema", "XPST0008");
                                 return null;
                             } else {
-                                nameTest = new NameTest(Type.ATTRIBUTE, nameCode, env.getNamePool());
+                                nameTest = new NameTest(Type.ATTRIBUTE, nameCode);
                                 return nameTest;
                             }
                         } else {
@@ -1418,7 +1414,7 @@ public class ExpressionParser {
                                 return null;
 
                             } else {
-                                nameTest = new NameTest(Type.ELEMENT, nameCode, env.getNamePool());
+                                nameTest = new NameTest(Type.ELEMENT, nameCode);
                                 return nameTest;
                             }
                         }
@@ -1429,50 +1425,47 @@ public class ExpressionParser {
                         return null;
                     }
                     nextToken();
-                    NodeTest result;
+                    NodeTest result = null;
                     if (t.currentToken == Token.STAR) {
                         grumble("'*' is not permitted as the second argument of element() and attribute()");
                         return null;
                     } else if (t.currentToken == Token.NAME) {
-                        SchemaType schemaType;
-                        contentType = makeNameCode(t.currentTokenValue, true) & NamePool.FP_MASK;
-                        schemaType = env.getConfiguration().getSchemaType(contentType);
+                        BuiltInType schemaType;
+                        contentType = makeNameCode(t.currentTokenValue, true);
+                        schemaType = null;
+                        if (contentType.getNamespaceURI().equals(NamespaceConstant.SCHEMA)) {
+                            schemaType = BuiltInType.getSchemaType(contentType.getLocalName());
+                        }
                         if (schemaType == null) {
                             grumble("Type " + t.currentTokenValue + " is not a known type", "XPST0008");
                             return null;
-                        } else if (primaryType == Type.ATTRIBUTE && !schemaType.isAtomicType()) {
+                        } else if (primaryType == Type.ATTRIBUTE && !(schemaType instanceof BuiltInAtomicType)) {
                             warning("An attribute must have an atomic type");
                         }
-                        ContentTypeTest typeTest = new ContentTypeTest(primaryType, schemaType, env.getConfiguration());
-                        if (nameCode == -1) {
-                            // this represents element(*,T) or attribute(*,T)
-                            result = typeTest;
-                            if (primaryType == Type.ATTRIBUTE) {
-                                nextToken();
-                            } else {
-                                // assert (primaryType == Type.ELEMENT);
-                                nextToken();
-                                if (t.currentToken == Token.QMARK) {
-                                     typeTest.setNillable(true);
-                                     nextToken();
-                                }
+                        // Because this is a basic processor, elements are always untyped, and attributes are always
+                        // untyped atomic. Other names may legally appear in the syntax, but their effect is that
+                        // the nodetest will never match anything. Conversely, if these names appear as the required
+                        // type, they can be ignored.
+
+                        if (primaryType == Type.ATTRIBUTE) {
+                            nextToken();
+                            if (schemaType != BuiltInAtomicType.UNTYPED_ATOMIC &&
+                                    schemaType != BuiltInAtomicType.ANY_ATOMIC &&
+                                    schemaType != AnyType.getInstance()) {
+                                result = EmptySequenceTest.getInstance();
                             }
                         } else {
-                            if (primaryType == Type.ATTRIBUTE) {
-                                NodeTest nameTest = new NameTest(Type.ATTRIBUTE, nameCode, env.getNamePool());
-                                result = new CombinedNodeTest(nameTest, Token.INTERSECT, typeTest);
-                                nextToken();
-                            } else {
-                                // assert (primaryType == Type.ELEMENT);
-                                NodeTest nameTest = new NameTest(Type.ELEMENT, nameCode, env.getNamePool());
-                                result = new CombinedNodeTest(nameTest, Token.INTERSECT, typeTest);
-                                nextToken();
-                                if (t.currentToken == Token.QMARK) {
-                                     typeTest.setNillable(true);
-                                     nextToken();
-                                }
+                            // assert (primaryType == Type.ELEMENT);
+                            nextToken();
+                            if (t.currentToken == Token.QMARK) {
+                                 // ignore nillability
+                                 nextToken();
+                            }
+                            if (schemaType != Untyped.getInstance() && schemaType != AnyType.getInstance()) {
+                                result = EmptySequenceTest.getInstance();
                             }
                         }
+
                     } else {
                         grumble("Unexpected " + Token.tokens[t.currentToken] + " after ',' in SequenceType");
                         return null;
@@ -1593,7 +1586,7 @@ public class ExpressionParser {
                 arguments[0] instanceof StringLiteral) {
             try {
                 AtomicValue av = CastExpression.castStringToQName(((StringLiteral)arguments[0]).getStringValue(),
-                        (AtomicType)fcall.getItemType(env.getConfiguration().getTypeHierarchy()),
+                        (BuiltInAtomicType)fcall.getItemType(env.getConfiguration().getTypeHierarchy()),
                         env);
                 return new Literal(av);
             } catch (XPathException e) {
@@ -1715,29 +1708,29 @@ public class ExpressionParser {
      *     name pool
      */
 
-    public final int makeNameCode(String qname, boolean useDefault) throws XPathException {
+    public final StructuredQName makeNameCode(String qname, boolean useDefault) throws XPathException {
         try {
             String[] parts = NameChecker.getQNameParts(qname);
             String prefix = parts[0];
             if (prefix.length() == 0) {
                 if (useDefault) {
                     String uri = env.getDefaultElementNamespace();
-                    return env.getNamePool().allocate("", uri, qname);
+                    return new StructuredQName("", uri, qname);
                 } else {
-                    return env.getNamePool().allocate("", "", qname);
+                    return new StructuredQName("", "", qname);
                 }
             } else {
                 try {
                     String uri = env.getURIForPrefix(prefix);
-                    return env.getNamePool().allocate(prefix, uri, parts[1]);
+                    return new StructuredQName(prefix, uri, parts[1]);
                 } catch (XPathException err) {
                     grumble(err.getMessage(), err.getErrorCodeQName());
-                    return -1;
+                    return null;
                 }
             }
         } catch (QNameException e) {
             grumble(e.getMessage());
-            return -1;
+            return null;
         }
     }
 
@@ -1797,8 +1790,8 @@ public class ExpressionParser {
 
 	public NameTest makeNameTest(short nodeType, String qname, boolean useDefault)
 		    throws XPathException {
-        int nameCode = makeNameCode(qname, useDefault);
-		return new NameTest(nodeType, nameCode, env.getNamePool());
+        StructuredQName nameCode = makeNameCode(qname, useDefault);
+		return new NameTest(nodeType, nameCode);
 	}
 
 	/**
@@ -1823,7 +1816,7 @@ public class ExpressionParser {
             return null;
         }
 
-        return new NamespaceTest(env.getNamePool(), nodeType, uri);
+        return new NamespaceTest(nodeType, uri);
 
     }
 
@@ -1842,7 +1835,7 @@ public class ExpressionParser {
         if (!NameChecker.isValidNCName(localName)) {
             grumble("Local name [" + localName + "] contains invalid characters");
         }
-		return new LocalNameTest(env.getNamePool(), nodeType, localName);
+		return new LocalNameTest(nodeType, localName);
     }
 
     /**

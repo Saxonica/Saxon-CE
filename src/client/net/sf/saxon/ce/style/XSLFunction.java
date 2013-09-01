@@ -13,12 +13,11 @@ import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.AxisIterator;
 import client.net.sf.saxon.ce.value.SequenceType;
 import client.net.sf.saxon.ce.value.Whitespace;
+import com.google.gwt.logging.client.LogConfiguration;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-
-import com.google.gwt.logging.client.LogConfiguration;
 
 /**
 * Handler for xsl:function elements in stylesheet (XSLT 2.0). <BR>
@@ -67,8 +66,8 @@ public class XSLFunction extends StyleElement implements StylesheetProcedure {
 		AttributeCollection atts = getAttributeList();
         overrideAtt = "yes";
     	for (int a=0; a<atts.getLength(); a++) {
-			int nc = atts.getNameCode(a);
-			String f = getNamePool().getClarkName(nc);
+            StructuredQName qn = atts.getStructuredQName(a);
+            String f = qn.getClarkName();
             if (f.equals(StandardNames.NAME)) {
 				nameAtt = Whitespace.trim(atts.getValue(a));
 				if (nameAtt.indexOf(':')<0) {
@@ -94,7 +93,7 @@ public class XSLFunction extends StyleElement implements StylesheetProcedure {
                     compileError("override must be 'yes' or 'no'", "XTSE0020");
                 }
         	} else {
-        		checkUnknownAttribute(nc);
+        		checkUnknownAttribute(qn);
         	}
         }
 
@@ -241,7 +240,7 @@ public class XSLFunction extends StyleElement implements StylesheetProcedure {
         
         if (LogConfiguration.loggingIsEnabled() && LogController.traceIsEnabled()) { 
             TraceExpression trace = new TraceExpression(exp);
-            trace.setConstructType(StandardNames.XSL_FUNCTION);
+            trace.setConstructType(getNodeName());
             trace.setObjectName(getObjectName());
             exp = trace;        	
         }

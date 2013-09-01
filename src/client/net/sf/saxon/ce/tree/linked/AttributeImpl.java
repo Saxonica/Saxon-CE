@@ -2,6 +2,7 @@ package client.net.sf.saxon.ce.tree.linked;
 import client.net.sf.saxon.ce.event.Receiver;
 import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.om.StandardNames;
+import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
 import client.net.sf.saxon.ce.type.Type;
@@ -35,16 +36,16 @@ final class AttributeImpl extends NodeImpl {
     }
 
 	/**
-	* Get the name code, which enables the name to be located in the name pool
+	* Get the name of the node
 	*/
 
-	public int getNameCode() {
+    public StructuredQName getNodeName() {
         if (getRawParent() == null || getSiblingPosition() == -1) {
             // implies this node is deleted
-            return -1;
+            return null;
         }
-        return ((ElementImpl)getRawParent()).getAttributeList().getNameCode(getSiblingPosition());
-	}
+        return ((ElementImpl)getRawParent()).getAttributeList().getStructuredQName(getSiblingPosition());
+    }
 
     /**
      * Get the type annotation of this node, if any
@@ -162,8 +163,8 @@ final class AttributeImpl extends NodeImpl {
     */
 
     public void copy(Receiver out, int copyOptions) throws XPathException {
-		int nameCode = getNameCode();
-        out.attribute(nameCode, getStringValue());
+		StructuredQName name = getNodeName();
+        out.attribute(name, getStringValue());
     }
 
 }

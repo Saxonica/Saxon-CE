@@ -1,7 +1,6 @@
 package client.net.sf.saxon.ce.expr.sort;
 import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.lib.StringCollator;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.value.AtomicValue;
 import client.net.sf.saxon.ce.value.StringValue;
 
@@ -97,18 +96,6 @@ public class CodepointCollatingComparer implements AtomicComparer {
         StringValue as = (StringValue)a;
         StringValue bs = (StringValue)b;
         return as.codepointEquals(bs);
-    }
-
-    /**
-    * Get a comparison key for an object. This must satisfy the rule that if two objects are equal
-    * under the XPath eq operator, then their comparison keys are equal under the Java equals()
-    * function, and vice versa. There is no requirement that the
-    * comparison keys should reflect the ordering of the underlying objects.
-    */
-
-    public ComparisonKey getComparisonKey(AtomicValue a) {
-        StringValue as = (StringValue)a;
-        return new ComparisonKey(StandardNames.XS_STRING, as.getStringValue());
     }
 
 

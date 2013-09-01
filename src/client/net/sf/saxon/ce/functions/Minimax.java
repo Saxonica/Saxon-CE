@@ -7,7 +7,6 @@ import client.net.sf.saxon.ce.expr.sort.GenericAtomicComparer;
 import client.net.sf.saxon.ce.lib.StringCollator;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.SequenceIterator;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.trans.Err;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.*;
@@ -117,7 +116,7 @@ public class Minimax extends CollatingFunction {
 
     public ItemType getItemType(TypeHierarchy th) {
         ItemType t = Atomizer.getAtomizedItemType(argument[0], false, th);
-        if (t.getPrimitiveType() == StandardNames.XS_UNTYPED_ATOMIC) {
+        if (t == BuiltInAtomicType.UNTYPED_ATOMIC) {
             return BuiltInAtomicType.DOUBLE;
         } else {
             return t;
@@ -231,7 +230,7 @@ public class Minimax extends CollatingFunction {
             }
         }
 
-        AtomicType lowestCommonSuperType = min.getPrimitiveType();
+        BuiltInAtomicType lowestCommonSuperType = min.getPrimitiveType();
 
         while (true) {
             AtomicValue test = (AtomicValue)iter.next();
@@ -264,7 +263,7 @@ public class Minimax extends CollatingFunction {
                     foundFloat = true;
                 }
             }
-            lowestCommonSuperType = (AtomicType)Type.getCommonSuperType(
+            lowestCommonSuperType = (BuiltInAtomicType)Type.getCommonSuperType(
                     lowestCommonSuperType, prim.getPrimitiveType(), th);
             if (prim.isNaN()) {
                 // if there's a double NaN in the sequence, return NaN, unless ignoreNaN is set

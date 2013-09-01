@@ -1,9 +1,7 @@
 package client.net.sf.saxon.ce.value;
 
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
-import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.BuiltInAtomicType;
 import client.net.sf.saxon.ce.type.ConversionResult;
 import client.net.sf.saxon.ce.type.ValidationFailure;
@@ -39,7 +37,7 @@ public class GYearValue extends GDateValue {
         this(year, tz, BuiltInAtomicType.G_YEAR);
     }
 
-    public GYearValue(int year, int tz, AtomicType type) {
+    public GYearValue(int year, int tz, BuiltInAtomicType type) {
         this.year = year;
         this.month = 1;
         this.day = 1;
@@ -75,18 +73,15 @@ public class GYearValue extends GDateValue {
     */
 
     public ConversionResult convertPrimitive(BuiltInAtomicType requiredType, boolean validate)  {
-        switch(requiredType.getPrimitiveType()) {
-        case StandardNames.XS_G_YEAR:
-        case StandardNames.XS_ANY_ATOMIC_TYPE:
+        if (requiredType == BuiltInAtomicType.ANY_ATOMIC || requiredType == BuiltInAtomicType.G_YEAR) {
             return this;
-
-        case StandardNames.XS_STRING:
-            return new StringValue(getStringValueCS());
-        case StandardNames.XS_UNTYPED_ATOMIC:
+        } else if (requiredType == BuiltInAtomicType.UNTYPED_ATOMIC) {
             return new UntypedAtomicValue(getStringValueCS());
-        default:
+        } else if (requiredType == BuiltInAtomicType.STRING) {
+            return new StringValue(getStringValueCS());
+        } else {
             ValidationFailure err = new ValidationFailure("Cannot convert gYear to " +
-                                     requiredType.getDisplayName());
+                    requiredType.getDisplayName());
             err.setErrorCode("XPTY0004");
             return err;
         }

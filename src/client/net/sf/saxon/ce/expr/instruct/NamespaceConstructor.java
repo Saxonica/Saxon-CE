@@ -1,6 +1,5 @@
 package client.net.sf.saxon.ce.expr.instruct;
 
-import client.net.sf.saxon.ce.Controller;
 import client.net.sf.saxon.ce.event.ReceiverOptions;
 import client.net.sf.saxon.ce.event.SequenceReceiver;
 import client.net.sf.saxon.ce.expr.*;
@@ -110,13 +109,12 @@ public class NamespaceConstructor extends SimpleNodeConstructor {
         return prefix;
     }
 
-    public int evaluateNameCode(XPathContext context) throws XPathException {
+    public StructuredQName evaluateNameCode(XPathContext context) throws XPathException {
         String prefix = evaluatePrefix(context);
-        return context.getNamePool().allocate("", "", prefix);
+        return new StructuredQName("", "", prefix);
     }
 
     public void processValue(CharSequence value, XPathContext context) throws XPathException {
-        Controller controller = context.getController();
         String prefix = evaluatePrefix(context);
         String uri = value.toString();
         checkPrefixAndUri(prefix, uri, context);

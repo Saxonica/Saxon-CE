@@ -1,8 +1,9 @@
 package client.net.sf.saxon.ce.value;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
-import client.net.sf.saxon.ce.type.*;
+import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.ConversionResult;
+import client.net.sf.saxon.ce.type.ValidationFailure;
 
 import java.math.BigDecimal;
 
@@ -39,7 +40,7 @@ public final class FloatValue extends NumericValue {
      * value must conform to this type. The method does not check these conditions.
      */
 
-    public FloatValue(float value, AtomicType type) {
+    public FloatValue(float value, BuiltInAtomicType type) {
         this.value = value;
         typeLabel = type;
     }
@@ -103,40 +104,39 @@ public final class FloatValue extends NumericValue {
     */
 
     public ConversionResult convertPrimitive(BuiltInAtomicType requiredType, boolean validate) {
-        switch(requiredType.getFingerprint()) {
-        case StandardNames.XS_BOOLEAN:
-            return BooleanValue.get(value!=0.0 && !Float.isNaN(value));
-        case StandardNames.XS_FLOAT:
-        case StandardNames.XS_NUMERIC:
-        case StandardNames.XS_ANY_ATOMIC_TYPE:
+        if (requiredType == BuiltInAtomicType.ANY_ATOMIC ||
+                requiredType == BuiltInAtomicType.NUMERIC ||
+                requiredType == BuiltInAtomicType.FLOAT) {
             return this;
-        case StandardNames.XS_INTEGER:
+        } else if (requiredType == BuiltInAtomicType.BOOLEAN) {
+            return BooleanValue.get(effectiveBooleanValue());
+        } else if (requiredType == BuiltInAtomicType.INTEGER) {
             if (Float.isNaN(value)) {
                 ValidationFailure err = new ValidationFailure("Cannot convert float NaN to an integer");
                 err.setErrorCode("FOCA0002");
                 return err;
             }
             if (Float.isInfinite(value)) {
-                ValidationFailure err = new ValidationFailure("Cannot convert float infinity to an integer");
+                ValidationFailure err = new ValidationFailure("Cannot convert float INF to an integer");
                 err.setErrorCode("FOCA0002");
                 return err;
             }
             return IntegerValue.decimalToInteger(new BigDecimal(value));
-        case StandardNames.XS_DECIMAL:
+        } else if (requiredType == BuiltInAtomicType.DECIMAL) {
             try {
                 return new DecimalValue(value);
             } catch (XPathException e) {
                 return new ValidationFailure(e);
             }
-        case StandardNames.XS_DOUBLE:
-            return new DoubleValue((double)value);
-        case StandardNames.XS_STRING:
+        } else if (requiredType == BuiltInAtomicType.DOUBLE) {
+            return new DoubleValue(value);
+        } else if (requiredType == BuiltInAtomicType.STRING) {
             return new StringValue(getStringValueCS());
-        case StandardNames.XS_UNTYPED_ATOMIC:
+        } else if (requiredType == BuiltInAtomicType.UNTYPED_ATOMIC) {
             return new UntypedAtomicValue(getStringValueCS());
-        default:
+        } else {
             ValidationFailure err = new ValidationFailure("Cannot convert float to " +
-                                     requiredType.getDisplayName());
+                    requiredType.getDisplayName());
             err.setErrorCode("XPTY0004");
             return err;
         }

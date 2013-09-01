@@ -1,11 +1,10 @@
 package client.net.sf.saxon.ce.style;
 
-import com.google.gwt.logging.client.LogConfiguration;
-
 import client.net.sf.saxon.ce.LogController;
 import client.net.sf.saxon.ce.expr.*;
-import client.net.sf.saxon.ce.expr.instruct.*;
-import client.net.sf.saxon.ce.lib.NamespaceConstant;
+import client.net.sf.saxon.ce.expr.instruct.Executable;
+import client.net.sf.saxon.ce.expr.instruct.SlotManager;
+import client.net.sf.saxon.ce.expr.instruct.Template;
 import client.net.sf.saxon.ce.om.*;
 import client.net.sf.saxon.ce.pattern.EmptySequenceTest;
 import client.net.sf.saxon.ce.pattern.Pattern;
@@ -13,12 +12,13 @@ import client.net.sf.saxon.ce.trans.Mode;
 import client.net.sf.saxon.ce.trans.RuleManager;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.AxisIterator;
+import client.net.sf.saxon.ce.tree.util.StringTokenizer;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.value.DecimalValue;
 import client.net.sf.saxon.ce.value.SequenceType;
 import client.net.sf.saxon.ce.value.Whitespace;
-import client.net.sf.saxon.ce.tree.util.StringTokenizer;
+import com.google.gwt.logging.client.LogConfiguration;
 /**
 * An xsl:template element in the style sheet.
 */
@@ -120,8 +120,8 @@ public final class XSLTemplate extends StyleElement implements StylesheetProcedu
 		AttributeCollection atts = getAttributeList();
 
 		for (int a=0; a<atts.getLength(); a++) {
-			int nc = atts.getNameCode(a);
-			String f = getNamePool().getClarkName(nc);
+            StructuredQName qn = atts.getStructuredQName(a);
+            String f = qn.getClarkName();
 			if (f.equals(StandardNames.MODE)) {
         		modeAtt = Whitespace.trim(atts.getValue(a));
 			} else if (f.equals(StandardNames.NAME)) {
@@ -137,7 +137,7 @@ public final class XSLTemplate extends StyleElement implements StylesheetProcedu
         	} else if (f.equals(StandardNames.IXSL_EVENT_PROPERTY)) {
         		ixslEventProperty = atts.getValue(a);
         	} else {
-        		checkUnknownAttribute(nc);
+        		checkUnknownAttribute(qn);
         	}
         }
         try {

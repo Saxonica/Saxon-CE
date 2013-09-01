@@ -22,12 +22,11 @@ import client.net.sf.saxon.ce.type.*;
 import client.net.sf.saxon.ce.value.DecimalValue;
 import client.net.sf.saxon.ce.value.SequenceType;
 import client.net.sf.saxon.ce.value.Whitespace;
+import com.google.gwt.logging.client.LogConfiguration;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-
-import com.google.gwt.logging.client.LogConfiguration;
 /**
  * Abstract superclass for all element nodes in the stylesheet.
  * <p>Note: this class implements Locator. The element retains information about its own location
@@ -132,7 +131,7 @@ public abstract class StyleElement extends ElementImpl
         setRawParent(temp.getRawParent());
         setAttributeList(temp.getAttributeList());
         setNamespaceList(temp.getNamespaceList());
-        setNameCode(temp.getNameCode());
+        setNodeName(temp.getNodeName());
         setRawSequenceNumber(temp.getRawSequenceNumber());
         extensionNamespaces = temp.extensionNamespaces;
         excludedNamespaces = temp.excludedNamespaces;
@@ -378,16 +377,16 @@ public abstract class StyleElement extends ElementImpl
      *                        that is not permitted on the containing element
      */
 
-    protected void checkUnknownAttribute(int nc) throws XPathException {
+    protected void checkUnknownAttribute(StructuredQName nc) throws XPathException {
 
         if (forwardsCompatibleModeIsEnabled()) {
             // then unknown attributes are permitted and ignored
             return;
         }
 
-        String attributeURI = getNamePool().getURI(nc);
+        String attributeURI = nc.getNamespaceURI();
         String elementURI = getURI();
-        String localName = getNamePool().getLocalName(nc);
+        String localName = nc.getLocalName();
 
         if ((localName.equals(StandardNames.DEFAULT_COLLATION) ||
                         localName.equals(StandardNames.XPATH_DEFAULT_NAMESPACE) ||
@@ -405,7 +404,7 @@ public abstract class StyleElement extends ElementImpl
         }
 
         if ("".equals(attributeURI) || NamespaceConstant.XSLT.equals(attributeURI)) {
-            compileError("Attribute " + Err.wrap(getNamePool().getDisplayName(nc), Err.ATTRIBUTE) +
+            compileError("Attribute " + Err.wrap(nc.getDisplayName(), Err.ATTRIBUTE) +
                     " is not allowed on element " + Err.wrap(getDisplayName(), Err.ELEMENT), "XTSE0090");
         }
     }
@@ -893,7 +892,7 @@ public abstract class StyleElement extends ElementImpl
             if (LogConfiguration.loggingIsEnabled() && LogController.traceIsEnabled()) {
             	CodeInjector injector = ((XSLTTraceListener)LogController.getTraceListener()).getCodeInjector();
             	String name = "";
-            	exp = injector.inject(exp, getStaticContext(), Location.XPATH_IN_XSLT, new StructuredQName("", "", name));
+            	exp = injector.inject(exp, getStaticContext(), new StructuredQName("xsl", NamespaceConstant.XSLT, "text"), new StructuredQName("", "", name));
             }
             return exp;
         } catch (XPathException err) {
@@ -1275,7 +1274,8 @@ public abstract class StyleElement extends ElementImpl
                     text.setSourceLocator(this);
                     if (LogConfiguration.loggingIsEnabled() && LogController.traceIsEnabled()) {
                     	CodeInjector injector = ((XSLTTraceListener)LogController.getTraceListener()).getCodeInjector();
-                        Expression tracer = injector.inject(text, getStaticContext(), StandardNames.XSL_TEXT, null);
+                        Expression tracer = injector.inject(
+                                text, getStaticContext(), new StructuredQName("xsl", NamespaceConstant.XSLT, "text"), null);
                         tracer.setSourceLocator(this);
                         if (tracer instanceof Instruction) {
                         	text = (Instruction)tracer;
@@ -1363,11 +1363,11 @@ public abstract class StyleElement extends ElementImpl
 		}
         CodeInjector injector = ((XSLTTraceListener)LogController.getTraceListener()).getCodeInjector();
 
-        int construct = source.getFingerprint();
+        StructuredQName construct = source.getNodeName();
         StructuredQName qName;
         if (source instanceof LiteralResultElement) {
             construct = Location.LITERAL_RESULT_ELEMENT;
-            qName = source.getNamePool().getStructuredQName(source.getNameCode());
+            qName = source.getNodeName();
         } else {
         	qName = source.getObjectName();
         }
@@ -1778,16 +1778,15 @@ public abstract class StyleElement extends ElementImpl
      * method to retrieve the value of the property.
      */
 
-    public Iterator getProperties() {
-        NamePool pool = getNamePool();
-        List list = new ArrayList(10);
+    public Iterator<String> getProperties() {
+        List<String> list = new ArrayList<String>(10);
         AxisIterator it = iterateAxis(Axis.ATTRIBUTE);
         while (true) {
             NodeInfo a = (NodeInfo)it.next();
             if (a == null) {
                 break;
             }
-            list.add(pool.getClarkName(a.getNameCode()));
+            list.add(a.getNodeName().getClarkName());
         }
         return list.iterator();
     }

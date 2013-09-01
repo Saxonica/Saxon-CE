@@ -1,10 +1,6 @@
 package client.net.sf.saxon.ce.trace;
 
 //import java.io.PrintStream;
-import java.util.Iterator;
-import java.util.logging.Logger;
-
-import client.net.sf.saxon.ce.Controller;
 import client.net.sf.saxon.ce.Version;
 import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.expr.parser.CodeInjector;
@@ -13,11 +9,13 @@ import client.net.sf.saxon.ce.lib.StandardErrorListener;
 import client.net.sf.saxon.ce.lib.TraceListener;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.NodeInfo;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
 import client.net.sf.saxon.ce.tree.util.Navigator;
 import client.net.sf.saxon.ce.value.Whitespace;
+
+import java.util.Iterator;
+import java.util.logging.Logger;
 
 /**
  * This is the standard trace listener equivalent to that used when the -T option is specified on the command line.
@@ -77,7 +75,7 @@ public abstract class AbstractTraceListener implements TraceListener {
      */
     
     public void enterChooseItem(String test) {
-    	if (test == "") {
+    	if (test.isEmpty()) {
     		logger.finest(AbstractTraceListener.spaces(indent) + "<xsl:otherwise>");
     	} else {
     		logger.finest(AbstractTraceListener.spaces(indent) + "<xsl:when test=\"" + escape(test) + "\">");
@@ -86,7 +84,7 @@ public abstract class AbstractTraceListener implements TraceListener {
     }
     
     public void leaveChooseItem(String test) {
-    	if (test == "") {
+    	if (test.isEmpty()) {
     		logger.finest(AbstractTraceListener.spaces(indent) + "</xsl:otherwise>");
     	} else {
     		logger.finest(AbstractTraceListener.spaces(indent) + "</xsl:when>");
@@ -97,7 +95,7 @@ public abstract class AbstractTraceListener implements TraceListener {
     private static String prevModule = "";
 
     public void enter(/*@NotNull*/ InstructionInfo info, XPathContext context) {
-        int infotype = info.getConstructType();
+        StructuredQName infotype = info.getConstructType();
         StructuredQName qName = info.getObjectName();
         String tag = tag(infotype);
         if (tag==null) {
@@ -181,7 +179,7 @@ public abstract class AbstractTraceListener implements TraceListener {
      */
 
     public void leave(/*@NotNull*/ InstructionInfo info) {
-        int infotype = info.getConstructType();
+        StructuredQName infotype = info.getConstructType();
         String tag = tag(infotype);
         if (tag==null) {
             // this TraceListener ignores some events to reduce the volume of output
@@ -191,7 +189,7 @@ public abstract class AbstractTraceListener implements TraceListener {
       	logger.finest(AbstractTraceListener.spaces(indent) + "</" + tag + '>');
     }
 
-    protected abstract String tag(int construct);
+    protected abstract String tag(StructuredQName construct);
 
     /**
     * Called when an item becomes the context item
@@ -232,22 +230,6 @@ public abstract class AbstractTraceListener implements TraceListener {
         return spaceBuffer.substring(0, n);
     }
 
-    /**
-     * Set the output destination (default is System.err)
-     * @param stream the output destination for tracing output
-     */
-
-//    public void setOutputDestination(PrintStream stream) {
-//        out = stream;
-//    }
-
-    /**
-     * Get the output destination
-     */
-
-//    public PrintStream getOutputDestination() {
-//        return out;
-//    }
 }
 
 // This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. 

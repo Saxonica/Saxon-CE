@@ -59,14 +59,6 @@ public interface AtomicComparer {
 
     public boolean comparesEqual(AtomicValue a, AtomicValue b) throws NoDynamicContextException;
 
-    /**
-     * Get a comparison key for an object. This must satisfy the rule that if two objects are equal
-     * according to the XPath eq operator, then their comparison keys are equal according to the Java
-     * equals() method, and vice versa. There is no requirement that the
-     * comparison keys should reflect the ordering of the underlying objects.
-     */
-
-    public ComparisonKey getComparisonKey(AtomicValue a) throws NoDynamicContextException;
 }
 
 

@@ -1,5 +1,6 @@
 package client.net.sf.saxon.ce.pattern;
 import client.net.sf.saxon.ce.om.Axis;
+import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.tree.iter.AxisIterator;
 import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.om.NamePool;
@@ -24,11 +25,11 @@ public class DocumentNodeTest extends NodeTest {
 
     /**
     * Test whether this node test is satisfied by a given node
-    * @param nodeKind The type of node to be matched
-     * @param fingerprint identifies the expanded name of the node to be matched
+     * @param nodeKind The type of node to be matched
+      * @param fingerprint identifies the expanded name of the node to be matched
      */
 
-    public boolean matches(int nodeKind, int fingerprint, int annotation) {
+    public boolean matches(int nodeKind, StructuredQName fingerprint, int annotation) {
         throw new UnsupportedOperationException("DocumentNodeTest doesn't support this method");
     }
 
@@ -81,7 +82,7 @@ public class DocumentNodeTest extends NodeTest {
     * @return the type of node matched by this pattern. e.g. Type.ELEMENT or Type.TEXT
     */
 
-    public int getPrimitiveType() {
+    public int getRequiredNodeKind() {
         return Type.DOCUMENT;
     }
 

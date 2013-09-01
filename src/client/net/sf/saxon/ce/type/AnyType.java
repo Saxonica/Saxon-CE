@@ -9,7 +9,7 @@ import client.net.sf.saxon.ce.om.StandardNames;
  * See XML Schema 1.1 Part 1 section 3.4.7
  */
 
-public final class AnyType implements SchemaType {
+public final class AnyType extends BuiltInType implements SchemaType {
 
     private static AnyType theInstance = new AnyType();
 

@@ -4,11 +4,8 @@ import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.js.JSObjectValue;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.NamePool;
-import client.net.sf.saxon.ce.type.AnyItemType;
-import client.net.sf.saxon.ce.type.AtomicType;
-import client.net.sf.saxon.ce.type.ItemType;
-import client.net.sf.saxon.ce.type.Type;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
+import client.net.sf.saxon.ce.om.StructuredQName;
+import client.net.sf.saxon.ce.type.*;
 
 public class AnyJSObjectNodeTest extends NodeTest {
 
@@ -34,7 +31,7 @@ public class AnyJSObjectNodeTest extends NodeTest {
         return AnyItemType.getInstance();
     }
 
-    public int getPrimitiveType() {
+    public int getRequiredNodeKind() {
         return Type.ITEM;
     }
 
@@ -42,7 +39,7 @@ public class AnyJSObjectNodeTest extends NodeTest {
         return "JavaScriptObject";
     }
 
-    public AtomicType getAtomizedItemType() {
+    public BuiltInAtomicType getAtomizedItemType() {
         return null;
     }
 
@@ -52,7 +49,7 @@ public class AnyJSObjectNodeTest extends NodeTest {
 	}
 
 	@Override
-	public boolean matches(int nodeKind, int fingerprint, int annotation) {
+	public boolean matches(int nodeKind, StructuredQName fingerprint, int annotation) {
         // not yet used for matching
 		return false;
 	}

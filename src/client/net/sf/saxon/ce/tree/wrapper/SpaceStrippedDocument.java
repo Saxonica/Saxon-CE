@@ -64,14 +64,6 @@ public class SpaceStrippedDocument extends SpaceStrippedNode implements Document
     }
 
 	/**
-	* Get the name pool used for the names in this document
-	*/
-
-	public NamePool getNamePool() {
-	    return node.getNamePool();
-	}
-
-	/**
 	* Get the unique document number
 	*/
 

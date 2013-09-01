@@ -1,7 +1,7 @@
 package client.net.sf.saxon.ce.event;
 
 
-import client.net.sf.saxon.ce.dom.HTMLWriter;
+import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.Controller;
 
@@ -40,7 +40,7 @@ public class ImplicitResultChecker extends ProxyReceiver {
         nextReceiver.startDocument();
     }
 
-    public void startElement(int nameCode, int properties) throws XPathException {
+    public void startElement(StructuredQName nameCode, int properties) throws XPathException {
         if (clean) {
             firstContent();
         }

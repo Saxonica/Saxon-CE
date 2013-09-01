@@ -1,13 +1,12 @@
 package client.net.sf.saxon.ce.value;
 
+import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.expr.XPathContext;
-import client.net.sf.saxon.ce.lib.StringCollator;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.expr.sort.CodepointCollator;
+import client.net.sf.saxon.ce.lib.StringCollator;
 import client.net.sf.saxon.ce.trans.Err;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.*;
-import client.net.sf.saxon.ce.Configuration;
 
 /**
 * An Untyped Atomic value. This inherits from StringValue for implementation convenience, even
@@ -38,7 +37,7 @@ public class UntypedAtomicValue extends StringValue {
      *                  the value actually conforms to this type.
      */
 
-    public AtomicValue copyAsSubType(AtomicType typeLabel) {
+    public AtomicValue copyAsSubType(BuiltInAtomicType typeLabel) {
         UntypedAtomicValue v = new UntypedAtomicValue(value);
         v.noSurrogates = noSurrogates;
         v.doubleValue = doubleValue;
@@ -70,17 +69,16 @@ public class UntypedAtomicValue extends StringValue {
      */
 
     public ConversionResult convertPrimitive(BuiltInAtomicType requiredType, boolean validate) {
-        int req = requiredType.getFingerprint();
-        if (req== StandardNames.XS_STRING) {
+        if (requiredType == BuiltInAtomicType.STRING) {
             if (value.length() == 0) {
                 // this case is common!
                 return StringValue.EMPTY_STRING;
             } else {
                 return new StringValue(value);
             }
-        } else if (req== StandardNames.XS_UNTYPED_ATOMIC) {
+        } else if (requiredType == BuiltInAtomicType.UNTYPED_ATOMIC) {
             return this;
-        } else if (req== StandardNames.XS_DOUBLE || req== StandardNames.XS_NUMERIC) {
+        } else if (requiredType == BuiltInAtomicType.DOUBLE || requiredType == BuiltInAtomicType.NUMERIC) {
             // for conversion to double (common in 1.0 mode), cache the result
             try {
                 return toDouble();
@@ -143,7 +141,7 @@ public class UntypedAtomicValue extends StringValue {
             final Configuration config = context.getConfiguration();
             final TypeHierarchy th = config.getTypeHierarchy();
             ConversionResult result =
-                    convert((AtomicType)other.getItemType(th), true);
+                    convert((BuiltInAtomicType)other.getItemType(th), true);
             if (result instanceof ValidationFailure) {
                 throw new ClassCastException("Cannot convert untyped atomic value '" + getStringValue()
                         + "' to type " + other.getItemType(th));

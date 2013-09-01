@@ -1,12 +1,9 @@
 package client.net.sf.saxon.ce.functions;
-import client.net.sf.saxon.ce.expr.ExpressionVisitor;
+
 import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.lib.StringCollator;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.SequenceIterator;
-import client.net.sf.saxon.ce.expr.sort.AtomicComparer;
-import client.net.sf.saxon.ce.expr.sort.AtomicSortComparer;
-import client.net.sf.saxon.ce.expr.sort.ComparisonKey;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.value.AtomicValue;
 
@@ -22,64 +19,14 @@ public class DistinctValues extends CollatingFunction {
         return new DistinctValues();
     }
 
-    private transient AtomicComparer atomicComparer;
-
-    public void checkArguments(ExpressionVisitor visitor) throws XPathException {
-        super.checkArguments(visitor);
-        if (stringCollator != null) {
-            int type = argument[0].getItemType(visitor.getConfiguration().getTypeHierarchy()).getPrimitiveType();
-            atomicComparer = AtomicSortComparer.makeSortComparer(
-                    stringCollator, type, visitor.getStaticContext().makeEarlyEvaluationContext());
-        }
-    }
-
-    /**
-     * Get the AtomicComparer allocated at compile time.
-     * @return the AtomicComparer if one has been allocated at compile time; return null
-     * if the collation is not known until run-time
-     */
-
-    public AtomicComparer getAtomicComparer() {
-        return atomicComparer;
-    }
-
-    /**
-     * Get the AtomicComparer, creating it if it was not allocated at compile time.
-     * @return the AtomicComparer already allocated if one has been allocated at compile time; otherwise
-     * allocate one from knowledge of the collation at run-time
-     */
-
-    public AtomicComparer makeAtomicComparer(XPathContext context) throws XPathException {
-        AtomicComparer comp = atomicComparer;
-        if (comp == null) {
-            int type = argument[0].getItemType(context.getConfiguration().getTypeHierarchy()).getPrimitiveType();
-            comp = makeAtomicSortComparer(type, context);
-        } else {
-            comp = comp.provideContext(context);
-        }
-        return comp;
-    }
-
     /**
     * Evaluate the function to return an iteration of selected values or nodes.
     */
 
     public SequenceIterator iterate(XPathContext context) throws XPathException {
-        AtomicComparer comp = makeAtomicComparer(context);
+        StringCollator collator = getCollator(1, context);
         SequenceIterator iter = argument[0].iterate(context);
-        return new DistinctIterator(iter, comp);
-    }
-
-    /**
-     * Get a SortComparer that can be used to compare values
-     * @param type the fingerprint of the static item type of the first argument after atomization
-     * @param context The dynamic evaluation context.
-     * @return the comparer
-    */
-
-    private AtomicComparer makeAtomicSortComparer(int type, XPathContext context) throws XPathException {
-        final StringCollator collator = getCollator(1, context);
-        return AtomicSortComparer.makeSortComparer(collator, type, context);
+        return new DistinctIterator(iter, collator, context);
     }
 
     /**
@@ -89,21 +36,24 @@ public class DistinctValues extends CollatingFunction {
     public static class DistinctIterator implements SequenceIterator {
 
         private SequenceIterator base;
-        private AtomicComparer comparer;
+        private StringCollator collator;
+        private XPathContext context;
         private int position;
         private AtomicValue current;
-        private HashSet<ComparisonKey> lookup = new HashSet<ComparisonKey>(40);
+        private HashSet<Object> lookup = new HashSet<Object>(40);
 
         /**
          * Create an iterator over the distinct values in a sequence
          * @param base the input sequence. This must return atomic values only.
-         * @param comparer The comparer used to obtain comparison keys from each value;
+         * @param collator The collator used to obtain comparison keys from each value;
+         * @param context dynamic context (used e.g. for comparing dateTimes with no timezone)
          * these comparison keys are themselves compared using equals().
          */
 
-        public DistinctIterator(SequenceIterator base, AtomicComparer comparer) {
+        public DistinctIterator(SequenceIterator base, StringCollator collator, XPathContext context) {
             this.base = base;
-            this.comparer = comparer;
+            this.collator = collator;
+            this.context = context;
             position = 0;
         }
 
@@ -123,7 +73,12 @@ public class DistinctValues extends CollatingFunction {
                     position = -1;
                     return null;
                 }
-                ComparisonKey key = comparer.getComparisonKey(nextBase);
+                Object key;
+                if (nextBase.isNaN()) {
+                    key = DistinctValues.class;
+                } else {
+                    key = nextBase.getXPathComparable(false, collator, context);
+                }
                 if (lookup.add(key)) {
                     // returns true if newly added (if not, keep looking)
                     current = nextBase;
@@ -171,15 +126,14 @@ public class DistinctValues extends CollatingFunction {
          */
 
         public SequenceIterator getAnother() throws XPathException {
-            return new DistinctIterator(base.getAnother(), comparer);
+            return new DistinctIterator(base.getAnother(), collator, context);
         }
 
         /**
          * Get properties of this iterator, as a bit-significant integer.
          *
          * @return the properties of this iterator. This will be some combination of
-         *         properties such as {@link #GROUNDED}, {@link #LAST_POSITION_FINDER},
-         *         and {@link #LOOKAHEAD}. It is always
+         *         properties such as {@link #GROUNDED}, {@link #LAST_POSITION_FINDER}. It is always
          *         acceptable to return the value zero, indicating that there are no known special properties.
          *         It is acceptable for the properties of the iterator to change depending on its state.
          */

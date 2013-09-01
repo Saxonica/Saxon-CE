@@ -6,7 +6,6 @@ import client.net.sf.saxon.ce.pattern.NodeKindTest;
 import client.net.sf.saxon.ce.pattern.NodeTest;
 import client.net.sf.saxon.ce.value.AtomicValue;
 
-;
 
 
 /**
@@ -14,7 +13,7 @@ import client.net.sf.saxon.ce.value.AtomicValue;
  * The class is never instantiated.
  *
  * <p><i>The constant integers used for type names in earlier versions of this class have been replaced
- * by constants in {@link StandardNames}. The constants representing {@link AtomicType} objects are now
+ * by constants in {@link StandardNames}. The constants representing atomic types are now
  * available through the {@link BuiltInAtomicType} class.</i></p>
  *
  */
@@ -149,19 +148,11 @@ public abstract class Type  {
                 case DOCUMENT:
                     return "document-node()";
                 case ELEMENT:
-                    NamePool pool = node.getNamePool();
-                    int annotation = node.getTypeAnnotation();
                     return "element(" +
-                            ((NodeInfo)item).getDisplayName() + ", " +
-                            (annotation == -1 ?
-                                "xs:untyped)" :
-                                pool.getDisplayName(annotation) + ')');
+                            ((NodeInfo)item).getDisplayName() + ')';
                 case ATTRIBUTE:
-                    NamePool pool2 = node.getNamePool();
-                    int annotation2 = node.getTypeAnnotation() & NamePool.FP_MASK;
                     return "attribute(" +
-                            ((NodeInfo)item).getDisplayName()+ ", " +
-                                pool2.getDisplayName(annotation2) + ')';
+                            ((NodeInfo)item).getDisplayName()+ ')';
                 case TEXT:      return "text()";
                 case COMMENT:   return "comment()";
                 case PROCESSING_INSTRUCTION:
@@ -171,23 +162,6 @@ public abstract class Type  {
             }
         } else {
             return ((AtomicValue)item).getItemType(null).toString();
-        }
-    }
-
-    /**
-     * Get the ItemType object for a built-in type
-     * @param namespace the namespace URI of the type
-     * @param localName the local name of the type
-     * @return the ItemType, or null if not found
-     */
-
-    public static ItemType getBuiltInItemType(String namespace, String localName) {
-        SchemaType t = BuiltInType.getSchemaType(
-                StandardNames.getFingerprint(namespace, localName));
-        if (t instanceof ItemType) {
-            return (ItemType)t;
-        } else {
-            return null;
         }
     }
 
@@ -246,9 +220,9 @@ public abstract class Type  {
      * Determine whether two primitive atomic types are comparable under the rules for ValueComparisons
      * (that is, untyped atomic values treated as strings)
      * @param t1 the first type to compared.
-     * This must be a primitive atomic type as defined by {@link ItemType#getPrimitiveType}
+     * This must be a primitive atomic type
      * @param t2 the second type to compared.
-     * This must be a primitive atomic type as defined by {@link ItemType#getPrimitiveType}
+     * This must be a primitive atomic type
      * @param ordered true if testing for an ordering comparison (lt, gt, le, ge). False
      * if testing for an equality comparison (eq, ne)
      * @return true if the types are comparable, as defined by the rules of the "eq" operator
@@ -297,9 +271,9 @@ public abstract class Type  {
      * Determine whether two primitive atomic types are comparable under the rules for GeneralComparisons
      * (that is, untyped atomic values treated as comparable to anything)
      * @param t1 the first type to compared.
-     * This must be a primitive atomic type as defined by {@link ItemType#getPrimitiveType}
+     * This must be a primitive atomic type
      * @param t2 the second type to compared.
-     * This must be a primitive atomic type as defined by {@link ItemType#getPrimitiveType}
+     * This must be a primitive atomic type
      * @param ordered true if testing for an ordering comparison (lt, gt, le, ge). False
      * if testing for an equality comparison (eq, ne)
      * @return true if the types are comparable, as defined by the rules of the "eq" operator

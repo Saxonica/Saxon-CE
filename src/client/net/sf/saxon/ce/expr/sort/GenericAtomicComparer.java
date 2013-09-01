@@ -1,7 +1,6 @@
 package client.net.sf.saxon.ce.expr.sort;
 import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.lib.StringCollator;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.trans.NoDynamicContextException;
 import client.net.sf.saxon.ce.type.BuiltInAtomicType;
 import client.net.sf.saxon.ce.type.Type;
@@ -50,30 +49,24 @@ public class GenericAtomicComparer implements AtomicComparer {
 
     public static AtomicComparer makeAtomicComparer(
             BuiltInAtomicType type0, BuiltInAtomicType type1, StringCollator collator, XPathContext context) {
-        int fp0 = type0.getFingerprint();
-        int fp1 = type1.getFingerprint();
-        if (fp0 == fp1) {
-            switch (fp0) {
-                case StandardNames.XS_DATE_TIME:
-                case StandardNames.XS_DATE:
-                case StandardNames.XS_TIME:
-                case StandardNames.XS_G_DAY:
-                case StandardNames.XS_G_MONTH:
-                case StandardNames.XS_G_YEAR:
-                case StandardNames.XS_G_MONTH_DAY:
-                case StandardNames.XS_G_YEAR_MONTH:
-                    return new CalendarValueComparer(context);
-
-                case StandardNames.XS_BOOLEAN:
-                case StandardNames.XS_DAY_TIME_DURATION:
-                case StandardNames.XS_YEAR_MONTH_DURATION:
-                    return ComparableAtomicValueComparer.getInstance();
-
-                case StandardNames.XS_BASE64_BINARY:
-                case StandardNames.XS_HEX_BINARY:
-                case StandardNames.XS_QNAME:
-                    return EqualityComparer.getInstance();
-
+        if (type0 == type1) {
+            if (type0 == BuiltInAtomicType.DATE_TIME ||
+                    type0 == BuiltInAtomicType.DATE ||
+                    type0 == BuiltInAtomicType.TIME ||
+                    type0 == BuiltInAtomicType.G_DAY ||
+                    type0 == BuiltInAtomicType.G_MONTH ||
+                    type0 == BuiltInAtomicType.G_MONTH_DAY ||
+                    type0 == BuiltInAtomicType.G_YEAR ||
+                    type0 == BuiltInAtomicType.G_YEAR_MONTH) {
+                return new CalendarValueComparer(context);
+            } else if (type0 == BuiltInAtomicType.BOOLEAN ||
+                    type0 == BuiltInAtomicType.DAY_TIME_DURATION ||
+                    type0 == BuiltInAtomicType.YEAR_MONTH_DURATION) {
+                return ComparableAtomicValueComparer.getInstance();
+            } else if (type0 == BuiltInAtomicType.BASE64_BINARY ||
+                    type0 == BuiltInAtomicType.HEX_BINARY ||
+                    type0 == BuiltInAtomicType.QNAME) {
+                return EqualityComparer.getInstance();
             }
         }
 
@@ -81,12 +74,12 @@ public class GenericAtomicComparer implements AtomicComparer {
             return ComparableAtomicValueComparer.getInstance();
         }
 
-        if ((fp0 == StandardNames.XS_STRING ||
-                fp0 == StandardNames.XS_UNTYPED_ATOMIC ||
-                fp0 == StandardNames.XS_ANY_URI) &&
-            (fp1 == StandardNames.XS_STRING ||
-                fp1 == StandardNames.XS_UNTYPED_ATOMIC ||
-                fp1 == StandardNames.XS_ANY_URI)) {
+        if ((type0 == BuiltInAtomicType.STRING ||
+                type0 == BuiltInAtomicType.UNTYPED_ATOMIC ||
+                type0 == BuiltInAtomicType.ANY_URI) &&
+            (type1 == BuiltInAtomicType.STRING ||
+                type1 == BuiltInAtomicType.UNTYPED_ATOMIC ||
+                type1 == BuiltInAtomicType.ANY_URI)) {
             if (collator instanceof CodepointCollator) {
                 return CodepointCollatingComparer.getInstance();
             } else {
@@ -189,21 +182,6 @@ public class GenericAtomicComparer implements AtomicComparer {
             Object ac = a.getXPathComparable(false, collator, context);
             Object bc = b.getXPathComparable(false, collator, context);
             return ac.equals(bc);
-        }
-    }
-
-    /**
-    * Get a comparison key for an object. This must satisfy the rule that if two objects are equal,
-    * then their comparison keys are equal, and vice versa. There is no requirement that the
-    * comparison keys should reflect the ordering of the underlying objects.
-    */
-
-    public ComparisonKey getComparisonKey(AtomicValue a) {
-
-        if (a instanceof StringValue) {
-            return new ComparisonKey(StandardNames.XS_STRING, a.getStringValue());
-        } else {
-            return new ComparisonKey(StandardNames.XS_STRING, a);
         }
     }
 

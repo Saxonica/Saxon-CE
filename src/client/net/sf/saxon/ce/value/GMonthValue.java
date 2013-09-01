@@ -1,9 +1,10 @@
 package client.net.sf.saxon.ce.value;
 
-import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.type.*;
+import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
+import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.ConversionResult;
+import client.net.sf.saxon.ce.type.ValidationFailure;
 import com.google.gwt.regexp.shared.MatchResult;
 import com.google.gwt.regexp.shared.RegExp;
 
@@ -38,7 +39,7 @@ public class GMonthValue extends GDateValue {
         this(month, tz, BuiltInAtomicType.G_MONTH);
     }
 
-    public GMonthValue(int month, int tz, AtomicType type) {
+    public GMonthValue(int month, int tz, BuiltInAtomicType type) {
         this.year = 2000;
         this.month = month;
         this.day = 1;
@@ -74,18 +75,15 @@ public class GMonthValue extends GDateValue {
     */
 
     public ConversionResult convertPrimitive(BuiltInAtomicType requiredType, boolean validate) {
-        switch(requiredType.getPrimitiveType()) {
-        case StandardNames.XS_G_MONTH:
-        case StandardNames.XS_ANY_ATOMIC_TYPE:
+        if (requiredType == BuiltInAtomicType.ANY_ATOMIC || requiredType == BuiltInAtomicType.G_MONTH) {
             return this;
-
-        case StandardNames.XS_STRING:
-            return new StringValue(getStringValueCS());
-        case StandardNames.XS_UNTYPED_ATOMIC:
+        } else if (requiredType == BuiltInAtomicType.UNTYPED_ATOMIC) {
             return new UntypedAtomicValue(getStringValueCS());
-        default:
+        } else if (requiredType == BuiltInAtomicType.STRING) {
+            return new StringValue(getStringValueCS());
+        } else {
             ValidationFailure err = new ValidationFailure("Cannot convert gMonth to " +
-                                     requiredType.getDisplayName());
+                    requiredType.getDisplayName());
             err.setErrorCode("XPTY0004");
             return err;
         }

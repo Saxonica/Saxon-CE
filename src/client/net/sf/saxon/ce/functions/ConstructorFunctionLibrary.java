@@ -5,12 +5,10 @@ import client.net.sf.saxon.ce.expr.Container;
 import client.net.sf.saxon.ce.expr.Expression;
 import client.net.sf.saxon.ce.expr.StaticContext;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.type.AtomicType;
+import client.net.sf.saxon.ce.type.BuiltInAtomicType;
 import client.net.sf.saxon.ce.type.BuiltInType;
-import client.net.sf.saxon.ce.type.Type;
 
 /**
  * The ConstructorFunctionLibrary represents the collection of constructor functions for atomic types. These
@@ -33,7 +31,7 @@ public class ConstructorFunctionLibrary implements FunctionLibrary {
     }
 
     /**
-     * Test whether a system function with a given name and arity is available, and return its signature. This supports
+     * Test whether a system function with a given name and arity is available. This supports
      * the function-available() function in XSLT. This method may be called either at compile time
      * or at run time.
      * @param functionName the name of the function
@@ -48,7 +46,7 @@ public class ConstructorFunctionLibrary implements FunctionLibrary {
         }
         String uri = functionName.getNamespaceURI();
         String local = functionName.getLocalName();
-        return BuiltInType.getSchemaType(StandardNames.getFingerprint(uri, local)) != null;
+        return uri.equals(NamespaceConstant.SCHEMA) && BuiltInType.getSchemaType(local) != null;
     }
 
     /**
@@ -78,15 +76,15 @@ public class ConstructorFunctionLibrary implements FunctionLibrary {
             if (arguments.length != 1) {
                 throw new XPathException("A constructor function must have exactly one argument");
             }
-            AtomicType type = (AtomicType)Type.getBuiltInItemType(uri, localName);
-            if (type==null || type.getFingerprint() == StandardNames.XS_ANY_ATOMIC_TYPE) {
+            BuiltInType type = BuiltInType.getSchemaType(localName);
+            if (type==null || type == BuiltInAtomicType.ANY_ATOMIC) {
                 XPathException err = new XPathException("Unknown constructor function: {" + uri + '}' + localName);
                 err.setErrorCode("XPST0017");
                 err.setIsStaticError(true);
                 throw err;
             }
 
-            Expression cast = new CastExpression(arguments[0], type, true);
+            Expression cast = new CastExpression(arguments[0], (BuiltInAtomicType)type, true);
             cast.setContainer(container);
             return cast;
         }

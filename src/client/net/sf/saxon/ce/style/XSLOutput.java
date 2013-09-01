@@ -57,8 +57,8 @@ public class XSLOutput extends StyleElement {
 		String nameAtt = null;
 
         for (int a=0; a<atts.getLength(); a++) {
-			int nc = atts.getNameCode(a);
-			String f = getNamePool().getClarkName(nc);
+			StructuredQName qn = atts.getStructuredQName(a);
+            String f = qn.getClarkName();
 			if (f.equals(StandardNames.NAME)) {
         		nameAtt = Whitespace.trim(atts.getValue(a));
 			} else if (f.equals(StandardNames.METHOD)) {
@@ -94,11 +94,11 @@ public class XSLOutput extends StyleElement {
             } else if (f.equals(StandardNames.UNDECLARE_PREFIXES)) {
         		undeclareNamespaces = atts.getValue(a);
          	} else {
-        	    String attributeURI = getNamePool().getURI(nc);
+        	    String attributeURI = qn.getNamespaceURI();
         	    if ("".equals(attributeURI) ||
         	            NamespaceConstant.XSLT.equals(attributeURI) ||
         	            NamespaceConstant.SAXON.equals(attributeURI)) {
-        		    checkUnknownAttribute(nc);
+        		    checkUnknownAttribute(qn);
         		} else {
         		    String name = '{' + attributeURI + '}' + atts.getLocalName(a);
         		    if (userAttributes==null) {

@@ -6,10 +6,7 @@ import client.net.sf.saxon.ce.event.StartTagBuffer;
 import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.expr.instruct.SlotManager;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
-import client.net.sf.saxon.ce.om.NamePool;
-import client.net.sf.saxon.ce.om.NamespaceBinding;
-import client.net.sf.saxon.ce.om.NamespaceResolver;
-import client.net.sf.saxon.ce.om.StandardNames;
+import client.net.sf.saxon.ce.om.*;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.SourceLocator;
 import client.net.sf.saxon.ce.type.ItemType;
@@ -28,12 +25,9 @@ public class UseWhenFilter extends ProxyReceiver {
 
     private StartTagBuffer startTag;
     private NamespaceResolver nsResolver;
-    private int useWhenCode;
-    private int xslUseWhenCode;
-    private int defaultNamespaceCode;
     private int depthOfHole = 0;
     private boolean emptyStylesheetElement = false;
-    private Stack defaultNamespaceStack = new Stack();
+    private Stack<String> defaultNamespaceStack = new Stack<String>();
     private DateTimeValue currentDateTime = DateTimeValue.getCurrentDateTime(null);
 
     /**
@@ -51,9 +45,6 @@ public class UseWhenFilter extends ProxyReceiver {
      */
 
     public void open() throws XPathException {
-        useWhenCode = getNamePool().allocate("", "", "use-when") & 0xfffff;
-        xslUseWhenCode = getNamePool().allocate("xsl", NamespaceConstant.XSLT, "use-when");
-        defaultNamespaceCode = getNamePool().allocate("", "", "xpath-default-namespace");
         nextReceiver.open();
     }
 
@@ -64,19 +55,19 @@ public class UseWhenFilter extends ProxyReceiver {
      * @param properties  bit-significant properties of the element node
      */
 
-    public void startElement(int nameCode, int properties) throws XPathException {
-        defaultNamespaceStack.push(startTag.getAttribute(defaultNamespaceCode));
+    public void startElement(StructuredQName nameCode, int properties) throws XPathException {
+        defaultNamespaceStack.push(startTag.getAttribute("", "xpath-default-namespace"));
         if (emptyStylesheetElement) {
             depthOfHole++;
             return;
         }
         if (depthOfHole == 0) {
             String useWhen;
-            int uriCode = getNamePool().getURICode(nameCode);
-            if (uriCode == NamespaceConstant.XSLT_CODE) {
-                useWhen = startTag.getAttribute(useWhenCode);
+            String uriCode = nameCode.getNamespaceURI();
+            if (uriCode.equals(NamespaceConstant.XSLT)) {
+                useWhen = startTag.getAttribute("", "use-when");
             } else {
-                useWhen = startTag.getAttribute(xslUseWhenCode);
+                useWhen = startTag.getAttribute(NamespaceConstant.XSLT, "use-when");
             }
             if (useWhen != null) {
                 Expression expr = null;
@@ -95,8 +86,9 @@ public class UseWhenFilter extends ProxyReceiver {
                     expr = prepareUseWhen(useWhen, staticContext, loc);
                     boolean b = evaluateUseWhen(expr, staticContext);
                     if (!b) {
-                        int fp = nameCode & NamePool.FP_MASK;
-                        if (fp == StandardNames.XSL_STYLESHEET || fp == StandardNames.XSL_TRANSFORM) {
+                        String local = nameCode.getLocalName();
+                        if (nameCode.getNamespaceURI().equals(NamespaceConstant.XSLT) &&
+                                (local.equals("stylesheet") || local.equals("transform"))) {
                             emptyStylesheetElement = true;
                         } else {
                             depthOfHole = 1;
@@ -142,12 +134,13 @@ public class UseWhenFilter extends ProxyReceiver {
      * Notify an attribute. Attributes are notified after the startElement event, and before any
      * children. Namespaces and attributes may be intermingled.
      *
+     *
      * @param nameCode   The name of the attribute, as held in the name pool
      * @throws IllegalStateException: attempt to output an attribute when there is no open element
      *                                start tag
      */
 
-    public void attribute(int nameCode, CharSequence value) throws XPathException {
+    public void attribute(StructuredQName nameCode, CharSequence value) throws XPathException {
         if (depthOfHole == 0) {
             nextReceiver.attribute(nameCode, value);
         }

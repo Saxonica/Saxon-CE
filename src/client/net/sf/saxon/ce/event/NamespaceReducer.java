@@ -2,6 +2,7 @@ package client.net.sf.saxon.ce.event;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
 import client.net.sf.saxon.ce.om.NamespaceBinding;
 import client.net.sf.saxon.ce.om.NamespaceResolver;
+import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.XPathException;
 
 import java.util.ArrayList;
@@ -55,7 +56,7 @@ public class NamespaceReducer extends ProxyReceiver implements NamespaceResolver
     * possibly adds an xmlns="" undeclaration.
     */
 
-    public void startElement(int nameCode, int properties) throws XPathException {
+    public void startElement(StructuredQName nameCode, int properties) throws XPathException {
 
         nextReceiver.startElement(nameCode, properties);
 
@@ -88,7 +89,7 @@ public class NamespaceReducer extends ProxyReceiver implements NamespaceResolver
         // result element).
 
         if ((properties & ReceiverOptions.NAMESPACE_OK) == 0) {
-            namespace(getNamePool().getNamespaceBinding(nameCode), 0);
+            namespace(new NamespaceBinding(nameCode.getPrefix(), nameCode.getNamespaceURI()), 0);
         }
 
     }

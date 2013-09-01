@@ -576,7 +576,7 @@ public class FormatNumber extends SystemFunction {
             if (multiplier != 1) {
                 try {
                     value = (NumericValue)ArithmeticExpression.compute(
-                            value, Calculator.TIMES, IntegerValue.makeIntegerValue(multiplier), null);
+                            value, Token.MULT, IntegerValue.makeIntegerValue(multiplier), null);
                 } catch (XPathException e) {
                     value = new DoubleValue(value.getDoubleValue() * multiplier);
                 }

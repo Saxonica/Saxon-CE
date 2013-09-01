@@ -10,6 +10,7 @@ import client.net.sf.saxon.ce.expr.instruct.ScheduleExecution;
 import client.net.sf.saxon.ce.om.AttributeCollection;
 import client.net.sf.saxon.ce.om.Axis;
 import client.net.sf.saxon.ce.om.NodeInfo;
+import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.AxisIterator;
 import client.net.sf.saxon.ce.value.SequenceType;
@@ -34,12 +35,12 @@ public class IXSLScheduleAction extends StyleElement {
         AttributeCollection atts = getAttributeList();
 
         for (int a=0; a<atts.getLength(); a++) {
-            int nc = atts.getNameCode(a);
-            String f = getNamePool().getClarkName(nc);
+            StructuredQName qn = atts.getStructuredQName(a);
+            String f = qn.getClarkName();
             if (f.equals("wait")) {
                 waitAtt = atts.getValue(a);
             } else {
-                checkUnknownAttribute(nc);
+                checkUnknownAttribute(qn);
             }
         }
 

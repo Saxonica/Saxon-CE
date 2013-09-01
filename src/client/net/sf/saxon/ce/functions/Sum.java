@@ -2,7 +2,7 @@ package client.net.sf.saxon.ce.functions;
 
 import client.net.sf.saxon.ce.expr.ArithmeticExpression;
 import client.net.sf.saxon.ce.expr.Atomizer;
-import client.net.sf.saxon.ce.expr.Calculator;
+import client.net.sf.saxon.ce.expr.Token;
 import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.SequenceIterator;
@@ -99,8 +99,7 @@ public class Sum extends Aggregate {
                     err.setLocator(location);
                     throw err;
                 }
-                //sum = ((NumericValue)sum).arithmetic(Token.PLUS, (NumericValue)next, context);
-                sum = ArithmeticExpression.compute(sum, Calculator.PLUS, next, context);
+                sum = ArithmeticExpression.compute(sum, Token.PLUS, next, context);
                 if (sum.isNaN() && sum instanceof DoubleValue) {
                     // take an early bath, once we've got a double NaN it's not going to change
                     return sum;

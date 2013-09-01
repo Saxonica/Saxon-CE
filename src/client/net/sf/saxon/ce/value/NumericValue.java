@@ -231,7 +231,7 @@ public abstract class NumericValue extends AtomicValue implements Comparable {
      */
 
     public final boolean equals(Object other) {
-        return compareTo(other) == 0;
+        return other instanceof NumericValue && compareTo(other) == 0;
     }
 
     /**

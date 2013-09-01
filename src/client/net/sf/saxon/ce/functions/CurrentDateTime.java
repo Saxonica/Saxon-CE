@@ -5,7 +5,6 @@ import client.net.sf.saxon.ce.expr.ExpressionVisitor;
 import client.net.sf.saxon.ce.expr.StaticProperty;
 import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.om.Item;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.BuiltInAtomicType;
 import client.net.sf.saxon.ce.type.TypeHierarchy;
@@ -53,19 +52,17 @@ public class CurrentDateTime extends SystemFunction {
     public Item evaluateItem(XPathContext context) throws XPathException {
         final DateTimeValue dt = DateTimeValue.getCurrentDateTime(context);
         final TypeHierarchy th = context.getConfiguration().getTypeHierarchy();
-        final int targetType = getItemType(th).getPrimitiveType();
-        switch (targetType) {
-            case StandardNames.XS_DATE_TIME:
-                return dt;
-            case StandardNames.XS_DATE:
-                return dt.convert(BuiltInAtomicType.DATE, true).asAtomic();
-            case StandardNames.XS_TIME:
-                return dt.convert(BuiltInAtomicType.TIME, true).asAtomic();
-            case StandardNames.XS_DAY_TIME_DURATION:
-            case StandardNames.XS_DURATION:
-                return dt.getComponent(Component.TIMEZONE);
-            default:
-                throw new IllegalArgumentException("Wrong target type for current date/time");
+        final BuiltInAtomicType targetType = (BuiltInAtomicType)getItemType(th);
+        if (targetType == BuiltInAtomicType.DATE_TIME) {
+            return dt;
+        } else if (targetType == BuiltInAtomicType.DATE) {
+            return dt.convert(BuiltInAtomicType.DATE, true).asAtomic();
+        } else if (targetType == BuiltInAtomicType.TIME) {
+            return dt.convert(BuiltInAtomicType.TIME, true).asAtomic();
+        } else if (targetType == BuiltInAtomicType.DAY_TIME_DURATION || targetType == BuiltInAtomicType.DAY_TIME_DURATION) {
+            return dt.getComponent(Component.TIMEZONE);
+        } else {
+            throw new IllegalArgumentException("Wrong target type for current date/time");
         }
     }
 

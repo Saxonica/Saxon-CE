@@ -1,10 +1,7 @@
 package client.net.sf.saxon.ce.tree.wrapper;
 
 import client.net.sf.saxon.ce.Configuration;
-import client.net.sf.saxon.ce.om.DocumentInfo;
-import client.net.sf.saxon.ce.om.NamePool;
-import client.net.sf.saxon.ce.om.NamespaceBinding;
-import client.net.sf.saxon.ce.om.NodeInfo;
+import client.net.sf.saxon.ce.om.*;
 import client.net.sf.saxon.ce.pattern.NodeTest;
 import client.net.sf.saxon.ce.tree.iter.AxisIterator;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
@@ -52,15 +49,6 @@ public abstract class AbstractVirtualNode implements VirtualNode {
 
     public Configuration getConfiguration() {
         return node.getConfiguration();
-    }
-
-    /**
-     * Get the name pool for this node
-     * @return the NamePool
-     */
-
-    public NamePool getNamePool() {
-        return node.getNamePool();
     }
 
     /**
@@ -201,27 +189,11 @@ public abstract class AbstractVirtualNode implements VirtualNode {
     }
 
 	/**
-	* Get name code. The name code is a coded form of the node name: two nodes
-	* with the same name code have the same namespace URI, the same local name,
-	* and the same prefix. By masking the name code with &0xfffff, you get a
-	* fingerprint: two nodes with the same fingerprint have the same local name
-	* and namespace URI.
-    * @see client.net.sf.saxon.ce.om.NamePool#allocate allocate
+	* Get node name as an expanded QName
 	*/
 
-	public int getNameCode() {
-        return node.getNameCode();
-	}
-
-	/**
-	* Get fingerprint. The fingerprint is a coded form of the expanded name
-	* of the node: two nodes
-	* with the same name code have the same namespace URI and the same local name.
-	* A fingerprint of -1 should be returned for a node with no name.
-	*/
-
-	public int getFingerprint() {
-	    return node.getFingerprint();
+	public StructuredQName getNodeName() {
+        return node.getNodeName();
 	}
 
     /**

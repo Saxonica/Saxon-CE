@@ -3,7 +3,6 @@ package client.net.sf.saxon.ce.functions;
 import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.SequenceIterator;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.BuiltInAtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
@@ -28,9 +27,9 @@ public class Average extends Aggregate {
 
     public ItemType getItemType(TypeHierarchy th) {
         ItemType base = Atomizer.getAtomizedItemType(argument[0], false, th);
-        if (base.equals(BuiltInAtomicType.UNTYPED_ATOMIC)) {
+        if (base == BuiltInAtomicType.UNTYPED_ATOMIC) {
             return BuiltInAtomicType.DOUBLE;
-        } else if (base.getPrimitiveType() == StandardNames.XS_INTEGER) {
+        } else if (base == BuiltInAtomicType.INTEGER) {
             return BuiltInAtomicType.DECIMAL;
         } else {
             return base;
@@ -62,7 +61,7 @@ public class Average extends Aggregate {
             while (true) {
                 AtomicValue next = (AtomicValue) iter.next();
                 if (next == null) {
-                    return ArithmeticExpression.compute(item, Calculator.DIV, IntegerValue.makeIntegerValue(count), context);
+                    return ArithmeticExpression.compute(item, Token.DIV, IntegerValue.makeIntegerValue(count), context);
                 }
                 count++;
                 if (next instanceof UntypedAtomicValue) {
@@ -70,7 +69,7 @@ public class Average extends Aggregate {
                 } else if (!(next instanceof NumericValue)) {
                     badMix(context);
                 }
-                item = ArithmeticExpression.compute(item, Calculator.PLUS, next, context);
+                item = ArithmeticExpression.compute(item, Token.PLUS, next, context);
             }
         } else if (item instanceof DurationValue) {
             while (true) {

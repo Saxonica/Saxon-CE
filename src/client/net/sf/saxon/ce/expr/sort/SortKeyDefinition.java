@@ -3,12 +3,13 @@ package client.net.sf.saxon.ce.expr.sort;
 import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.lib.StringCollator;
-import client.net.sf.saxon.ce.om.StandardNames;
-import client.net.sf.saxon.ce.tree.util.URI;
-import client.net.sf.saxon.ce.value.Whitespace;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.type.*;
+import client.net.sf.saxon.ce.tree.util.URI;
+import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.ItemType;
+import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.StringValue;
+import client.net.sf.saxon.ce.value.Whitespace;
 
 import java.util.HashMap;
 
@@ -369,12 +370,12 @@ public class SortKeyDefinition {
 
         if (dataTypeExpression==null) {
             atomicComparer = AtomicSortComparer.makeSortComparer(stringCollator,
-                sortKey.getItemType(th).getAtomizedItemType().getPrimitiveType(), context);
+                sortKey.getItemType(th).getAtomizedItemType(), context);
         } else {
             String dataType = dataTypeExpression.evaluateAsString(context).toString();
             if (dataType.equals("text")) {
                 atomicComparer = AtomicSortComparer.makeSortComparer(stringCollator,
-                    StandardNames.XS_STRING, context);
+                    BuiltInAtomicType.STRING, context);
                 atomicComparer = new TextComparer(atomicComparer);
             } else if (dataType.equals("number")) {
                 atomicComparer = NumericComparer.getInstance();

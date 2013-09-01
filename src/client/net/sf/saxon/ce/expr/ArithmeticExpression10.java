@@ -7,7 +7,6 @@ import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
 import client.net.sf.saxon.ce.pattern.EmptySequenceTest;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.BuiltInAtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.TypeHierarchy;
@@ -23,8 +22,6 @@ import client.net.sf.saxon.ce.Configuration;
  */
 
 public class ArithmeticExpression10 extends BinaryExpression {
-
-    private Calculator calculator;
 
     /**
      * Create an arithmetic expression to be evaluated in XPath 1.0 mode
@@ -76,13 +73,13 @@ public class ArithmeticExpression10 extends BinaryExpression {
         if (itemType0 instanceof EmptySequenceTest) {
             return Literal.makeLiteral(DoubleValue.NaN);
         }
-        AtomicType type0 = (AtomicType) itemType0.getPrimitiveItemType();
+        BuiltInAtomicType type0 = (BuiltInAtomicType) itemType0.getPrimitiveItemType();
 
         final ItemType itemType1 = operand1.getItemType(th);
         if (itemType1 instanceof EmptySequenceTest) {
             return Literal.makeLiteral(DoubleValue.NaN);
         }
-        AtomicType type1 = (AtomicType)itemType1.getPrimitiveItemType();
+        BuiltInAtomicType type1 = (BuiltInAtomicType)itemType1.getPrimitiveItemType();
 
         // If both operands are integers, use integer arithmetic and convert the result to a double
         if (th.isSubType(type0, BuiltInAtomicType.INTEGER) &&
@@ -94,20 +91,15 @@ public class ArithmeticExpression10 extends BinaryExpression {
             return n.typeCheck(visitor, contextItemType);
         }
 
-        if (calculator == null) {
-            operand0 = createConversionCode(operand0, config, type0);
-        }
-        type0 = (AtomicType) operand0.getItemType(th).getPrimitiveItemType();
+        operand0 = createConversionCode(operand0, config, type0);
+        type0 = (BuiltInAtomicType) operand0.getItemType(th).getPrimitiveItemType();
 
         // System.err.println("First operand"); operand0.display(10);
 
 
 
-        if (calculator == null) {
-            operand1 = createConversionCode(operand1, config, type1);
-        }
-
-        type1 = (AtomicType) operand1.getItemType(th).getPrimitiveItemType();
+        operand1 = createConversionCode(operand1, config, type1);
+        type1 = (BuiltInAtomicType) operand1.getItemType(th).getPrimitiveItemType();
 
         if (operand0 != oldOp0) {
             adoptChildExpression(operand0);
@@ -129,15 +121,6 @@ public class ArithmeticExpression10 extends BinaryExpression {
             return visitor.typeCheck(ne, contextItemType);
         }
 
-        // Get a calculator to implement the arithmetic operation. If the types are not yet specifically known,
-         // we allow this to return an "ANY" calculator which defers the decision. However, we only allow this if
-         // at least one of the operand types is AnyAtomicType or (otherwise unspecified) numeric.
-
-        boolean mustResolve = !(type0.equals(BuiltInAtomicType.ANY_ATOMIC) || type1.equals(BuiltInAtomicType.ANY_ATOMIC)
-                || type0.equals(BuiltInAtomicType.NUMERIC) || type1.equals(BuiltInAtomicType.NUMERIC));
-
-        calculator = assignCalculator(type0, type1, mustResolve);
-
         try {
             if ((operand0 instanceof Literal) && (operand1 instanceof Literal)) {
                 return Literal.makeLiteral(
@@ -150,19 +133,9 @@ public class ArithmeticExpression10 extends BinaryExpression {
         return this;
     }
 
-    private Calculator assignCalculator(AtomicType type0, AtomicType type1, boolean mustResolve) throws XPathException {
-        Calculator calculator = Calculator.getCalculator(type0.getFingerprint(), type1.getFingerprint(),
-                ArithmeticExpression.mapOpCode(operator), mustResolve);
-
-        if (calculator == null) {
-            typeError("Arithmetic operator is not defined for arguments of types (" +
-                    type0.getDisplayName() + ", " + type1.getDisplayName() + ")", "XPTY0004", null);
-        }
-        return calculator;
-    }
 
     private Expression createConversionCode(
-            Expression operand, final Configuration config, AtomicType type) {
+            Expression operand, final Configuration config, BuiltInAtomicType type) {
         TypeHierarchy th = config.getTypeHierarchy();
         if (Cardinality.allowsMany(operand.getCardinality())) {               
             FirstItemExpression fie = new FirstItemExpression(operand);
@@ -241,20 +214,7 @@ public class ArithmeticExpression10 extends BinaryExpression {
      */
 
     public ItemType getItemType(TypeHierarchy th) {
-        if (calculator == null) {
-            return BuiltInAtomicType.ANY_ATOMIC;  // type is not known statically
-        } else {
-            ItemType t1 = operand0.getItemType(th);
-            if (!(t1 instanceof AtomicType)) {
-                t1 = t1.getAtomizedItemType();
-            }
-            ItemType t2 = operand1.getItemType(th);
-            if (!(t2 instanceof AtomicType)) {
-                t2 = t2.getAtomizedItemType();
-            }
-            return calculator.getResultType((AtomicType) t1.getPrimitiveItemType(),
-                    (AtomicType) t2.getPrimitiveItemType());
-        }
+        return BuiltInAtomicType.ANY_ATOMIC;  // type is not known statically
     }
 
     /**
@@ -263,7 +223,6 @@ public class ArithmeticExpression10 extends BinaryExpression {
 
     public Item evaluateItem(XPathContext context) throws XPathException {
 
-        Calculator calc = calculator;
         AtomicValue v1 = (AtomicValue) operand0.evaluateItem(context);
         if (v1 == null) {
             return DoubleValue.NaN;
@@ -274,13 +233,7 @@ public class ArithmeticExpression10 extends BinaryExpression {
             return DoubleValue.NaN;
         }
 
-        if (calc == null) {
-            // This shouldn't happen. It's a fallback for a failure to assign the calculator earlier
-            // at compile time. It has been known to happen when simplify() is called without typeCheck().
-            calc = assignCalculator(v1.getPrimitiveType(), v2.getPrimitiveType(), true);
-        }
-
-        return calc.compute(v1, v2, context);
+        return ArithmeticExpression.compute(v1, operator, v2, context);
     }
 
 

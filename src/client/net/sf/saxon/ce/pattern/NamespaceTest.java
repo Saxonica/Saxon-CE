@@ -1,5 +1,4 @@
 package client.net.sf.saxon.ce.pattern;
-import client.net.sf.saxon.ce.om.NamePool;
 import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.type.ItemType;
@@ -14,28 +13,24 @@ import client.net.sf.saxon.ce.type.TypeHierarchy;
 
 public final class NamespaceTest extends NodeTest {
 
-	private NamePool namePool;
 	private int nodeKind;
-	private short uriCode;
     private String uri;
 
-	public NamespaceTest(NamePool pool, int nodeKind, String uri) {
-	    namePool = pool;
+	public NamespaceTest(int nodeKind, String uri) {
 		this.nodeKind = nodeKind;
         this.uri = uri;
-		this.uriCode = pool.allocateCodeForURI(uri);
 	}
 
     /**
     * Test whether this node test is satisfied by a given node
-    * @param nodeType The type of node to be matched
-     * @param fingerprint identifies the expanded name of the node to be matched
+     * @param nodeType The type of node to be matched
+      * @param name identifies the expanded name of the node to be matched
      */
 
-    public boolean matches(int nodeType, int fingerprint, int annotation) {
-        return fingerprint != -1 &&
+    public boolean matches(int nodeType, StructuredQName name, int annotation) {
+        return name != null &&
                 nodeType == nodeKind &&
-                uriCode == namePool.getURICode(fingerprint);
+                uri.equals(name.getNamespaceURI());
     }
 
     /**
@@ -73,7 +68,7 @@ public final class NamespaceTest extends NodeTest {
     * @return the type of node matched by this pattern. e.g. Type.ELEMENT or Type.TEXT
     */
 
-    public int getPrimitiveType() {
+    public int getRequiredNodeKind() {
         return nodeKind;
     }
 
@@ -110,11 +105,11 @@ public final class NamespaceTest extends NodeTest {
      */
 
     public String getNamespaceURI() {
-        return namePool.getURIFromURICode(uriCode);
+        return uri;
     }
 
     public String toString() {
-        return '{' + namePool.getURIFromURICode(uriCode) + "}:*";
+        return '{' + uri + "}:*";
     }
 
     /**
@@ -122,7 +117,7 @@ public final class NamespaceTest extends NodeTest {
      */
 
     public int hashCode() {
-        return uriCode << 5 + nodeKind;
+        return uri.hashCode() ^ nodeKind;
     }
 
     /**
@@ -130,9 +125,8 @@ public final class NamespaceTest extends NodeTest {
      */
     public boolean equals(Object other) {
         return other instanceof NamespaceTest &&
-                ((NamespaceTest)other).namePool == namePool &&
                 ((NamespaceTest)other).nodeKind == nodeKind &&
-                ((NamespaceTest)other).uriCode == uriCode;
+                ((NamespaceTest)other).uri.equals(uri);
     }
 
 }

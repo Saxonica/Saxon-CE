@@ -4,7 +4,6 @@ import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
 import client.net.sf.saxon.ce.om.Axis;
 import client.net.sf.saxon.ce.om.DocumentInfo;
-import client.net.sf.saxon.ce.om.NamePool;
 import client.net.sf.saxon.ce.om.NamespaceBinding;
 import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.om.StandardNames;
@@ -12,9 +11,7 @@ import client.net.sf.saxon.ce.pattern.NodeKindTest;
 import client.net.sf.saxon.ce.tree.iter.AxisIterator;
 import client.net.sf.saxon.ce.type.Type;
 
-import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.dom.client.Document;
-import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.Node;
 
 import java.util.HashMap;
@@ -189,14 +186,6 @@ public class HTMLDocumentWrapper extends HTMLNodeWrapper implements DocumentInfo
 
     public Configuration getConfiguration() {
         return config;
-    }
-
-    /**
-     * Get the name pool used for the names in this document
-     */
-
-    public NamePool getNamePool() {
-        return config.getNamePool();
     }
 
     /**

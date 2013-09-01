@@ -4,14 +4,18 @@ import client.net.sf.saxon.ce.expr.sort.AtomicComparer;
 import client.net.sf.saxon.ce.expr.sort.CodepointCollatingComparer;
 import client.net.sf.saxon.ce.expr.sort.CodepointCollator;
 import client.net.sf.saxon.ce.expr.sort.GenericAtomicComparer;
-import client.net.sf.saxon.ce.functions.*;
+import client.net.sf.saxon.ce.functions.Count;
+import client.net.sf.saxon.ce.functions.StringLength;
+import client.net.sf.saxon.ce.functions.SystemFunction;
 import client.net.sf.saxon.ce.lib.StringCollator;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.NamePool;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.trans.NoDynamicContextException;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.type.*;
+import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.ItemType;
+import client.net.sf.saxon.ce.type.Type;
+import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.*;
 import client.net.sf.saxon.ce.value.StringValue;
 
@@ -115,8 +119,8 @@ public final class ValueComparison extends BinaryExpression implements Compariso
         RoleLocator role1 = new RoleLocator(RoleLocator.BINARY_EXPR, Token.tokens[operator], 1);
         operand1 = TypeChecker.staticTypeCheck(operand1, optionalAtomic, false, role1, visitor);
 
-        AtomicType t0 = operand0.getItemType(th).getAtomizedItemType();
-        AtomicType t1 = operand1.getItemType(th).getAtomizedItemType();
+        BuiltInAtomicType t0 = operand0.getItemType(th).getAtomizedItemType();
+        BuiltInAtomicType t1 = operand1.getItemType(th).getAtomizedItemType();
 
         BuiltInAtomicType p0 = (BuiltInAtomicType)t0.getPrimitiveItemType();
         if (p0.equals(BuiltInAtomicType.UNTYPED_ATOMIC)) {
@@ -309,10 +313,10 @@ public final class ValueComparison extends BinaryExpression implements Compariso
         // Note we can change S!="" to boolean(S) for cardinality zero-or-one, but we can only
         // change S="" to not(S) for cardinality exactly-one.
 
-        int p0 = operand0.getItemType(th).getPrimitiveType();
-        if ((p0 == StandardNames.XS_STRING ||
-                p0 == StandardNames.XS_ANY_URI ||
-                p0 == StandardNames.XS_UNTYPED_ATOMIC) &&
+        ItemType p0 = operand0.getItemType(th);
+        if ((p0 == BuiltInAtomicType.STRING ||
+                p0 == BuiltInAtomicType.ANY_URI ||
+                p0 == BuiltInAtomicType.UNTYPED_ATOMIC) &&
                 operand1 instanceof Literal &&
                 ((Literal)operand1).getValue() instanceof StringValue &&
                 ((StringValue)((Literal)operand1).getValue()).isZeroLength() &&
@@ -332,10 +336,10 @@ public final class ValueComparison extends BinaryExpression implements Compariso
 
         // optimize "" = string etc
 
-        int p1 = operand1.getItemType(th).getPrimitiveType();
-        if ((p1 == StandardNames.XS_STRING ||
-                p1 == StandardNames.XS_ANY_URI ||
-                p1 == StandardNames.XS_UNTYPED_ATOMIC) &&
+        ItemType p1 = operand1.getItemType(th);
+        if ((p1 == BuiltInAtomicType.STRING ||
+                p1 == BuiltInAtomicType.ANY_URI ||
+                p1 == BuiltInAtomicType.UNTYPED_ATOMIC) &&
                 operand0 instanceof Literal &&
                 ((Literal)operand0).getValue() instanceof StringValue &&
                 ((StringValue)((Literal)operand0).getValue()).isZeroLength() &&

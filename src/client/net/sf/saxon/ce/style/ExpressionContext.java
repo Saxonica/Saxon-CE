@@ -20,7 +20,6 @@ import client.net.sf.saxon.ce.tree.util.SourceLocator;
 public class ExpressionContext implements StaticContext {
 
 	private StyleElement element;
-	private NamePool namePool;
     private NamespaceResolver namespaceResolver = null;
 
     /**
@@ -30,7 +29,6 @@ public class ExpressionContext implements StaticContext {
 
     public ExpressionContext(StyleElement styleElement) {
 		element = styleElement;
-		namePool = styleElement.getNamePool();
 	}
 
     /**
@@ -71,7 +69,7 @@ public class ExpressionContext implements StaticContext {
     */
 
     public NamePool getNamePool() {
-        return namePool;
+        return getConfiguration().getNamePool();
     }
 
     /**
@@ -129,40 +127,6 @@ public class ExpressionContext implements StaticContext {
 
     public DecimalFormatManager getDecimalFormatManager() {
         return element.getPreparedStylesheet().getDecimalFormatManager();
-    }
-
-    /**
-    * Get a fingerprint for a name, using this as the context for namespace resolution
-    * @param qname The name as written, in the form "[prefix:]localname"
-    * @param useDefault Defines the action when there is no prefix. If true, use
-    * the default namespace URI (as for element names). If false, use no namespace URI
-    * (as for attribute names).
-    * @return -1 if the name is not already present in the name pool
-    */
-
-    public int getFingerprint(String qname, boolean useDefault) throws XPathException {
-
-        String[] parts;
-        try {
-            parts = NameChecker.getQNameParts(qname);
-        } catch (QNameException err) {
-            throw new XPathException(err.getMessage());
-        }
-        String prefix = parts[0];
-        if (prefix.length() == 0) {
-            String uri = "";
-
-            if (useDefault) {
-                uri = getURIForPrefix(prefix);
-            }
-
-			return namePool.getFingerprint(uri, qname);
-
-        } else {
-
-            String uri = getURIForPrefix(prefix);
-			return namePool.getFingerprint(uri, parts[1]);
-        }
     }
 
     /**

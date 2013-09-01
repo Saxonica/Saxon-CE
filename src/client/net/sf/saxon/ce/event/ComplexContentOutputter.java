@@ -25,9 +25,10 @@ public final class ComplexContentOutputter extends SequenceReceiver {
     private Receiver nextReceiver;
             // the next receiver in the output pipeline
 
-    private int pendingStartTag = -2;
+    private int pendingStartTagDepth = -2;
             // -2 means we are at the top level, or immediately within a document node
             // -1 means we are in the content of an element node whose start tag is complete
+    private StructuredQName pendingStartTag;
     private int level = -1; // records the number of startDocument or startElement events
                             // that have not yet been closed. Note that startDocument and startElement
                             // events may be arbitrarily nested; startDocument and endDocument
@@ -35,7 +36,7 @@ public final class ComplexContentOutputter extends SequenceReceiver {
                             // still change the level number
     private boolean[] currentLevelIsDocument = new boolean[20];
     private Boolean elementIsInNullNamespace;
-    private int[] pendingAttCode = new int[20];
+    private StructuredQName[] pendingAttCode = new StructuredQName[20];
     private String[] pendingAttValue = new String[20];
     private int pendingAttListSize = 0;
 
@@ -98,9 +99,9 @@ public final class ComplexContentOutputter extends SequenceReceiver {
         level++;
         if (level == 0) {
             nextReceiver.startDocument();
-        } else if (pendingStartTag >= 0) {
+        } else if (pendingStartTagDepth >= 0) {
             startContent();
-            pendingStartTag = -2;
+            pendingStartTagDepth = -2;
         }
         previousAtomic = false;
         if (currentLevelIsDocument.length < level+1) {
@@ -138,7 +139,7 @@ public final class ComplexContentOutputter extends SequenceReceiver {
         if (s==null) return;
         int len = s.length();
         if (len==0) return;
-        if (pendingStartTag >= 0) {
+        if (pendingStartTagDepth >= 0) {
             startContent();
         }
         nextReceiver.characters(s);
@@ -148,20 +149,21 @@ public final class ComplexContentOutputter extends SequenceReceiver {
     * Output an element start tag. <br>
     * The actual output of the tag is deferred until all attributes have been output
     * using attribute().
-    * @param nameCode The element name code
-    */
+     * @param nameCode The element name code
+     */
 
-    public void startElement(int nameCode, int properties) throws XPathException {
+    public void startElement(StructuredQName nameCode, int properties) throws XPathException {
         // System.err.println("StartElement " + nameCode);
         level++;
         started = true;
-        if (pendingStartTag >= 0) {
+        if (pendingStartTagDepth >= 0) {
             startContent();
         }
         startElementProperties = properties;
         pendingAttListSize = 0;
         pendingNSListSize = 0;
         pendingStartTag = nameCode;
+        pendingStartTagDepth = 1;
         elementIsInNullNamespace = null; // meaning not yet computed
         declaresDefaultNamespace = false;
         previousAtomic = false;
@@ -190,11 +192,11 @@ public final class ComplexContentOutputter extends SequenceReceiver {
 
         // System.err.println("Write namespace prefix=" + (nscode>>16) + " uri=" + (nscode&0xffff));
         NamePool pool = getNamePool();
-        if (pendingStartTag < 0) {
+        if (pendingStartTagDepth < 0) {
             throw NoOpenStartTagException.makeNoOpenStartTagException(
                     Type.NAMESPACE,
                     nsBinding.getPrefix(),
-                    pendingStartTag == -2);
+                    pendingStartTagDepth == -2);
         }
 
         // elimination of namespaces already present on an outer element of the
@@ -237,7 +239,7 @@ public final class ComplexContentOutputter extends SequenceReceiver {
             declaresDefaultNamespace = true;
             if (elementIsInNullNamespace == null) {
                 elementIsInNullNamespace = Boolean.valueOf(
-                        pool.getURI(pendingStartTag).equals(NamespaceConstant.NULL));
+                        pendingStartTag.getNamespaceURI().equals(NamespaceConstant.NULL));
             }
             if (elementIsInNullNamespace.booleanValue()) {
                 XPathException err = new XPathException("Cannot output a namespace node for the default namespace when the element is in no namespace");
@@ -263,28 +265,29 @@ public final class ComplexContentOutputter extends SequenceReceiver {
     * This is added to a list of pending attributes for the current start tag, overwriting
     * any previous attribute with the same name. <br>
     * This method should NOT be used to output namespace declarations.<br>
-    * @param nameCode The name of the attribute
-    * @param value The value of the attribute
-    * @throws XPathException if there is no start tag to write to (created using writeStartTag),
+    *
+     * @param nameCode The name of the attribute
+     * @param value The value of the attribute
+     * @throws XPathException if there is no start tag to write to (created using writeStartTag),
     * or if character content has been written since the start tag was written.
     */
 
-    public void attribute(int nameCode, CharSequence value) throws XPathException {
+    public void attribute(StructuredQName nameCode, CharSequence value) throws XPathException {
         //System.err.println("Write attribute " + nameCode + "=" + value + " to Outputter " + this);
 
-        if (pendingStartTag < 0) {
+        if (pendingStartTagDepth < 0) {
             // The complexity here is in identifying the right error message and error code
 
             throw NoOpenStartTagException.makeNoOpenStartTagException(
                     Type.ATTRIBUTE,
-                    getNamePool().getDisplayName(nameCode),
+                    nameCode.getDisplayName(),
                     level<0 || currentLevelIsDocument[level]);
         }
 
         // if this is a duplicate attribute, overwrite the original (we're always in XSLT now...)
 
         for (int a=0; a<pendingAttListSize; a++) {
-            if ((pendingAttCode[a] & 0xfffff) == (nameCode & 0xfffff)) {
+            if (pendingAttCode[a].equals(nameCode)) {
                 pendingAttValue[a] = value.toString();
                     // we have to copy the CharSequence, because some kinds of CharSequence are mutable.
                 return;
@@ -294,7 +297,7 @@ public final class ComplexContentOutputter extends SequenceReceiver {
         // add this one to the list
 
         if (pendingAttListSize >= pendingAttCode.length) {
-            int[] attCode2 = new int[pendingAttListSize*2];
+            StructuredQName[] attCode2 = new StructuredQName[pendingAttListSize*2];
             String[] attValue2 = new String[pendingAttListSize*2];
             System.arraycopy(pendingAttCode, 0, attCode2, 0, pendingAttListSize);
             System.arraycopy(pendingAttValue, 0, attValue2, 0, pendingAttListSize);
@@ -320,10 +323,10 @@ public final class ComplexContentOutputter extends SequenceReceiver {
      * if no change is needed)
 	*/
 
-	private int checkProposedPrefix(int nameCode, int seq) throws XPathException {
+	private StructuredQName checkProposedPrefix(StructuredQName nameCode, int seq) throws XPathException {
         NamePool namePool = getNamePool();
-		String nsprefix = namePool.getPrefix(nameCode);
-        String nsuri = namePool.getURI(nameCode);
+		String nsprefix = nameCode.getPrefix();
+        String nsuri = nameCode.getNamespaceURI();
 
         for (int i=0; i<pendingNSListSize; i++) {
         	if (nsprefix.equals(pendingNSList[i].getPrefix())) {
@@ -334,10 +337,10 @@ public final class ComplexContentOutputter extends SequenceReceiver {
         		} else {
         			String prefix = getSubstitutePrefix(nsprefix, seq);
 
-        			int newCode = namePool.allocate(
+        			StructuredQName newCode = new StructuredQName(
         								prefix,
-        								namePool.getURI(nameCode),
-        								namePool.getLocalName(nameCode));
+        								nsuri,
+        								nameCode.getLocalName());
         			namespace(new NamespaceBinding(prefix, nsuri), 0);
         			return newCode;
         		}
@@ -368,10 +371,10 @@ public final class ComplexContentOutputter extends SequenceReceiver {
 
     public void endElement() throws XPathException {
         //System.err.println("Write end tag " + this + " : " + name);
-        if (pendingStartTag >= 0) {
+        if (pendingStartTagDepth >= 0) {
             startContent();
         } else {
-            pendingStartTag = -2;
+            pendingStartTagDepth = -2;
         }
 
         // write the end tag
@@ -386,7 +389,7 @@ public final class ComplexContentOutputter extends SequenceReceiver {
     */
 
     public void comment(CharSequence comment) throws XPathException {
-        if (pendingStartTag >= 0) {
+        if (pendingStartTagDepth >= 0) {
             startContent();
         }
         nextReceiver.comment(comment);
@@ -398,7 +401,7 @@ public final class ComplexContentOutputter extends SequenceReceiver {
     */
 
     public void processingInstruction(String target, CharSequence data) throws XPathException {
-        if (pendingStartTag >= 0) {
+        if (pendingStartTagDepth >= 0) {
             startContent();
         }
         nextReceiver.processingInstruction(target, data);
@@ -461,7 +464,7 @@ public final class ComplexContentOutputter extends SequenceReceiver {
 
     public void startContent() throws XPathException {
 
-        if (pendingStartTag < 0) {
+        if (pendingStartTagDepth < 0) {
             // this can happen if the method is called from outside,
             // e.g. from a SequenceOutputter earlier in the pipeline
             return;
@@ -469,8 +472,8 @@ public final class ComplexContentOutputter extends SequenceReceiver {
 
         started = true;
         int props = startElementProperties;
-        int elcode = pendingStartTag;
-        if (declaresDefaultNamespace || NamePool.isPrefixed(elcode)) {
+        StructuredQName elcode = pendingStartTag;
+        if (declaresDefaultNamespace || !elcode.getPrefix().equals("")) {
             // skip this check if the element is unprefixed and no xmlns="abc" declaration has been encountered
             elcode = checkProposedPrefix(pendingStartTag, 0);
             props = startElementProperties | ReceiverOptions.NAMESPACE_OK;
@@ -478,8 +481,8 @@ public final class ComplexContentOutputter extends SequenceReceiver {
         nextReceiver.startElement(elcode, props);
 
         for (int a=0; a<pendingAttListSize; a++) {
-            int attcode = pendingAttCode[a];
-            if (NamePool.isPrefixed(attcode)) {	// non-null prefix
+            StructuredQName attcode = pendingAttCode[a];
+            if (!attcode.getPrefix().isEmpty()) {	// non-null prefix
                 pendingAttCode[a] = checkProposedPrefix(attcode, a+1);
             }
         }
@@ -498,7 +501,8 @@ public final class ComplexContentOutputter extends SequenceReceiver {
 
         pendingAttListSize = 0;
         pendingNSListSize = 0;
-        pendingStartTag = -1;
+        pendingStartTagDepth = -1;
+        pendingStartTag = null;
         previousAtomic = false;
     }
 

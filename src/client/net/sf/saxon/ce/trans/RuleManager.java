@@ -1,19 +1,18 @@
 package client.net.sf.saxon.ce.trans;
 
 import client.net.sf.saxon.ce.expr.Expression;
-import client.net.sf.saxon.ce.expr.Token;
 import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.expr.instruct.Template;
 import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.om.StructuredQName;
-import client.net.sf.saxon.ce.pattern.*;
+import client.net.sf.saxon.ce.pattern.Pattern;
+import client.net.sf.saxon.ce.pattern.UnionPattern;
 import client.net.sf.saxon.ce.style.StylesheetModule;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
-import java.util.Map.Entry;
 
 /**
   * <B>RuleManager</B> maintains a set of template rules, one set for each mode
@@ -190,17 +189,17 @@ public final class RuleManager  {
         }
         // some union patterns end up as a CombinedNodeTest. Need to split these.
         // (Same reasoning as above)
-        if (pattern instanceof NodeTestPattern &&
-                pattern.getNodeTest() instanceof CombinedNodeTest &&
-                ((CombinedNodeTest)pattern.getNodeTest()).getOperator() == Token.UNION) {
-            CombinedNodeTest cnt = (CombinedNodeTest)pattern.getNodeTest();
-            NodeTest[] nt = cnt.getComponentNodeTests();
-            setTemplateRule(new NodeTestPattern(nt[0]), eh, mode, module,
-            		priority, ixslPreventDefault, ixslEventProperty);
-            setTemplateRule(new NodeTestPattern(nt[1]), eh, mode, module,
-            		priority, ixslPreventDefault, ixslEventProperty);
-            return;
-        }
+//        if (pattern instanceof NodeTestPattern &&
+//                pattern.getNodeTest() instanceof CombinedNodeTest &&
+//                ((CombinedNodeTest)pattern.getNodeTest()).getOperator() == Token.UNION) {
+//            CombinedNodeTest cnt = (CombinedNodeTest)pattern.getNodeTest();
+//            NodeTest[] nt = cnt.getComponentNodeTests();
+//            setTemplateRule(new NodeTestPattern(nt[0]), eh, mode, module,
+//            		priority, ixslPreventDefault, ixslEventProperty);
+//            setTemplateRule(new NodeTestPattern(nt[1]), eh, mode, module,
+//            		priority, ixslPreventDefault, ixslEventProperty);
+//            return;
+//        }
         if (Double.isNaN(priority)) {
             priority = pattern.getDefaultPriority();
         }

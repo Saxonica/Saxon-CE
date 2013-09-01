@@ -38,7 +38,7 @@ public final class Navigator {
      */
 
     public static String getAttributeValue(NodeInfo element, String uri, String local) {
-        NameTest test = new NameTest(Type.ATTRIBUTE, uri, local, element.getNamePool());
+        NameTest test = new NameTest(Type.ATTRIBUTE, uri, local);
         AxisIterator iterator = element.iterateAxis(Axis.ATTRIBUTE, test);
         NodeInfo attribute = (NodeInfo)iterator.next();
         if (attribute == null) {
@@ -201,10 +201,9 @@ public final class Navigator {
 
         //checkNumberable(node);
 
-        int fingerprint = node.getFingerprint();
         NodeTest same;
 
-        if (fingerprint == -1) {
+        if (node.getNodeName() == null) {
             same = NodeKindTest.makeNodeKindTest(node.getNodeKind());
         } else {
             same = new NameTest(node);
@@ -270,7 +269,7 @@ public final class Navigator {
 
         boolean knownToMatch = false;
         if (count == null) {
-            if (node.getFingerprint() == -1) {	// unnamed node
+            if (node.getNodeName() == null) {	// unnamed node
                 count = new NodeTestPattern(NodeKindTest.makeNodeKindTest(node.getNodeKind()));
             } else {
                 count = new NodeTestPattern(new NameTest(node));
@@ -350,7 +349,7 @@ public final class Navigator {
 
         int num = 0;
         if (count == null) {
-            if (node.getFingerprint() == -1) {	// unnamed node
+            if (node.getNodeName() == null) {	// unnamed node
                 count = new NodeTestPattern(NodeKindTest.makeNodeKindTest(node.getNodeKind()));
             } else {
                 count = new NodeTestPattern(new NameTest(node));
@@ -436,7 +435,7 @@ public final class Navigator {
         ArrayList v = new ArrayList(5);
 
         if (count == null) {
-            if (node.getFingerprint() == -1) {    // unnamed node
+            if (node.getNodeName() == null) {    // unnamed node
                 count = new NodeTestPattern(NodeKindTest.makeNodeKindTest(node.getNodeKind()));
             } else {
                 count = new NodeTestPattern(new NameTest(node));
@@ -466,10 +465,9 @@ public final class Navigator {
      * Generic (model-independent) implementation of deep copy algorithm for nodes.
      * This is available for use by any node implementations that choose to use it.
      *
+     *
      * @param node            The node to be copied
      * @param out             The receiver to which events will be sent
-     * @param namePool        Namepool holding the name codes (used only to resolve namespace
-     *                        codes)
      * @param copyOptions     Options for copying namespaces, type annotations, etc,
      *                        as defined in {@link client.net.sf.saxon.ce.om.CopyOptions}
      * @throws XPathException on any failure reported by the Receiver
@@ -477,7 +475,6 @@ public final class Navigator {
 
     public static void copy(NodeInfo node,
                             Receiver out,
-                            NamePool namePool,
                             int copyOptions
     ) throws XPathException {
 
@@ -498,7 +495,7 @@ public final class Navigator {
                 }
             case Type.ELEMENT:
                 {
-                    out.startElement(node.getNameCode(), 0);
+                    out.startElement(node.getNodeName(), 0);
 
                     // output the namespaces
 
@@ -548,7 +545,7 @@ public final class Navigator {
                 }
             case Type.ATTRIBUTE:
                 {
-                    out.attribute(node.getNameCode(), node.getStringValueCS());
+                    out.attribute(node.getNodeName(), node.getStringValueCS());
                     return;
                 }
             case Type.TEXT:

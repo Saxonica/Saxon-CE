@@ -1,11 +1,12 @@
 package client.net.sf.saxon.ce.value;
 
 import client.net.sf.saxon.ce.expr.XPathContext;
-import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
-import client.net.sf.saxon.ce.om.StandardNames;
-import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.type.*;
 import client.net.sf.saxon.ce.lib.StringCollator;
+import client.net.sf.saxon.ce.trans.XPathException;
+import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
+import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.ConversionResult;
+import client.net.sf.saxon.ce.type.ValidationFailure;
 
 import java.util.Arrays;
 
@@ -91,19 +92,16 @@ public class HexBinaryValue extends AtomicValue {
      */
 
     public ConversionResult convertPrimitive(BuiltInAtomicType requiredType, boolean validate) {
-        switch (requiredType.getPrimitiveType()) {
-        case StandardNames.XS_HEX_BINARY:
-        case StandardNames.XS_ANY_ATOMIC_TYPE:
+        if (requiredType == BuiltInAtomicType.ANY_ATOMIC || requiredType == BuiltInAtomicType.HEX_BINARY) {
             return this;
-        case StandardNames.XS_STRING:
-            return new StringValue(getStringValueCS());
-        case StandardNames.XS_UNTYPED_ATOMIC:
+        } else if (requiredType == BuiltInAtomicType.UNTYPED_ATOMIC) {
             return new UntypedAtomicValue(getStringValueCS());
-        case StandardNames.XS_BASE64_BINARY:
+        } else if (requiredType == BuiltInAtomicType.STRING) {
+            return new StringValue(getStringValueCS());
+        } else if (requiredType == BuiltInAtomicType.BASE64_BINARY) {
             return new Base64BinaryValue(binaryValue);
-
-        default:
-            ValidationFailure err = new ValidationFailure("Cannot convert hexBinarry to " +
+        } else {
+            ValidationFailure err = new ValidationFailure("Cannot convert gYearMonth to " +
                     requiredType.getDisplayName());
             err.setErrorCode("XPTY0004");
             return err;

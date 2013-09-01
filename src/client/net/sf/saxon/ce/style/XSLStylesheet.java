@@ -98,8 +98,8 @@ public class XSLStylesheet extends StyleElement {
         AttributeCollection atts = getAttributeList();
         for (int a = 0; a < atts.getLength(); a++) {
 
-            int nc = atts.getNameCode(a);
-            String f = getNamePool().getClarkName(nc);
+            StructuredQName qn = atts.getStructuredQName(a);
+            String f = qn.getClarkName();
             if (f.equals(StandardNames.VERSION)) {
                 // already processed
             } else if (f.equals(StandardNames.ID)) {
@@ -131,7 +131,7 @@ public class XSLStylesheet extends StyleElement {
                     }
                 }
             } else {
-                checkUnknownAttribute(nc);
+                checkUnknownAttribute(qn);
             }
         }
         if (version == null) {

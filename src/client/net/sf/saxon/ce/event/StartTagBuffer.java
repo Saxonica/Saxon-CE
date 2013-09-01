@@ -2,6 +2,7 @@ package client.net.sf.saxon.ce.event;
 
 import client.net.sf.saxon.ce.om.AttributeCollection;
 import client.net.sf.saxon.ce.om.NamespaceBinding;
+import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.XPathException;
 
 import java.util.ArrayList;
@@ -18,13 +19,13 @@ public class StartTagBuffer extends ProxyReceiver {
 
     // Details of the pending element event
 
-    protected int elementNameCode;
+    protected StructuredQName elementNameCode;
     protected int elementProperties;
 
     // Details of pending attribute events
 
     protected AttributeCollection bufferedAttributes;
-    protected List<NamespaceBinding> bufferedNamespaces = new ArrayList();
+    protected List<NamespaceBinding> bufferedNamespaces = new ArrayList<NamespaceBinding>();
     int attCount = 0;
 
     /**
@@ -41,7 +42,7 @@ public class StartTagBuffer extends ProxyReceiver {
     * startElement
     */
 
-    public void startElement(int nameCode, int properties) throws XPathException {
+    public void startElement(StructuredQName nameCode, int properties) throws XPathException {
 
         elementNameCode = nameCode;
         elementProperties = properties;
@@ -60,12 +61,13 @@ public class StartTagBuffer extends ProxyReceiver {
      * Notify an attribute. Attributes are notified after the startElement event, and before any
      * children. Namespaces and attributes may be intermingled.
      *
+     *
      * @param nameCode   The name of the attribute, as held in the name pool
      * @throws IllegalStateException: attempt to output an attribute when there is no open element
      *                                start tag
      */
 
-    public void attribute(int nameCode, CharSequence value)
+    public void attribute(StructuredQName nameCode, CharSequence value)
             throws XPathException {
 
         bufferedAttributes.addAttribute(nameCode, value.toString());
@@ -86,7 +88,7 @@ public class StartTagBuffer extends ProxyReceiver {
 
         final int length = bufferedAttributes.getLength();
         for (int i=0; i<length; i++) {
-            nextReceiver.attribute(bufferedAttributes.getNameCode(i),
+            nextReceiver.attribute(bufferedAttributes.getStructuredQName(i),
                     bufferedAttributes.getValue(i)
             );
         }
@@ -99,12 +101,13 @@ public class StartTagBuffer extends ProxyReceiver {
 
     /**
      * Get the value of the current attribute with a given nameCode
-     * @param nameCode the name of the required attribute
+     * @param uri the namespace of the required attribute
+     * @param local the local name of the required attribute
      * @return the attribute value, or null if the attribute is not present
      */
 
-    public String getAttribute(int nameCode) {
-        return bufferedAttributes.getValueByFingerprint(nameCode & 0xfffff);
+    public String getAttribute(String uri, String local) {
+        return bufferedAttributes.getValue(uri, local);
     }
 
 }

@@ -4,6 +4,7 @@ import client.net.sf.saxon.ce.expr.Expression;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.om.AttributeCollection;
 import client.net.sf.saxon.ce.om.StandardNames;
+import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.value.Whitespace;
 
@@ -32,14 +33,14 @@ public class XSLImportSchema extends StyleElement {
         String namespace = null;
 
 		for (int a=0; a<atts.getLength(); a++) {
-			int nc = atts.getNameCode(a);
-			String f = getNamePool().getClarkName(nc);
+			StructuredQName qn = atts.getStructuredQName(a);
+            String f = qn.getClarkName();
             if (f.equals(StandardNames.SCHEMA_LOCATION)) {
         		//
             } else if (f.equals(StandardNames.NAMESPACE)) {
                 namespace = Whitespace.trim(atts.getValue(a));
         	} else {
-        		checkUnknownAttribute(nc);
+        		checkUnknownAttribute(qn);
         	}
         }
 

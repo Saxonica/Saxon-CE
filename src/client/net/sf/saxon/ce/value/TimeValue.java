@@ -165,16 +165,14 @@ public final class TimeValue extends CalendarValue implements Comparable {
      */
 
     public ConversionResult convertPrimitive(BuiltInAtomicType requiredType, boolean validate) {
-        switch (requiredType.getPrimitiveType()) {
-        case StandardNames.XS_TIME:
-        case StandardNames.XS_ANY_ATOMIC_TYPE:
+        if (requiredType == BuiltInAtomicType.ANY_ATOMIC || requiredType == BuiltInAtomicType.TIME) {
             return this;
-        case StandardNames.XS_STRING:
-            return new StringValue(getStringValueCS());
-        case StandardNames.XS_UNTYPED_ATOMIC:
+        } else if (requiredType == BuiltInAtomicType.UNTYPED_ATOMIC) {
             return new UntypedAtomicValue(getStringValueCS());
-        default:
-            ValidationFailure err = new ValidationFailure("Cannot convert time to " +
+        } else if (requiredType == BuiltInAtomicType.STRING) {
+            return new StringValue(getStringValueCS());
+        } else {
+            ValidationFailure err = new ValidationFailure("Cannot convert gYear to " +
                     requiredType.getDisplayName());
             err.setErrorCode("XPTY0004");
             return err;

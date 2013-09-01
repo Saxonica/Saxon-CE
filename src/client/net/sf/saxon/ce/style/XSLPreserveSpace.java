@@ -35,12 +35,12 @@ public class XSLPreserveSpace extends StyleElement {
 		AttributeCollection atts = getAttributeList();
 
 		for (int a=0; a<atts.getLength(); a++) {
-			int nc = atts.getNameCode(a);
-			String f = getNamePool().getClarkName(nc);
+			StructuredQName qn = atts.getStructuredQName(a);
+            String f = qn.getClarkName();
 			if (f.equals(StandardNames.ELEMENTS)) {
         		elements = atts.getValue(a);
         	} else {
-        		checkUnknownAttribute(nc);
+        		checkUnknownAttribute(qn);
         	}
         }
         if (elements==null) {
@@ -57,7 +57,7 @@ public class XSLPreserveSpace extends StyleElement {
     public Expression compile(Executable exec, Declaration decl) throws XPathException
     {
         Template preserve =
-                (getFingerprint() == StandardNames.XSL_PRESERVE_SPACE ? Stripper.PRESERVE : Stripper.STRIP);
+                (getLocalPart().equals("preserve-space") ? Stripper.PRESERVE : Stripper.STRIP);
         StripSpaceRules stripperRules = getPrincipalStylesheetModule().getStripperRules();
 
         // elements is a space-separated list of element names
@@ -76,7 +76,7 @@ public class XSLPreserveSpace extends StyleElement {
                 }
                 String prefix = s.substring(0, s.length()-2);
                 String uri = getURIForPrefix(prefix, false);
-                nt = new NamespaceTest(getNamePool(), Type.ELEMENT, uri);
+                nt = new NamespaceTest(Type.ELEMENT, uri);
                 stripperRules.addRule(nt, preserve, decl.getModule(), decl.getSourceElement().getLineNumber());
 
             } else if (s.startsWith("*:")) {
@@ -84,7 +84,7 @@ public class XSLPreserveSpace extends StyleElement {
                     compileError("No local name after '*:'");
                 }
                 String localname = s.substring(2);
-                nt = new LocalNameTest(getNamePool(), Type.ELEMENT, localname);
+                nt = new LocalNameTest(Type.ELEMENT, localname);
                 stripperRules.addRule(nt, preserve, decl.getModule(), decl.getSourceElement().getLineNumber());
 
             } else {
@@ -108,9 +108,8 @@ public class XSLPreserveSpace extends StyleElement {
                     compileError("Element name " + s + " is not a valid QName", "XTSE0280");
                     return null;
                 }
-                NamePool target = getNamePool();
-                int nameCode = target.allocate("", uri, localName);
-                nt = new NameTest(Type.ELEMENT, nameCode, getNamePool());
+                StructuredQName nameCode = new StructuredQName("", uri, localName);
+                nt = new NameTest(Type.ELEMENT, nameCode);
                 stripperRules.addRule(nt, preserve, decl.getModule(), decl.getSourceElement().getLineNumber());
             }
 

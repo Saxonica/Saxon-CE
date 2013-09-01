@@ -3,11 +3,11 @@ package client.net.sf.saxon.ce.style;
 import client.net.sf.saxon.ce.expr.Expression;
 import client.net.sf.saxon.ce.expr.StringLiteral;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
-import client.net.sf.saxon.ce.expr.instruct.Message;
 import client.net.sf.saxon.ce.expr.instruct.SetProperty;
 import client.net.sf.saxon.ce.js.IXSLFunction;
 import client.net.sf.saxon.ce.om.AttributeCollection;
 import client.net.sf.saxon.ce.om.StandardNames;
+import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.value.Whitespace;
 
@@ -43,16 +43,16 @@ public class IXSLSetProperty extends StyleElement {
 		AttributeCollection atts = getAttributeList();
 
 		for (int a=0; a<atts.getLength(); a++) {
-			int nc = atts.getNameCode(a);
-			String f = getNamePool().getClarkName(nc);
-			if (f == "object") {
+			StructuredQName qn = atts.getStructuredQName(a);
+            String f = qn.getClarkName();
+			if (f.equals("object")) {
         		objectAtt = Whitespace.trim(atts.getValue(a));
-            } else if (f == StandardNames.SELECT) {
+            } else if (f.equals(StandardNames.SELECT)) {
                 selectAtt = atts.getValue(a);
-            } else if (f == StandardNames.NAME) {
+            } else if (f.equals(StandardNames.NAME)) {
                 nameAtt = atts.getValue(a);
             } else {
-        		checkUnknownAttribute(nc);
+        		checkUnknownAttribute(qn);
         	}
         }
 

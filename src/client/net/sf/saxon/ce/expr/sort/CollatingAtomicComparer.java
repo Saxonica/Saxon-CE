@@ -2,7 +2,6 @@ package client.net.sf.saxon.ce.expr.sort;
 import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
 import client.net.sf.saxon.ce.lib.StringCollator;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.value.AtomicValue;
 
 /**
@@ -108,20 +107,6 @@ public class CollatingAtomicComparer implements AtomicComparer {
 
     public boolean comparesEqual(AtomicValue a, AtomicValue b) {
         return compareAtomicValues(a, b) == 0;
-    }
-
-    /**
-    * Get a comparison key for an object. This must satisfy the rule that if two objects are equal,
-    * then their comparison keys are equal, and vice versa. There is no requirement that the
-    * comparison keys should reflect the ordering of the underlying objects.
-    */
-
-    public ComparisonKey getComparisonKey(AtomicValue a) {
-        if (canReturnCollationKeys) {
-            return new ComparisonKey(StandardNames.XS_STRING, collator.getCollationKey(a.getStringValue()));
-        } else {
-            return new ComparisonKey(StandardNames.XS_STRING, a.getStringValue());
-        }
     }
 
 

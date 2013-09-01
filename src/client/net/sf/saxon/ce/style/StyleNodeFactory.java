@@ -11,11 +11,12 @@ import client.net.sf.saxon.ce.value.DecimalValue;
 
 
 /**
-  * Class StyleNodeFactory. <br>
-  * A Factory for nodes in the stylesheet tree. <br>
-  * Currently only allows Element nodes to be user-constructed.
-  * @author Michael H. Kay
-  */
+ * Class StyleNodeFactory. <br>
+ * A Factory for nodes in the stylesheet tree. <br>
+ * Currently only allows Element nodes to be user-constructed.
+ *
+ * @author Michael H. Kay
+ */
 
 public class StyleNodeFactory implements NodeFactory {
 
@@ -25,34 +26,34 @@ public class StyleNodeFactory implements NodeFactory {
 
     /**
      * Create the node factory for representing an XSLT stylesheet as a tree structure
+     *
      * @param config the Saxon configuration
      */
 
     public StyleNodeFactory(Configuration config) {
-		this.config = config;
+        this.config = config;
         namePool = config.getNamePool();
     }
 
     /**
-    * Create an Element node. Note, if there is an error detected while constructing
-    * the Element, we add the element anyway, and return success, but flag the element
-    * with a validation error. This allows us to report more than
-    * one error from a single compilation.
-    * @param nameCode The element name
-     * @param typeCode
-     * @param attlist the attribute list
+     * Create an Element node. Note, if there is an error detected while constructing
+     * the Element, we add the element anyway, and return success, but flag the element
+     * with a validation error. This allows us to report more than
+     * one error from a single compilation.
+     *
+     * @param nameCode The element name
+     * @param attlist  the attribute list
      */
 
     public ElementImpl makeElementNode(
             NodeInfo parent,
-            int nameCode,
-            int typeCode, AttributeCollection attlist,
+            StructuredQName nameCode,
+            AttributeCollection attlist,
             NamespaceBinding[] namespaces,
             int namespacesUsed,
             PipelineConfiguration pipe,
             String baseURI,
-            int sequence)
-    {
+            int sequence) {
         boolean toplevel = (parent instanceof XSLStylesheet);
 
         if (parent instanceof DataElement) {
@@ -63,13 +64,15 @@ public class StyleNodeFactory implements NodeFactory {
             return d;
         }
 
-    	int f = nameCode&0xfffff;
 
-    	// Try first to make an XSLT element
+        // Try first to make an XSLT element
 
-    	StyleElement e = makeXSLElement(f);
+        StyleElement e = null;
+        if (nameCode.getNamespaceURI().equals(NamespaceConstant.XSLT)) {
+            e = makeXSLElement(nameCode.getLocalName());
+        }
 
-		if (e != null) {  // recognized as an XSLT element
+        if (e != null) {  // recognized as an XSLT element
 
             e.setNamespaceDeclarations(namespaces, namespacesUsed);
             e.initialise(nameCode, attlist, parent, sequence);
@@ -78,27 +81,27 @@ public class StyleNodeFactory implements NodeFactory {
             // exceptions helps to ensure we don't report spurious errors through not processing some
             // of the attributes when others are faulty.
             try {
-	            e.processExtensionElementAttribute("");
+                e.processExtensionElementAttribute("");
             } catch (XPathException err) {
-	            e.setValidationError(err, StyleElement.REPORT_ALWAYS);
-	        }
+                e.setValidationError(err, StyleElement.REPORT_ALWAYS);
+            }
             try {
-	            e.processExcludedNamespaces("");
+                e.processExcludedNamespaces("");
             } catch (XPathException err) {
-	            e.setValidationError(err, StyleElement.REPORT_ALWAYS);
-	        }
+                e.setValidationError(err, StyleElement.REPORT_ALWAYS);
+            }
             try {
-	            e.processVersionAttribute("");
+                e.processVersionAttribute("");
             } catch (XPathException err) {
-	            e.setValidationError(err, StyleElement.REPORT_ALWAYS);
-	        }
-	        e.processDefaultXPathNamespaceAttribute("");
+                e.setValidationError(err, StyleElement.REPORT_ALWAYS);
+            }
+            e.processDefaultXPathNamespaceAttribute("");
 
             return e;
 
         }
 
-        String uriCode = namePool.getURI(nameCode);
+        String uriCode = nameCode.getNamespaceURI();
 
         if (parent instanceof XSLStylesheet && !uriCode.isEmpty() && !uriCode.equals(NamespaceConstant.XSLT)) {
             DataElement d = new DataElement();
@@ -109,17 +112,17 @@ public class StyleNodeFactory implements NodeFactory {
 
         } else {   // not recognized as an XSLT element, not top-level
 
-            String localname = namePool.getLocalName(nameCode);
+            String localname = nameCode.getLocalName();
             StyleElement temp = null;
 
             // Detect a misspelt XSLT declaration
 
             if (uriCode.equals(NamespaceConstant.XSLT) &&
                     (parent instanceof XSLStylesheet) &&
-                    ((XSLStylesheet)parent).getEffectiveVersion().compareTo(DecimalValue.TWO) <= 0 ) {
+                    ((XSLStylesheet) parent).getEffectiveVersion().compareTo(DecimalValue.TWO) <= 0) {
                 temp = new AbsentExtensionElement();
                 temp.setValidationError(new XPathException("Unknown top-level XSLT declaration"),
-                       StyleElement.REPORT_UNLESS_FORWARDS_COMPATIBLE );
+                        StyleElement.REPORT_UNLESS_FORWARDS_COMPATIBLE);
             }
 
             StyleElement assumedElement = new LiteralResultElement();
@@ -128,7 +131,7 @@ public class StyleNodeFactory implements NodeFactory {
             // such as version and extension-element-prefixes; but we can have a good guess, and
             // change it later if need be.
 
-            if (temp==null) {
+            if (temp == null) {
                 temp = new LiteralResultElement();
             }
 
@@ -156,16 +159,16 @@ public class StyleNodeFactory implements NodeFactory {
 
             } else if (temp.isExtensionNamespace(uriCode) && !toplevel) {
 
-                String uri = namePool.getURI(nameCode);
+                String uri = nameCode.getNamespaceURI();
                 if (NamespaceConstant.IXSL.equals(uri)) {
                     if (localname.equals("set-attribute")) {
                         actualElement = new IXSLSetAttribute();
                     } else if (localname.equals("remove-attribute")) {
-                    	actualElement = new IXSLRemoveAttribute();
+                        actualElement = new IXSLRemoveAttribute();
                     } else if (localname.equals("schedule-action")) {
                         actualElement = new IXSLScheduleAction();
                     } else if (localname.equals("set-property")) {
-                    	actualElement = new IXSLSetProperty();
+                        actualElement = new IXSLSetProperty();
                     }
                 }
 
@@ -198,139 +201,167 @@ public class StyleNodeFactory implements NodeFactory {
         }
     }
 
-	/**
-	 * Make an XSL element node
-     * @param f the fingerprint of the node name
+    /**
+     * Make an XSL element node
+     *
+     * @param localName the node name
      * @return the constructed element node
-	*/
+     */
 
-	protected StyleElement makeXSLElement(int f) {
-        switch (f) {
-		case StandardNames.XSL_ANALYZE_STRING:
-            return new XSLAnalyzeString();
-		case StandardNames.XSL_APPLY_IMPORTS:
-            return new XSLApplyImports();
-		case StandardNames.XSL_APPLY_TEMPLATES:
-            return new XSLApplyTemplates();
-		case StandardNames.XSL_ATTRIBUTE:
-            return new XSLAttribute();
-		case StandardNames.XSL_ATTRIBUTE_SET:
-            return new XSLAttributeSet();
-		case StandardNames.XSL_CALL_TEMPLATE:
-            return new XSLCallTemplate();
-		case StandardNames.XSL_CHARACTER_MAP:
-            return new XSLCharacterMap();
-		case StandardNames.XSL_CHOOSE:
-            return new XSLChoose();
-		case StandardNames.XSL_COMMENT:
-            return new XSLComment();
-		case StandardNames.XSL_COPY:
-            return new XSLCopy();
-		case StandardNames.XSL_COPY_OF:
-            return new XSLCopyOf();
-		case StandardNames.XSL_DECIMAL_FORMAT:
-            return new XSLDecimalFormat();
-		case StandardNames.XSL_DOCUMENT:
-            return new XSLDocument();
-		case StandardNames.XSL_ELEMENT:
-            return new XSLElement();
-		case StandardNames.XSL_FALLBACK:
-            return new XSLFallback();
-		case StandardNames.XSL_FOR_EACH:
-            return new XSLForEach();
-		case StandardNames.XSL_FOR_EACH_GROUP:
-            return new XSLForEachGroup();
-		case StandardNames.XSL_FUNCTION:
-            return new XSLFunction();
-		case StandardNames.XSL_IF:
-            return new XSLIf();
-		case StandardNames.XSL_IMPORT:
-            return new XSLImport();
-		case StandardNames.XSL_IMPORT_SCHEMA:
-            return new XSLImportSchema();
-		case StandardNames.XSL_INCLUDE:
-            return new XSLInclude();
-		case StandardNames.XSL_KEY:
-            return new XSLKey();
-		case StandardNames.XSL_MATCHING_SUBSTRING:
-            return new XSLMatchingSubstring();
-		case StandardNames.XSL_MESSAGE:
-            return new XSLMessage();
-		case StandardNames.XSL_NEXT_MATCH:
-            return new XSLNextMatch();
-		case StandardNames.XSL_NON_MATCHING_SUBSTRING:
-            return new XSLMatchingSubstring();	//sic
-		case StandardNames.XSL_NUMBER:
-            return new XSLNumber();
-		case StandardNames.XSL_NAMESPACE:
-            return new XSLNamespace();
-		case StandardNames.XSL_NAMESPACE_ALIAS:
-            return new XSLNamespaceAlias();
-		case StandardNames.XSL_OTHERWISE:
-            return new XSLOtherwise();
-		case StandardNames.XSL_OUTPUT:
-            return new XSLOutput();
-		case StandardNames.XSL_OUTPUT_CHARACTER:
-            return new XSLOutputCharacter();
-		case StandardNames.XSL_PARAM:
-            return new XSLParam();
-		case StandardNames.XSL_PERFORM_SORT:
-            return new XSLPerformSort();
-		case StandardNames.XSL_PRESERVE_SPACE:
-            return new XSLPreserveSpace();
-		case StandardNames.XSL_PROCESSING_INSTRUCTION:
-            return new XSLProcessingInstruction();
-		case StandardNames.XSL_RESULT_DOCUMENT:
-            return new XSLResultDocument();
-		case StandardNames.XSL_SEQUENCE:
-            return new XSLSequence();
-		case StandardNames.XSL_SORT:
-            return new XSLSort();
-		case StandardNames.XSL_STRIP_SPACE:
-            return new XSLPreserveSpace();
-		case StandardNames.XSL_STYLESHEET:
-            return new XSLStylesheet();
-		case StandardNames.XSL_TEMPLATE:
-            return new XSLTemplate();
-		case StandardNames.XSL_TEXT:
-            return new XSLText();
-		case StandardNames.XSL_TRANSFORM:
-            return new XSLStylesheet();
-		case StandardNames.XSL_VALUE_OF:
-            return new XSLValueOf();
-		case StandardNames.XSL_VARIABLE:
-            return new XSLVariable();
-		case StandardNames.XSL_WITH_PARAM:
-            return new XSLWithParam();
-		case StandardNames.XSL_WHEN:
-            return new XSLWhen();
-        default:
-            return null;
+    protected StyleElement makeXSLElement(String localName) {
+        switch (localName.charAt(0)) {
+            case 'a':
+                if (localName.equals("analyze-string")) {
+                    return new XSLAnalyzeString();
+                } else if (localName.equals("apply-imports")) {
+                    return new XSLApplyImports();
+                } else if (localName.equals("apply-templates")) {
+                    return new XSLApplyTemplates();
+                } else if (localName.equals("attribute")) {
+                    return new XSLAttribute();
+                } else if (localName.equals("attribute-set")) {
+                    return new XSLAttributeSet();
+                }
+            case 'c':
+                if (localName.equals("call-template")) {
+                    return new XSLCallTemplate();
+                } else if (localName.equals("character-map")) {
+                    return new XSLCharacterMap();
+                } else if (localName.equals("choose")) {
+                    return new XSLChoose();
+                } else if (localName.equals("comment")) {
+                    return new XSLComment();
+                } else if (localName.equals("copy")) {
+                    return new XSLCopy();
+                } else if (localName.equals("copy-of")) {
+                    return new XSLCopyOf();
+                }
+            case 'd':
+                if (localName.equals("decimal-format")) {
+                    return new XSLDecimalFormat();
+                } else if (localName.equals("document")) {
+                    return new XSLDocument();
+                }
+            case 'e':
+                if (localName.equals("element")) {
+                    return new XSLElement();
+                }
+            case 'f':
+                if (localName.equals("fallback")) {
+                    return new XSLFallback();
+                } else if (localName.equals("for-each")) {
+                    return new XSLForEach();
+                } else if (localName.equals("for-each-group")) {
+                    return new XSLForEachGroup();
+                } else if (localName.equals("function")) {
+                    return new XSLFunction();
+                }
+            case 'i':
+                if (localName.equals("if")) {
+                    return new XSLIf();
+                } else if (localName.equals("import")) {
+                    return new XSLImport();
+                } else if (localName.equals("import-schema")) {
+                    return new XSLImportSchema();
+                } else if (localName.equals("include")) {
+                    return new XSLInclude();
+                }
+            case 'k':
+                if (localName.equals("key")) {
+                    return new XSLKey();
+                }
+            case 'm':
+                if (localName.equals("matching-substring")) {
+                    return new XSLMatchingSubstring();
+                } else if (localName.equals("message")) {
+                    return new XSLMessage();
+                }
+            case 'n':
+                if (localName.equals("next-match")) {
+                    return new XSLNextMatch();
+                } else if (localName.equals("non-matching-substring")) {
+                    return new XSLMatchingSubstring();    //sic
+                } else if (localName.equals("number")) {
+                    return new XSLNumber();
+                } else if (localName.equals("namespace")) {
+                    return new XSLNamespace();
+                } else if (localName.equals("namespace-alias")) {
+                    return new XSLNamespaceAlias();
+                }
+            case 'o':
+                if (localName.equals("otherwise")) {
+                    return new XSLOtherwise();
+                } else if (localName.equals("output")) {
+                    return new XSLOutput();
+                } else if (localName.equals("output-character")) {
+                    return new XSLOutputCharacter();
+                }
+            case 'p':
+                if (localName.equals("param")) {
+                    return new XSLParam();
+                } else if (localName.equals("perform-sort")) {
+                    return new XSLPerformSort();
+                } else if (localName.equals("preserve-space")) {
+                    return new XSLPreserveSpace();
+                } else if (localName.equals("processing-instruction")) {
+                    return new XSLProcessingInstruction();
+                }
+            case 'r':
+                if (localName.equals("result-document")) {
+                    return new XSLResultDocument();
+                }
+            case 's':
+                if (localName.equals("sequence")) {
+                    return new XSLSequence();
+                } else if (localName.equals("sort")) {
+                    return new XSLSort();
+                } else if (localName.equals("strip-space")) {
+                    return new XSLPreserveSpace();
+                } else if (localName.equals("stylesheet")) {
+                    return new XSLStylesheet();
+                }
+            case 't':
+                if (localName.equals("template")) {
+                    return new XSLTemplate();
+                } else if (localName.equals("text")) {
+                    return new XSLText();
+                } else if (localName.equals("transform")) {
+                    return new XSLStylesheet();
+                }
+            case 'v':
+                if (localName.equals("value-of")) {
+                    return new XSLValueOf();
+                } else if (localName.equals("variable")) {
+                    return new XSLVariable();
+                }
+            case 'w':
+                if (localName.equals("with-param")) {
+                    return new XSLWithParam();
+                } else if (localName.equals("when")) {
+                    return new XSLWhen();
+                }
+            default:
+                return null;
         }
-	}
+    }
 
     /**
      * Method to support the element-available() function
-     * @param uri the namespace URI
+     *
+     * @param uri       the namespace URI
      * @param localName the local Name
      * @return true if an extension element of this name is recognized
-    */
+     */
 
     public boolean isElementAvailable(String uri, String localName) {
-    	int fingerprint = namePool.getFingerprint(uri, localName);
-    	if (uri.equals(NamespaceConstant.XSLT)) {
-    		if (fingerprint == -1) {
-                return false; 	// all names are pre-registered
-            }
-    		StyleElement e = makeXSLElement(fingerprint);
-    		if (e != null) {
+        if (uri.equals(NamespaceConstant.XSLT)) {
+            StyleElement e = makeXSLElement(localName);
+            if (e != null) {
                 return e.isInstruction();
             }
-    	}
+        }
         return false;
     }
-
-
 
 
 }

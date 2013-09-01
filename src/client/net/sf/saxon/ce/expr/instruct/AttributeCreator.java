@@ -2,8 +2,7 @@ package client.net.sf.saxon.ce.expr.instruct;
 
 import client.net.sf.saxon.ce.event.SequenceReceiver;
 import client.net.sf.saxon.ce.expr.XPathContext;
-import client.net.sf.saxon.ce.om.NamePool;
-import client.net.sf.saxon.ce.om.StandardNames;
+import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.value.Whitespace;
 
@@ -13,46 +12,6 @@ import client.net.sf.saxon.ce.value.Whitespace;
 
 public abstract class AttributeCreator extends SimpleNodeConstructor {
 
-    private int annotation;
-    private int validationAction;
-    private int options;
-
-    /**
-     * Set the options to be used on the attribute event
-     * @param options
-     */
-
-    public void setOptions(int options) {
-        this.options = options;
-    }
-
-    /**
-     * Get the options to be used on the attribute event
-     * @return the option flags to be used
-     */
-
-    public int getOptions() {
-        return options;
-    }
-
-    /**
-     * Set the type annotation fingerprint to be used on the attribute event
-     * @param type the fingerprint of the type annotation to be used
-     */
-
-    public void setAnnotation(int type) {
-        annotation = type;
-    }
-
-    /**
-     * Get the type annotation fingerprint to be used on the attribute event
-     * @return the fingerprint of the type annotation to be used
-     */
-
-    public int getAnnotation() {
-        return annotation;
-    }
-
     /**
      * Process the value of the node, to create the new node.
      * @param value the string value of the new node
@@ -61,19 +20,17 @@ public abstract class AttributeCreator extends SimpleNodeConstructor {
      */
 
     public final void processValue(CharSequence value, XPathContext context) throws XPathException {
-        int nameCode = evaluateNameCode(context);
+        StructuredQName nameCode = evaluateNameCode(context);
 //        if (nameCode == -1) {
 //            return null;
 //        }
         SequenceReceiver out = context.getReceiver();
-        int opt = getOptions();
-        int ann = getAnnotation();
-        
+
     	// we may need to change the namespace prefix if the one we chose is
     	// already in use with a different namespace URI: this is done behind the scenes
     	// by the ComplexContentOutputter
 
-        if ((nameCode & NamePool.FP_MASK) == StandardNames.XML_ID) {
+        if (nameCode.equals(StructuredQName.XML_ID)) {
             value = Whitespace.collapseWhitespace(value);
         }
         try {

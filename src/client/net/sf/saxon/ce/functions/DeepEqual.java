@@ -147,7 +147,7 @@ public class DeepEqual extends CollatingFunction {
         final NamePool pool = config.getNamePool();
         switch (n1.getNodeKind()) {
             case Type.ELEMENT:
-                if (n1.getFingerprint() != n2.getFingerprint()) {
+                if (!n1.getNodeName().equals(n2.getNodeName())) {
                     return false;
                 }
                 AxisIterator a1 = n1.iterateAxis(Axis.ATTRIBUTE);
@@ -160,7 +160,7 @@ public class DeepEqual extends CollatingFunction {
                     if (att1 == null) break;
 
                     AxisIterator a2iter = n2.iterateAxis(Axis.ATTRIBUTE,
-                                            new NameTest(Type.ATTRIBUTE, att1.getFingerprint(), pool));
+                                            new NameTest(Type.ATTRIBUTE, att1.getNodeName()));
                     NodeInfo att2 = (NodeInfo)a2iter.next();
 
                     if (att2==null) {
@@ -197,7 +197,9 @@ public class DeepEqual extends CollatingFunction {
             case Type.NAMESPACE:
             case Type.TEXT:
             case Type.COMMENT:
-                return (n1.getFingerprint() == n2.getFingerprint() &&
+                StructuredQName s1 = n1.getNodeName();
+                StructuredQName s2 = n2.getNodeName();
+                return ((s1==null ? s2==null : s1.equals(s2)) &&
                         collator.comparesEqual(n1.getTypedValue(), n2.getTypedValue()));
 
 

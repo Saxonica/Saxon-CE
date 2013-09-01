@@ -1,6 +1,7 @@
 package client.net.sf.saxon.ce.functions;
 import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.om.DocumentPool;
+import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.NodeInfo;
@@ -105,11 +106,8 @@ public class NamePart extends SystemFunction {
                 // Otherwise, return its systemId. 
                 return getDocumentURI(node, c);
             case NODE_NAME:
-                int nc = node.getNameCode();
-                if (nc == -1) {
-                    return null;
-                }
-                return new QNameValue(node.getNamePool(), nc);
+                StructuredQName nodeName = node.getNodeName();
+                return (nodeName == null ? null : new QNameValue(nodeName));
             default:
                 throw new UnsupportedOperationException("Unknown name operation");
         }

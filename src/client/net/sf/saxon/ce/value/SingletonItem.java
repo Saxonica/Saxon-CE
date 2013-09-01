@@ -1,14 +1,15 @@
 package client.net.sf.saxon.ce.value;
-import client.net.sf.saxon.ce.expr.Token;
 import client.net.sf.saxon.ce.expr.XPathContext;
-import client.net.sf.saxon.ce.js.IXSLFunction;
 import client.net.sf.saxon.ce.js.JSObjectType;
 import client.net.sf.saxon.ce.js.JSObjectValue;
 import client.net.sf.saxon.ce.om.*;
+import client.net.sf.saxon.ce.pattern.DocumentNodeTest;
+import client.net.sf.saxon.ce.pattern.NameTest;
+import client.net.sf.saxon.ce.pattern.NodeKindTest;
+import client.net.sf.saxon.ce.pattern.NodeTest;
+import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.AxisIterator;
 import client.net.sf.saxon.ce.tree.iter.SingletonIterator;
-import client.net.sf.saxon.ce.pattern.*;
-import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.type.TypeHierarchy;
@@ -95,28 +96,10 @@ public class SingletonItem extends Value implements GroundedValue{
                     }
 
                 case Type.ELEMENT:
-                    int eltype = node.getTypeAnnotation();
-                    if (eltype == -1 || eltype == StandardNames.XS_UNTYPED || eltype == StandardNames.XS_ANY_TYPE) {
-                        return new NameTest(Type.ELEMENT, node.getFingerprint(), node.getNamePool());
-                    } else {
-                        return new CombinedNodeTest(
-                                new NameTest(Type.ELEMENT, node.getFingerprint(), node.getNamePool()),
-                                Token.INTERSECT,
-                                new ContentTypeTest(Type.ELEMENT, node.getConfiguration().getSchemaType(eltype),
-                                        node.getConfiguration()));
-                    }
+                    return new NameTest(Type.ELEMENT, node.getNodeName());
 
                 case Type.ATTRIBUTE:
-                    int attype = node.getTypeAnnotation();
-                    if (attype == -1 || attype == StandardNames.XS_UNTYPED_ATOMIC) {
-                        return new NameTest(Type.ATTRIBUTE, node.getFingerprint(), node.getNamePool());
-                    } else {
-                        return new CombinedNodeTest(
-                                new NameTest(Type.ATTRIBUTE, node.getFingerprint(), node.getNamePool()),
-                                Token.INTERSECT,
-                                new ContentTypeTest(Type.ATTRIBUTE, node.getConfiguration().getSchemaType(attype),
-                                        node.getConfiguration()));
-                    }
+                    return new NameTest(Type.ATTRIBUTE, node.getNodeName());
 
                 case Type.TEXT:
                     return NodeKindTest.TEXT;

@@ -11,12 +11,11 @@ import client.net.sf.saxon.ce.Configuration;
 
 public class AttributeCollection {
 
-    // Attribute values are maintained as an array of Strings. Everything else is maintained
-    // in the form of integers.
+    // Attribute values are maintained as an array of Strings.
 
     private Configuration config;
     private String[] values = null;
-    private int[] codes = null;
+    private StructuredQName[] names = null;
     private int used = 0;
 
     // Empty attribute collection. The caller is trusted not to try and modify it.
@@ -50,15 +49,15 @@ public class AttributeCollection {
         AttributeCollection t = new AttributeCollection(atts.config);
         t.used = atts.used;
         t.values = new String[atts.used];
-        t.codes = new int[atts.used];
+        t.names = new StructuredQName[atts.used];
         System.arraycopy(atts.values, 0, t.values, 0, atts.used);
-        System.arraycopy(atts.codes, 0, t.codes, 0, atts.used);
+        System.arraycopy(atts.names, 0, t.names, 0, atts.used);
         return t;
     }
 
     /**
      * Add an attribute to an attribute list. The parameters correspond
-     * to the parameters of the {@link client.net.sf.saxon.ce.event.Receiver#attribute(int, CharSequence)}
+     * to the parameters of the {@link client.net.sf.saxon.ce.event.Receiver#attribute(StructuredQName, CharSequence)}
      * method. There is no check that the name of the attribute is distinct from other attributes
      * already in the collection: this check must be made by the caller.
      *
@@ -66,22 +65,22 @@ public class AttributeCollection {
      * @param value    The attribute value (must not be null)
      */
 
-    public void addAttribute(int nameCode, String value) {
+    public void addAttribute(StructuredQName nameCode, String value) {
         if (values == null) {
             values = new String[5];
-            codes = new int[5];
+            names = new StructuredQName [5];
             used = 0;
         }
         if (values.length == used) {
             int newsize = (used == 0 ? 5 : used * 2);
             String[] v2 = new String[newsize];
-            int[] c2 = new int[newsize];
+            StructuredQName[] c2 = new StructuredQName[newsize];
             System.arraycopy(values, 0, v2, 0, used);
-            System.arraycopy(codes, 0, c2, 0, used);
+            System.arraycopy(names, 0, c2, 0, used);
             values = v2;
-            codes = c2;
+            names = c2;
         }
-        codes[used] = nameCode;
+        names[used] = nameCode;
         values[used++] = value;
     }
 
@@ -100,15 +99,15 @@ public class AttributeCollection {
 
     public void compact() {
         if (used == 0) {
-            codes = null;
+            names = null;
             values = null;
         } else if (values.length > used) {
             String[] v2 = new String[used];
-            int[] c2 = new int[used];
+            StructuredQName[] c2 = new StructuredQName[used];
             System.arraycopy(values, 0, v2, 0, used);
-            System.arraycopy(codes, 0, c2, 0, used);
+            System.arraycopy(names, 0, c2, 0, used);
             values = v2;
-            codes = c2;
+            names = c2;
         }
     }
 
@@ -125,22 +124,22 @@ public class AttributeCollection {
     }
 
     /**
-     * Get the namecode of an attribute (by position).
+     * Get the name of an attribute (by position).
      *
      * @param index The position of the attribute in the list.
-     * @return The display name of the attribute as a string, or null if there
+     * @return The  name of the attribute as a StructuredQName, or null if there
      *         is no attribute at that position.
      */
 
-    public int getNameCode(int index) {
-        if (codes == null) {
-            return -1;
+    public StructuredQName getStructuredQName(int index) {
+        if (names == null) {
+            return null;
         }
         if (index < 0 || index >= used) {
-            return -1;
+            return null;
         }
 
-        return codes[index];
+        return names[index];
     }
 
     /**
@@ -153,13 +152,13 @@ public class AttributeCollection {
      */
 
     public String getPrefix(int index) {
-        if (codes == null) {
+        if (names == null) {
             return null;
         }
         if (index < 0 || index >= used) {
             return null;
         }
-        return config.getNamePool().getPrefix(getNameCode(index));
+        return names[index].getPrefix();
     }
 
     /**
@@ -171,13 +170,13 @@ public class AttributeCollection {
      */
 
     public String getLocalName(int index) {
-        if (codes == null) {
+        if (names == null) {
             return null;
         }
         if (index < 0 || index >= used) {
             return null;
         }
-        return config.getNamePool().getLocalName(getNameCode(index));
+        return names[index].getLocalName();
     }
 
     /**
@@ -189,13 +188,13 @@ public class AttributeCollection {
      */
 
     public String getURI(int index) {
-        if (codes == null) {
+        if (names == null) {
             return null;
         }
         if (index < 0 || index >= used) {
             return null;
         }
-        return config.getNamePool().getURI(getNameCode(index));
+        return names[index].getNamespaceURI();
     }
 
 
@@ -226,109 +225,29 @@ public class AttributeCollection {
      */
 
     public String getValue(String uri, String localname) {
-        int index = findByName(uri, localname);
-        return (index < 0 ? null : getValue(index));
-    }
-
-    /**
-     * Get the attribute value using its fingerprint
-     */
-
-    public String getValueByFingerprint(int fingerprint) {
-        int index = findByFingerprint(fingerprint);
-        return (index < 0 ? null : getValue(index));
-    }
-
-    /**
-     * Get the index of an attribute, from its lexical QName
-     *
-     * @param qname The lexical QName of the attribute. The prefix must match.
-     * @return The index position of the attribute
-     */
-
-    public int getIndex(String qname) {
-        if (codes == null) {
-            return -1;
+        if (names == null) {
+            return null;
         }
-        if (qname.indexOf(':') < 0) {
-            return findByName("", qname);
-        }
-        // Searching using prefix+localname is not recommended, but SAX allows it...
-        String[] parts;
-        try {
-            parts = NameChecker.getQNameParts(qname);
-        } catch (QNameException err) {
-            return -1;
-        }
-        String prefix = parts[0];
-        if (prefix.length() == 0) {
-            return findByName("", qname);
-        } else {
-            String localName = parts[1];
-            for (int i = 0; i < used; i++) {
-                String lname = config.getNamePool().getLocalName(getNameCode(i));
-                String ppref = config.getNamePool().getPrefix(getNameCode(i));
-                if (localName.equals(lname) && prefix.equals(ppref)) {
-                    return i;
-                }
+        for (int i = 0; i < used; i++) {
+            if (names[i].getNamespaceURI().equals(uri) && names[i].getLocalName().equals(localname)) {
+                return values[i];
             }
-            return -1;
         }
+        return null;
     }
 
     /**
-     * Get the index, given the fingerprint.
-     * Return -1 if not found.
-     */
-
-    public int getIndexByFingerprint(int fingerprint) {
-        return findByFingerprint(fingerprint);
-    }
-
-    /**
-     * Get the value of an attribute (by lexical QName).
-     *
-     * @param name The attribute name (a lexical QName).
-     * The prefix must match the prefix originally used. This method is defined in SAX, but is
-     * not recommended except where the prefix is null.
-     */
-
-    public String getValue(String name) {
-        int index = getIndex(name);
-        return getValue(index);
-    }
-
-    /**
-     * Find an attribute by expanded name
-     * @param uri the namespace uri
-     * @param localName the local name
+     * Find an attribute by structured QName
+     * @param name the fingerprint representing the name of the required attribute
      * @return the index of the attribute, or -1 if absent
      */
 
-    private int findByName(String uri, String localName) {
-        if (config == null) {
-            return -1;		// indicates an empty attribute set
-        }
-        NamePool namePool = config.getNamePool();
-        int f = namePool.getFingerprint(uri, localName);
-        if (f == -1) {
-            return -1;
-        }
-        return findByFingerprint(f);
-    }
-
-    /**
-     * Find an attribute by fingerprint
-     * @param fingerprint the fingerprint representing the name of the required attribute
-     * @return the index of the attribute, or -1 if absent
-     */
-
-    private int findByFingerprint(int fingerprint) {
-        if (codes == null) {
+    public int findByStructuredQName(StructuredQName name) {
+        if (names == null) {
             return -1;
         }
         for (int i = 0; i < used; i++) {
-            if (fingerprint == (codes[i] & NamePool.FP_MASK)) {
+            if (names[i].equals(name)) {
                 return i;
             }
         }
@@ -340,7 +259,7 @@ public class AttributeCollection {
      */
 
     public boolean isId(int index) {
-        return (codes[index] & NamePool.FP_MASK) == StandardNames.XML_ID;
+        return StructuredQName.XML_ID.equals(names[index]);
     }
 
 

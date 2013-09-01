@@ -66,7 +66,6 @@ public class InscopeNamespaceResolver implements NamespaceResolver {
      */
 
     public Iterator iteratePrefixes() {
-        final NamePool pool = node.getNamePool();
         return new Iterator() {
             int phase = 0;
             Iterator<NamespaceBinding> iter = NamespaceIterator.iterateNamespaces(node);

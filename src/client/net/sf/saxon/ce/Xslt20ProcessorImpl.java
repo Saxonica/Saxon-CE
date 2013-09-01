@@ -1,73 +1,45 @@
 package client.net.sf.saxon.ce;
 
 import client.net.sf.saxon.ce.Controller.APIcommand;
-import client.net.sf.saxon.ce.LicenseException;
 import client.net.sf.saxon.ce.client.HTTPHandler;
-import client.net.sf.saxon.ce.client.HTTPHandler.State;
 import client.net.sf.saxon.ce.dom.HTMLDocumentWrapper;
-import client.net.sf.saxon.ce.dom.HTMLNodeWrapper;
-import client.net.sf.saxon.ce.dom.XMLDOM;
 import client.net.sf.saxon.ce.dom.HTMLDocumentWrapper.DocType;
-import client.net.sf.saxon.ce.expr.Expression;
+import client.net.sf.saxon.ce.dom.XMLDOM;
 import client.net.sf.saxon.ce.expr.XPathContext;
-import client.net.sf.saxon.ce.expr.XPathContextMajor;
-import client.net.sf.saxon.ce.expr.instruct.GlobalVariable;
-import client.net.sf.saxon.ce.js.IXSLFunction;
-import client.net.sf.saxon.ce.lib.GenericLogHandler;
 import client.net.sf.saxon.ce.lib.JavaScriptAPIException;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
 import client.net.sf.saxon.ce.lib.StandardErrorListener;
-import client.net.sf.saxon.ce.lib.TraceListener;
 import client.net.sf.saxon.ce.om.Axis;
 import client.net.sf.saxon.ce.om.DocumentInfo;
-import client.net.sf.saxon.ce.om.Item;
-import client.net.sf.saxon.ce.om.NamePool;
 import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.om.SequenceIterator;
-import client.net.sf.saxon.ce.om.StructuredQName;
-import client.net.sf.saxon.ce.om.ValueRepresentation;
 import client.net.sf.saxon.ce.pattern.JSObjectPattern;
 import client.net.sf.saxon.ce.pattern.NodeKindTest;
-import client.net.sf.saxon.ce.pattern.NodeSetPattern;
-import client.net.sf.saxon.ce.trace.XSLTTraceListener;
 import client.net.sf.saxon.ce.trans.CompilerInfo;
-import client.net.sf.saxon.ce.trans.Err;
 import client.net.sf.saxon.ce.trans.Mode;
 import client.net.sf.saxon.ce.trans.Rule;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.URI;
-import client.net.sf.saxon.ce.type.ItemType;
-import client.net.sf.saxon.ce.value.SequenceType;
-
 import com.google.gwt.core.client.EntryPoint;
 import com.google.gwt.core.client.JavaScriptException;
 import com.google.gwt.core.client.JavaScriptObject;
-import com.google.gwt.dom.client.Document;
-import com.google.gwt.dom.client.Element;
-import com.google.gwt.dom.client.EventTarget;
-import com.google.gwt.dom.client.NativeEvent;
-import com.google.gwt.dom.client.Node;
-import com.google.gwt.dom.client.NodeList;
+import com.google.gwt.dom.client.*;
 import com.google.gwt.http.client.Request;
-import com.google.gwt.http.client.RequestBuilder;
 import com.google.gwt.http.client.RequestCallback;
-import com.google.gwt.http.client.RequestTimeoutException;
 import com.google.gwt.http.client.Response;
 import com.google.gwt.logging.client.LogConfiguration;
 import com.google.gwt.user.client.DOM;
 import com.google.gwt.user.client.Event;
 import com.google.gwt.user.client.EventListener;
 import com.google.gwt.user.client.Window;
-//import com.google.gwt.xml.client.XMLParser;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
+import org.timepedia.exporter.client.ExporterUtil;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
-import org.timepedia.exporter.client.ExporterUtil;
+//import com.google.gwt.xml.client.XMLParser;
 
 
 /**
@@ -643,7 +615,7 @@ public class Xslt20ProcessorImpl implements EntryPoint {
 	            Rule matchedRule = matchedMode.getRule(element, ruleContext);
 	            if (matchedRule != null && eventPropertyMatch(event, matchedRule)) {
 	            	logger.log(Level.FINER, "Bubble Apply-Templates - Mode: " + matchedMode.getModeName().getLocalName() + 
-	            			" Element: " + controller.getNamePool().getLocalName(element.getNameCode()));
+	            			" Element: " + element.getDisplayName());
 	            	applyEventTemplates(matchedMode.getModeName().getClarkName(), element, event, null);
 	            	if (matchedRule.getIxslPreventDefault()) {
             			event.preventDefault();

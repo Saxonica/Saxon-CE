@@ -3,11 +3,9 @@ package client.net.sf.saxon.ce.value;
 import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.functions.Component;
 import client.net.sf.saxon.ce.lib.StringCollator;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
 import client.net.sf.saxon.ce.tree.util.StringTokenizer;
-import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.BuiltInAtomicType;
 import client.net.sf.saxon.ce.type.ConversionResult;
 import client.net.sf.saxon.ce.type.ValidationFailure;
@@ -80,7 +78,7 @@ public class DurationValue extends AtomicValue {
      */
 
     public DurationValue(boolean positive, int years, int months, int days,
-                         int hours, int minutes, long seconds, int microseconds, AtomicType type) {
+                         int hours, int minutes, long seconds, int microseconds, BuiltInAtomicType type) {
         negative = !positive;
         if (years < 0 || months < 0 || days < 0 || hours < 0 || minutes < 0 || seconds < 0 || microseconds < 0) {
             throw new IllegalArgumentException("Negative component value");
@@ -326,20 +324,17 @@ public class DurationValue extends AtomicValue {
      */
 
     public ConversionResult convertPrimitive(BuiltInAtomicType requiredType, boolean validate) {
-        //System.err.println("Convert duration " + getClass() + " to " + Type.getTypeName(requiredType));
-        switch (requiredType.getPrimitiveType()) {
-        case StandardNames.XS_DURATION:
-        case StandardNames.XS_ANY_ATOMIC_TYPE:
+        if (requiredType == BuiltInAtomicType.ANY_ATOMIC || requiredType == BuiltInAtomicType.DURATION) {
             return this;
-        case StandardNames.XS_STRING:
-            return new StringValue(getStringValueCS());
-        case StandardNames.XS_UNTYPED_ATOMIC:
+        } else if (requiredType == BuiltInAtomicType.UNTYPED_ATOMIC) {
             return new UntypedAtomicValue(getStringValueCS());
-        case StandardNames.XS_YEAR_MONTH_DURATION:
+        } else if (requiredType == BuiltInAtomicType.STRING) {
+            return new StringValue(getStringValueCS());
+        } else if (requiredType == BuiltInAtomicType.YEAR_MONTH_DURATION) {
             return YearMonthDurationValue.fromMonths(months * (negative ? -1 : +1));
-        case StandardNames.XS_DAY_TIME_DURATION:
+        } else if (requiredType == BuiltInAtomicType.DAY_TIME_DURATION) {
             return new DayTimeDurationValue((negative ? -1 : +1), 0, 0, 0, seconds, microseconds);
-        default:
+        } else {
             ValidationFailure err = new ValidationFailure("Cannot convert duration to " +
                     requiredType.getDisplayName());
             err.setErrorCode("XPTY0004");

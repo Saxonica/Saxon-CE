@@ -12,9 +12,7 @@ import client.net.sf.saxon.ce.tree.iter.AxisIterator;
 import client.net.sf.saxon.ce.tree.iter.EmptyIterator;
 import client.net.sf.saxon.ce.tree.iter.ListIterator;
 import client.net.sf.saxon.ce.tree.iter.SingleNodeIterator;
-import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.BuiltInAtomicType;
-import client.net.sf.saxon.ce.type.BuiltInType;
 import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.value.AtomicValue;
 import client.net.sf.saxon.ce.value.DoubleValue;
@@ -71,10 +69,30 @@ import java.util.*;
 
 public class KeyManager {
 
+    private class IndexId {
+
+        public StructuredQName keyName;
+        public BuiltInAtomicType primitiveType;
+
+        public IndexId(StructuredQName keyName, BuiltInAtomicType primitiveType) {
+            this.keyName = keyName;
+            this.primitiveType = primitiveType;
+        }
+
+        public boolean equals(Object o) {
+            return o instanceof IndexId && keyName.equals(((IndexId)o).keyName) && primitiveType == ((IndexId)o).primitiveType;
+        }
+
+        public int hashCode() {
+            return keyName.hashCode() ^ primitiveType.hashCode();
+        }
+
+    }
+
     private HashMap<StructuredQName, KeyDefinitionSet> keyMap;
                                      // one entry for each named key; the entry contains
                                      // a KeyDefinitionSet holding the key definitions with that name
-    private transient HashMap<DocumentInfo, HashMap<Long, Object>> docIndexes;
+    private transient HashMap<DocumentInfo, HashMap<IndexId, Object>> docIndexes;
                                      // one entry for each document that is in memory;
                                      // the entry contains a HashMap mapping the fingerprint of
                                      // the key name plus the primitive item type
@@ -87,7 +105,7 @@ public class KeyManager {
 
     public KeyManager() {
         keyMap = new HashMap<StructuredQName, KeyDefinitionSet>(10);
-        docIndexes = new HashMap<DocumentInfo, HashMap<Long, Object>>(10);
+        docIndexes = new HashMap<DocumentInfo, HashMap<IndexId, Object>>(10);
     }
 
     /**
@@ -374,6 +392,7 @@ public class KeyManager {
         KeyDefinition definition = (KeyDefinition)definitions.get(0);
                // the itemType and collation and BC mode will be the same for all keys with the same name
         StringCollator collation = definition.getCollation();
+        StructuredQName keyName = keySet.getKeyName();
         
         if (keySet.isBackwardsCompatible()) {
             // if backwards compatibility is in force, treat all values as strings
@@ -405,7 +424,7 @@ public class KeyManager {
         BuiltInAtomicType itemType = value.getPrimitiveType();
         HashMap index;
 
-        Object indexObject = getIndex(doc, keySetNumber, itemType);
+        Object indexObject = getIndex(doc, keyName, itemType);
         if (indexObject instanceof String) {
             // index is under construction
             XPathException de = new XPathException("Key definition is circular");
@@ -418,17 +437,17 @@ public class KeyManager {
         // If the index does not yet exist, then create it.
         if (index==null) {
             // Mark the index as being under construction, in case the definition is circular
-            putIndex(doc, keySetNumber, itemType, "Under Construction", context);
+            putIndex(doc, keyName, itemType, "Under Construction", context);
             index = buildIndex(keySet, itemType, foundItemTypes, doc, context);
-            putIndex(doc, keySetNumber, itemType, index, context);
+            putIndex(doc, keyName, itemType, index, context);
             if (foundItemTypes != null) {
                 // build indexes for each item type actually found
                 for (Iterator<BuiltInAtomicType> f = foundItemTypes.iterator(); f.hasNext();) {
                     BuiltInAtomicType t = f.next();
                     if (!t.equals(BuiltInAtomicType.STRING)) {
-                        putIndex(doc, keySetNumber, t, "Under Construction", context);
+                        putIndex(doc, keyName, t, "Under Construction", context);
                         index = buildIndex(keySet, t, null, doc, context);
-                        putIndex(doc, keySetNumber, t, index, context);
+                        putIndex(doc, keyName, t, index, context);
                     }
                 }
             }
@@ -445,16 +464,12 @@ public class KeyManager {
         } else {
             // we need to search the indexes for all possible types, and combine the results.
             SequenceIterator result = null;
-            HashMap<Long, Object> docIndex = docIndexes.get(doc);
+            HashMap<IndexId, Object> docIndex = docIndexes.get(doc);
             if (docIndex != null) {
-                for (Iterator<Long> i= index.keySet().iterator(); i.hasNext();) {
-                    long key = (i.next()).longValue();
-                    if (((key >> 32)) == keySetNumber) {
-                        int typefp = (int)key;
+                for (IndexId indexId : (Iterable<IndexId>) index.keySet()) {
+                    if (indexId.keyName.equals(keyName)) {
 
-                        BuiltInAtomicType type = (BuiltInAtomicType)BuiltInType.getSchemaType(typefp);
-
-                        Object indexObject2 = getIndex(doc, keySetNumber, type);
+                        Object indexObject2 = getIndex(doc, indexId.keyName, indexId.primitiveType);
                         if (indexObject2 instanceof String) {
                             // index is under construction
                             XPathException de = new XPathException("Key definition is circular");
@@ -462,11 +477,11 @@ public class KeyManager {
                             de.setErrorCode("XTDE0640");
                             throw de;
                         }
-                        HashMap index2 = (HashMap)indexObject2;
+                        HashMap index2 = (HashMap) indexObject2;
                         // NOTE: we've been known to encounter a null index2 here, but it doesn't seem possible
                         if (!index2.isEmpty()) {
-                            value = soughtValue.convert(type, true).asAtomic();
-                            ArrayList nodes = (ArrayList)index2.get(getCollationKey(value, type, collation, context));
+                            value = soughtValue.convert(indexId.primitiveType, true).asAtomic();
+                            ArrayList nodes = (ArrayList) index2.get(getCollationKey(value, indexId.primitiveType, collation, context));
                             if (nodes != null) {
                                 if (result == null) {
                                     result = new ListIterator(nodes);
@@ -514,22 +529,22 @@ public class KeyManager {
     * the same KeyManager) may be creating indexes for the same or different documents at the same
     * time.
      * @param doc the document being indexed
-     * @param keyFingerprint represents the name of the key definition
+     * @param keyName represents the name of the key definition
      * @param itemType the primitive type of the values being indexed
      * @param index the index being saved
      * @param context the dynamic evaluation context
     */
 
-    private synchronized void putIndex(DocumentInfo doc, int keyFingerprint,
-                                       AtomicType itemType, Object index, XPathContext context) {
+    private synchronized void putIndex(DocumentInfo doc, StructuredQName keyName,
+                                       BuiltInAtomicType itemType, Object index, XPathContext context) {
         if (docIndexes==null) {
             // it's transient, so it will be null when reloading a compiled stylesheet
-            docIndexes = new HashMap<DocumentInfo, HashMap<Long, Object>>(10);
+            docIndexes = new HashMap<DocumentInfo, HashMap<IndexId, Object>>(10);
         }
-        HashMap<Long, Object> indexRef = docIndexes.get(doc);
-        HashMap<Long, Object> indexList;
+        HashMap<IndexId, Object> indexRef = docIndexes.get(doc);
+        HashMap<IndexId, Object> indexList;
         if (indexRef==null) {
-            indexList = new HashMap<Long, Object>(10);
+            indexList = new HashMap<IndexId, Object>(10);
             // Ensure there is a firm reference to the indexList for the duration of a transformation
             // But for keys associated with temporary trees, or documents that have been discarded from
             // the document pool, keep the reference within the document node itself.
@@ -539,30 +554,33 @@ public class KeyManager {
             } else {
                 doc.setUserData("saxon:key-index-list", indexList);
             }
-            docIndexes.put(doc, new HashMap<Long, Object>(indexList));
+            docIndexes.put(doc, new HashMap<IndexId, Object>(indexList));
         } else {
             indexList = indexRef;
         }
-        indexList.put(Long.valueOf(((long)keyFingerprint)<<32 | itemType.getFingerprint()), index);
+        indexList.put(new IndexId(keyName, itemType), index);
     }
 
     /**
      * Get the index associated with a particular key, a particular source document,
      * and a particular primitive item type
      * @param doc the document whose index is required
-     * @param keyFingerprint the name of the key definition
+     * @param keyName the name of the key definition
      * @param itemType the primitive item type of the values being indexed
      * @return either an index (as a HashMap), or the String "under construction", or null
     */
 
-    private synchronized Object getIndex(DocumentInfo doc, int keyFingerprint, AtomicType itemType) {
+    private synchronized Object getIndex(DocumentInfo doc, StructuredQName keyName, BuiltInAtomicType itemType) {
         if (docIndexes==null) {
             // it's transient, so it will be null when reloading a compiled stylesheet
-            docIndexes = new HashMap<DocumentInfo, HashMap<Long, Object>>(10);
+            docIndexes = new HashMap<DocumentInfo, HashMap<IndexId, Object>>(10);
         }
-        HashMap<Long, Object> docIndex = docIndexes.get(doc);
-        if (docIndex==null) return null;
-        return docIndex.get(Long.valueOf(((long)keyFingerprint)<<32 | itemType.getFingerprint()));
+        HashMap<IndexId, Object> docIndex = docIndexes.get(doc);
+        if (docIndex==null) {
+            return null;
+        }
+        IndexId id = new IndexId(keyName, itemType);
+        return docIndex.get(id);
     }
 
 

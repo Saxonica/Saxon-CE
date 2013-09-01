@@ -5,6 +5,7 @@ import client.net.sf.saxon.ce.expr.instruct.Comment;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.om.AttributeCollection;
 import client.net.sf.saxon.ce.om.StandardNames;
+import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.value.StringValue;
 
@@ -20,12 +21,12 @@ public final class XSLComment extends XSLLeafNodeConstructor {
 
 		AttributeCollection atts = getAttributeList();
 		for (int a=0; a<atts.getLength(); a++) {
-			int nc = atts.getNameCode(a);
-			String f = getNamePool().getClarkName(nc);
-			if (f==StandardNames.SELECT) {
+			StructuredQName qn = atts.getStructuredQName(a);
+            String f = qn.getClarkName();
+			if (f.equals(StandardNames.SELECT)) {
         		selectAtt = atts.getValue(a);
         	} else {
-        		checkUnknownAttribute(nc);
+        		checkUnknownAttribute(qn);
         	}
         }
 

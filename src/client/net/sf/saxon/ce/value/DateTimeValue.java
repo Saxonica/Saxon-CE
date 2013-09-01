@@ -385,39 +385,27 @@ public final class DateTimeValue extends CalendarValue implements Comparable {
      */
 
     public ConversionResult convertPrimitive(BuiltInAtomicType requiredType, boolean validate) {
-        switch (requiredType.getPrimitiveType()) {
-        case StandardNames.XS_DATE_TIME:
-        case StandardNames.XS_ANY_ATOMIC_TYPE:
+        if (requiredType == BuiltInAtomicType.ANY_ATOMIC || requiredType == BuiltInAtomicType.DATE_TIME) {
             return this;
-
-        case StandardNames.XS_DATE:
-            return new DateValue(year, month, day, getTimezoneInMinutes());
-
-        case StandardNames.XS_TIME:
-            return new TimeValue(hour, minute, second, microsecond, getTimezoneInMinutes());
-
-        case StandardNames.XS_G_YEAR:
-            return new GYearValue(year, getTimezoneInMinutes());
-
-        case StandardNames.XS_G_YEAR_MONTH:
-            return new GYearMonthValue(year, month, getTimezoneInMinutes());
-
-        case StandardNames.XS_G_MONTH:
-            return new GMonthValue(month, getTimezoneInMinutes());
-
-        case StandardNames.XS_G_MONTH_DAY:
-            return new GMonthDayValue(month, day, getTimezoneInMinutes());
-
-        case StandardNames.XS_G_DAY:
-            return new GDayValue(day, getTimezoneInMinutes());
-
-        case StandardNames.XS_STRING:
-            return new StringValue(getStringValueCS());
-
-        case StandardNames.XS_UNTYPED_ATOMIC:
+        } else if (requiredType == BuiltInAtomicType.UNTYPED_ATOMIC) {
             return new UntypedAtomicValue(getStringValueCS());
-
-        default:
+        } else if (requiredType == BuiltInAtomicType.STRING) {
+            return new StringValue(getStringValueCS());
+        } else if (requiredType == BuiltInAtomicType.DATE) {
+            return new DateValue(year, month, day, getTimezoneInMinutes());
+        } else if (requiredType == BuiltInAtomicType.TIME) {
+            return new TimeValue(hour, minute, second, microsecond, getTimezoneInMinutes());
+        } else if (requiredType == BuiltInAtomicType.G_YEAR) {
+            return new GYearValue(year, getTimezoneInMinutes());
+        } else if (requiredType == BuiltInAtomicType.G_YEAR_MONTH) {
+            return new GYearMonthValue(year, month, getTimezoneInMinutes());
+        } else if (requiredType == BuiltInAtomicType.G_MONTH) {
+            return new GMonthValue(month, getTimezoneInMinutes());
+        } else if (requiredType == BuiltInAtomicType.G_MONTH_DAY) {
+            return new GMonthDayValue(month, day, getTimezoneInMinutes());
+        } else if (requiredType == BuiltInAtomicType.G_DAY) {
+            return new GDayValue(day, getTimezoneInMinutes());
+        } else {
             ValidationFailure err = new ValidationFailure("Cannot convert dateTime to " +
                     requiredType.getDisplayName());
             err.setErrorCode("XPTY0004");
@@ -728,8 +716,7 @@ public final class DateTimeValue extends CalendarValue implements Comparable {
      */
 
     public boolean equals(Object o) {
-        //noinspection RedundantCast
-        return compareTo((DateTimeValue)o) == 0;
+        return o instanceof DateTimeValue && compareTo(o) == 0;
     }
 
     /**

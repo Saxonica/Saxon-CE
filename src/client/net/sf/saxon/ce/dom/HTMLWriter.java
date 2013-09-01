@@ -1,7 +1,5 @@
 package client.net.sf.saxon.ce.dom;
 
-import java.util.logging.Logger;
-
 import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.Controller;
 import client.net.sf.saxon.ce.Controller.APIcommand;
@@ -10,16 +8,14 @@ import client.net.sf.saxon.ce.event.Receiver;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
 import client.net.sf.saxon.ce.om.NamePool;
 import client.net.sf.saxon.ce.om.NamespaceBinding;
+import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.value.Whitespace;
-
 import com.google.gwt.core.client.JavaScriptException;
 import com.google.gwt.core.client.JavaScriptObject;
-import com.google.gwt.dom.client.Document;
-import com.google.gwt.dom.client.Element;
-import com.google.gwt.dom.client.Node;
-import com.google.gwt.dom.client.NodeList;
-import com.google.gwt.dom.client.Text;
+import com.google.gwt.dom.client.*;
+
+import java.util.logging.Logger;
 
 
 /**
@@ -202,10 +198,10 @@ public class HTMLWriter implements Receiver {
     * Start of an element.
     */
 
-    public void startElement(int nameCode, int properties) throws XPathException {
-        String localName = namePool.getLocalName(nameCode);
-        String prefix = namePool.getPrefix(nameCode);
-        String uri = namePool.getURI(nameCode);
+    public void startElement(StructuredQName nameCode, int properties) throws XPathException {
+        String localName = nameCode.getLocalName();
+        String prefix = nameCode.getPrefix();
+        String uri = nameCode.getNamespaceURI();
         
         // TODO: For XML Writer it should write prefixes in a
         // way compliant with the XSLT2.0 specification - using xsl:output attributes
@@ -280,10 +276,10 @@ public class HTMLWriter implements Receiver {
        
     }
 
-    public void attribute(int nameCode, CharSequence value)
+    public void attribute(StructuredQName nameCode, CharSequence value)
     throws XPathException {
-        String localName = namePool.getLocalName(nameCode);
-        String uri = namePool.getURI(nameCode);
+        String localName = nameCode.getLocalName();
+        String uri = nameCode.getNamespaceURI();
         String val = value.toString();
         Element element = (Element)currentNode;
 
@@ -298,7 +294,7 @@ public class HTMLWriter implements Receiver {
         	localName = HTMLWriter.getCamelCaseName(localName);
             element.getStyle().setProperty(localName, val);
         } else if (uri != null && !uri.isEmpty()){
-            String fullname = namePool.getDisplayName(nameCode);
+            String fullname = nameCode.getDisplayName();
             setAttribute(document, element, fullname, uri, val, mode);
         } else {
         	localName = tableAttributeFix(localName, mode);
@@ -518,11 +514,7 @@ public class HTMLWriter implements Receiver {
        return targetNode.insertBefore(newNode);
     }-*/;
 
-    /**
-     * Set the attachment point for the new subtree
-     * @param node the node to which the new subtree will be attached
-    */
-    
+
     public enum WriteMode {
     	NONE, XML, HTML
     }
@@ -530,6 +522,12 @@ public class HTMLWriter implements Receiver {
 
     
     private WriteMode mode = WriteMode.NONE;
+
+    /**
+     * Set the attachment point for the new subtree
+     * @param node the node to which the new subtree will be attached
+    */
+
 
     public void setNode (Node node) {
         if (node == null) {

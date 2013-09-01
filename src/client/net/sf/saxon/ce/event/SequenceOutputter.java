@@ -190,11 +190,11 @@ public final class SequenceOutputter extends SequenceReceiver {
 
     /**
     * Output an element start tag.
-    * @param nameCode The element name code - a code held in the Name Pool
-     * @param properties bit-significant flags indicating any special information
+     * @param nameCode The element name code - a code held in the Name Pool
+      * @param properties bit-significant flags indicating any special information
      */
 
-    public void startElement(int nameCode, int properties) throws XPathException {
+    public void startElement(StructuredQName nameCode, int properties) throws XPathException {
 
         if (inStartTag) {
             startContent();
@@ -245,7 +245,7 @@ public final class SequenceOutputter extends SequenceReceiver {
             NamePool namePool = getNamePool();
             Orphan o = new Orphan(getConfiguration());
             o.setNodeKind(Type.NAMESPACE);
-            o.setNameCode(namePool.allocate("", "", nsBinding.getPrefix()));
+            o.setNodeName(new StructuredQName("", "", nsBinding.getPrefix()));
             o.setStringValue(nsBinding.getURI());
             append(o, NodeInfo.ALL_NAMESPACES);
         } else {
@@ -256,18 +256,19 @@ public final class SequenceOutputter extends SequenceReceiver {
 
     /**
     * Output an attribute value. <br>
-    * @param nameCode An integer code representing the name of the attribute, as held in the Name Pool
-    * @param value The value of the attribute
-    * @throws client.net.sf.saxon.ce.trans.XPathException if there is no start tag to write to (created using writeStartTag),
+    *
+     * @param nameCode An integer code representing the name of the attribute, as held in the Name Pool
+     * @param value The value of the attribute
+     * @throws client.net.sf.saxon.ce.trans.XPathException if there is no start tag to write to (created using writeStartTag),
     * or if character content has been written since the start tag was written.
     */
 
-    public void attribute(int nameCode, CharSequence value)
+    public void attribute(StructuredQName nameCode, CharSequence value)
     throws XPathException {
         if (level == 0) {
             Orphan o = new Orphan(getConfiguration());
             o.setNodeKind(Type.ATTRIBUTE);
-            o.setNameCode(nameCode);
+            o.setNodeName(nameCode);
             o.setStringValue(value);
             append(o, NodeInfo.ALL_NAMESPACES);
         } else {
@@ -341,7 +342,7 @@ public final class SequenceOutputter extends SequenceReceiver {
         }
         if (level == 0) {
             Orphan o = new Orphan(getConfiguration());
-            o.setNameCode(getNamePool().allocate("", "", target));
+            o.setNodeName(new StructuredQName("", "", target));
             o.setNodeKind(Type.PROCESSING_INSTRUCTION);
             o.setStringValue(data);
             append(o, NodeInfo.ALL_NAMESPACES);

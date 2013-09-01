@@ -4,6 +4,7 @@ import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.expr.sort.SetUtils;
 import client.net.sf.saxon.ce.om.NamePool;
 import client.net.sf.saxon.ce.om.StandardNames;
+import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.pattern.AnyNodeTest;
 import client.net.sf.saxon.ce.pattern.DocumentNodeTest;
 import client.net.sf.saxon.ce.pattern.EmptySequenceTest;
@@ -136,19 +137,19 @@ public class TypeHierarchy {
             if (t2 instanceof NodeTest) {
                 return DISJOINT;
             } else {
-                if (((AtomicType)t1).getFingerprint() == ((AtomicType)t2).getFingerprint()) {
+                if (t1 == t2) {
                     return SAME_TYPE;
                 }
                 ItemType t = t2;
                 while (t.isAtomicType()) {
-                    if (((AtomicType)t1).getFingerprint() == ((AtomicType)t).getFingerprint()) {
+                    if (t1 == t) {
                         return SUBSUMES;
                     }
                     t = t.getSuperType(this);
                 }
                 t = t1;
                 while (t.isAtomicType()) {
-                    if (((AtomicType)t).getFingerprint() == ((AtomicType)t2).getFingerprint()) {
+                    if (t == t2) {
                         return SUBSUMED_BY;
                     }
                     t = t.getSuperType(this);
@@ -193,8 +194,8 @@ public class TypeHierarchy {
                     // NamespaceTest and LocalNameTest are NodeTests, they do not occur in SequenceTypes,
                     // so we don't need to consider them.
                     int nodeNameRelationship;
-                    HashSet<Integer> n1 = ((NodeTest)t1).getRequiredNodeNames(); // null means all names allowed
-                    HashSet<Integer> n2 = ((NodeTest)t2).getRequiredNodeNames(); // null means all names allowed
+                    HashSet<StructuredQName> n1 = ((NodeTest)t1).getRequiredNodeNames(); // null means all names allowed
+                    HashSet<StructuredQName> n2 = ((NodeTest)t2).getRequiredNodeNames(); // null means all names allowed
                     if (n1 == null) {
                         if (n2 == null) {
                             nodeNameRelationship = SAME_TYPE;

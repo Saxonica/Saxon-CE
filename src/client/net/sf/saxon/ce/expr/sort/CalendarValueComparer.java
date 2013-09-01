@@ -76,15 +76,6 @@ public class CalendarValueComparer implements AtomicComparer {
         return compareAtomicValues(a, b) == 0;
     }
 
-    /**
-     * Get a comparison key for an object. This must satisfy the rule that if two objects are equal,
-     * then their comparison keys are equal, and vice versa. There is no requirement that the
-     * comparison keys should reflect the ordering of the underlying objects.
-     */
-
-    public ComparisonKey getComparisonKey(AtomicValue a) throws NoDynamicContextException {
-        return ((CalendarValue)a).getComparisonKey(context);
-    }
 }
 
 // This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. 

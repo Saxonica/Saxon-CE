@@ -4,13 +4,12 @@ import client.net.sf.saxon.ce.Controller;
 import client.net.sf.saxon.ce.Controller.APIcommand;
 import client.net.sf.saxon.ce.LogController;
 import client.net.sf.saxon.ce.dom.HTMLDocumentWrapper;
-import client.net.sf.saxon.ce.dom.HTMLNodeWrapper;
 import client.net.sf.saxon.ce.dom.HTMLDocumentWrapper.DocType;
+import client.net.sf.saxon.ce.dom.HTMLNodeWrapper;
 import client.net.sf.saxon.ce.dom.XMLDOM;
 import client.net.sf.saxon.ce.event.PipelineConfiguration;
 import client.net.sf.saxon.ce.event.Receiver;
 import client.net.sf.saxon.ce.expr.*;
-import client.net.sf.saxon.ce.functions.DocumentFn;
 import client.net.sf.saxon.ce.functions.FunctionLibrary;
 import client.net.sf.saxon.ce.functions.ResolveURI;
 import client.net.sf.saxon.ce.js.JSObjectValue;
@@ -26,7 +25,6 @@ import client.net.sf.saxon.ce.trans.update.PendingUpdateList;
 import client.net.sf.saxon.ce.tree.iter.AxisIterator;
 import client.net.sf.saxon.ce.tree.iter.SingleNodeIterator;
 import client.net.sf.saxon.ce.tree.util.URI;
-//import client.net.sf.saxon.ce.tree.util.URI.URISyntaxException;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.type.TypeHierarchy;
@@ -37,6 +35,8 @@ import com.google.gwt.logging.client.LogConfiguration;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.logging.Logger;
+
+//import client.net.sf.saxon.ce.tree.util.URI.URISyntaxException;
 
 
 /**
@@ -325,7 +325,7 @@ public class ResultDocument extends Instruction  {
             if (useCurrentContext) {
             	contextItem = currentContextItem;
             	if (LogConfiguration.loggingIsEnabled() && contextItem.getNodeKind() == Type.ELEMENT) {
-            		contextNodeName = controller.getNamePool().getLocalName(contextItem.getNameCode());
+            		contextNodeName = contextItem.getDisplayName();
             	}
             } else {
             	contextItem = new HTMLDocumentWrapper(page, page.getURL(), context.getConfiguration(), DocType.UNKNOWN);

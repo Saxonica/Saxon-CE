@@ -40,7 +40,7 @@ final class AttributeEnumeration extends AxisIteratorImpl  {
 
             if (nodeTest instanceof NameTest) {
             	NameTest test = (NameTest)nodeTest;
-                index = attlist.getIndexByFingerprint(test.getFingerprint());
+                index = attlist.findByStructuredQName(test.getRequiredNodeName());
 
                 if (index<0) {
                     next = null;

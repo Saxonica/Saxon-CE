@@ -4,6 +4,7 @@ import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.expr.instruct.NextMatch;
 import client.net.sf.saxon.ce.om.AttributeCollection;
 import client.net.sf.saxon.ce.om.Axis;
+import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.tree.iter.AxisIterator;
 import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.value.Whitespace;
@@ -41,8 +42,8 @@ public class XSLNextMatch extends StyleElement {
 		AttributeCollection atts = getAttributeList();
 
 		for (int a=0; a<atts.getLength(); a++) {
-			int nc = atts.getNameCode(a);
-        	checkUnknownAttribute(nc);
+			StructuredQName qn = atts.getStructuredQName(a);
+        	checkUnknownAttribute(qn);
         }
     }
 

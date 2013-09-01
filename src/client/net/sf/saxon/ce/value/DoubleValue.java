@@ -1,22 +1,15 @@
 package client.net.sf.saxon.ce.value;
 
-import client.net.sf.saxon.ce.functions.FormatNumber;
-import client.net.sf.saxon.ce.om.StandardNames;
-import client.net.sf.saxon.ce.trans.DecimalSymbols;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
-import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.BuiltInAtomicType;
 import client.net.sf.saxon.ce.type.ConversionResult;
 import client.net.sf.saxon.ce.type.ValidationFailure;
 
 import java.math.BigDecimal;
 
-import com.google.gwt.core.client.JavaScriptObject;
-
 /**
-* A numeric (double precision floating point) value
-*/
+ * A numeric (double precision floating point) value
+ */
 
 public final class DoubleValue extends NumericValue {
 
@@ -28,9 +21,10 @@ public final class DoubleValue extends NumericValue {
     private double value;
 
     /**
-    * Constructor supplying a double
-    * @param value the value of the NumericValue
-    */
+     * Constructor supplying a double
+     *
+     * @param value the value of the NumericValue
+     */
 
     public DoubleValue(double value) {
         this.value = value;
@@ -42,12 +36,13 @@ public final class DoubleValue extends NumericValue {
      * a value that belongs to a user-defined subtype of xs:double. It is
      * the caller's responsibility to ensure that the supplied value conforms
      * to the supplied type.
+     *
      * @param value the value of the NumericValue
-     * @param type the type of the value. This must be a subtype of xs:double, and the
-     * value must conform to this type. The methosd does not check these conditions.
+     * @param type  the type of the value. This must be a subtype of xs:double, and the
+     *              value must conform to this type. The methosd does not check these conditions.
      */
 
-    public DoubleValue(double value, AtomicType type) {
+    public DoubleValue(double value, BuiltInAtomicType type) {
         this.value = value;
         typeLabel = type;
     }
@@ -65,6 +60,7 @@ public final class DoubleValue extends NumericValue {
 
     /**
      * Return this numeric value as a double
+     *
      * @return the value as a double
      */
 
@@ -74,12 +70,13 @@ public final class DoubleValue extends NumericValue {
 
     /**
      * Get the hashCode. This must conform to the rules for other NumericValue hashcodes
+     *
      * @see NumericValue#hashCode
      */
 
     public int hashCode() {
         if (value > Integer.MIN_VALUE && value < Integer.MAX_VALUE) {
-            return (int)value;
+            return (int) value;
         } else {
             return new Double(value).hashCode();
         }
@@ -95,29 +92,30 @@ public final class DoubleValue extends NumericValue {
 
     /**
      * Get the effective boolean value
+     *
      * @return the effective boolean value (true unless the value is zero or NaN)
      */
     public boolean effectiveBooleanValue() {
-        return (value!=0.0 && !Double.isNaN(value));
+        return (value != 0.0 && !Double.isNaN(value));
     }
 
     /**
      * Convert to target data type
+     *
      * @param requiredType an integer identifying the required atomic type
-     * @param validate true if the supplied value must be validated, false if the caller warrants that it is
-     * valid
+     * @param validate     true if the supplied value must be validated, false if the caller warrants that it is
+     *                     valid
      * @return an AtomicValue, a value of the required type
-    */
+     */
 
     public ConversionResult convertPrimitive(BuiltInAtomicType requiredType, boolean validate) {
-        switch(requiredType.getFingerprint()) {
-        case StandardNames.XS_BOOLEAN:
-            return BooleanValue.get(effectiveBooleanValue());
-        case StandardNames.XS_DOUBLE:
-        case StandardNames.XS_NUMERIC:
-        case StandardNames.XS_ANY_ATOMIC_TYPE:
+        if (requiredType == BuiltInAtomicType.ANY_ATOMIC ||
+                requiredType == BuiltInAtomicType.NUMERIC ||
+                requiredType == BuiltInAtomicType.DOUBLE) {
             return this;
-        case StandardNames.XS_INTEGER:
+        } else if (requiredType == BuiltInAtomicType.BOOLEAN) {
+            return BooleanValue.get(effectiveBooleanValue());
+        } else if (requiredType == BuiltInAtomicType.INTEGER) {
             if (Double.isNaN(value)) {
                 ValidationFailure err = new ValidationFailure("Cannot convert double NaN to an integer");
                 err.setErrorCode("FOCA0002");
@@ -129,22 +127,21 @@ public final class DoubleValue extends NumericValue {
                 return err;
             }
             return IntegerValue.decimalToInteger(new BigDecimal(value));
-
-        case StandardNames.XS_DECIMAL:
-                try {
-                    return new DecimalValue(value);
-                } catch (XPathException e) {
-                    return new ValidationFailure(e);
-                }
-        case StandardNames.XS_FLOAT:
-            return new FloatValue((float)value);
-        case StandardNames.XS_STRING:
+        } else if (requiredType == BuiltInAtomicType.DECIMAL) {
+            try {
+                return new DecimalValue(value);
+            } catch (XPathException e) {
+                return new ValidationFailure(e);
+            }
+        } else if (requiredType == BuiltInAtomicType.FLOAT) {
+            return new FloatValue((float) value);
+        } else if (requiredType == BuiltInAtomicType.STRING) {
             return new StringValue(getStringValueCS());
-        case StandardNames.XS_UNTYPED_ATOMIC:
+        } else if (requiredType == BuiltInAtomicType.UNTYPED_ATOMIC) {
             return new UntypedAtomicValue(getStringValueCS());
-        default:
+        } else {
             ValidationFailure err = new ValidationFailure("Cannot convert double to " +
-                                     requiredType.getDisplayName());
+                    requiredType.getDisplayName());
             err.setErrorCode("XPTY0004");
             return err;
         }
@@ -160,6 +157,7 @@ public final class DoubleValue extends NumericValue {
 
     /**
      * Convert the double to a string according to the XPath 2.0 rules
+     *
      * @return the string value
      */
     public CharSequence getPrimitiveStringValue() {
@@ -172,7 +170,7 @@ public final class DoubleValue extends NumericValue {
         }
         if (isWholeNumber()) {
             // TODO: negative zero
-            return ""+(long)value;
+            return "" + (long) value;
         } else {
             double a = Math.abs(value);
             if (a < 1e6) {
@@ -184,54 +182,54 @@ public final class DoubleValue extends NumericValue {
                     BigDecimal dec = BigDecimal.valueOf(value);
                     return dec.toString();
                 } // see #1545 - code below failed because no E was added (for exponent)
-                  // but GWT doesn't include the E - it therefore can't be adjusted in the way shown below
+                // but GWT doesn't include the E - it therefore can't be adjusted in the way shown below
             } else if (a < 1e7) {
-            		// JSNI used because of bug #1545 where GWT developer and production  modes produced different results
-            	return convertToString(value);
+                // JSNI used because of bug #1545 where GWT developer and production  modes produced different results
+                return convertToString(value);
             } else {
                 return Double.toString(value);
             }
         }
     }
-    
+
     public static native String convertToString(double num) /*-{
-       var notated = num.toExponential().toString();
-       var pos = notated.lastIndexOf('e+');
-       if (pos > -1){
-       	    return notated.substring(0,pos) + 'E' + notated.substring(pos + 2);
-       } else {
-            return num;	
-       }
-       
+        var notated = num.toExponential().toString();
+        var pos = notated.lastIndexOf('e+');
+        if (pos > -1) {
+            return notated.substring(0, pos) + 'E' + notated.substring(pos + 2);
+        } else {
+            return num;
+        }
+
     }-*/;
 
     /**
-    * Negate the value
-    */
+     * Negate the value
+     */
 
     public NumericValue negate() {
         return new DoubleValue(-value);
     }
 
     /**
-    * Implement the XPath floor() function
-    */
+     * Implement the XPath floor() function
+     */
 
     public NumericValue floor() {
         return new DoubleValue(Math.floor(value));
     }
 
     /**
-    * Implement the XPath ceiling() function
-    */
+     * Implement the XPath ceiling() function
+     */
 
     public NumericValue ceiling() {
         return new DoubleValue(Math.ceil(value));
     }
 
     /**
-    * Implement the XPath round() function
-    */
+     * Implement the XPath round() function
+     */
 
     public NumericValue round() {
         if (Double.isNaN(value)) {
@@ -257,19 +255,19 @@ public final class DoubleValue extends NumericValue {
 
         return this;
     }
-    
+
     /**
-    * Implement the XPath round-to-half-even() function
-    */
+     * Implement the XPath round-to-half-even() function
+     */
 
     public NumericValue roundHalfToEven(int scale) {
         if (Double.isNaN(value)) return this;
         if (Double.isInfinite(value)) return this;
-        if (value==0.0) return this;    // handles the negative zero case
+        if (value == 0.0) return this;    // handles the negative zero case
 
         // Convert to a scaled integer, by multiplying by 10^scale
 
-        double factor = Math.pow(10, scale+1);
+        double factor = Math.pow(10, scale + 1);
         double d = Math.abs(value * factor);
 
         if (Double.isInfinite(d)) {
@@ -283,15 +281,15 @@ public final class DoubleValue extends NumericValue {
 
         double rem = d % 10;
         if (rem > 5) {
-            d += (10-rem);
-        } else if (rem < 5){
+            d += (10 - rem);
+        } else if (rem < 5) {
             d -= rem;
         } else {
             // round half to even - check the last bit
             if ((d % 20) == 15) {
-                d +=5 ;
+                d += 5;
             } else {
-                d -=5;
+                d -= 5;
             }
         }
 
@@ -307,6 +305,7 @@ public final class DoubleValue extends NumericValue {
 
     /**
      * Determine whether the value is negative, zero, or positive
+     *
      * @return -1 if negative, 0 if zero (including negative zero), +1 if positive, NaN if NaN
      */
 
@@ -320,9 +319,9 @@ public final class DoubleValue extends NumericValue {
     }
 
     /**
-    * Determine whether the value is a whole number, that is, whether it compares
-    * equal to some integer
-    */
+     * Determine whether the value is a whole number, that is, whether it compares
+     * equal to some integer
+     */
 
     public boolean isWholeNumber() {
         return value == Math.floor(value) && !Double.isInfinite(value);
@@ -330,6 +329,7 @@ public final class DoubleValue extends NumericValue {
 
     /**
      * Get the absolute value as defined by the XPath abs() function
+     *
      * @return the absolute value
      * @since 9.2
      */
@@ -344,12 +344,13 @@ public final class DoubleValue extends NumericValue {
 
     /**
      * Compare the value to a long.
+     *
      * @param other the value to be compared with
      * @return -1 if this is less, 0 if this is equal, +1 if this is greater or if this is NaN
      */
 
     public int compareTo(long other) {
-        double otherDouble = (double)other;
+        double otherDouble = (double) other;
         if (value == otherDouble) return 0;
         if (value < otherDouble) return -1;
         return +1;

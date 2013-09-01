@@ -2,6 +2,7 @@ package client.net.sf.saxon.ce.event;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.NamespaceBinding;
 import client.net.sf.saxon.ce.om.NodeInfo;
+import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.XPathException;
 
 /**
@@ -60,7 +61,7 @@ public class TeeOutputter extends SequenceReceiver {
      * @param properties  bit-significant properties of the element node. If there are no revelant
      */
 
-    public void startElement(int nameCode, int properties) throws XPathException {
+    public void startElement(StructuredQName nameCode, int properties) throws XPathException {
         seq1.startElement(nameCode, properties);
         seq2.startElement(nameCode, properties);
     }
@@ -88,12 +89,13 @@ public class TeeOutputter extends SequenceReceiver {
      * Notify an attribute. Attributes are notified after the startElement event, and before any
      * children. Namespaces and attributes may be intermingled.
      *
+     *
      * @param nameCode   The name of the attribute, as held in the name pool
      * @throws IllegalStateException: attempt to output an attribute when there is no open element
      *                                start tag
      */
 
-    public void attribute(int nameCode, CharSequence value) throws XPathException {
+    public void attribute(StructuredQName nameCode, CharSequence value) throws XPathException {
         seq1.attribute(nameCode, value);
         seq2.attribute(nameCode, value);
     }

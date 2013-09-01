@@ -15,12 +15,11 @@ import client.net.sf.saxon.ce.tree.linked.DocumentImpl;
 import client.net.sf.saxon.ce.tree.linked.LinkedTreeBuilder;
 import client.net.sf.saxon.ce.tree.util.NamespaceIterator;
 import client.net.sf.saxon.ce.tree.util.Navigator;
+import com.google.gwt.logging.client.LogConfiguration;
 
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
-
-import com.google.gwt.logging.client.LogConfiguration;
 
 
 /**
@@ -31,12 +30,12 @@ import com.google.gwt.logging.client.LogConfiguration;
 
 public class LiteralResultElement extends StyleElement {
 
-    private int resultNameCode;
-    private int[] attributeNames;
+    private StructuredQName resultNameCode;
+    private StructuredQName[] attributeNames;
     private Expression[] attributeValues;
     private int numberOfAttributes;
     private boolean toplevel;
-    private List<NamespaceBinding> namespaceCodes = new ArrayList();
+    private List<NamespaceBinding> namespaceCodes = new ArrayList<NamespaceBinding>();
     private AttributeSet[] attributeSets;
     private boolean inheritNamespaces = true;
 
@@ -73,38 +72,37 @@ public class LiteralResultElement extends StyleElement {
         if (num == 0) {
             numberOfAttributes = 0;
         } else {
-            NamePool namePool = getNamePool();
-            attributeNames = new int[num];
+            attributeNames = new StructuredQName[num];
             attributeValues = new Expression[num];
             numberOfAttributes = 0;
 
             for (int i=0; i<num; i++) {
 
-                int anameCode = atts.getNameCode(i);
-                short attURIcode = namePool.getURICode(anameCode);
+                StructuredQName qn = atts.getStructuredQName(i);
+                String uri = qn.getNamespaceURI();
+                String local = qn.getLocalName();
 
-                if (attURIcode==NamespaceConstant.XSLT_CODE) {
-                    int fp = anameCode & NamePool.FP_MASK;
+                if (uri.equals(NamespaceConstant.XSLT)) {
 
-                    if (fp == StandardNames.XSL_USE_ATTRIBUTE_SETS) {
+                    if (local.equals("use-attribute-sets")) {
                         // deal with this later
-                    } else if (fp == StandardNames.XSL_DEFAULT_COLLATION) {
+                    } else if (local.equals("default-collation")) {
                     	// already dealt with
-                    } else if (fp == StandardNames.XSL_EXTENSION_ELEMENT_PREFIXES) {
+                    } else if (local.equals("extension-element-prefixes")) {
                     	// already dealt with
-                    } else if (fp == StandardNames.XSL_EXCLUDE_RESULT_PREFIXES) {
+                    } else if (local.equals("exclude-result-prefixes")) {
                     	// already dealt with
-                    } else if (fp == StandardNames.XSL_VERSION) {
+                    } else if (local.equals("version")) {
                         // already dealt with
-                    } else if (fp == StandardNames.XSL_XPATH_DEFAULT_NAMESPACE) {
+                    } else if (local.equals("xpath-default-namespace")) {
                         // already dealt with
-                    } else if (fp == StandardNames.XSL_TYPE) {
+                    } else if (local.equals("type")) {
                         // deal with this later
-                    } else if (fp == StandardNames.XSL_USE_WHEN) {
+                    } else if (local.equals("use-when")) {
                         // already dealt with
-                    } else if (fp == StandardNames.XSL_VALIDATION) {
+                    } else if (local.equals("validation")) {
                         // deal with this later
-                    } else if (fp == StandardNames.XSL_INHERIT_NAMESPACES) {
+                    } else if (local.equals("inherit-namespaces")) {
                         String inheritAtt = atts.getValue(i);
                         if (inheritAtt.equals("yes")) {
                             inheritNamespaces = true;
@@ -114,10 +112,10 @@ public class LiteralResultElement extends StyleElement {
                             compileError("The xsl:inherit-namespaces attribute has permitted values (yes, no)", "XTSE0020");
                         }
                     } else {
-                        compileError("Unknown XSL attribute " + namePool.getDisplayName(anameCode), "XTSE0805");
+                        compileError("Unknown XSL attribute " + qn.getDisplayName(), "XTSE0805");
                     }
                 } else {
-                    attributeNames[numberOfAttributes] = anameCode;
+                    attributeNames[numberOfAttributes] = qn;
                     Expression exp = makeAttributeValueTemplate(atts.getValue(i));
                     attributeValues[numberOfAttributes] = exp;
                     numberOfAttributes++;
@@ -129,7 +127,7 @@ public class LiteralResultElement extends StyleElement {
 
             if (numberOfAttributes < attributeNames.length) {
 
-                int[] attributeNames2 = new int[numberOfAttributes];
+                StructuredQName[] attributeNames2 = new StructuredQName[numberOfAttributes];
                 System.arraycopy(attributeNames, 0, attributeNames2, 0, numberOfAttributes);
                 attributeNames = attributeNames2;
 
@@ -149,10 +147,9 @@ public class LiteralResultElement extends StyleElement {
 
         toplevel = (getParent() instanceof XSLStylesheet);
 
-        resultNameCode = getNameCode();
+        resultNameCode = new StructuredQName(getPrefix(), getURI(), getLocalPart());
 
-        NamePool namePool = getNamePool();
-        String elementURI = namePool.getURI(resultNameCode);
+        String elementURI = getURI();
 
         if (toplevel) {
             // A top-level element can never be a "real" literal result element,
@@ -196,7 +193,7 @@ public class LiteralResultElement extends StyleElement {
 
                 NamespaceBinding elementAlias = sheet.getNamespaceAlias(elementURI);
                 if (elementAlias != null && !elementAlias.getURI().equals(elementURI)) {
-                    resultNameCode = namePool.allocate(elementAlias.getPrefix(),
+                    resultNameCode = new StructuredQName(elementAlias.getPrefix(),
                                                        elementAlias.getURI(),
                                                        getLocalPart());
                 }
@@ -225,14 +222,14 @@ public class LiteralResultElement extends StyleElement {
 
                 for (int i=0; i<numberOfAttributes; i++) {
 
-                    int anameCode = attributeNames[i];
-                    int alias = anameCode;
-                    String attURIcode = namePool.getURI(anameCode);
+                    StructuredQName anameCode = attributeNames[i];
+                    StructuredQName alias = anameCode;
+                    String attURI = anameCode.getNamespaceURI();
 
-                    if (!attURIcode.isEmpty()) {	// attribute has a namespace prefix
-                        NamespaceBinding newNSCode = sheet.getNamespaceAlias(attURIcode);
-                        if ((newNSCode != null && !newNSCode.getURI().equals(attURIcode))) {
-                            alias = namePool.allocate( newNSCode.getPrefix(),
+                    if (!attURI.isEmpty()) {	// attribute has a namespace prefix
+                        NamespaceBinding newNSCode = sheet.getNamespaceAlias(attURI);
+                        if ((newNSCode != null && !newNSCode.getURI().equals(attURI))) {
+                            alias = new StructuredQName( newNSCode.getPrefix(),
                                                        newNSCode.getURI(),
                                                        getAttributeList().getLocalName(i));
                         }
@@ -297,7 +294,7 @@ public class LiteralResultElement extends StyleElement {
                     trace.setNamespaceResolver(this);
                     trace.setConstructType(Location.LITERAL_RESULT_ATTRIBUTE);
                     trace.setSourceLocator(this);
-                    trace.setObjectName(this.getNamePool().getStructuredQName(attributeNames[i]));
+                    trace.setObjectName(attributeNames[i]);
                     exp = trace;
                 }
 
@@ -341,7 +338,6 @@ public class LiteralResultElement extends StyleElement {
         // xsl:stylesheet
 
 		StyleNodeFactory nodeFactory = pss.getStyleNodeFactory();
-        NamePool pool = getNamePool();
         String xslPrefix = getPrefixForURI(NamespaceConstant.XSLT);
         if (xslPrefix==null) {
             String message;
@@ -386,15 +382,15 @@ public class LiteralResultElement extends StyleElement {
             builder.open();
             builder.startDocument();
 
-            int st = StandardNames.XSL_STYLESHEET;
+            StructuredQName st = new StructuredQName("xsl", NamespaceConstant.XSLT, "stylesheet");
             builder.startElement(st, 0);
             builder.namespace(new NamespaceBinding("xsl", NamespaceConstant.XSLT), 0);
-            builder.attribute(pool.allocate("", "", "version"), version);
+            builder.attribute(new StructuredQName("", "", "version"), version);
             builder.startContent();
 
-            int te = StandardNames.XSL_TEMPLATE;
+            StructuredQName te = new StructuredQName("xsl", NamespaceConstant.XSLT, "template");
             builder.startElement(te, 0);
-            builder.attribute(pool.allocate("", "", "match"), "/");
+            builder.attribute(new StructuredQName("", "", "match"), "/");
             builder.startContent();
 
             builder.graftElement(this);

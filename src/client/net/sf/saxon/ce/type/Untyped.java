@@ -7,7 +7,7 @@ import client.net.sf.saxon.ce.om.StandardNames;
  * used for elements that have not been validated.
  */
 
-public final class Untyped implements SchemaType {
+public final class Untyped extends BuiltInType implements SchemaType {
 
     private static Untyped theInstance = new Untyped();
 

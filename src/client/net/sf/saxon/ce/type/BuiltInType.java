@@ -1,7 +1,5 @@
 package client.net.sf.saxon.ce.type;
 
-import client.net.sf.saxon.ce.om.StandardNames;
-
 import java.util.HashMap;
 
 /**
@@ -12,54 +10,50 @@ import java.util.HashMap;
  * classes {@link BuiltInAtomicType}
  */
 
-public abstract class BuiltInType  {
+public class BuiltInType  {
 
     /**
     * Table of all built in types
     */
 
-    private static HashMap<Integer, SchemaType> lookup = new HashMap(20);
+    private static HashMap<String, BuiltInType> lookup = new HashMap(20);
 
-    /**
-     * Class is never instantiated
-     */
-
-    private BuiltInType() {
+    protected BuiltInType() {
     }
 
     static {
-        register(StandardNames.XS_ANY_SIMPLE_TYPE, AnySimpleType.getInstance());
-        register(StandardNames.XS_ANY_TYPE, AnyType.getInstance());
-        register(StandardNames.XS_UNTYPED, Untyped.getInstance());
+        register("anySimpleType", AnySimpleType.getInstance());
+        register("anyType", AnyType.getInstance());
+        register("untyped", Untyped.getInstance());
     }
 
     /**
      * Get the schema type with a given fingerprint
-     * @param fingerprint the fingerprint representing the name of the required type
+     * @param localName the local name of the type, in the XSD namespace
      * @return the SchemaType object representing the given type, if known, otherwise null
      */
 
-    public static SchemaType getSchemaType(int fingerprint) {
-        SchemaType st = lookup.get(fingerprint);
+    public static BuiltInType getSchemaType(String localName) {
+        BuiltInType st = lookup.get(localName);
         if (st == null) {
             // this means the method has been called before doing the static initialization of BuiltInAtomicType
             // or BuiltInListType. So force it now
             if (BuiltInAtomicType.DOUBLE == null) {
                 // no action, except to force the initialization to run
             }
-            st = lookup.get(fingerprint);
+            st = lookup.get(localName);
         }
         return st;                  
     }
 
     /**
      * Method for internal use to register a built in type with this class
-     * @param fingerprint the fingerprint of the type name
+     * @param localName the type name within the XSD namespace
      * @param type the SchemaType representing the built in type
      */
 
-    static void register(int fingerprint, SchemaType type) {
-        lookup.put(fingerprint, type);
+    static void register(String localName, BuiltInType type) {
+        lookup.put(localName, type);
     }
 
 

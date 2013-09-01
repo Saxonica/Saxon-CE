@@ -32,7 +32,7 @@ public final class DocumentImpl extends ParentNodeImpl implements DocumentInfo {
     private HashMap<String, NodeInfo> idTable;
     private int documentNumber;
     private String baseURI;
-    private HashMap<Integer, ArrayList<NodeImpl>> elementList;
+    private HashMap<StructuredQName, ArrayList<NodeImpl>> elementList;
     private HashMap<String, Object> userData;
     private Configuration config;
     private LineNumberMap lineNumberMap;
@@ -65,14 +65,6 @@ public final class DocumentImpl extends ParentNodeImpl implements DocumentInfo {
     public Configuration getConfiguration() {
         return config;
     }
-
-	/**
-	* Get the name pool used for the names in this document
-	*/
-
-	public NamePool getNamePool() {
-		return config.getNamePool();
-	}
 
     /**
      * Get a Builder suitable for building nodes that can be attached to this document.
@@ -336,27 +328,27 @@ public final class DocumentImpl extends ParentNodeImpl implements DocumentInfo {
     }
 
     /**
-     * Get a list of all elements with a given name fingerprint
-     * @param fingerprint the fingerprint of the required element name
+     * Get a list of all elements with a given name
+     * @param name the fingerprint of the required element name
      * @return an iterator over all the elements with this name
     */
 
-    AxisIterator getAllElements(int fingerprint) {
+    AxisIterator getAllElements(StructuredQName name) {
         if (elementList==null) {
-            elementList = new HashMap<Integer, ArrayList<NodeImpl>>(100);
+            elementList = new HashMap<StructuredQName, ArrayList<NodeImpl>>(100);
         }
-        ArrayList<NodeImpl> list = elementList.get(fingerprint);
+        ArrayList<NodeImpl> list = elementList.get(name);
         if (list==null) {
             list = new ArrayList<NodeImpl>(100);
             NodeImpl next = getNextInDocument(this);
             while (next!=null) {
                 if (next.getNodeKind()==Type.ELEMENT &&
-                        next.getFingerprint() == fingerprint) {
+                        next.getNodeName().equals(name)) {
                     list.add(next);
                 }
                 next = next.getNextInDocument(this);
             }
-            elementList.put(fingerprint, list);
+            elementList.put(name, list);
         }
         return new NodeListIterator(list);
     }

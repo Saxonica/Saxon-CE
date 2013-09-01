@@ -87,17 +87,6 @@ public class TextComparer implements AtomicComparer {
         return compareAtomicValues(a, b) == 0;
     }
 
-    /**
-     * Get a comparison key for an object. This must satisfy the rule that if two objects are equal
-     * according to the XPath eq operator, then their comparison keys are equal according to the Java
-     * equals() method, and vice versa. There is no requirement that the
-     * comparison keys should reflect the ordering of the underlying objects.
-     */
-
-    public ComparisonKey getComparisonKey(AtomicValue a) throws NoDynamicContextException{
-        return baseComparer.getComparisonKey(toStringValue(a));
-    }
-
 }
 
 // This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. 

@@ -1,6 +1,7 @@
 package client.net.sf.saxon.ce.trans;
 
 import client.net.sf.saxon.ce.expr.instruct.Template;
+import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.pattern.*;
 import client.net.sf.saxon.ce.style.StylesheetModule;
 import client.net.sf.saxon.ce.type.Type;
@@ -21,7 +22,7 @@ public class StripSpaceRules  {
 
     private Rule anyElementRule = null;
     private Rule unnamedElementRuleChain = null;
-    private HashMap<Integer, Rule> namedElementRules = new HashMap<Integer, Rule>(32);
+    private HashMap<StructuredQName, Rule> namedElementRules = new HashMap<StructuredQName, Rule>(32);
     private int sequence = 0;
 
     /**
@@ -59,7 +60,7 @@ public class StripSpaceRules  {
             anyElementRule = addRuleToList(newRule, anyElementRule, true);
         } else if (test instanceof NameTest) {
             newRule.setAlwaysMatches(true);
-            int fp = test.getFingerprint();
+            StructuredQName fp = test.getRequiredNodeName();
             Rule chain = namedElementRules.get(fp);
             namedElementRules.put(fp, addRuleToList(newRule, chain, true));
         } else {
@@ -114,7 +115,7 @@ public class StripSpaceRules  {
      * @return the best matching rule, if any (otherwise null).
      */
 
-    public Rule getRule(int fingerprint) {
+    public Rule getRule(StructuredQName fingerprint) {
 
         // search the specific list for this node type / node name
 
@@ -144,7 +145,7 @@ public class StripSpaceRules  {
      * @throws client.net.sf.saxon.ce.trans.XPathException
      */
 
-    private Rule searchRuleChain(int fingerprint, Rule bestRule, Rule head) {
+    private Rule searchRuleChain(StructuredQName fingerprint, Rule bestRule, Rule head) {
         while (head != null) {
             if (bestRule != null) {
                 int rank = head.compareRank(bestRule);

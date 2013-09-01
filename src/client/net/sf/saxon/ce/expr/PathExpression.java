@@ -9,7 +9,6 @@ import client.net.sf.saxon.ce.pattern.NodeKindTest;
 import client.net.sf.saxon.ce.pattern.NodeTest;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
-import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.Cardinality;
 import client.net.sf.saxon.ce.value.EmptySequence;
@@ -551,7 +550,7 @@ public final class PathExpression extends SlashExpression implements ContextMapp
 
     public boolean isAbsolute(TypeHierarchy th) {
         Expression first = getFirstStep();
-        if (first.getItemType(th).getPrimitiveType() == Type.DOCUMENT) {
+        if (th.isSubType(first.getItemType(th), NodeKindTest.DOCUMENT)) {
             return true;
         }
         // This second test allows keys to be built. See XMark q9.
@@ -560,33 +559,6 @@ public final class PathExpression extends SlashExpression implements ContextMapp
 //        };
         return false;
     }
-
-    /**
-     * Test whether a path expression is an absolute path - that is, a path whose first step selects a
-     * document node; if not, see if it can be converted to an absolute path. This is possible in cases where
-     * the path expression has the form a/b/c and it is known that the context item is a document node; in this
-     * case it is safe to change the path expression to /a/b/c
-     * @param th the type hierarchy cache
-     * @return the path expression if it is absolute; the converted path expression if it can be made absolute;
-     *         or null if neither condition applies.
-     */
-
-    public PathExpression tryToMakeAbsolute(TypeHierarchy th) {
-        Expression first = getFirstStep();
-        if (first.getItemType(th).getPrimitiveType() == Type.DOCUMENT) {
-            return this;
-        }
-        // This second test allows keys to be built. See XMark q9.
-        if (first instanceof AxisExpression && ((AxisExpression)first).getContextItemType().getPrimitiveType() == Type.DOCUMENT) {
-            RootExpression root = new RootExpression();
-            ExpressionTool.copyLocationInfo(this, root);
-            PathExpression path = new PathExpression(root, this);
-            ExpressionTool.copyLocationInfo(this, path);
-            return path;
-        }
-        return null;
-    }
-
 
     /**
      * Iterate the path-expression in a given context

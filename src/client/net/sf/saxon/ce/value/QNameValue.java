@@ -37,7 +37,7 @@ public class QNameValue extends QualifiedNameValue {
      * @param type The type label, xs:QName or a subtype of xs:QName
      */
 
-    public QNameValue(String prefix, String uri, String localName, AtomicType type) {
+    public QNameValue(String prefix, String uri, String localName, BuiltInAtomicType type) {
         qName = new StructuredQName(prefix, uri, localName);
         if (type == null) {
             type = BuiltInAtomicType.QNAME;
@@ -59,6 +59,16 @@ public class QNameValue extends QualifiedNameValue {
         typeLabel = BuiltInAtomicType.QNAME;
     }
 
+    /**
+     * Constructor starting from a StructuredQName
+     * @param name the QName
+     */
+
+    public QNameValue(StructuredQName name) {
+        qName = name;
+        typeLabel = BuiltInAtomicType.QNAME;
+    }
+
 
     /**
      * Constructor. This constructor validates that the local part is a valid NCName.
@@ -76,7 +86,7 @@ public class QNameValue extends QualifiedNameValue {
      * namespace with a non-empty prefix
      */
 
-    public QNameValue(String prefix, String uri, String localName, AtomicType type, boolean validate) throws XPathException {
+    public QNameValue(String prefix, String uri, String localName, BuiltInAtomicType type, boolean validate) throws XPathException {
         if (!NameChecker.isValidNCName(localName)) {
             XPathException err = new XPathException("Malformed local name in QName: '" + localName + '\'');
             err.setErrorCode("FORG0001");
@@ -99,7 +109,7 @@ public class QNameValue extends QualifiedNameValue {
      * @param typeLabel idenfies a subtype of xs:QName
      */
 
-    public QNameValue(StructuredQName qName, AtomicType typeLabel) {
+    public QNameValue(StructuredQName qName, BuiltInAtomicType typeLabel) {
         if (qName == null) {
             throw new NullPointerException("qName");
         }
@@ -128,19 +138,17 @@ public class QNameValue extends QualifiedNameValue {
      */
 
     public ConversionResult convertPrimitive(BuiltInAtomicType requiredType, boolean validate) {
-        switch (requiredType.getPrimitiveType()) {
-            case StandardNames.XS_ANY_ATOMIC_TYPE:
-            case StandardNames.XS_QNAME:
-                return this;
-            case StandardNames.XS_STRING:
-                return new StringValue(getStringValue());
-            case StandardNames.XS_UNTYPED_ATOMIC:
-                return new UntypedAtomicValue(getStringValue());
-            default:
-                ValidationFailure err = new ValidationFailure("Cannot convert QName to " +
-                        requiredType.getDisplayName());
-                err.setErrorCode("XPTY0004");
-                return err;
+        if (requiredType == BuiltInAtomicType.ANY_ATOMIC || requiredType == BuiltInAtomicType.QNAME) {
+            return this;
+        } else if (requiredType == BuiltInAtomicType.UNTYPED_ATOMIC) {
+            return new UntypedAtomicValue(getStringValueCS());
+        } else if (requiredType == BuiltInAtomicType.STRING) {
+            return new StringValue(getStringValueCS());
+        } else {
+            ValidationFailure err = new ValidationFailure("Cannot convert gYear to " +
+                    requiredType.getDisplayName());
+            err.setErrorCode("XPTY0004");
+            return err;
         }
     }
 

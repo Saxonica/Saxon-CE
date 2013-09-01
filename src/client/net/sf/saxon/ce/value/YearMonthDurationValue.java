@@ -4,7 +4,6 @@ import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.lib.StringCollator;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.BuiltInAtomicType;
 import client.net.sf.saxon.ce.type.ConversionResult;
 import client.net.sf.saxon.ce.type.ValidationFailure;
@@ -50,7 +49,7 @@ public final class YearMonthDurationValue extends DurationValue implements Compa
      *                  the value actually conforms to this type.
      */
 
-    public AtomicValue copyAsSubType(AtomicType typeLabel) {
+    public AtomicValue copyAsSubType(BuiltInAtomicType typeLabel) {
         YearMonthDurationValue v = YearMonthDurationValue.fromMonths(getLengthInMonths());
         v.typeLabel = typeLabel;
         return v;

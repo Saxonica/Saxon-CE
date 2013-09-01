@@ -1,9 +1,12 @@
 package client.net.sf.saxon.ce.expr.instruct;
 import client.net.sf.saxon.ce.Configuration;
-import client.net.sf.saxon.ce.expr.*;
+import client.net.sf.saxon.ce.expr.Expression;
+import client.net.sf.saxon.ce.expr.ExpressionVisitor;
+import client.net.sf.saxon.ce.expr.StaticProperty;
+import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.functions.SystemFunction;
-import client.net.sf.saxon.ce.om.NamePool;
 import client.net.sf.saxon.ce.om.StandardNames;
+import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.pattern.NodeKindTest;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
@@ -19,7 +22,7 @@ import client.net.sf.saxon.ce.type.TypeHierarchy;
 
 public final class FixedAttribute extends AttributeCreator {
 
-    private int nameCode;
+    private StructuredQName nameCode;
 
     /**
      * Construct an Attribute instruction
@@ -27,10 +30,8 @@ public final class FixedAttribute extends AttributeCreator {
      * of the instruction - zero if the attribute was not present
     */
 
-    public FixedAttribute (  int nameCode) {
+    public FixedAttribute (StructuredQName nameCode) {
         this.nameCode = nameCode;
-        setAnnotation(StandardNames.XS_UNTYPED_ATOMIC);
-        setOptions(0);
     }
 
     /**
@@ -52,7 +53,7 @@ public final class FixedAttribute extends AttributeCreator {
     public void setSelect(Expression select, Configuration config) throws XPathException {
         super.setSelect(select, config);
         // If attribute name is xml:id, add whitespace normalization
-        if ((nameCode & NamePool.FP_MASK) == StandardNames.XML_ID) {
+        if (nameCode.equals(StructuredQName.XML_ID)) {
             select = SystemFunction.makeSystemFunction("normalize-space", new Expression[]{select});
             super.setSelect(select, config);
         }
@@ -60,15 +61,6 @@ public final class FixedAttribute extends AttributeCreator {
 
     public void localTypeCheck(ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
         //
-    }
-
-    /**
-     * Get the name pool name code of the attribute to be constructed
-     * @return the attribute's name code
-     */
-
-    public int getAttributeNameCode() {
-        return nameCode;
     }
 
     public ItemType getItemType(TypeHierarchy th) {
@@ -79,7 +71,7 @@ public final class FixedAttribute extends AttributeCreator {
         return StaticProperty.EXACTLY_ONE;
     }
 
-    public int evaluateNameCode(XPathContext context)  {
+    public StructuredQName evaluateNameCode(XPathContext context)  {
         return nameCode;
     }
 

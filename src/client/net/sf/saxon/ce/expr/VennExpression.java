@@ -6,7 +6,6 @@ import client.net.sf.saxon.ce.expr.sort.GlobalOrderComparer;
 import client.net.sf.saxon.ce.functions.SystemFunction;
 import client.net.sf.saxon.ce.om.Axis;
 import client.net.sf.saxon.ce.om.SequenceIterator;
-import client.net.sf.saxon.ce.pattern.CombinedNodeTest;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.Type;
@@ -206,18 +205,18 @@ public class VennExpression extends BinaryExpression {
         // If both are axis expressions on the same axis, merge them
         // ie. rewrite (axis::test1 | axis::test2) as axis::(test1 | test2)
 
-        if (operand0 instanceof AxisExpression && operand1 instanceof AxisExpression) {
-            final AxisExpression a1 = (AxisExpression)operand0;
-            final AxisExpression a2 = (AxisExpression)operand1;
-            if (a1.getAxis() == a2.getAxis()) {
-                AxisExpression ax = new AxisExpression(a1.getAxis(),
-                             new CombinedNodeTest(a1.getNodeTest(),
-                                                  operator,
-                                                  a2.getNodeTest()));
-                ExpressionTool.copyLocationInfo(this, ax);
-                return ax;
-            }
-        }
+//        if (operand0 instanceof AxisExpression && operand1 instanceof AxisExpression) {
+//            final AxisExpression a1 = (AxisExpression)operand0;
+//            final AxisExpression a2 = (AxisExpression)operand1;
+//            if (a1.getAxis() == a2.getAxis()) {
+//                AxisExpression ax = new AxisExpression(a1.getAxis(),
+//                             new CombinedNodeTest(a1.getNodeTest(),
+//                                                  operator,
+//                                                  a2.getNodeTest()));
+//                ExpressionTool.copyLocationInfo(this, ax);
+//                return ax;
+//            }
+//        }
 
         // If both are path expressions starting the same way, merge them
         // i.e. rewrite (/X | /Y) as /(X|Y). This applies recursively, so that

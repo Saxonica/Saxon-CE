@@ -1,5 +1,6 @@
 package client.net.sf.saxon.ce.pattern;
 import client.net.sf.saxon.ce.om.NodeInfo;
+import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.type.Type;
 
 /**
@@ -25,11 +26,11 @@ public final class AnyChildNodeTest extends NodeTest {
 
     /**
     * Test whether this node test is satisfied by a given node
-    * @param nodeKind The type of node to be matched
-     * @param fingerprint identifies the expanded name of the node to be matched
+     * @param nodeKind The type of node to be matched
+      * @param fingerprint identifies the expanded name of the node to be matched
      */
 
-    public boolean matches(int nodeKind, int fingerprint, int annotation) {
+    public boolean matches(int nodeKind, StructuredQName fingerprint, int annotation) {
         return (nodeKind == Type.ELEMENT ||
                 nodeKind == Type.TEXT ||
                 nodeKind == Type.COMMENT ||

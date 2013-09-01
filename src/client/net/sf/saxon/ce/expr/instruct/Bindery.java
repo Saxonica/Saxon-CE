@@ -149,7 +149,7 @@ public final class Bindery  {
                     public Item mapItem(Item item) throws XPathException {
                         if (item instanceof UntypedAtomicValue) {
                             ConversionResult val = ((UntypedAtomicValue)item).convert(
-                                    (AtomicType)requiredItemType, true);
+                                    (BuiltInAtomicType)requiredItemType, true);
                             if (val instanceof ValidationFailure) {
                                 ValidationFailure vex = (ValidationFailure)val;
                                 throw vex.makeException();

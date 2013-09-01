@@ -17,7 +17,7 @@ import client.net.sf.saxon.ce.value.Value;
 
 public final class AtomicSequenceConverter extends UnaryExpression {
 
-    private AtomicType requiredItemType;
+    private BuiltInAtomicType requiredItemType;
 
     private BuiltInAtomicType requiredPrimitiveType;
 
@@ -29,7 +29,7 @@ public final class AtomicSequenceConverter extends UnaryExpression {
     * using the rules for "cast as".
     */
 
-    public AtomicSequenceConverter(Expression sequence, AtomicType requiredItemType) {
+    public AtomicSequenceConverter(Expression sequence, BuiltInAtomicType requiredItemType) {
         super(sequence);
         this.requiredItemType = requiredItemType;
         requiredPrimitiveType = (BuiltInAtomicType)requiredItemType.getPrimitiveItemType();

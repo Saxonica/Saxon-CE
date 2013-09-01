@@ -2,7 +2,7 @@ package client.net.sf.saxon.ce.expr.instruct;
 import client.net.sf.saxon.ce.expr.StaticProperty;
 import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.expr.XPathContextMajor;
-import client.net.sf.saxon.ce.om.StandardNames;
+import client.net.sf.saxon.ce.lib.NamespaceConstant;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.XPathException;
 
@@ -117,9 +117,8 @@ public class AttributeSet extends Procedure {
         }
     }
 
-	@Override
-    public int getConstructType() {
-        return StandardNames.XSL_ATTRIBUTE_SET;
+    public StructuredQName getConstructType() {
+        return new StructuredQName("xsl", NamespaceConstant.XSLT, "attribute-set");
     }
 }
 

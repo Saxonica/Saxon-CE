@@ -4,10 +4,7 @@ import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.functions.SystemFunction;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.expr.instruct.SimpleNodeConstructor;
-import client.net.sf.saxon.ce.om.AttributeCollection;
-import client.net.sf.saxon.ce.om.Axis;
-import client.net.sf.saxon.ce.om.NodeInfo;
-import client.net.sf.saxon.ce.om.StandardNames;
+import client.net.sf.saxon.ce.om.*;
 import client.net.sf.saxon.ce.tree.iter.AxisIterator;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.BuiltInAtomicType;
@@ -41,14 +38,14 @@ public abstract class XSLLeafNodeConstructor extends StyleElement {
 		AttributeCollection atts = getAttributeList();
 
 		for (int a=0; a<atts.getLength(); a++) {
-			int nc = atts.getNameCode(a);
-			String f = getNamePool().getClarkName(nc);
+			StructuredQName qn = atts.getStructuredQName(a);
+            String f = qn.getClarkName();
 			if (f.equals(StandardNames.NAME)) {
         		nameAtt = Whitespace.trim(atts.getValue(a));
        	    } else if (f.equals(StandardNames.SELECT)) {
         		selectAtt = Whitespace.trim(atts.getValue(a));
         	} else {
-        		checkUnknownAttribute(nc);
+        		checkUnknownAttribute(qn);
         	}
         }
 

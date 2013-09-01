@@ -183,7 +183,7 @@ public final class TypeChecker {
                 if ((suppliedItemType.equals(BuiltInAtomicType.UNTYPED_ATOMIC))
                         && !(reqItemType.equals(BuiltInAtomicType.UNTYPED_ATOMIC) || reqItemType.equals(BuiltInAtomicType.ANY_ATOMIC))) {
 
-                    Expression cexp = new UntypedAtomicConverter(exp, (AtomicType)reqItemType, true, role);
+                    Expression cexp = new UntypedAtomicConverter(exp, (BuiltInAtomicType)reqItemType, true, role);
                     ExpressionTool.copyLocationInfo(exp, cexp);
                     try {
                         if (exp instanceof Literal) {
@@ -208,7 +208,7 @@ public final class TypeChecker {
                     && !(reqItemType.equals(BuiltInAtomicType.UNTYPED_ATOMIC) || reqItemType.equals(BuiltInAtomicType.ANY_ATOMIC))
                         && (exp.getSpecialProperties()&StaticProperty.NOT_UNTYPED) ==0 ) {
 
-                    Expression cexp = new UntypedAtomicConverter(exp, (AtomicType)reqItemType, false, role);
+                    Expression cexp = new UntypedAtomicConverter(exp, (BuiltInAtomicType)reqItemType, false, role);
                     ExpressionTool.copyLocationInfo(exp, cexp);
                     try {
                         if (exp instanceof Literal) {
@@ -226,8 +226,7 @@ public final class TypeChecker {
 
                 // Rule 3a: numeric promotion decimal -> float -> double
 
-                int rt = ((AtomicType)reqItemType).getFingerprint();
-                if ((rt == StandardNames.XS_DOUBLE &&
+                if ((reqItemType == BuiltInAtomicType.DOUBLE &&
                             th.relationship(suppliedItemType, BuiltInAtomicType.NUMERIC) != TypeHierarchy.DISJOINT)) {
                     Expression cexp = new PromoteToDouble(exp);
                     ExpressionTool.copyLocationInfo(exp, cexp);
@@ -241,7 +240,7 @@ public final class TypeChecker {
                     suppliedItemType = BuiltInAtomicType.DOUBLE;
                     suppliedCard = -1;
 
-                } else if (rt == StandardNames.XS_FLOAT &&
+                } else if (reqItemType == BuiltInAtomicType.FLOAT &&
                             th.relationship(suppliedItemType, BuiltInAtomicType.NUMERIC) != TypeHierarchy.DISJOINT &&
                             !th.isSubType(suppliedItemType, BuiltInAtomicType.DOUBLE)) {
                     Expression cexp = new PromoteToFloat(exp);
@@ -253,14 +252,14 @@ public final class TypeChecker {
                         err.maybeSetLocation(exp.getSourceLocator());
                         throw err.makeStatic();
                     }
-                    suppliedItemType = (rt == StandardNames.XS_DOUBLE ? BuiltInAtomicType.DOUBLE : BuiltInAtomicType.FLOAT);
+                    suppliedItemType = (reqItemType == BuiltInAtomicType.DOUBLE ? BuiltInAtomicType.DOUBLE : BuiltInAtomicType.FLOAT);
                     suppliedCard = -1;
 
                 }
 
                 // Rule 3b: promotion from anyURI -> string
 
-                if (rt == StandardNames.XS_STRING && th.isSubType(suppliedItemType, BuiltInAtomicType.ANY_URI)) {
+                if (reqItemType == BuiltInAtomicType.STRING && th.isSubType(suppliedItemType, BuiltInAtomicType.ANY_URI)) {
                     suppliedItemType = BuiltInAtomicType.STRING;
                     itemTypeOK = true;
                         // we don't generate code to do a run-time type conversion; rather, we rely on

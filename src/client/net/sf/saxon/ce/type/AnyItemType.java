@@ -62,11 +62,7 @@ public class AnyItemType implements ItemType {
         return this;
     }
 
-    public int getPrimitiveType() {
-        return Type.ITEM;
-    }
-
-    public AtomicType getAtomizedItemType() {
+    public BuiltInAtomicType getAtomizedItemType() {
         return BuiltInAtomicType.ANY_ATOMIC;
     }
 

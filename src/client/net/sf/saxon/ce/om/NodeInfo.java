@@ -190,37 +190,12 @@ public interface NodeInfo extends Item, ValueRepresentation {
 
     public String getStringValue();
 
-	/**
-	 * Get name code. The name code is a coded form of the node name: two nodes
-	 * with the same name code have the same namespace URI, the same local name,
-	 * and the same prefix. By masking the name code with {@link NamePool#FP_MASK}, you get a
-	 * fingerprint: two nodes with the same fingerprint have the same local name
-	 * and namespace URI.
-	 *
-	 * @return an integer name code, which may be used to obtain the actual node
-	 *     name from the name pool. For unnamed nodes (text nodes, comments, document nodes,
-     *     and namespace nodes for the default namespace), returns -1.
-	 * @see client.net.sf.saxon.ce.om.NamePool#allocate allocate
-	 * @see client.net.sf.saxon.ce.om.NamePool#getFingerprint getFingerprint
-     * @since 8.4
-	 */
+    /**
+     * Get the name of the node
+     * @return the name of the node, as a StructuredQName. Return null for an unnamed node.
+     */
 
-	public int getNameCode();
-
-	/**
-	 * Get fingerprint. The fingerprint is a coded form of the expanded name
-	 * of the node: two nodes
-	 * with the same name code have the same namespace URI and the same local name.
-     * The fingerprint contains no information about the namespace prefix. For a name
-     * in the null namespace, the fingerprint is the same as the name code.
-	 *
-	 * @return an integer fingerprint; two nodes with the same fingerprint have
-	 *     the same expanded QName. For unnamed nodes (text nodes, comments, document nodes,
-     *     and namespace nodes for the default namespace), returns -1.
-     * @since 8.4
-	 */
-
-	public int getFingerprint();
+    public StructuredQName getNodeName();
 
     /**
      * Get the local part of the name of this node. This is the name after the ":" if any.
@@ -273,19 +248,11 @@ public interface NodeInfo extends Item, ValueRepresentation {
 
     public Configuration getConfiguration();
 
-   /**
-    * Get the NamePool that holds the namecode for this node
-    * @return the namepool
-    * @since 8.4
-    */
-
-    public NamePool getNamePool();
-
     /**
      * Get the type annotation of this node, if any. The type annotation is represented as an integer;
      * this is the fingerprint of the name of the type, as defined in the name pool. Anonymous types
      * are given a system-defined name. The value of the type annotation can be used to retrieve the
-     * actual schema type definition using the method {@link Configuration#getSchemaType}.
+     * actual schema type definition.
      * <p>
      * The bit IS_DTD_TYPE (1<<30) will be set in the case of an attribute node if the type annotation
      * is one of ID, IDREF, or IDREFS and this is derived from DTD rather than schema validation.

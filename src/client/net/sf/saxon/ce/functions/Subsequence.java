@@ -111,13 +111,13 @@ public class Subsequence extends SystemFunction {
             }
 
             NumericValue rend = (NumericValue)ArithmeticExpression.compute(
-                    startVal, Calculator.PLUS, lengthVal, context);
+                    startVal, Token.PLUS, lengthVal, context);
             if (rend.isNaN()) {
                 // Can happen when start = -INF, length = +INF
                 return EmptyIterator.getInstance();
             }
             rend = (NumericValue)ArithmeticExpression.compute(
-                    rend, Calculator.MINUS, IntegerValue.PLUS_ONE, context);
+                    rend, Token.MINUS, IntegerValue.PLUS_ONE, context);
             if (rend.compareTo(IntegerValue.ZERO) <= 0) {
                 return EmptyIterator.getInstance();
             }

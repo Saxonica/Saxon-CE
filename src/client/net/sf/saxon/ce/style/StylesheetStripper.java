@@ -1,7 +1,8 @@
 package client.net.sf.saxon.ce.style;
 
 import client.net.sf.saxon.ce.event.Stripper;
-import client.net.sf.saxon.ce.om.StandardNames;
+import client.net.sf.saxon.ce.lib.NamespaceConstant;
+import client.net.sf.saxon.ce.om.StructuredQName;
 
 import java.util.Arrays;
 
@@ -20,22 +21,10 @@ public class StylesheetStripper extends Stripper {
     //    regardless of any xml:space attributes. Note that this array must be in numeric
     //    order for binary chop to work correctly.
 
-    private static final int[] specials = {
-            StandardNames.XSL_ANALYZE_STRING,
-            StandardNames.XSL_APPLY_IMPORTS,
-            StandardNames.XSL_APPLY_TEMPLATES,
-            StandardNames.XSL_ATTRIBUTE_SET,
-            StandardNames.XSL_CALL_TEMPLATE,
-            StandardNames.XSL_CHARACTER_MAP,
-            StandardNames.XSL_CHOOSE,
-            StandardNames.XSL_EVALUATE,
-            StandardNames.XSL_MERGE,
-            StandardNames.XSL_MERGE_SOURCE,
-            StandardNames.XSL_NEXT_ITERATION,
-            StandardNames.XSL_NEXT_MATCH,
-            StandardNames.XSL_STYLESHEET,
-            StandardNames.XSL_TRANSFORM
-    };
+    private static final String[] specials = {
+            "analyze-string", "apply-imports", "apply-templates",
+            "attribute-set", "call-template", "character-map", "choose",
+            "stylesheet", "transform" };
 
     public Stripper getAnother() {
         return new StylesheetStripper();
@@ -43,18 +32,20 @@ public class StylesheetStripper extends Stripper {
 
     /**
     * Decide whether an element is in the set of white-space preserving element types
-    * @param fingerprint identifies the element being tested
+    * @param elementName identifies the element being tested
     */
 
-    public byte isSpacePreserving(int fingerprint) {
-        if (fingerprint == StandardNames.XSL_TEXT) {
-            return ALWAYS_PRESERVE;
-        }
+    public byte isSpacePreserving(StructuredQName elementName) {
+        if (elementName.getNamespaceURI().equals(NamespaceConstant.XSLT)) {
+            String local = elementName.getLocalName();
+            if (local.equals("text")) {
+                return ALWAYS_PRESERVE;
+            }
 
-        if (Arrays.binarySearch(specials, fingerprint) >= 0) {
-            return ALWAYS_STRIP;
+            if (Arrays.binarySearch(specials, local) >= 0) {
+                return ALWAYS_STRIP;
+            }
         }
-
         return STRIP_DEFAULT;
     }
 

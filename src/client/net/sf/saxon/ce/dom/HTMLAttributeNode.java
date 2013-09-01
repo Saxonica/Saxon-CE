@@ -23,7 +23,7 @@ public class HTMLAttributeNode implements NodeInfo {
     private HTMLNodeWrapper element;
     private String name;
     private String value;
-    private int fingerprint;
+    private StructuredQName qname;
     private String uri;
     private String prefix;
 
@@ -33,7 +33,7 @@ public class HTMLAttributeNode implements NodeInfo {
         this.prefix = prefix;
         this.uri = uri;
         this.value = value;
-        this.fingerprint = element.getNamePool().allocate(prefix, uri, name);
+        this.qname = new StructuredQName(prefix, uri, name);
     }
 
     public int getNodeKind() {
@@ -61,7 +61,7 @@ public class HTMLAttributeNode implements NodeInfo {
     public int compareOrder(NodeInfo other) {
         if (other instanceof HTMLAttributeNode) {
             if (element.isSameNodeInfo(((HTMLAttributeNode)other).element)) {
-                return Integer.signum(fingerprint -((HTMLAttributeNode)other).fingerprint);
+                return qname.compareTo(((HTMLAttributeNode)other).qname);
             } else {
                 return element.compareOrder(((HTMLAttributeNode)other).element);
             }
@@ -76,12 +76,8 @@ public class HTMLAttributeNode implements NodeInfo {
         return value;
     }
 
-    public int getNameCode() {
-        return fingerprint;
-    }
-
-    public int getFingerprint() {
-        return fingerprint;
+    public StructuredQName getNodeName() {
+        return qname;
     }
 
     public String getLocalPart() {
@@ -102,10 +98,6 @@ public class HTMLAttributeNode implements NodeInfo {
 
     public Configuration getConfiguration() {
         return element.getConfiguration();
-    }
-
-    public NamePool getNamePool() {
-        return element.getNamePool();
     }
 
     public int getTypeAnnotation() {
@@ -191,7 +183,7 @@ public class HTMLAttributeNode implements NodeInfo {
     }
 
     public void copy(Receiver out, int copyOptions) throws XPathException {
-        out.attribute(fingerprint, value);
+        out.attribute(qname, value);
     }
 
     public NamespaceBinding[] getDeclaredNamespaces(NamespaceBinding[] buffer) {

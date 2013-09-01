@@ -1,14 +1,14 @@
 package client.net.sf.saxon.ce.expr;
 
 import client.net.sf.saxon.ce.om.Item;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.pattern.EmptySequenceTest;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.BuiltInAtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.*;
+
+import java.math.BigDecimal;
 
 /**
  * Arithmetic Expression: an expression using one of the operators
@@ -18,14 +18,14 @@ import client.net.sf.saxon.ce.value.*;
 
 public class ArithmeticExpression extends BinaryExpression {
 
-    private Calculator calculator;
     protected boolean simplified = false;
 
     /**
      * Create an arithmetic expression
-     * @param p0 the first operand
+     *
+     * @param p0       the first operand
      * @param operator the operator, for example {@link Token#PLUS}
-     * @param p1 the second operand
+     * @param p1       the second operand
      */
 
     public ArithmeticExpression(Expression p0, int operator, Expression p1) {
@@ -45,22 +45,13 @@ public class ArithmeticExpression extends BinaryExpression {
         } else {
             if (operator == Token.NEGATE && Literal.isAtomic(operand1)) {
                 // very early evaluation of expressions like "-1", so they are treated as numeric literals
-                AtomicValue val = (AtomicValue)((Literal)operand1).getValue();
+                AtomicValue val = (AtomicValue) ((Literal) operand1).getValue();
                 if (val instanceof NumericValue) {
-                    return new Literal(((NumericValue)val).negate());
+                    return new Literal(((NumericValue) val).negate());
                 }
             }
             return e;
         }
-    }
-
-    /**
-     * Get the calculator allocated to evaluate this expression
-     * @return the calculator, a helper object that does the actual calculation
-     */
-
-    public Calculator getCalculator() {
-        return calculator;
     }
 
     /**
@@ -88,15 +79,15 @@ public class ArithmeticExpression extends BinaryExpression {
         if (itemType0 instanceof EmptySequenceTest) {
             return new Literal(EmptySequence.getInstance());
         }
-        AtomicType type0 = (AtomicType) itemType0.getPrimitiveItemType();
-        if (type0.getFingerprint() == StandardNames.XS_UNTYPED_ATOMIC) {
+        BuiltInAtomicType type0 = (BuiltInAtomicType) itemType0.getPrimitiveItemType();
+        if (type0 == BuiltInAtomicType.UNTYPED_ATOMIC) {
             operand0 = new UntypedAtomicConverter(operand0, BuiltInAtomicType.DOUBLE, true, role0);
             type0 = BuiltInAtomicType.DOUBLE;
         } else if (/*!(operand0 instanceof UntypedAtomicConverter)*/
-                (operand0.getSpecialProperties()&StaticProperty.NOT_UNTYPED) == 0 &&
-                th.relationship(type0, BuiltInAtomicType.UNTYPED_ATOMIC) != TypeHierarchy.DISJOINT) {
+                (operand0.getSpecialProperties() & StaticProperty.NOT_UNTYPED) == 0 &&
+                        th.relationship(type0, BuiltInAtomicType.UNTYPED_ATOMIC) != TypeHierarchy.DISJOINT) {
             operand0 = new UntypedAtomicConverter(operand0, BuiltInAtomicType.DOUBLE, false, role0);
-            type0 = (AtomicType)operand0.getItemType(th);
+            type0 = (BuiltInAtomicType) operand0.getItemType(th);
         }
 
         // System.err.println("First operand"); operand0.display(10);
@@ -108,15 +99,15 @@ public class ArithmeticExpression extends BinaryExpression {
         if (itemType1 instanceof EmptySequenceTest) {
             return new Literal(EmptySequence.getInstance());
         }
-        AtomicType type1 = (AtomicType)itemType1.getPrimitiveItemType();
-        if (type1.getFingerprint() == StandardNames.XS_UNTYPED_ATOMIC) {
+        BuiltInAtomicType type1 = (BuiltInAtomicType) itemType1.getPrimitiveItemType();
+        if (type1 == BuiltInAtomicType.UNTYPED_ATOMIC) {
             operand1 = new UntypedAtomicConverter(operand1, BuiltInAtomicType.DOUBLE, true, role1);
             type1 = BuiltInAtomicType.DOUBLE;
         } else if (/*!(operand1 instanceof UntypedAtomicConverter) &&*/
-                (operand1.getSpecialProperties()&StaticProperty.NOT_UNTYPED) == 0 &&
-                th.relationship(type1, BuiltInAtomicType.UNTYPED_ATOMIC) != TypeHierarchy.DISJOINT) {
+                (operand1.getSpecialProperties() & StaticProperty.NOT_UNTYPED) == 0 &&
+                        th.relationship(type1, BuiltInAtomicType.UNTYPED_ATOMIC) != TypeHierarchy.DISJOINT) {
             operand1 = new UntypedAtomicConverter(operand1, BuiltInAtomicType.DOUBLE, false, role1);
-            type1 = (AtomicType)operand1.getItemType(th);
+            type1 = (BuiltInAtomicType) operand1.getItemType(th);
         }
 
         if (operand0 != oldOp0) {
@@ -133,29 +124,14 @@ public class ArithmeticExpression extends BinaryExpression {
         }
 
         if (operator == Token.NEGATE) {
-            if (operand1 instanceof Literal && ((Literal)operand1).getValue() instanceof NumericValue) {
-                NumericValue nv = (NumericValue)((Literal)operand1).getValue();
+            if (operand1 instanceof Literal && ((Literal) operand1).getValue() instanceof NumericValue) {
+                NumericValue nv = (NumericValue) ((Literal) operand1).getValue();
                 return new Literal(nv.negate());
             } else {
                 NegateExpression ne = new NegateExpression(operand1);
                 ne.setBackwardsCompatible(false);
                 return visitor.typeCheck(ne, contextItemType);
             }
-        }
-
-        // Get a calculator to implement the arithmetic operation. If the types are not yet specifically known,
-        // we allow this to return an "ANY" calculator which defers the decision. However, we only allow this if
-        // at least one of the operand types is AnyAtomicType or (otherwise unspecified) numeric.
-
-        boolean mustResolve = !(type0.equals(BuiltInAtomicType.ANY_ATOMIC) || type1.equals(BuiltInAtomicType.ANY_ATOMIC)
-                || type0.equals(BuiltInAtomicType.NUMERIC) || type1.equals(BuiltInAtomicType.NUMERIC));
-
-        calculator = Calculator.getCalculator(
-                type0.getFingerprint(), type1.getFingerprint(), mapOpCode(operator), mustResolve);
-
-        if (calculator == null) {
-            typeError("Arithmetic operator is not defined for arguments of types (" +
-                    type0.getDisplayName() + ", " + type1.getDisplayName() + ")", "XPTY0004", null);
         }
 
         try {
@@ -172,80 +148,227 @@ public class ArithmeticExpression extends BinaryExpression {
 
     /**
      * Static method to apply arithmetic to two values
-     * @param value0 the first value
-     * @param operator the operator as denoted in the Calculator class, for example {@link Calculator#PLUS}
-     * @param value1 the second value
-     * @param context the XPath dynamic evaluation context
+     *
+     * @param value0   the first value
+     * @param operator the operator as denoted in the Token class, for example {@link Token#PLUS}
+     * @param value1   the second value
+     * @param context  the XPath dynamic evaluation context
      * @return the result of the arithmetic operation
      */
 
     public static AtomicValue compute(AtomicValue value0, int operator, AtomicValue value1, XPathContext context)
             throws XPathException {
-        int p0 = value0.getPrimitiveType().getFingerprint();
-        int p1 = value1.getPrimitiveType().getFingerprint();
-        Calculator calculator = Calculator.getCalculator(p0, p1, operator, false);
-        return calculator.compute(value0, value1, context);
-    }
+        BuiltInAtomicType p0 = value0.getPrimitiveType();
+        BuiltInAtomicType p1 = value1.getPrimitiveType();
+        TypeHierarchy th = context.getConfiguration().getTypeHierarchy();
 
-    /**
-     * Map operator codes from those in the Token class to those in the Calculator class
-     * @param op an operator denoted by a constant in the {@link Token} class, for example {@link Token#PLUS}
-     * @return an operator denoted by a constant defined in the {@link Calculator} class, for example
-     * {@link Calculator#PLUS}
-     */
-
-    public static int mapOpCode(int op) {
-        switch (op) {
-            case Token.PLUS:
-                return Calculator.PLUS;
-            case Token.MINUS:
-            case Token.NEGATE:
-                return Calculator.MINUS;
-            case Token.MULT:
-                return Calculator.TIMES;
-            case Token.DIV:
-                return Calculator.DIV;
-            case Token.IDIV:
-                return Calculator.IDIV;
-            case Token.MOD:
-                return Calculator.MOD;
-            default:
-                throw new IllegalArgumentException();
+        if (p0 == BuiltInAtomicType.UNTYPED_ATOMIC) {
+            p0 = BuiltInAtomicType.DOUBLE;
+            value0 = value0.convert(BuiltInAtomicType.DOUBLE, true).asAtomic();
+        }
+        if (p1 == BuiltInAtomicType.UNTYPED_ATOMIC) {
+            p1 = BuiltInAtomicType.DOUBLE;
+            value1 = value1.convert(BuiltInAtomicType.DOUBLE, true).asAtomic();
+        }
+        if (p0 == BuiltInAtomicType.DATE || p0 == BuiltInAtomicType.TIME) {
+            p0 = BuiltInAtomicType.DATE_TIME;
+        }
+        if (p1 == BuiltInAtomicType.DATE || p1 == BuiltInAtomicType.TIME) {
+            p1 = BuiltInAtomicType.DATE_TIME;
         }
 
+        if (th.isSubType(p0, BuiltInAtomicType.NUMERIC) && th.isSubType(p1, BuiltInAtomicType.NUMERIC)) {
+            NumericValue n0 = (NumericValue) value0;
+            NumericValue n1 = (NumericValue) value1;
+            if (p0 == BuiltInAtomicType.DOUBLE || p1 == BuiltInAtomicType.DOUBLE) {
+                double d0 = n0.getDoubleValue();
+                double d1 = n1.getDoubleValue();
+                double result;
+                switch (operator) {
+                    case Token.PLUS:
+                    default:
+                        result = d0 + d1;
+                        break;
+                    case Token.MINUS:
+                        result = d0 - d1;
+                        break;
+                    case Token.MULT:
+                        result = d0 * d1;
+                        break;
+                    case Token.DIV:
+                        result = d0 / d1;
+                        break;
+                    case Token.MOD:
+                        result = d0 % d1;
+                        break;
+                    case Token.IDIV:
+                        if (d1 == 0.0) {
+                            throw new XPathException("Integer division by zero", "FOAR0001", context);
+                        }
+                        if (Double.isNaN(d0) || Double.isInfinite(d0)) {
+                            throw new XPathException("First operand of idiv is NaN or infinity", "FOAR0002", context);
+                        }
+                        if (Double.isNaN(d1)) {
+                            throw new XPathException("Second operand of idiv is NaN", "FOAR0002", context);
+                        }
+                        return new DoubleValue(d0 / d1).convert(BuiltInAtomicType.INTEGER, true).asAtomic();
+
+                }
+                return new DoubleValue(result);
+            } else if (p0 == BuiltInAtomicType.FLOAT || p1 == BuiltInAtomicType.FLOAT) {
+                float d0 = n0.getFloatValue();
+                float d1 = n1.getFloatValue();
+                float result;
+                switch (operator) {
+                    case Token.PLUS:
+                    default:
+                        result = d0 + d1;
+                        break;
+                    case Token.MINUS:
+                        result = d0 - d1;
+                        break;
+                    case Token.MULT:
+                        result = d0 * d1;
+                        break;
+                    case Token.DIV:
+                        result = d0 / d1;
+                        break;
+                    case Token.MOD:
+                        result = d0 % d1;
+                        break;
+                    case Token.IDIV:
+                        if (d1 == 0.0) {
+                            throw new XPathException("Integer division by zero", "FOAR0001", context);
+                        }
+                        if (Float.isNaN(d0) || Float.isInfinite(d0)) {
+                            throw new XPathException("First operand of idiv is NaN or infinity", "FOAR0002", context);
+                        }
+                        if (Float.isNaN(d1)) {
+                            throw new XPathException("Second operand of idiv is NaN", "FOAR0002", context);
+                        }
+                        return new FloatValue(d0 / d1).convert(BuiltInAtomicType.INTEGER, true).asAtomic();
+
+                }
+                return new FloatValue(result);
+            } else {
+                BigDecimal d0 = n0.getDecimalValue();
+                BigDecimal d1 = n1.getDecimalValue();
+                BigDecimal result;
+                switch (operator) {
+                    case Token.PLUS:
+                    default:
+                        result = d0.add(d1);
+                        break;
+                    case Token.MINUS:
+                        result = d0.subtract(d1);
+                        break;
+                    case Token.MULT:
+                        result = d0.multiply(d1);
+                        break;
+                    case Token.DIV:
+                        BigDecimal result1;
+                        int scale = Math.max(DecimalValue.DIVIDE_PRECISION,
+                                        Math.max(d0.scale(), d1.scale()));
+                        try {
+                            result1 = d0.divide(d1, scale, BigDecimal.ROUND_HALF_DOWN);
+                        } catch (ArithmeticException err1) {
+                            if (d1.signum() == 0) {
+                                throw new XPathException("Decimal divide by zero", "FOAR0001");
+                            } else {
+                                throw err1;
+                            }
+                        }
+                        result = result1;
+                        break;
+                    case Token.MOD:
+                        try {
+                            result = d0.remainder(d1);
+                        } catch (ArithmeticException err) {
+                            if (n1.compareTo(0) == 0) {
+                                throw new XPathException("Decimal modulo zero", "FOAR0001", context);
+                            } else {
+                                throw err;
+                            }
+                        }
+                        break;
+                    case Token.IDIV:
+                        if (d1.signum() == 0) {
+                            throw new XPathException("Integer division by zero", "FOAR0001", context);
+                        }
+                        BigDecimal quot = d0.divideToIntegralValue(d1);
+                        return IntegerValue.decimalToInteger(quot).asAtomic();
+
+                }
+                if (n0 instanceof IntegerValue && n0 instanceof IntegerValue) {
+                    return new IntegerValue(result);
+                } else {
+                    return new DecimalValue(result);
+                }
+            }
+
+        } else {
+            // computations involving dates, times, and durations
+
+            if (p0 == BuiltInAtomicType.DATE_TIME) {
+                if (p1 == BuiltInAtomicType.DATE_TIME && operator == Token.MINUS) {
+                    return ((CalendarValue)value0).subtract((CalendarValue)value1, context);
+                } else if (th.isSubType(p1, BuiltInAtomicType.DURATION) && (operator == Token.PLUS || operator == Token.MINUS)) {
+                    DurationValue b = (DurationValue) value1;
+                    if (operator == Token.MINUS) {
+                        b = b.multiply(-1.0);
+                    }
+                    return ((CalendarValue) value0).add(b);
+                }
+            } else if (th.isSubType(p0, BuiltInAtomicType.DURATION)) {
+                if (th.isSubType(p1, BuiltInAtomicType.DURATION)) {
+                    DurationValue d0 = (DurationValue) value1;
+                    DurationValue d1 = (DurationValue) value1;
+                    switch (operator) {
+                        case Token.PLUS:
+                            return d0.add(d1);
+                        case Token.MINUS:
+                            return d0.subtract(d1);
+                        case Token.DIV:
+                            return d0.divide(d1);
+                    }
+                } else if (p1 == BuiltInAtomicType.DATE_TIME && operator == Token.PLUS) {
+                    return ((CalendarValue) value1).add((DurationValue) value0);
+                } else if (th.isSubType(p1, BuiltInAtomicType.NUMERIC) && (operator == Token.MULT || operator == Token.DIV)) {
+                    double d1 = ((NumericValue) value1).getDoubleValue();
+                    if (operator == Token.DIV) {
+                        d1 = 1.0 / d1;
+                    }
+                    return ((DurationValue) value0).multiply(d1);
+                } else if (th.isSubType(p0, BuiltInAtomicType.NUMERIC) &&
+                        th.isSubType(p1, BuiltInAtomicType.DURATION) &&
+                        operator == Token.MULT) {
+                    return ((DurationValue) value1).multiply(((NumericValue) value1).getDoubleValue());
+                }
+            }
+        }
+        throw new XPathException("Undefined arithmetic operation: " + p0 + " " + Token.tokens[operator] + " " + p1, "XPTY0004");
     }
 
     /**
      * Determine the data type of the expression, insofar as this is known statically
+     *
      * @param th the type hierarchy cache
      * @return the atomic type of the result of this arithmetic expression
      */
 
     public ItemType getItemType(TypeHierarchy th) {
-        if (calculator == null) {
-            return BuiltInAtomicType.ANY_ATOMIC;  // type is not known statically
+        ItemType t1 = operand0.getItemType(th);
+        if (!(t1 instanceof BuiltInAtomicType)) {
+            t1 = t1.getAtomizedItemType();
+        }
+        ItemType t2 = operand1.getItemType(th);
+        if (!(t2 instanceof BuiltInAtomicType)) {
+            t2 = t2.getAtomizedItemType();
+        }
+        if (th.isSubType(t1, BuiltInAtomicType.NUMERIC) && th.isSubType(t2, BuiltInAtomicType.NUMERIC)) {
+            return BuiltInAtomicType.NUMERIC;
         } else {
-            ItemType t1 = operand0.getItemType(th);
-            if (!(t1 instanceof AtomicType)) {
-                t1 = t1.getAtomizedItemType();
-            }
-            ItemType t2 = operand1.getItemType(th);
-            if (!(t2 instanceof AtomicType)) {
-                t2 = t2.getAtomizedItemType();
-            }
-            ItemType resultType = calculator.getResultType((AtomicType) t1.getPrimitiveItemType(),
-                    (AtomicType) t2.getPrimitiveItemType());
-
-            if (resultType.equals(BuiltInAtomicType.ANY_ATOMIC)) {
-                // there are a few special cases where we can do better. For example, given X+1, where the type of X
-                // is unknown, we can still infer that the result is numeric. (Not so for X*2, however, where it could
-                // be a duration)
-                if ((operator == Token.PLUS || operator == Token.MINUS) &&
-                        (th.isSubType(t2, BuiltInAtomicType.NUMERIC) || th.isSubType(t1, BuiltInAtomicType.NUMERIC))) {
-                    resultType = BuiltInAtomicType.NUMERIC;
-                }
-            }
-            return resultType;
+            return BuiltInAtomicType.ANY_ATOMIC;
         }
     }
 
@@ -266,7 +389,7 @@ public class ArithmeticExpression extends BinaryExpression {
         }
 
         try {
-            return calculator.compute(v0, v1, context);
+            return compute(v0, operator, v1, context);
         } catch (XPathException e) {
             e.maybeSetLocation(getSourceLocator());
             e.maybeSetContext(context);

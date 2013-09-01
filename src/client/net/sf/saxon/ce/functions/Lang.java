@@ -8,7 +8,7 @@ import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.Navigator;
-import client.net.sf.saxon.ce.type.AtomicType;
+import client.net.sf.saxon.ce.type.BuiltInAtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.value.BooleanValue;
 
@@ -24,7 +24,7 @@ public class Lang extends SystemFunction {
         if (argument.length==1) {
             if (contextItemType == null) {
                 typeError("The context item for lang() is undefined", "XPDY0002", null);
-            } else if (contextItemType instanceof AtomicType) {
+            } else if (contextItemType instanceof BuiltInAtomicType) {
                 typeError("The context item for lang() is not a node", "XPDY0002", null);
             }
         }

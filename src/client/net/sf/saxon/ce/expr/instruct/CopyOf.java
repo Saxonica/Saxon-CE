@@ -181,7 +181,8 @@ public class CopyOf extends Instruction {
                     }
                     case Type.ATTRIBUTE:
                         try {
-                            context.getReceiver().attribute(source.getNameCode(), source.getStringValueCS());
+                            StructuredQName qn = new StructuredQName(source.getPrefix(), source.getURI(), source.getLocalPart());
+                            context.getReceiver().attribute(qn, source.getStringValueCS());
                         } catch (NoOpenStartTagException err) {
                             dynamicError(err.getMessage(), err.getErrorCodeLocalPart(), context);
                         }

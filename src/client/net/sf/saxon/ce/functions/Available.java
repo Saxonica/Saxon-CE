@@ -5,8 +5,7 @@ import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
 import client.net.sf.saxon.ce.om.*;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
-import client.net.sf.saxon.ce.type.SchemaType;
+import client.net.sf.saxon.ce.type.BuiltInType;
 import client.net.sf.saxon.ce.value.AtomicValue;
 import client.net.sf.saxon.ce.value.BooleanValue;
 import client.net.sf.saxon.ce.value.NumericValue;
@@ -102,9 +101,7 @@ public class Available extends SystemFunction {
                         uri = env.getURIForPrefix(prefix);
                     }
 
-                    int fingerprint = config.getNamePool().allocate(prefix, uri, parts[1]) & 0xfffff;
-                    SchemaType type = config.getSchemaType(fingerprint);
-                    b = type instanceof BuiltInAtomicType;
+                    b = uri.equals(NamespaceConstant.SCHEMA) && BuiltInType.getSchemaType(parts[1]) != null;
                 } catch (QNameException e) {
                     XPathException err = new XPathException(e.getMessage());
                     err.setErrorCode("XTDE1425");
@@ -155,10 +152,9 @@ public class Available extends SystemFunction {
                 b = (lib.hasFunctionSignature(qName, (int)arity));
                 break;
             case TYPE_AVAILABLE:
-                final int fp = context.getNamePool().allocate(
-                        qName.getPrefix(), qName.getNamespaceURI(), qName.getLocalName()) & 0xfffff;
-                SchemaType type = context.getConfiguration().getSchemaType(fp);
-                b = (type != null);
+                b = qName.getNamespaceURI().equals(NamespaceConstant.SCHEMA) &&
+                        (BuiltInType.getSchemaType(qName.getLocalName()) != null);
+                break;
 
         }
         return BooleanValue.get(b);

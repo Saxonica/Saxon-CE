@@ -1,15 +1,15 @@
 package client.net.sf.saxon.ce.expr;
 
 import client.net.sf.saxon.ce.Configuration;
-import client.net.sf.saxon.ce.expr.sort.SetUtils;
 import client.net.sf.saxon.ce.om.*;
-import client.net.sf.saxon.ce.pattern.*;
+import client.net.sf.saxon.ce.pattern.AnyNodeTest;
+import client.net.sf.saxon.ce.pattern.NameTest;
+import client.net.sf.saxon.ce.pattern.NodeKindTest;
+import client.net.sf.saxon.ce.pattern.NodeTest;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.type.TypeHierarchy;
-
-import java.util.Set;
 
 
 /**
@@ -88,7 +88,7 @@ public final class AxisExpression extends Expression {
         doneWarnings = true;
 
         if (contextItemType instanceof NodeTest) {
-            int origin = contextItemType.getPrimitiveType();
+            int origin = ((NodeTest)contextItemType).getRequiredNodeKind();
             if (origin != Type.NODE) {
                 if (Axis.isAlwaysEmpty(axis, origin)) {
                     env.issueWarning("The " + Axis.axisName[axis] + " axis starting at " +
@@ -100,7 +100,7 @@ public final class AxisExpression extends Expression {
             }
 
             if (test != null) {
-                int kind = test.getPrimitiveType();
+                int kind = test.getRequiredNodeKind();
                 if (kind != Type.NODE) {
                     if (!Axis.containsNodeKind(axis, kind)) {
                         env.issueWarning("The " + Axis.axisName[axis] + " axis will never select any " +
@@ -116,46 +116,6 @@ public final class AxisExpression extends Expression {
                             (origin==Type.ELEMENT || origin == Type.ATTRIBUTE ? "an " : "a ")  +
                             NodeKindTest.nodeKindName(origin) + " node", getSourceLocator());
                     return Literal.makeEmptySequence();
-                }
-                if (axis==Axis.SELF) {
-                    itemType = new CombinedNodeTest(test,  Token.INTERSECT, (NodeTest)contextItemType);
-                }
-
-                // If the content type of the context item is known, see whether the node test can select anything
-
-                if (contextItemType instanceof DocumentNodeTest && kind == Type.ELEMENT) {
-                    NodeTest elementTest = ((DocumentNodeTest)contextItemType).getElementTest();
-                    Set<Integer> outermostElementNames = elementTest.getRequiredNodeNames();
-                    if (outermostElementNames != null) {
-                        Set<Integer> selectedElementNames = test.getRequiredNodeNames();
-                        if (selectedElementNames != null) {
-                            if (axis == Axis.CHILD) {
-                                // check that the name appearing in the step is one of the names allowed by the nodetest
-
-                                if (SetUtils.intersect(selectedElementNames, outermostElementNames).isEmpty()) {
-                                    env.issueWarning("Starting at a document node, the step is selecting an element whose name " +
-                                            "is not among the names of child elements permitted for this document node type", getSourceLocator());
-
-                                    return Literal.makeEmptySequence();
-                                }
-                                itemType = elementTest;
-                                return this;
-
-                            } else if (axis == Axis.DESCENDANT) {
-                                // check that the name appearing in the step is one of the names allowed by the nodetest
-                                boolean canMatchOutermost = !SetUtils.intersect(selectedElementNames, outermostElementNames).isEmpty();
-                                if (!canMatchOutermost) {
-                                    // The expression /descendant::x starting at the document node doesn't match the outermost
-                                    // element, so replace it by child::*/descendant::x, and check that
-                                    PathExpression path = new PathExpression(
-                                            new AxisExpression(Axis.CHILD, elementTest),
-                                            new AxisExpression(Axis.DESCENDANT, test));
-                                    ExpressionTool.copyLocationInfo(this, path);
-                                    return path.typeCheck(visitor, contextItemType);
-                                }
-                            }
-                        }
-                    }
                 }
             }
         }
@@ -216,8 +176,8 @@ public final class AxisExpression extends Expression {
         // generate an arbitrary hash code that depends on the axis and the node test
         int h = 9375162 + axis<<20;
         if (test != null) {
-            h ^= test.getPrimitiveType()<<16;
-            h ^= test.getFingerprint();
+            h ^= test.getRequiredNodeKind()<<16;
+            h ^= test.getRequiredNodeName().hashCode();
         }
         return h;
     }

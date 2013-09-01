@@ -13,14 +13,15 @@ public interface CodeInjector {
      /**
      * If tracing, wrap an expression in a trace instruction
      *
-     * @param exp         the expression to be wrapped
-     * @param env         the static context
-     * @param construct   integer constant identifying the kind of construct
-     * @param qName       the name of the construct (if applicable)
-     * @return a replacement for the original expression (or the original expression unchanged)
+     *
+      * @param exp         the expression to be wrapped
+      * @param env         the static context
+      * @param construct   identifies the kind of construct
+      * @param qName       the name of the construct (if applicable)
+      * @return a replacement for the original expression (or the original expression unchanged)
      */
 
-    public Expression inject(Expression exp, StaticContext env, int construct, StructuredQName qName);
+    public Expression inject(Expression exp, StaticContext env, StructuredQName construct, StructuredQName qName);
 
     /**
      * Insert a tracing clause into a FLWOR expression

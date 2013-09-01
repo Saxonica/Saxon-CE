@@ -1,4 +1,5 @@
 package client.net.sf.saxon.ce.style;
+import client.net.sf.saxon.ce.om.StructuredQName;
 import com.google.gwt.logging.client.LogConfiguration;
 
 import client.net.sf.saxon.ce.LogController;
@@ -45,8 +46,8 @@ public class XSLChoose extends StyleElement {
     public void prepareAttributes() throws XPathException {
 		AttributeCollection atts = getAttributeList();
 		for (int a=0; a<atts.getLength(); a++) {
-			int nc = atts.getNameCode(a);
-        	checkUnknownAttribute(nc);
+			StructuredQName qn = atts.getStructuredQName(a);
+        	checkUnknownAttribute(qn);
         }
     }
 

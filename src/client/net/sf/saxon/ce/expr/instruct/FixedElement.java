@@ -4,6 +4,7 @@ import client.net.sf.saxon.ce.event.Receiver;
 import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.om.NamespaceBinding;
 import client.net.sf.saxon.ce.om.NodeInfo;
+import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.XPathException;
 
 
@@ -16,7 +17,7 @@ import client.net.sf.saxon.ce.trans.XPathException;
 
 public class FixedElement extends ElementCreator {
 
-    private int nameCode;
+    private StructuredQName nameCode;
     protected NamespaceBinding[] namespaceCodes = null;
 
     /**
@@ -26,7 +27,7 @@ public class FixedElement extends ElementCreator {
      *                       May be null if none are required.
      * @param inheritNamespaces true if the children of this element are to inherit its namespaces
      */
-    public FixedElement(int nameCode,
+    public FixedElement(StructuredQName nameCode,
                         NamespaceBinding[] namespaceCodes,
                         boolean inheritNamespaces) {
         this.nameCode = nameCode;
@@ -37,12 +38,13 @@ public class FixedElement extends ElementCreator {
     /**
      * Callback from the superclass ElementCreator to get the nameCode
      * for the element name
+     *
      * @param context The evaluation context (not used)
      * @param copiedNode
      * @return the name code for the element name
      */
 
-    public int getNameCode(XPathContext context, NodeInfo copiedNode) {
+    public StructuredQName getNameCode(XPathContext context, NodeInfo copiedNode) {
         return nameCode;
     }
 
@@ -59,7 +61,7 @@ public class FixedElement extends ElementCreator {
      * @param copiedNode
      */
 
-    protected void outputNamespaceNodes(XPathContext context, Receiver out, int nameCode, NodeInfo copiedNode)
+    protected void outputNamespaceNodes(XPathContext context, Receiver out, StructuredQName nameCode, NodeInfo copiedNode)
     throws XPathException {
         if (namespaceCodes != null) {
             for (int i=0; i<namespaceCodes.length; i++) {

@@ -2,6 +2,7 @@ package client.net.sf.saxon.ce.pattern;
 import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.NodeInfo;
+import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.Type;
 
@@ -31,7 +32,7 @@ public final class EmptySequenceTest extends NodeTest {
 
     private EmptySequenceTest() {}
 
-	public final int getPrimitiveType() {
+	public final int getRequiredNodeKind() {
 		return Type.EMPTY;
 	}
 
@@ -63,11 +64,11 @@ public final class EmptySequenceTest extends NodeTest {
 
     /**
     * Test whether this node test is satisfied by a given node
-    * @param nodeType The type of node to be matched
-     * @param fingerprint identifies the expanded name of the node to be matched
+     * @param nodeType The type of node to be matched
+      * @param fingerprint identifies the expanded name of the node to be matched
      */
 
-    public boolean matches(int nodeType, int fingerprint, int annotation) {
+    public boolean matches(int nodeType, StructuredQName fingerprint, int annotation) {
         return false;
     }
 

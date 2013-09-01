@@ -7,8 +7,6 @@ import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.om.ValueRepresentation;
 import client.net.sf.saxon.ce.regex.RegexIterator;
-import client.net.sf.saxon.ce.trace.InstructionInfo;
-import client.net.sf.saxon.ce.trace.Location;
 import client.net.sf.saxon.ce.trans.Mode;
 import client.net.sf.saxon.ce.trans.Rule;
 import client.net.sf.saxon.ce.trans.RuleManager;
@@ -172,63 +170,6 @@ public class XPathContextMajor extends XPathContextMinor {
 
     public void setTunnelParameters(ParameterSet tunnelParameters) {
         this.tunnelParameters = tunnelParameters;
-    }
-       
-    /**
-     * Set the creating expression (for use in diagnostics). The origin is generally set to "this" by the
-     * object that creates the new context. It's up to the debugger to determine whether this information
-     * is useful. The object will either be an {@link Expression}, allowing information
-     * about the calling instruction to be obtained, or null.
-     */
-
-    public void setOrigin(InstructionInfo expr) {
-        origin = expr;
-    }
-
-    /**
-     * Set the type of creating expression (for use in diagnostics). When a new context is created, either
-     * this method or {@link XPathContextMajor#setOrigin} should be called.
-     *
-     * @param loc The originating location: the argument must be one of the integer constants in class
-     *            {@link net.sf.saxon.trace.Location}
-     */
-
-    public void setOriginatingConstructType(int loc) {
-        origin = Integer.valueOf(loc);
-    }
-
-    /**
-     * Get the type of location from which this context was created.
-     */
-
-    public int getOriginatingConstructType() {
-        if (origin == null) {
-            return -1;
-        }
-        if (origin instanceof Expression) {
-            if (origin instanceof SlashExpression) {
-                return Location.PATH_EXPRESSION;
-            }
-            return ((Expression) origin).getConstructType();
-        } else if (origin instanceof Integer) {
-            return ((Integer) origin).intValue();
-        } else if (origin instanceof InstructionInfo) {
-            return ((InstructionInfo) origin).getConstructType();
-        } else {
-            return -1;
-        }
-    }
-
-    /**
-     * Get information about the creating expression or other construct.
-     */
-
-    public InstructionInfo getOrigin() {
-        if (origin instanceof InstructionInfo) {
-            return (InstructionInfo) origin;
-        } else {
-            return null;
-        }
     }
 
     /**

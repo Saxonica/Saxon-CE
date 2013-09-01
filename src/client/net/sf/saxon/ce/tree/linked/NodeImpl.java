@@ -25,7 +25,7 @@ import client.net.sf.saxon.ce.value.UntypedAtomicValue;
  */
 
 public abstract class NodeImpl
-        implements NodeInfo, FingerprintedNode, SiblingCountingNode {
+        implements NodeInfo, SiblingCountingNode {
 
     private ParentNodeImpl parent;
     private int index;
@@ -133,25 +133,12 @@ public abstract class NodeImpl
    }
 
     /**
-     * Get the nameCode of the node. This is used to locate the name in the NamePool
+     * Get the name of the node
+     *
+     * @return the name of the node, as a StructuredQName. Return null for an unnamed node.
      */
-
-    public int getNameCode() {
-        // default implementation: return -1 for an unnamed node
-        return -1;
-    }
-
-    /**
-     * Get the fingerprint of the node. This is used to compare whether two nodes
-     * have equivalent names. Return -1 for a node with no name.
-     */
-
-    public int getFingerprint() {
-        int nameCode = getNameCode();
-        if (nameCode == -1) {
-            return -1;
-        }
-        return nameCode & NamePool.FP_MASK;
+    public StructuredQName getNodeName() {
+        return null; // default implementation for unnamed nodes
     }
 
     /**
@@ -244,28 +231,14 @@ public abstract class NodeImpl
     }
 
     /**
-     * Get the NamePool
-     */
-
-    public NamePool getNamePool() {
-        return getPhysicalRoot().getNamePool();
-    }
-
-    /**
      * Get the prefix part of the name of this node. This is the name before the ":" if any.
      *
      * @return the prefix part of the name. For an unnamed node, return an empty string.
      */
 
     public String getPrefix() {
-        int nameCode = getNameCode();
-        if (nameCode == -1) {
-            return "";
-        }
-        if (!NamePool.isPrefixed(nameCode)) {
-            return "";
-        }
-        return getNamePool().getPrefix(nameCode);
+        StructuredQName qName = getNodeName();
+        return (qName == null ? "" : qName.getPrefix());
     }
 
     /**
@@ -277,11 +250,8 @@ public abstract class NodeImpl
      */
 
     public String getURI() {
-        int nameCode = getNameCode();
-        if (nameCode == -1) {
-            return "";
-        }
-        return getNamePool().getURI(nameCode);
+        StructuredQName qName = getNodeName();
+        return (qName == null ? "" : qName.getNamespaceURI());
     }
 
     /**
@@ -293,11 +263,8 @@ public abstract class NodeImpl
      */
 
     public String getDisplayName() {
-        int nameCode = getNameCode();
-        if (nameCode == -1) {
-            return "";
-        }
-        return getNamePool().getDisplayName(nameCode);
+        StructuredQName qName = getNodeName();
+        return (qName == null ? "" : qName.getDisplayName());
     }
 
     /**
@@ -308,11 +275,8 @@ public abstract class NodeImpl
      */
 
     public String getLocalPart() {
-        int nameCode = getNameCode();
-        if (nameCode == -1) {
-            return "";
-        }
-        return getNamePool().getLocalName(nameCode);
+        StructuredQName qName = getNodeName();
+        return (qName == null ? "" : qName.getLocalName());
     }
 
     /**
@@ -456,8 +420,8 @@ public abstract class NodeImpl
             case Axis.DESCENDANT:
                 if (getNodeKind() == Type.DOCUMENT &&
                         nodeTest instanceof NameTest &&
-                        nodeTest.getPrimitiveType() == Type.ELEMENT) {
-                    return ((DocumentImpl)this).getAllElements(nodeTest.getFingerprint());
+                        nodeTest.getRequiredNodeKind() == Type.ELEMENT) {
+                    return ((DocumentImpl)this).getAllElements(nodeTest.getRequiredNodeName());
                 } else if (hasChildNodes()) {
                     return new DescendantEnumeration(this, nodeTest, false);
                 } else {

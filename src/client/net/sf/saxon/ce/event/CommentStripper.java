@@ -1,5 +1,6 @@
 package client.net.sf.saxon.ce.event;
 
+import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
 
@@ -21,7 +22,7 @@ public class CommentStripper extends ProxyReceiver {
 
     public CommentStripper() {}
 
-    public void startElement(int nameCode, int properties)
+    public void startElement(StructuredQName nameCode, int properties)
     throws XPathException {
         flush();
         nextReceiver.startElement(nameCode, properties);

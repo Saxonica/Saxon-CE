@@ -65,7 +65,7 @@ public class UnicodeBlocks {
         }
 
 
-        AxisIterator iter = doc.iterateAxis(Axis.DESCENDANT, new NameTest(Type.ELEMENT, "", "block", config.getNamePool()));
+        AxisIterator iter = doc.iterateAxis(Axis.DESCENDANT, new NameTest(Type.ELEMENT, "", "block"));
         while (true) {
             NodeInfo item = (NodeInfo)iter.next();
             if (item == null) {

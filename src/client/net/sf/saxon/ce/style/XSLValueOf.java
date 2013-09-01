@@ -1,4 +1,5 @@
 package client.net.sf.saxon.ce.style;
+import client.net.sf.saxon.ce.om.StructuredQName;
 import com.google.gwt.logging.client.LogConfiguration;
 
 import client.net.sf.saxon.ce.LogController;
@@ -51,8 +52,8 @@ public final class XSLValueOf extends XSLLeafNodeConstructor {
 		AttributeCollection atts = getAttributeList();
 
 		for (int a=0; a<atts.getLength(); a++) {
-			int nc = atts.getNameCode(a);
-			String f = getNamePool().getClarkName(nc);
+			StructuredQName qn = atts.getStructuredQName(a);
+            String f = qn.getClarkName();
 			if (f.equals(StandardNames.DISABLE_OUTPUT_ESCAPING)) {
         		disableAtt = Whitespace.trim(atts.getValue(a));
 			} else if (f.equals(StandardNames.SELECT)) {
@@ -60,7 +61,7 @@ public final class XSLValueOf extends XSLLeafNodeConstructor {
 			} else if (f.equals(StandardNames.SEPARATOR)) {
         		separatorAtt = atts.getValue(a);
         	} else {
-        		checkUnknownAttribute(nc);
+        		checkUnknownAttribute(qn);
         	}
         }
 

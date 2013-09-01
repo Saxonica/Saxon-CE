@@ -1,10 +1,11 @@
 package client.net.sf.saxon.ce.value;
 
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.trans.Err;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
-import client.net.sf.saxon.ce.type.*;
+import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.ConversionResult;
+import client.net.sf.saxon.ce.type.ValidationFailure;
 import com.google.gwt.regexp.shared.RegExp;
 
 import java.math.BigDecimal;
@@ -269,25 +270,23 @@ public class DecimalValue extends NumericValue {
     */
 
     public ConversionResult convertPrimitive(BuiltInAtomicType requiredType, boolean validate) {
-        switch(requiredType.getFingerprint()) {
-        case StandardNames.XS_BOOLEAN:
-                // 0.0 => false, anything else => true
-            return BooleanValue.get(value.signum()!=0);
-        case StandardNames.XS_NUMERIC:
-        case StandardNames.XS_DECIMAL:
-        case StandardNames.XS_ANY_ATOMIC_TYPE:
+        if (requiredType == BuiltInAtomicType.ANY_ATOMIC ||
+                requiredType == BuiltInAtomicType.NUMERIC ||
+                requiredType == BuiltInAtomicType.DECIMAL) {
             return this;
-        case StandardNames.XS_INTEGER:
+        } else if (requiredType == BuiltInAtomicType.INTEGER) {
             return IntegerValue.decimalToInteger(value);
-        case StandardNames.XS_DOUBLE:
+        } else if (requiredType == BuiltInAtomicType.BOOLEAN) {
+            return BooleanValue.get(value.signum()!=0);
+        } else if (requiredType == BuiltInAtomicType.DOUBLE) {
             return new DoubleValue(value.doubleValue());
-        case StandardNames.XS_FLOAT:
-            return new FloatValue(value.floatValue());
-        case StandardNames.XS_STRING:
+        } else if (requiredType == BuiltInAtomicType.FLOAT) {
+            return new DoubleValue(value.floatValue());
+        } else if (requiredType == BuiltInAtomicType.STRING) {
             return new StringValue(getStringValueCS());
-        case StandardNames.XS_UNTYPED_ATOMIC:
-            return new UntypedAtomicValue(getStringValueCS());
-        default:
+        } else if (requiredType == BuiltInAtomicType.UNTYPED_ATOMIC) {
+            return new UntypedAtomicValue((getStringValueCS()));
+        } else {
             ValidationFailure err = new ValidationFailure("Cannot convert decimal to " +
                                      requiredType.getDisplayName());
             err.setErrorCode("XPTY0004");

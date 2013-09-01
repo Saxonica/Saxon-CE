@@ -38,8 +38,8 @@ public class XSLAttribute extends XSLLeafNodeConstructor {
 		String typeAtt = null;
 
 		for (int a=0; a<atts.getLength(); a++) {
-			int nc = atts.getNameCode(a);
-			String f = getNamePool().getClarkName(nc);
+			StructuredQName qn = atts.getStructuredQName(a);
+            String f = qn.getClarkName();
 			if (f.equals(StandardNames.NAME)) {
         		nameAtt = Whitespace.trim(atts.getValue(a));
         	} else if (f.equals(StandardNames.NAMESPACE)) {
@@ -53,7 +53,7 @@ public class XSLAttribute extends XSLLeafNodeConstructor {
         	} else if (f.equals(StandardNames.TYPE)) {
         		typeAtt = Whitespace.trim(atts.getValue(a));
         	} else {
-        		checkUnknownAttribute(nc);
+        		checkUnknownAttribute(qn);
         	}
         }
 
@@ -165,7 +165,7 @@ public class XSLAttribute extends XSLLeafNodeConstructor {
                         return null;
                     }
                 }
-                int nameCode = getNamePool().allocate(parts[0], nsuri, parts[1]);
+                StructuredQName nameCode = new StructuredQName(parts[0], nsuri, parts[1]);
                 FixedAttribute inst = new FixedAttribute(nameCode);
                 inst.setContainer(this);     // temporarily
                 compileContent(exec, decl, inst, separator);
@@ -191,21 +191,14 @@ public class XSLAttribute extends XSLLeafNodeConstructor {
                             break;
                         }
                     }
-                    // Otherwise see the URI is known to the namepool
-                    if (parts[0].equals("")) {
-                        String p = getNamePool().suggestPrefixForURI(
-                                ((StringLiteral)namespace).getStringValue());
-                        if (p != null) {
-                            parts[0] = p;
-                        }
-                    }
+
                     // Otherwise choose something arbitrary. This will get changed
                     // if it clashes with another attribute
                     if (parts[0].equals("")) {
                         parts[0] = "ns0";
                     }
                 }
-                int nameCode = getNamePool().allocate(parts[0], nsuri, parts[1]);
+                StructuredQName nameCode = new StructuredQName(parts[0], nsuri, parts[1]);
                 FixedAttribute inst = new FixedAttribute(nameCode);
                 compileContent(exec, decl, inst, separator);
                 if (LogConfiguration.loggingIsEnabled() && LogController.traceIsEnabled()) {

@@ -16,7 +16,7 @@ import client.net.sf.saxon.ce.value.*;
 
 public final class UntypedAtomicConverter extends UnaryExpression {
 
-    private AtomicType requiredItemType;
+    private BuiltInAtomicType requiredItemType;
     private boolean allConverted;
     private boolean singleton = false;
     private RoleLocator role;
@@ -33,7 +33,7 @@ public final class UntypedAtomicConverter extends UnaryExpression {
      * @param role             Diagnostic information for use if conversion fails
      */
 
-    public UntypedAtomicConverter(Expression sequence, AtomicType requiredItemType, boolean allConverted, RoleLocator role) {
+    public UntypedAtomicConverter(Expression sequence, BuiltInAtomicType requiredItemType, boolean allConverted, RoleLocator role) {
         super(sequence);
         this.requiredItemType = requiredItemType;
         this.allConverted = allConverted;
@@ -168,7 +168,7 @@ public final class UntypedAtomicConverter extends UnaryExpression {
             if (th.isSubType(it, BuiltInAtomicType.UNTYPED_ATOMIC)) {
                 Expression e = ((CastExpression)operand).getBaseExpression();
                 ItemType et = e.getItemType(th);
-                if (et instanceof AtomicType && th.isSubType(et, requiredItemType)) {
+                if (et instanceof BuiltInAtomicType && th.isSubType(et, requiredItemType)) {
                     return e;
                 }
             }

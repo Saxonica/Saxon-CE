@@ -1,13 +1,10 @@
 package client.net.sf.saxon.ce.value;
 
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
-import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.BuiltInAtomicType;
 import client.net.sf.saxon.ce.type.ConversionResult;
 import client.net.sf.saxon.ce.type.ValidationFailure;
-
 import com.google.gwt.regexp.shared.MatchResult;
 import com.google.gwt.regexp.shared.RegExp;
 
@@ -40,7 +37,7 @@ public class GYearMonthValue extends GDateValue {
         this(year, month, tz, BuiltInAtomicType.G_YEAR_MONTH);
     }
 
-    public GYearMonthValue(int year, int month, int tz, AtomicType type) {
+    public GYearMonthValue(int year, int month, int tz, BuiltInAtomicType type) {
         this.year = year;
         this.month = month;
         day = 1;
@@ -76,18 +73,15 @@ public class GYearMonthValue extends GDateValue {
     */
 
     public ConversionResult convertPrimitive(BuiltInAtomicType requiredType, boolean validate) {
-        switch(requiredType.getPrimitiveType()) {
-        case StandardNames.XS_G_YEAR_MONTH:
-        case StandardNames.XS_ANY_ATOMIC_TYPE:
+        if (requiredType == BuiltInAtomicType.ANY_ATOMIC || requiredType == BuiltInAtomicType.G_YEAR_MONTH) {
             return this;
-
-        case StandardNames.XS_STRING:
-            return new StringValue(getStringValueCS());
-        case StandardNames.XS_UNTYPED_ATOMIC:
+        } else if (requiredType == BuiltInAtomicType.UNTYPED_ATOMIC) {
             return new UntypedAtomicValue(getStringValueCS());
-        default:
+        } else if (requiredType == BuiltInAtomicType.STRING) {
+            return new StringValue(getStringValueCS());
+        } else {
             ValidationFailure err = new ValidationFailure("Cannot convert gYearMonth to " +
-                                    requiredType.getDisplayName());
+                    requiredType.getDisplayName());
             err.setErrorCode("XPTY0004");
             return err;
         }

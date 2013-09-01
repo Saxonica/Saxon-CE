@@ -4,10 +4,7 @@ import client.net.sf.saxon.ce.PreparedStylesheet;
 import client.net.sf.saxon.ce.expr.Expression;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.functions.DocumentFn;
-import client.net.sf.saxon.ce.om.AttributeCollection;
-import client.net.sf.saxon.ce.om.DocumentInfo;
-import client.net.sf.saxon.ce.om.DocumentURI;
-import client.net.sf.saxon.ce.om.StandardNames;
+import client.net.sf.saxon.ce.om.*;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.linked.DocumentImpl;
 import client.net.sf.saxon.ce.tree.linked.ElementImpl;
@@ -48,12 +45,12 @@ public abstract class XSLGeneralIncorporate extends StyleElement {
 		AttributeCollection atts = getAttributeList();
 
 		for (int a=0; a<atts.getLength(); a++) {
-			int nc = atts.getNameCode(a);
-			String f = getNamePool().getClarkName(nc);
+			StructuredQName qn = atts.getStructuredQName(a);
+            String f = qn.getClarkName();
 			if (f.equals(StandardNames.HREF)) {
         		href = Whitespace.trim(atts.getValue(a));
         	} else {
-        		checkUnknownAttribute(nc);
+        		checkUnknownAttribute(qn);
         	}
         }
 

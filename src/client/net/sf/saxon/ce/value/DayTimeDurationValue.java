@@ -88,7 +88,7 @@ public final class DayTimeDurationValue extends DurationValue implements Compara
      *                  the value actually conforms to this type.
      */
 
-    public AtomicValue copyAsSubType(AtomicType typeLabel) {
+    public AtomicValue copyAsSubType(BuiltInAtomicType typeLabel) {
         DayTimeDurationValue v = DayTimeDurationValue.fromMicroseconds(getLengthInMicroseconds());
         v.typeLabel = typeLabel;
         return v;

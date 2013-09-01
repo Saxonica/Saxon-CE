@@ -1,6 +1,7 @@
 package client.net.sf.saxon.ce.event;
 
 import client.net.sf.saxon.ce.expr.instruct.Template;
+import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.Rule;
 import client.net.sf.saxon.ce.trans.StripSpaceRules;
 import client.net.sf.saxon.ce.trans.XPathException;
@@ -75,7 +76,7 @@ public class RuleBasedStripper extends Stripper {
      * xml:space setting, and STRIP_DEFAULT otherwise
     */
 
-    public byte isSpacePreserving(int fingerprint) throws XPathException {
+    public byte isSpacePreserving(StructuredQName fingerprint) throws XPathException {
         if (preserveAll) {
             return ALWAYS_PRESERVE;
         }

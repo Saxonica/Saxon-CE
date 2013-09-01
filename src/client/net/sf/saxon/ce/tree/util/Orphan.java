@@ -24,10 +24,10 @@ import client.net.sf.saxon.ce.value.UntypedAtomicValue;
  * @author Michael H. Kay
  */
 
-public final class Orphan implements NodeInfo, FingerprintedNode {
+public final class Orphan implements NodeInfo {
 
-    private short kind;
-    private int nameCode = -1;
+    private int kind;
+    private StructuredQName qName = null;
     private CharSequence stringValue;
     private Configuration config;
     private String systemId;
@@ -46,17 +46,17 @@ public final class Orphan implements NodeInfo, FingerprintedNode {
      * @param kind the kind of node, for example {@link Type#ELEMENT} or {@link Type#ATTRIBUTE}
      */
 
-    public void setNodeKind(short kind) {
+    public void setNodeKind(int kind) {
         this.kind = kind;
     }
 
     /**
      * Set the name of the node
-     * @param nameCode the integer code representing the name of the node in the NamePool
+     * @param nameCode the the name of the node
      */
 
-    public void setNameCode(int nameCode) {
-        this.nameCode = nameCode;
+    public void setNodeName(StructuredQName nameCode) {
+        this.qName = nameCode;
     }
 
     /**
@@ -108,14 +108,6 @@ public final class Orphan implements NodeInfo, FingerprintedNode {
 
     public Configuration getConfiguration() {
         return config;
-    }
-
-    /**
-     * Get the name pool
-     */
-
-    public NamePool getNamePool() {
-        return config.getNamePool();
     }
 
     /**
@@ -242,32 +234,13 @@ public final class Orphan implements NodeInfo, FingerprintedNode {
     }
 
     /**
-	* Get name code. The name code is a coded form of the node name: two nodes
-	* with the same name code have the same namespace URI, the same local name,
-	* and the same prefix. By masking the name code with &0xfffff, you get a
-	* fingerprint: two nodes with the same fingerprint have the same local name
-	* and namespace URI.
-    * @see client.net.sf.saxon.ce.om.NamePool#allocate allocate
-	*/
-
-	public int getNameCode() {
-        return nameCode;
-	}
-
-	/**
-	* Get fingerprint. The fingerprint is a coded form of the expanded name
-	* of the node: two nodes
-	* with the same name code have the same namespace URI and the same local name.
-	* A fingerprint of -1 should be returned for a node with no name.
-	*/
-
-	public int getFingerprint() {
-        if (nameCode == -1) {
-            return -1;
-        } else {
-	        return getNameCode()&0xfffff;
-        }
-	}
+     * Get the name of the node
+     *
+     * @return the name of the node, as a StructuredQName. Return null for an unnamed node.
+     */
+    public StructuredQName getNodeName() {
+        return qName;
+    }
 
     /**
     * Get the local part of the name of this node. This is the name after the ":" if any.
@@ -275,11 +248,7 @@ public final class Orphan implements NodeInfo, FingerprintedNode {
     */
 
     public String getLocalPart() {
-        if (nameCode == -1) {
-            return "";
-        } else {
-            return config.getNamePool().getLocalName(nameCode);
-        }
+        return (qName == null ? "" : qName.getLocalName());
     }
 
     /**
@@ -290,11 +259,7 @@ public final class Orphan implements NodeInfo, FingerprintedNode {
     */
 
     public String getURI() {
-        if (nameCode == -1) {
-            return "";
-        } else {
-            return config.getNamePool().getURI(nameCode);
-        }
+        return (qName == null ? "" : qName.getNamespaceURI());
     }
 
     /**
@@ -305,11 +270,7 @@ public final class Orphan implements NodeInfo, FingerprintedNode {
      */
 
     public String getPrefix() {
-        if (nameCode == -1) {
-            return "";
-        } else {
-            return config.getNamePool().getPrefix(nameCode);
-        }
+        return (qName == null ? "" : qName.getPrefix());
     }
 
     /**
@@ -320,11 +281,7 @@ public final class Orphan implements NodeInfo, FingerprintedNode {
     */
 
     public String getDisplayName() {
-        if (nameCode == -1) {
-            return "";
-        } else {
-            return config.getNamePool().getDisplayName(nameCode);
-        }
+        return (qName == null ? "" : qName.getDisplayName());
     }
 
     /**
@@ -453,7 +410,7 @@ public final class Orphan implements NodeInfo, FingerprintedNode {
     */
 
     public void copy(Receiver out, int copyOptions) throws XPathException {
-        Navigator.copy(this, out, config.getNamePool(), copyOptions);
+        Navigator.copy(this, out, copyOptions);
     }
 
     /**

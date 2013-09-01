@@ -4,6 +4,7 @@ import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.NamePool;
 import client.net.sf.saxon.ce.om.NodeInfo;
+import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.type.*;
 
 import java.util.HashSet;
@@ -20,7 +21,7 @@ import java.util.HashSet;
   *
   * <p>For use in user-written application calling {@link NodeInfo#iterateAxis(byte, NodeTest)},
  * it is possible to write a user-defined subclass of <code>NodeTest</code> that implements
- * a single method, {@link #matches(int, int, int)}</p>
+ * a single method, {@link #matches(int, client.net.sf.saxon.ce.om.StructuredQName, int)}</p>
   *
   * @author Michael H. Kay
   */
@@ -74,7 +75,7 @@ public abstract class NodeTest implements ItemType {
      */
 
     public ItemType getPrimitiveItemType() {
-        int p = getPrimitiveType();
+        int p = getRequiredNodeKind();
         if (p == Type.NODE) {
             return AnyNodeTest.getInstance();
         } else {
@@ -83,12 +84,12 @@ public abstract class NodeTest implements ItemType {
     }
 
     /**
-     * Get the basic kind of object that this ItemType matches: for a NodeTest, this is the kind of node,
+     * Get the basic kind of node that this ItemType matches: this is the specific kind of node,
      * or Type.Node if it matches different kinds of nodes.
      * @return the node kind matched by this node test
      */
 
-    public int getPrimitiveType() {
+    public int getRequiredNodeKind() {
         return Type.NODE;
     }
 
@@ -97,8 +98,8 @@ public abstract class NodeTest implements ItemType {
      * Return -1 if the node test matches nodes of more than one name
      */
 
-    public int getFingerprint() {
-        return -1;
+    public StructuredQName getRequiredNodeName() {
+        return null;
     }
 
     /**
@@ -117,7 +118,7 @@ public abstract class NodeTest implements ItemType {
      * of this type is atomized (assuming that atomization succeeds)
      */
 
-    public AtomicType getAtomizedItemType() {
+    public BuiltInAtomicType getAtomizedItemType() {
         // This is overridden for a ContentTypeTest
         return BuiltInAtomicType.ANY_ATOMIC;
     }
@@ -138,18 +139,18 @@ public abstract class NodeTest implements ItemType {
      *
     */
 
-    public abstract boolean matches(int nodeKind, int fingerprint, int annotation);
+    public abstract boolean matches(int nodeKind, StructuredQName fingerprint, int annotation);
 
     /**
      * Test whether this node test is satisfied by a given node. This alternative
      * method is used in the case of nodes where calculating the fingerprint is expensive,
      * for example DOM or JDOM nodes. The default implementation calls the method
-     * {@link #matches(int, int, int)}
+     * {@link #matches(int, client.net.sf.saxon.ce.om.StructuredQName, int)}
      * @param node the node to be matched
      */
 
     public boolean matches(NodeInfo node) {
-        return matches(node.getNodeKind(), node.getFingerprint(), node.getTypeAnnotation());
+        return matches(node.getNodeKind(), node.getNodeName(), node.getTypeAnnotation());
     }
 
     /**
@@ -173,22 +174,14 @@ public abstract class NodeTest implements ItemType {
     }
 
     /**
-     * Get the set of node names allowed by this NodeTest. This is returned as a set of Integer fingerprints.
+     * Get the set of node names allowed by this NodeTest. This is returned as a set of names.
      * A null value indicates that all names are permitted (i.e. that there are no constraints on the node name.
      * The default implementation returns null.
+     * @return the set of names that can be matched, or null if this is unbounded
      */
 
-    public HashSet<Integer> getRequiredNodeNames() {
+    public HashSet<StructuredQName> getRequiredNodeNames() {
         return null;
-    }
-
-    /**
-     * Determine whether the content type (if present) is nillable
-     * @return true if the content test (when present) can match nodes that are nilled
-     */
-
-    public boolean isNillable() {
-        return false;
     }
 
     /**
