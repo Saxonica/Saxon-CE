@@ -354,34 +354,34 @@ public class RECompiler {
                 }
 
             case 's':
-                return MultiCharEscape.ESCAPE_s;
+                return Categories.ESCAPE_s;
 
             case 'S':
-                return MultiCharEscape.ESCAPE_S;
+                return Categories.ESCAPE_S;
 
             case 'i':
-                return MultiCharEscape.ESCAPE_i;
+                return Categories.ESCAPE_i;
 
             case 'I':
-                return MultiCharEscape.ESCAPE_I;
+                return Categories.ESCAPE_I;
 
             case 'c':
-                return MultiCharEscape.ESCAPE_c;
+                return Categories.ESCAPE_c;
 
             case 'C':
-                return MultiCharEscape.ESCAPE_C;
+                return Categories.ESCAPE_C;
 
             case 'd':
-                return MultiCharEscape.ESCAPE_d;
+                return Categories.ESCAPE_d;
 
             case 'D':
-                return MultiCharEscape.ESCAPE_D;
+                return Categories.ESCAPE_D;
 
             case 'w':
-                return MultiCharEscape.ESCAPE_w;
+                return Categories.ESCAPE_w;
 
             case 'W':
-                return MultiCharEscape.ESCAPE_W;
+                return Categories.ESCAPE_W;
 
 
             case 'p':
@@ -398,27 +398,12 @@ public class RECompiler {
                     syntaxError("No closing '}' after \\" + escapeChar);
                 }
                 UnicodeString block = pattern.substring(idx, close);
-                if (block.length() == 1 && block.charAt(0) < 256) {
-                    IntPredicate primary = null;
-                    try {
-                        primary = MultiCharEscape.getCategoryCharClass((char)block.charAt(0));
-                    } catch (IllegalArgumentException err) {
-                        syntaxError(err.getMessage());
+                if (block.length() == 1 || block.length() == 2) {
+                    IntPredicate primary = Categories.getCategory(block.toString());
+                    if (primary == null) {
+                        syntaxError("Unknown character category " + block.toString());
                     }
-                    idx = close+1;
-                    if (escapeChar == 'p') {
-                        return primary;
-                    } else {
-                        return makeComplement(primary);
-                    }
-                } else if (block.length() == 2) {
-                    IntPredicate primary = null;
-                    try {
-                        primary = new IntSetPredicate(MultiCharEscape.getSubCategoryCharClass(block.toString()));
-                    } catch (IllegalArgumentException err) {
-                        syntaxError(err.getMessage());
-                    }
-                    idx = close+1;
+                    idx = close + 1;
                     if (escapeChar == 'p') {
                         return primary;
                     } else {
