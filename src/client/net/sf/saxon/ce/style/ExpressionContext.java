@@ -65,14 +65,6 @@ public class ExpressionContext implements StaticContext {
     }
 
     /**
-    * Get the NamePool used for compiling expressions
-    */
-
-    public NamePool getNamePool() {
-        return getConfiguration().getNamePool();
-    }
-
-    /**
     * Get the System ID of the entity containing the expression (used for diagnostics)
     */
 

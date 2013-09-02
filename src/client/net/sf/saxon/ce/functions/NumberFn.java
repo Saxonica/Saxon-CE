@@ -67,7 +67,7 @@ public class NumberFn extends SystemFunction  {
             }
         }
         if (arg0 instanceof StringValue && !(arg0 instanceof AnyURIValue)) {
-            CharSequence s = arg0.getStringValueCS();
+            CharSequence s = arg0.getStringValue();
             try {
                 return new DoubleValue(StringToDouble.stringToNumber(s));
             } catch (NumberFormatException e) {
@@ -98,7 +98,7 @@ public class NumberFn extends SystemFunction  {
                 }
             }
             if (value instanceof StringValue && !(value instanceof AnyURIValue)) {
-                double d = StringToDouble.stringToNumber(value.getStringValueCS());
+                double d = StringToDouble.stringToNumber(value.getStringValue());
                 return new DoubleValue(d);
             }
             return DoubleValue.NaN;

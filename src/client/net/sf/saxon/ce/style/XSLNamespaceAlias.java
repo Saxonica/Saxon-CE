@@ -36,9 +36,9 @@ public class XSLNamespaceAlias extends StyleElement {
 		for (int a=0; a<atts.getLength(); a++) {
 			StructuredQName qn = atts.getStructuredQName(a);
             String f = qn.getClarkName();
-			if (f.equals(StandardNames.STYLESHEET_PREFIX)) {
+			if (f.equals("stylesheet-prefix")) {
         		stylesheetPrefix = Whitespace.trim(atts.getValue(a));
-        	} else if (f.equals(StandardNames.RESULT_PREFIX)) {
+        	} else if (f.equals("result-prefix")) {
         		resultPrefix = Whitespace.trim(atts.getValue(a));
         	} else {
         		checkUnknownAttribute(qn);

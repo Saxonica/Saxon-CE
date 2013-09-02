@@ -88,9 +88,9 @@ public class XSLAttributeSet extends StyleElement implements StylesheetProcedure
 		for (int a=0; a<atts.getLength(); a++) {
 			StructuredQName qn = atts.getStructuredQName(a);
             String f = qn.getClarkName();
-			if (f.equals(StandardNames.NAME)) {
+			if (f.equals("name")) {
         		nameAtt = Whitespace.trim(atts.getValue(a));
-        	} else if (f.equals(StandardNames.USE_ATTRIBUTE_SETS)) {
+        	} else if (f.equals("use-attribute-sets")) {
         		useAtt = atts.getValue(a);
         	} else {
         		checkUnknownAttribute(qn);

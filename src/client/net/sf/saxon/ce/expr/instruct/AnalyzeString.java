@@ -3,7 +3,6 @@ package client.net.sf.saxon.ce.expr.instruct;
 import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.SequenceIterator;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.pattern.EmptySequenceTest;
 import client.net.sf.saxon.ce.regex.ARegularExpression;
 import client.net.sf.saxon.ce.regex.RegexIterator;
@@ -56,10 +55,6 @@ public class AnalyzeString extends Instruction {
             adoptChildExpression(child);
         }
 
-    }
-
-    public int getInstructionNameCode() {
-        return StandardNames.XSL_ANALYZE_STRING;
     }
 
     /**

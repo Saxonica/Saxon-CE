@@ -49,7 +49,7 @@ public class XSLApplyImports extends StyleElement {
                 // OK;
             } else if (child.getNodeKind() == Type.TEXT) {
                     // with xml:space=preserve, white space nodes may still be there
-                if (!Whitespace.isWhite(child.getStringValueCS())) {
+                if (!Whitespace.isWhite(child.getStringValue())) {
                     compileError("No character data is allowed within xsl:apply-imports", "XTSE0010");
                 }
             } else {

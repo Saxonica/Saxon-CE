@@ -55,7 +55,7 @@ public class EscapeURI extends SystemFunction {
         if (item == null) {
             return StringValue.EMPTY_STRING;
         }
-        final CharSequence s = item.getStringValueCS();
+        final CharSequence s = item.getStringValue();
         switch (operation) {
             case ENCODE_FOR_URI:
                 return StringValue.makeStringValue(escape(s, "-_.~"));

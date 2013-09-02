@@ -1,5 +1,4 @@
 package client.net.sf.saxon.ce.tree.util;
-import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.event.Receiver;
 import client.net.sf.saxon.ce.om.*;
 import client.net.sf.saxon.ce.pattern.NodeTest;
@@ -29,16 +28,13 @@ public final class Orphan implements NodeInfo {
     private int kind;
     private StructuredQName qName = null;
     private CharSequence stringValue;
-    private Configuration config;
     private String systemId;
 
     /**
      * Create an Orphan node
-     * @param config the Saxon configuration
      */
 
-    public Orphan(Configuration config) {
-        this.config = config;
+    public Orphan() {
     }
 
     /**
@@ -98,29 +94,6 @@ public final class Orphan implements NodeInfo {
                 return new StringValue(stringValue);
             default:
                  return new UntypedAtomicValue(stringValue);
-        }
-    }
-
-    /**
-     * Get the configuration
-     * @return the Saxon configuration object
-     */
-
-    public Configuration getConfiguration() {
-        return config;
-    }
-
-    /**
-    * Get the type annotation
-    */
-
-    public int getTypeAnnotation() {
-        if (kind == Type.ELEMENT) {
-            return StandardNames.XS_UNTYPED;
-        } else if (kind == Type.ATTRIBUTE) {
-            return StandardNames.XS_UNTYPED_ATOMIC;
-        } else {
-            return -1;
         }
     }
 
@@ -189,15 +162,6 @@ public final class Orphan implements NodeInfo {
     }
 
     /**
-    * Get line number
-    * @return the line number of the node in its original source document; or -1 if not available
-    */
-
-    public int getLineNumber() {
-        return -1;
-    }
-
-    /**
     * Determine the relative position of this node and another node, in document order.
     * The other node will always be in the same document.
     * @param other The other node, whose position is to be compared with this node
@@ -222,15 +186,6 @@ public final class Orphan implements NodeInfo {
 
     public String getStringValue() {
         return stringValue.toString();
-    }
-
-    /**
-     * Get the value of the item as a CharSequence. This is in some cases more efficient than
-     * the version of the method that returns a String.
-     */
-
-    public CharSequence getStringValueCS() {
-        return stringValue;
     }
 
     /**
@@ -260,17 +215,6 @@ public final class Orphan implements NodeInfo {
 
     public String getURI() {
         return (qName == null ? "" : qName.getNamespaceURI());
-    }
-
-    /**
-     * Get the prefix of the name of the node. This is defined only for elements and attributes.
-     * If the node has no prefix, or for other kinds of node, return a zero-length string.
-     *
-     * @return The prefix of the name of the node.
-     */
-
-    public String getPrefix() {
-        return (qName == null ? "" : qName.getPrefix());
     }
 
     /**

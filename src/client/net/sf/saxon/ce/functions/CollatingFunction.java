@@ -4,7 +4,6 @@ import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.expr.sort.CodepointCollator;
 import client.net.sf.saxon.ce.expr.sort.GenericAtomicComparer;
 import client.net.sf.saxon.ce.lib.StringCollator;
-import client.net.sf.saxon.ce.trans.Err;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.URI;
 import client.net.sf.saxon.ce.value.AtomicValue;
@@ -24,7 +23,7 @@ public abstract class CollatingFunction extends SystemFunction {
     // The collation, if known statically
     protected StringCollator stringCollator = null;
     private String absoluteCollationURI = null;
-    private URI expressionBaseURI = null;
+    private String expressionBaseURI = null;
 
     public void checkArguments(ExpressionVisitor visitor) throws XPathException {
         if (stringCollator == null) {
@@ -37,49 +36,8 @@ public abstract class CollatingFunction extends SystemFunction {
 
     private void saveBaseURI(StaticContext env, boolean fail) throws XPathException {
         if (expressionBaseURI == null) {
-            String base = null;
-            try {
-                base = env.getBaseURI();
-                if (base != null) {
-                    expressionBaseURI = new URI(base);
-                }
-            } catch (URI.URISyntaxException e) {
-                // perhaps escaping special characters will fix the problem
-
-                String esc = EscapeURI.iriToUri(base).toString();
-                try {
-                    expressionBaseURI = new URI(esc);
-                } catch (URI.URISyntaxException e2) {
-                    // don't fail unless the base URI is actually needed (it usually isn't)
-                    expressionBaseURI = null;
-                }
-
-                if (expressionBaseURI == null && fail) {
-                    XPathException err = new XPathException("The base URI " + Err.wrap(env.getBaseURI(), Err.URI) +
-                            " is not a valid URI");
-                    err.setLocator(this.getSourceLocator());
-                    throw err;
-                }
-            }
+            expressionBaseURI = env.getBaseURI();
         }
-    }
-
-    /**
-     * Get the saved static base URI
-     * @return the static base URI
-     */
-
-    public URI getExpressionBaseURI() {
-        return expressionBaseURI;
-    }
-
-    /**
-     * Get the collation if known statically, as a StringCollator object
-     * @return a StringCollator. Return null if the collation is not known statically.
-     */
-
-    public StringCollator getStringCollator() {
-        return stringCollator;
     }
 
     /**
@@ -103,39 +61,9 @@ public abstract class CollatingFunction extends SystemFunction {
             if (collationVal instanceof AtomicValue) {
                 // Collation is supplied as a constant
                 String collationName = collationVal.getStringValue();
-                URI collationURI;
-                try {
-                    collationURI = new URI(collationName, true);
-                    if (!collationURI.isAbsolute()) {
-                        saveBaseURI(env, true);
-                        if (expressionBaseURI == null) {
-                            XPathException err = new XPathException("The collation name is a relative URI, but the base URI is unknown");
-                            err.setErrorCode("XPST0001");
-                            err.setIsStaticError(true);
-                            err.setLocator(this.getSourceLocator());
-                            throw err;
-                        }
-                        URI base = expressionBaseURI;
-                        collationURI = base.resolve(collationURI.toString());
-                        collationName = collationURI.toString();
-                    }
-                } catch (URI.URISyntaxException e) {
-                    XPathException err = new XPathException("Collation name '" + collationName + "' is not a valid URI");
-                    err.setErrorCode("FOCH0002");
-                    err.setIsStaticError(true);
-                    err.setLocator(this.getSourceLocator());
-                    throw err;
-                }
-                StringCollator comp = env.getConfiguration().getNamedCollation(collationName);
-                if (comp == null) {
-                    XPathException err = new XPathException("Unknown collation " + Err.wrap(collationName, Err.URI));
-                    err.setErrorCode("FOCH0002");
-                    err.setIsStaticError(true);
-                    err.setLocator(this.getSourceLocator());
-                    throw err;
-                } else {
-                    stringCollator = comp;
-                }
+                collationName = resolveCollationURI(collationName);
+                stringCollator = env.getConfiguration().getNamedCollation(collationName);
+                // if collation is unknown, report the error at run-time
             } else {
                 // collation isn't known until run-time
             }
@@ -190,28 +118,7 @@ public abstract class CollatingFunction extends SystemFunction {
                 AtomicValue av = (AtomicValue) argument[arg].evaluateItem(context);
                 StringValue collationValue = (StringValue) av;
                 String collationName = collationValue.getStringValue();
-                URI collationURI;
-                try {
-                    collationURI = new URI(collationName, true);
-                    if (!collationURI.isAbsolute()) {
-                        if (expressionBaseURI == null) {
-                            XPathException err = new XPathException("Cannot resolve relative collation URI '" + collationName +
-                                    "': unknown or invalid base URI");
-                            err.setErrorCode("FOCH0002");
-                            err.setXPathContext(context);
-                            err.setLocator(this.getSourceLocator());
-                            throw err;
-                        }
-                        collationURI = expressionBaseURI.resolve(collationURI.toString());
-                        collationName = collationURI.toString();
-                    }
-                } catch (URI.URISyntaxException e) {
-                    XPathException err = new XPathException("Collation name '" + collationName + "' is not a valid URI");
-                    err.setErrorCode("FOCH0002");
-                    err.setXPathContext(context);
-                    err.setLocator(this.getSourceLocator());
-                    throw err;
-                }
+                collationName = resolveCollationURI(collationName);
                 return context.getConfiguration().getNamedCollation(collationName);
             } else {
                 // Fallback - this shouldn't happen
@@ -220,37 +127,36 @@ public abstract class CollatingFunction extends SystemFunction {
         }
     }
 
+    private String resolveCollationURI(String collationName) throws XPathException {
+        URI collationURI;
+        try {
+            collationURI = new URI(collationName, true);
+            if (!collationURI.isAbsolute()) {
+                if (expressionBaseURI == null) {
+                    XPathException err = new XPathException("Cannot resolve relative collation URI '" + collationName +
+                            "': unknown or invalid base URI");
+                    err.setErrorCode("FOCH0002");
+                    err.setLocator(this.getSourceLocator());
+                    throw err;
+                }
+                collationURI = new URI(expressionBaseURI).resolve(collationURI.toString());
+                return collationURI.toString();
+            } else {
+                return collationName;
+            }
+        } catch (URI.URISyntaxException e) {
+            XPathException err = new XPathException("Collation name '" + collationName + "' is not a valid URI");
+            err.setErrorCode("FOCH0002");
+            err.setLocator(this.getSourceLocator());
+            throw err;
+        }
+    }
+
     protected void doesNotSupportSubstringMatching(XPathContext context) throws XPathException {
         dynamicError("The collation requested for " + getDisplayName() +
                         " does not support substring matching", "FOCH0004", context);
     }
 
-    protected final boolean evalContains(XPathContext context) throws XPathException {
-        StringValue arg1 = (StringValue)argument[1].evaluateItem(context);
-        if (arg1==null || arg1.isZeroLength()) {
-            return true;
-        }
-
-        StringValue arg0 = (StringValue)argument[0].evaluateItem(context);
-        if (arg0==null || arg0.isZeroLength()) {
-            return false;
-        }
-
-        String s0 = arg0.getStringValue();
-        String s1 = arg1.getStringValue();
-
-        if (stringCollator instanceof CodepointCollator) {
-            return doComparison(s0, s1);
-        } else {
-            doesNotSupportSubstringMatching(context);
-            return false;
-
-        }
-    }
-
-    protected boolean doComparison(String s0, String s1) {
-        return false;
-    }
 }
 
 

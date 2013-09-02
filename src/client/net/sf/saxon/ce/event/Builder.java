@@ -1,7 +1,6 @@
 package client.net.sf.saxon.ce.event;
 
 import client.net.sf.saxon.ce.Configuration;
-import client.net.sf.saxon.ce.om.NamePool;
 import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.trans.XPathException;
 
@@ -13,28 +12,9 @@ import client.net.sf.saxon.ce.trans.XPathException;
  */
 
 public abstract class Builder implements Receiver {
-    /**
-     * Constant denoting a request for the default tree model
-     */
-    public static final int UNSPECIFIED_TREE_MODEL = -1;
-    /**
-     * Constant denoting the "linked tree" in which each node is represented as an object
-     */
-    public static final int LINKED_TREE = 0;
-
-    /**
-     * Constant denoting the "tiny tree" in which the tree is represented internally using arrays of integers
-     */
-    public static final int TINY_TREE = 1;
-    /**
-     * Constant denoting the "tiny tree condensed", a variant of the tiny tree in which text and attribute nodes
-     * sharing the same string value use shared storage for the value.
-     */
-    public static final int TINY_TREE_CONDENSED = 2;
 
     protected PipelineConfiguration pipe;
     protected Configuration config;
-    protected NamePool namePool;
     protected String systemId;
     protected String baseURI;
     protected NodeInfo currentRoot;
@@ -56,7 +36,6 @@ public abstract class Builder implements Receiver {
 //        }
         this.pipe = pipe;
         config = pipe.getConfiguration();
-        namePool = config.getNamePool();
     }
 
     public PipelineConfiguration getPipelineConfiguration () {
@@ -151,7 +130,6 @@ public abstract class Builder implements Receiver {
     public void reset() {
         pipe = null;
         config = null;
-        namePool = null;
         systemId = null;
         baseURI = null;
         currentRoot = null;

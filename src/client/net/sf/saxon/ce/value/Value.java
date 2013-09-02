@@ -127,15 +127,6 @@ public abstract class Value
 
 
     /**
-     * Get the value of the item as a CharSequence. This is in some cases more efficient than
-     * the version of the method that returns a String.
-     */
-
-    public CharSequence getStringValueCS() throws XPathException {
-        return getStringValue();
-    }
-
-    /**
      * Determine the data type of the items in the expression, if possible
      * @return for the default implementation: AnyItemType (not known)
      * @param th The TypeHierarchy. Can be null if the target is an AtomicValue.
@@ -212,7 +203,7 @@ public abstract class Value
         Item item = iter.next();
         if (item != null) {
             while (true) {
-                sb.append(item.getStringValueCS());
+                sb.append(item.getStringValue());
                 item = iter.next();
                 if (item == null) {
                     break;

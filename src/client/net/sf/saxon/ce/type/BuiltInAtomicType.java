@@ -185,15 +185,6 @@ public class BuiltInAtomicType extends BuiltInType implements SchemaType, ItemTy
     }
 
     /**
-     * Produce a representation of this type name for use in error messages.
-     * Where this is a QName, it will use conventional prefixes
-     */
-
-    public String toString(NamePool pool) {
-        return getDisplayName();
-    }
-
-    /**
      * Get the item type of the atomic values that will be produced when an item
      * of this type is atomized
      */

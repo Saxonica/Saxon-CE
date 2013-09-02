@@ -58,7 +58,7 @@ public class XSLParam extends XSLVariableDeclaration {
                     compileError("xsl:param must not be preceded by other instructions", "XTSE0010");
                 } else {
                     // it must be a text node; allow it if all whitespace
-                    if (!Whitespace.isWhite(node.getStringValueCS())) {
+                    if (!Whitespace.isWhite(node.getStringValue())) {
                         compileError("xsl:param must not be preceded by text", "XTSE0010");
                     }
                 }

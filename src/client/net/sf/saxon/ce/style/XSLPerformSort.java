@@ -71,7 +71,7 @@ public class XSLPerformSort extends StyleElement {
 		for (int a=0; a<atts.getLength(); a++) {
 			StructuredQName qn = atts.getStructuredQName(a);
             String f = qn.getClarkName();
-			if (f.equals(StandardNames.SELECT)) {
+			if (f.equals("select")) {
         		selectAtt = atts.getValue(a);
         	} else {
         		checkUnknownAttribute(qn);
@@ -97,7 +97,7 @@ public class XSLPerformSort extends StyleElement {
                 }
                 if (child instanceof XSLSort || child instanceof XSLFallback) {
                     // no action
-                } else if (child.getNodeKind() == Type.TEXT && !Whitespace.isWhite(child.getStringValueCS())) {
+                } else if (child.getNodeKind() == Type.TEXT && !Whitespace.isWhite(child.getStringValue())) {
                         // with xml:space=preserve, white space nodes may still be there
                     compileError("Within xsl:perform-sort, significant text must not appear if there is a select attribute",
                             "XTSE1040");

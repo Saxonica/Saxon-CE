@@ -22,10 +22,10 @@ public class CommentStripper extends ProxyReceiver {
 
     public CommentStripper() {}
 
-    public void startElement(StructuredQName nameCode, int properties)
+    public void startElement(StructuredQName qName, int properties)
     throws XPathException {
         flush();
-        nextReceiver.startElement(nameCode, properties);
+        nextReceiver.startElement(qName, properties);
     }
 
     /**

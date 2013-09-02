@@ -76,9 +76,9 @@ public class GYearMonthValue extends GDateValue {
         if (requiredType == BuiltInAtomicType.ANY_ATOMIC || requiredType == BuiltInAtomicType.G_YEAR_MONTH) {
             return this;
         } else if (requiredType == BuiltInAtomicType.UNTYPED_ATOMIC) {
-            return new UntypedAtomicValue(getStringValueCS());
+            return new UntypedAtomicValue(getStringValue());
         } else if (requiredType == BuiltInAtomicType.STRING) {
-            return new StringValue(getStringValueCS());
+            return new StringValue(getStringValue());
         } else {
             ValidationFailure err = new ValidationFailure("Cannot convert gYearMonth to " +
                     requiredType.getDisplayName());

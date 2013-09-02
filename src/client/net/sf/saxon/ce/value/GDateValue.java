@@ -1,9 +1,7 @@
 package client.net.sf.saxon.ce.value;
 
 import client.net.sf.saxon.ce.expr.XPathContext;
-import client.net.sf.saxon.ce.expr.sort.ComparisonKey;
 import client.net.sf.saxon.ce.functions.Component;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.trans.Err;
 import client.net.sf.saxon.ce.trans.NoDynamicContextException;
 import client.net.sf.saxon.ce.trans.XPathException;
@@ -212,19 +210,6 @@ public abstract class GDateValue extends CalendarValue {
         default:
             throw new IllegalArgumentException("Unknown component for date: " + component);
         }
-    }
-
-    /**
-     * Get a comparison key for this value. Two values are equal if and only if they their comparison
-     * keys are equal
-     * @param context XPath dynamic evaluation context
-     * @throws NoDynamicContextException if the implicit timezone is required and is not available
-     * (because the method is being called at compile time)
-     */
-
-
-    public ComparisonKey getComparisonKey(XPathContext context) throws NoDynamicContextException {
-        return new ComparisonKey(StandardNames.XS_DATE, toDateTime().normalize(context));
     }
 
 }

@@ -1,6 +1,5 @@
 package client.net.sf.saxon.ce.expr.instruct;
 import client.net.sf.saxon.ce.expr.*;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.om.ValueRepresentation;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
@@ -48,11 +47,7 @@ public class WithParam extends GeneralVariable {
     public int getParameterId() {
         return parameterId;
     }
-    
 
-    public int getInstructionNameCode() {
-        return StandardNames.XSL_WITH_PARAM;
-    }
 
     public TailCall processLeavingTail(XPathContext context) throws XPathException {
         // not used

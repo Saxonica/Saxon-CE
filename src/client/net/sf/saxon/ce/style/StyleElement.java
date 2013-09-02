@@ -75,6 +75,10 @@ public abstract class StyleElement extends ElementImpl
         return getPreparedStylesheet();
     }
 
+    public Configuration getConfiguration() {
+        return getPreparedStylesheet().getConfiguration();
+    }
+
     /**
      * Get the LocationProvider allowing location identifiers to be resolved.
      */
@@ -388,12 +392,12 @@ public abstract class StyleElement extends ElementImpl
         String elementURI = getURI();
         String localName = nc.getLocalName();
 
-        if ((localName.equals(StandardNames.DEFAULT_COLLATION) ||
-                        localName.equals(StandardNames.XPATH_DEFAULT_NAMESPACE) ||
-                        localName.equals(StandardNames.EXTENSION_ELEMENT_PREFIXES) ||
-                        localName.equals(StandardNames.EXCLUDE_RESULT_PREFIXES) ||
-                        localName.equals(StandardNames.VERSION) ||
-                        localName.equals(StandardNames.USE_WHEN))) {
+        if ((localName.equals("default-collation") ||
+                        localName.equals("xpath-default-namespace") ||
+                        localName.equals("extension-element-prefixes") ||
+                        localName.equals("exclude-result-prefixes") ||
+                        localName.equals("version") ||
+                        localName.equals("use-when"))) {
             if (elementURI.equals(NamespaceConstant.XSLT)) {
                 if ("".equals(attributeURI)) {
                     return;
@@ -526,7 +530,7 @@ public abstract class StyleElement extends ElementImpl
 
     protected void processExtensionElementAttribute(String ns)
             throws XPathException {
-        String ext = getAttributeValue(ns, StandardNames.EXTENSION_ELEMENT_PREFIXES);
+        String ext = getAttributeValue(ns, "extension-element-prefixes");
         if (ext != null) {
             // go round twice, once to count the values and next to add them to the array
             int count = 0;
@@ -560,7 +564,7 @@ public abstract class StyleElement extends ElementImpl
 
     protected void processExcludedNamespaces(String ns)
             throws XPathException {
-        String ext = getAttributeValue(ns, StandardNames.EXCLUDE_RESULT_PREFIXES);
+        String ext = getAttributeValue(ns, "exclude-result-prefixes");
         if (ext != null) {
             if ("#all".equals(Whitespace.trim(ext))) {
                 Iterator<NamespaceBinding> codes = NamespaceIterator.iterateNamespaces(this);
@@ -604,7 +608,7 @@ public abstract class StyleElement extends ElementImpl
      */
 
     protected void processVersionAttribute(String ns) throws XPathException {
-        String v = Whitespace.trim(getAttributeValue(ns, StandardNames.VERSION));
+        String v = Whitespace.trim(getAttributeValue(ns, "version"));
         if (v != null) {
             ConversionResult val = DecimalValue.makeDecimalValue(v);
             if (val instanceof ValidationFailure) {
@@ -660,7 +664,7 @@ public abstract class StyleElement extends ElementImpl
      */
 
     protected void processDefaultCollationAttribute(String ns) throws XPathException {
-        String v = getAttributeValue(ns, StandardNames.DEFAULT_COLLATION);
+        String v = getAttributeValue(ns, "default-collation");
         if (v != null) {
             StringTokenizer st = new StringTokenizer(v, " \t\n\r", false);
             while (st.hasMoreTokens()) {
@@ -812,7 +816,7 @@ public abstract class StyleElement extends ElementImpl
      */
 
     protected void processDefaultXPathNamespaceAttribute(String ns) {
-        String v = getAttributeValue(ns, StandardNames.XPATH_DEFAULT_NAMESPACE);
+        String v = getAttributeValue(ns, "xpath-default-namespace");
         if (v != null) {
             defaultXPathNamespace = v;
         }
@@ -993,7 +997,7 @@ public abstract class StyleElement extends ElementImpl
                 let.setRequiredType(SequenceType.SINGLE_ITEM);
                 let.setSequence(new ContextItemExpression());
                 let.setAction(Literal.makeEmptySequence());
-                PromotionOffer offer = new PromotionOffer(config.getOptimizer());
+                PromotionOffer offer = new PromotionOffer(config);
                 offer.action = PromotionOffer.REPLACE_CURRENT;
                 offer.containingExpression = let;
                 pattern.resolveCurrent(let, offer, true);
@@ -1182,7 +1186,7 @@ public abstract class StyleElement extends ElementImpl
                 sortFound = true;
             } else if (child.getNodeKind() == Type.TEXT) {
                 // with xml:space=preserve, white space nodes may still be there
-                if (!Whitespace.isWhite(child.getStringValueCS())) {
+                if (!Whitespace.isWhite(child.getStringValue())) {
                     nonSortFound = true;
                 }
             } else {

@@ -125,16 +125,16 @@ public class TreeReceiver extends SequenceReceiver {
 
     /**
      * Notify the start of an element
-     * @param nameCode integer code identifying the name of the element within the name pool.
+     * @param qName integer code identifying the name of the element within the name pool.
      * @param properties bit-significant properties of the element node
      */
 
-    public void startElement(StructuredQName nameCode, int properties) throws XPathException {
+    public void startElement(StructuredQName qName, int properties) throws XPathException {
         if (inStartTag) {
             startContent();
         }
         inStartTag = true;
-        nextReceiver.startElement(nameCode, properties);
+        nextReceiver.startElement(qName, properties);
         previousAtomic = false;
         if (isDocumentLevel.length - 1 < level) {
             boolean[] d2 = new boolean[level*2];
@@ -266,7 +266,7 @@ public class TreeReceiver extends SequenceReceiver {
                 if (previousAtomic) {
                     characters(" ");
                 }
-                characters(item.getStringValueCS());
+                characters(item.getStringValue());
                 previousAtomic = true;
             } else if (((NodeInfo)item).getNodeKind() == Type.DOCUMENT) {
                 startDocument(); // needed to ensure that illegal namespaces or attributes in the content are caught

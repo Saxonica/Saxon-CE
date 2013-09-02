@@ -5,7 +5,6 @@ import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.om.SequenceIterator;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.pattern.EmptySequenceTest;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.trans.update.PendingUpdateList;
@@ -33,10 +32,6 @@ public class RemoveAttribute extends Instruction  {
     public RemoveAttribute(AttributeCreator content) {
         this.content = content;
         adoptChildExpression(content);
-    }
-    
-    public int getInstructionNameCode() {
-        return StandardNames.IXSL_REMOVE_ATTRIBUTE;
     }
 
     /**

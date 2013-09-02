@@ -2,7 +2,6 @@ package client.net.sf.saxon.ce.js;
 
 import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.om.Item;
-import client.net.sf.saxon.ce.om.NamePool;
 import client.net.sf.saxon.ce.type.*;
 
 /**
@@ -30,10 +29,6 @@ public class JSObjectType implements ItemType {
 
     public ItemType getPrimitiveItemType() {
         return AnyItemType.getInstance();
-    }
-
-    public String toString(NamePool pool) {
-        return "JavaScriptObject";
     }
 
     public BuiltInAtomicType getAtomizedItemType() {

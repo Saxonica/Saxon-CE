@@ -1,7 +1,6 @@
 package client.net.sf.saxon.ce.style;
 
 import client.net.sf.saxon.ce.Configuration;
-import client.net.sf.saxon.ce.LogController;
 import client.net.sf.saxon.ce.PreparedStylesheet;
 import client.net.sf.saxon.ce.expr.Expression;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
@@ -18,8 +17,6 @@ import client.net.sf.saxon.ce.trans.StripSpaceRules;
 import client.net.sf.saxon.ce.trans.XPathException;
 
 import java.util.*;
-
-import com.google.gwt.logging.client.LogConfiguration;
 
 /**
  * Represents the stylesheet module at the root of the import tree, that is, the module
@@ -263,8 +260,7 @@ public class PrincipalStylesheetModule extends StylesheetModule {
                              "(caused by including the containing module more than once)",
                              "XTSE0770");
                 } else {
-                    function.compileError("Duplicate function declaration (see line " +
-                            f2.getLineNumber() + " of " + f2.getSystemId() + ')', "XTSE0770");
+                    function.compileError("Duplicate function declaration", "XTSE0770");
                 }
             } else if (thisPrecedence < otherPrecedence) {
                 //
@@ -344,8 +340,7 @@ public class PrincipalStylesheetModule extends StylesheetModule {
                                  "(caused by including the containing module more than once)",
                                  "XTSE0630");
                     } else {
-                        var.compileError("Duplicate global variable declaration (see line " +
-                                v2.getLineNumber() + " of " + v2.getSystemId() + ')', "XTSE0630");
+                        var.compileError("Duplicate global variable declaration", "XTSE0630");
                     }
                 } else if (thisPrecedence < otherPrecedence && var != other.getSourceElement()) {
                     var.setRedundant();
@@ -409,8 +404,7 @@ public class PrincipalStylesheetModule extends StylesheetModule {
                 int otherPrecedence = other.getPrecedence();
                 if (thisPrecedence == otherPrecedence) {
                     StyleElement t2 = other.getSourceElement();
-                    template.compileError("Duplicate named template (see line " +
-                            t2.getLineNumber() + " of " + t2.getSystemId() + ')', "XTSE0660");
+                    template.compileError("Duplicate named template", "XTSE0660");
                 } else if (thisPrecedence < otherPrecedence) {
                     //template.setRedundantNamedTemplate();
                 } else {

@@ -47,7 +47,7 @@ public class NormalizeUnicode extends SystemFunction {
 
         // fast path for ASCII strings: normalization is a no-op
         boolean allASCII = true;
-        CharSequence chars = sv.getStringValueCS();
+        CharSequence chars = sv.getStringValue();
         for (int i=chars.length()-1; i>=0; i--) {
             if (chars.charAt(i) > 127) {
                 allASCII = false;
@@ -60,7 +60,7 @@ public class NormalizeUnicode extends SystemFunction {
 
 
         Normalizer norm = new Normalizer(fb, c.getConfiguration());
-        CharSequence result = norm.normalize(sv.getStringValueCS());
+        CharSequence result = norm.normalize(sv.getStringValue());
         return StringValue.makeStringValue(result);
     }
 

@@ -71,7 +71,7 @@ public final class XSLSequence extends StyleElement {
 		for (int a=0; a<atts.getLength(); a++) {
 			StructuredQName qn = atts.getStructuredQName(a);
             String f = qn.getClarkName();
-			if (f.equals(StandardNames.SELECT)) {
+			if (f.equals("select")) {
         		selectAtt = atts.getValue(a);
         	} else {
         		checkUnknownAttribute(qn);
@@ -81,7 +81,7 @@ public final class XSLSequence extends StyleElement {
         if (selectAtt!=null) {
             select = makeExpression(selectAtt);
         } else {
-            reportAbsence(StandardNames.SELECT);
+            reportAbsence("select");
             select = Literal.makeEmptySequence();
         }
         

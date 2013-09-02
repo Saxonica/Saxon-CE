@@ -1,15 +1,11 @@
 package client.net.sf.saxon.ce.lib;
 
-import client.net.sf.saxon.ce.Configuration;
-import client.net.sf.saxon.ce.SaxonceApi;
 import client.net.sf.saxon.ce.expr.instruct.Instruction;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.style.StyleElement;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.SourceLocator;
-
 import com.google.gwt.logging.client.LogConfiguration;
-import com.google.gwt.user.client.Window;
 
 import java.io.PrintStream;
 import java.util.logging.Level;
@@ -24,7 +20,6 @@ import java.util.logging.Logger;
 
 public class StandardErrorListener implements ErrorListener{
 
-    private int recoveryPolicy = Configuration.RECOVER_WITH_WARNINGS;
     private int warningCount = 0;
     protected transient PrintStream errorOutput = System.err;
     private static Logger logger = Logger.getLogger("StandardErrorListener");
@@ -73,19 +68,6 @@ public class StandardErrorListener implements ErrorListener{
     }
 
     /**
-     * Set the recovery policy
-     *
-     * @param policy the recovery policy for XSLT recoverable errors. One of
-     *               {@link Configuration#RECOVER_SILENTLY},
-     *               {@link Configuration#RECOVER_WITH_WARNINGS},
-     *               {@link Configuration#DO_NOT_RECOVER}.
-     */
-
-    public void setRecoveryPolicy(int policy) {
-        recoveryPolicy = policy;
-    }
-
-    /**
      * Receive notification of a warning.
      * <p/>
      * <p>Transformers can use this method to report conditions that
@@ -103,11 +85,6 @@ public class StandardErrorListener implements ErrorListener{
 
     public void warning(XPathException exception) {
 
-        if (recoveryPolicy == Configuration.RECOVER_SILENTLY) {
-            // do nothing
-            return;
-        }
-
         if (errorOutput == null) {
             // can happen after deserialization
             errorOutput = System.err;
@@ -122,7 +99,6 @@ public class StandardErrorListener implements ErrorListener{
         warningCount++;
         if (warningCount > 25) {
             errorOutput.println("No more warnings will be displayed");
-            recoveryPolicy = Configuration.RECOVER_SILENTLY;
             warningCount = 0;
         }
 

@@ -6,7 +6,6 @@ import client.net.sf.saxon.ce.om.Axis;
 import client.net.sf.saxon.ce.om.DocumentInfo;
 import client.net.sf.saxon.ce.om.NamespaceBinding;
 import client.net.sf.saxon.ce.om.NodeInfo;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.pattern.NodeKindTest;
 import client.net.sf.saxon.ce.tree.iter.AxisIterator;
 import client.net.sf.saxon.ce.type.Type;
@@ -266,14 +265,6 @@ public class HTMLDocumentWrapper extends HTMLNodeWrapper implements DocumentInfo
 
     public boolean isSameNodeInfo(NodeInfo other) {
         return other instanceof HTMLDocumentWrapper && node == ((HTMLDocumentWrapper)other).node;
-    }
-
-    /**
-     * Get the type annotation. Always XS_UNTYPED.
-     */
-
-    public int getTypeAnnotation() {
-        return StandardNames.XS_UNTYPED;
     }
 
     /**

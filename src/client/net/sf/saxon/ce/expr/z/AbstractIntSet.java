@@ -66,7 +66,7 @@ public abstract class AbstractIntSet implements IntSet {
 
     public IntSet intersect(IntSet other) {
         if (this.isEmpty() || other.isEmpty()) {
-            return IntEmptySet.getInstance();
+            return new IntHashSet(); // return empty set
         }
         IntHashSet n = new IntHashSet(size());
         IntIterator it = iterator();

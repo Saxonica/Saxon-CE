@@ -70,8 +70,7 @@ public class Id extends SystemFunction {
 
     public void checkArguments(ExpressionVisitor visitor) throws XPathException {
         super.checkArguments(visitor);
-        Optimizer opt = visitor.getConfiguration().getOptimizer();
-        argument[0] = ExpressionTool.unsorted(opt, argument[0], false);
+        argument[0] = ExpressionTool.unsorted(visitor.getConfiguration(), argument[0], false);
     }
 
     /**
@@ -145,7 +144,7 @@ public class Id extends SystemFunction {
 
         public SequenceIterator map(Item item) throws XPathException {
 
-            String idrefs = Whitespace.trim(item.getStringValueCS());
+            String idrefs = Whitespace.trim(item.getStringValue());
 
             // If this value contains a space, we need to break it up into its
             // separate tokens; if not, we can process it directly

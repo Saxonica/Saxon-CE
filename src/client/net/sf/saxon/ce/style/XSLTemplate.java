@@ -5,6 +5,7 @@ import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.expr.instruct.SlotManager;
 import client.net.sf.saxon.ce.expr.instruct.Template;
+import client.net.sf.saxon.ce.lib.NamespaceConstant;
 import client.net.sf.saxon.ce.om.*;
 import client.net.sf.saxon.ce.pattern.EmptySequenceTest;
 import client.net.sf.saxon.ce.pattern.Pattern;
@@ -88,7 +89,7 @@ public final class XSLTemplate extends StyleElement implements StylesheetProcedu
         try {
         	if (getObjectName()==null) {
         		// allow for forwards references
-        		String nameAtt = getAttributeValue("", StandardNames.NAME);
+        		String nameAtt = getAttributeValue("", "name");
         		if (nameAtt != null) {
         			setObjectName(makeQName(nameAtt));
                 }
@@ -122,19 +123,19 @@ public final class XSLTemplate extends StyleElement implements StylesheetProcedu
 		for (int a=0; a<atts.getLength(); a++) {
             StructuredQName qn = atts.getStructuredQName(a);
             String f = qn.getClarkName();
-			if (f.equals(StandardNames.MODE)) {
+			if (f.equals("mode")) {
         		modeAtt = Whitespace.trim(atts.getValue(a));
-			} else if (f.equals(StandardNames.NAME)) {
+			} else if (f.equals("name")) {
         		nameAtt = Whitespace.trim(atts.getValue(a));
-			} else if (f.equals(StandardNames.MATCH)) {
+			} else if (f.equals("match")) {
         		matchAtt = atts.getValue(a);
-			} else if (f.equals(StandardNames.PRIORITY)) {
+			} else if (f.equals("priority")) {
         		priorityAtt = Whitespace.trim(atts.getValue(a));
-        	} else if (f.equals(StandardNames.AS)) {
+        	} else if (f.equals("as")) {
         		asAtt = atts.getValue(a);
-        	} else if (f.equals(StandardNames.IXSL_PREVENT_DEFAULT)) {
+        	} else if (f.equals("{" + NamespaceConstant.IXSL + "}" + "prevent-default")) {
         		ixslPreventDefault = atts.getValue(a).equals("yes");
-        	} else if (f.equals(StandardNames.IXSL_EVENT_PROPERTY)) {
+        	} else if (f.equals("{" + NamespaceConstant.IXSL + "}" + "event-property")) {
         		ixslEventProperty = atts.getValue(a);
         	} else {
         		checkUnknownAttribute(qn);
@@ -401,14 +402,11 @@ public final class XSLTemplate extends StyleElement implements StylesheetProcedu
 
         Expression exp = compiledTemplate.getBody();
         ExpressionVisitor visitor = makeExpressionVisitor();
-        Optimizer opt = getConfiguration().getOptimizer();
         try {
             // We've already done the typecheck of each XPath expression, but it's worth doing again at this
             // level because we have more information now.
             Expression exp2 = visitor.typeCheck(exp, contextItemType);
-            if (opt.getOptimizationLevel() != Optimizer.NO_OPTIMIZATION) {
-                exp2 = visitor.optimize(exp2, contextItemType);
-            }
+            exp2 = visitor.optimize(exp2, contextItemType);
             if (exp != exp2) {
                 compiledTemplate.setBody(exp2);
                 exp = exp2;

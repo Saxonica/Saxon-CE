@@ -75,13 +75,6 @@ public interface XPathContext {
     public Configuration getConfiguration();
 
     /**
-     * Get the Name Pool
-     * @return the name pool
-     */
-
-    public NamePool getNamePool();
-
-    /**
      * Set the calling XPathContext
      * @param caller the XPathContext of the calling expression
      */

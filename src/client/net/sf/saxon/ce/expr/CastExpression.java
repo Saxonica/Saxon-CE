@@ -370,13 +370,8 @@ public final class CastExpression extends UnaryExpression  {
      */
 
     public String toString() {
-        try {
-            NamePool pool = getExecutable().getConfiguration().getNamePool();
-            return targetType.toString(pool) + "(" + operand.toString() + ")";
-        } catch (Exception err) {
-            return targetType.toString() + "(" + operand.toString() + ")";
-        }
-    }    
+        return targetType.toString() + "(" + operand.toString() + ")";
+    }
 
     /**
      * Evaluate the "pseudo-cast" of a string literal to a QName or NOTATION value. This can only happen

@@ -69,11 +69,8 @@ public class HTMLNodeWrapper implements NodeInfo, VirtualNode, SiblingCountingNo
      * @throws NullPointerException if the node or the document wrapper are null
      */
     protected HTMLNodeWrapper makeWrapper(Node node, HTMLDocumentWrapper docWrapper) {
-        if (node == null) {
-            throw new NullPointerException("HTMLNodeWrapper#makeWrapper: Node must not be null");
-        }
-        if (docWrapper == null) {
-            throw new NullPointerException("HTMLNodeWrapper#makeWrapper: XMLDocumentWrapper must not be null");
+        if (node == null || docWrapper == null) {
+            throw new NullPointerException();
         }
         return makeWrapper(node, docWrapper, null, -1);
     }
@@ -120,7 +117,6 @@ public class HTMLNodeWrapper implements NodeInfo, VirtualNode, SiblingCountingNo
         	wrapper.nodeKind = Type.PROCESSING_INSTRUCTION;
         	break;
         default:
-            short nodeType = node.getNodeType();
             throw new IllegalArgumentException("Unsupported node type in DOM! " + node.getNodeType() + " instance " + node.toString());
         }
         wrapper.docWrapper = docWrapper;
@@ -150,14 +146,6 @@ public class HTMLNodeWrapper implements NodeInfo, VirtualNode, SiblingCountingNo
     }
 
     /**
-     * Get the configuration
-     */
-
-    public Configuration getConfiguration() {
-        return docWrapper.getConfiguration();
-    }
-
-    /**
     * Return the type of node.
     * @return one of the values Node.ELEMENT, Node.TEXT, Node.ATTRIBUTE, etc.
     */
@@ -174,21 +162,10 @@ public class HTMLNodeWrapper implements NodeInfo, VirtualNode, SiblingCountingNo
         switch (getNodeKind()) {
             case Type.COMMENT:
             case Type.PROCESSING_INSTRUCTION:
-                return new StringValue(getStringValueCS());
+                return new StringValue(getStringValue());
             default:
-                return new UntypedAtomicValue(getStringValueCS());
+                return new UntypedAtomicValue(getStringValue());
         }
-    }
-
-    /**
-    * Get the type annotation
-    */
-
-    public int getTypeAnnotation() {
-        if (getNodeKind() == Type.ATTRIBUTE) {
-            return StandardNames.XS_UNTYPED_ATOMIC;
-        }
-        return StandardNames.XS_UNTYPED;
     }
 
     /**
@@ -278,15 +255,6 @@ public class HTMLNodeWrapper implements NodeInfo, VirtualNode, SiblingCountingNo
     }
 
     /**
-    * Get line number
-    * @return the line number of the node in its original source document; or -1 if not available
-    */
-
-    public int getLineNumber() {
-        return -1;
-    }
-
-    /**
     * Determine the relative position of this node and another node, in document order.
     * The other node will always be in the same document.
     * @param other The other node, whose position is to be compared with this node
@@ -305,30 +273,18 @@ public class HTMLNodeWrapper implements NodeInfo, VirtualNode, SiblingCountingNo
     }
 
     /**
-    * Return the string value of the node. The interpretation of this depends on the type
-    * of node. For an element it is the accumulated character content of the element,
-    * including descendant elements.
-    * @return the string value of the node
-    */
-
-    public String getStringValue() {
-        return getStringValueCS().toString();
-
-    }
-
-    /**
      * Get the value of the item as a CharSequence. This is in some cases more efficient than
      * the version of the method that returns a String.
      */
 
-    public CharSequence getStringValueCS() {
+    public String getStringValue() {
         switch (nodeKind) {
             case Type.DOCUMENT:
             case Type.ELEMENT:
                 NodeList children1 = node.getChildNodes();
                 StringBuffer sb1 = new StringBuffer(16);
                 expandStringValue(children1, sb1);
-                return sb1;              
+                return sb1.toString();
 
             case Type.ATTRIBUTE:
                 return emptyIfNull(getValue(node)); // previously used xml.client attr cast
@@ -343,7 +299,7 @@ public class HTMLNodeWrapper implements NodeInfo, VirtualNode, SiblingCountingNo
                         fsb.append(emptyIfNull(getValue(textNode)));
                         textNode = textNode.getNextSibling();
                     }
-                    return fsb.condense();
+                    return fsb.toString();
                 }
 
             case Type.COMMENT:
@@ -416,7 +372,6 @@ public class HTMLNodeWrapper implements NodeInfo, VirtualNode, SiblingCountingNo
 	* and the same prefix. By masking the name code with &0xfffff, you get a
 	* fingerprint: two nodes with the same fingerprint have the same local name
 	* and namespace URI.
-    * @see client.net.sf.saxon.ce.om.NamePool#allocate allocate
 	*/
 
 	public StructuredQName getNodeName() {
@@ -426,7 +381,7 @@ public class HTMLNodeWrapper implements NodeInfo, VirtualNode, SiblingCountingNo
         }
         int nodeKind = getNodeKind();
         if (nodeKind == Type.ELEMENT || nodeKind == Type.ATTRIBUTE) {
-            String prefix = getPrefix();
+            String prefix = getNodePrefix(node);
             if (prefix==null) {
                 prefix = "";
             }
@@ -559,20 +514,6 @@ public class HTMLNodeWrapper implements NodeInfo, VirtualNode, SiblingCountingNo
     	}
     }-*/;
 
-    /**
-     * Get the prefix of the name of the node. This is defined only for elements and attributes.
-     * If the node has no prefix, or for other kinds of node, return a zero-length string.
-     * @return The prefix of the name of the node.
-     */
-
-    public String getPrefix() {
-        int kind = getNodeKind();
-        if (kind == Type.ELEMENT || kind == Type.ATTRIBUTE) {
-        	return getNodePrefix(node);
-        }
-        return "";
-    }
-    
     private native String getNodePrefix(Node node) /*-{
     	if (node.prefix) {
     		return node.prefix;

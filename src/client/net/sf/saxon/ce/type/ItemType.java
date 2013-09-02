@@ -2,7 +2,6 @@ package client.net.sf.saxon.ce.type;
 
 import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.om.Item;
-import client.net.sf.saxon.ce.om.NamePool;
 
 
 
@@ -70,16 +69,6 @@ public interface ItemType  {
      */
 
     public ItemType getPrimitiveItemType();
-
-    /**
-     * Produce a representation of this type name for use in error messages.
-     * Where this is a QName, it will use conventional prefixes
-     * @param pool the name pool
-     * @return a string representation of the type, in notation resembling but not necessarily
-     * identical to XPath syntax
-     */
-
-    public String toString(NamePool pool);
 
     /**
      * Get the item type of the atomic values that will be produced when an item

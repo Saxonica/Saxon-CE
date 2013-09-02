@@ -3,7 +3,6 @@ package client.net.sf.saxon.ce.expr.instruct;
 import client.net.sf.saxon.ce.event.SequenceReceiver;
 import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.om.Item;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.pattern.NodeKindTest;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.Orphan;
@@ -55,21 +54,6 @@ public final class ValueOf extends SimpleNodeConstructor {
         return isNumberingInstruction;
     }
 
-    /**
-     * Get the name of this instruction for diagnostic and tracing purposes
-     * @return the namecode of the instruction name
-    */
-
-    public int getInstructionNameCode() {
-        if (isNumberingInstruction) {
-            return StandardNames.XSL_NUMBER;
-        } else if (select instanceof StringLiteral) {
-            return StandardNames.XSL_TEXT;
-        } else {
-            return StandardNames.XSL_VALUE_OF;
-        }
-    }
-
     public ItemType getItemType(TypeHierarchy th) {
         return NodeKindTest.TEXT;
     }
@@ -106,7 +90,7 @@ public final class ValueOf extends SimpleNodeConstructor {
         if (noNodeIfEmpty) {
             StringValue value = (StringValue)select.evaluateItem(context);
             if (value != null) {
-                processValue(value.getStringValueCS(), context);
+                processValue(value.getStringValue(), context);
             }
             return null;
         } else {
@@ -146,9 +130,9 @@ public final class ValueOf extends SimpleNodeConstructor {
                     val = "";
                 }
             } else {
-                val = item.getStringValueCS();
+                val = item.getStringValue();
             }
-            Orphan o = new Orphan(context.getController().getConfiguration());
+            Orphan o = new Orphan();
             o.setNodeKind(Type.TEXT);
             o.setStringValue(val);
             return o;

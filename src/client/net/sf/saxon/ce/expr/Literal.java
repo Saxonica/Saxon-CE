@@ -237,7 +237,7 @@ public class Literal extends Expression {
     public CharSequence evaluateAsString(XPathContext context) throws XPathException {
         AtomicValue value = (AtomicValue) evaluateItem(context);
         if (value == null) return "";
-        return value.getStringValueCS();
+        return value.getStringValue();
     }
 
     /**
@@ -299,7 +299,7 @@ public class Literal extends Expression {
      */
 
     public int hashCode() {
-        return value.hashCode(); //TODO:CLAXON maybe too crude?
+        return value.hashCode();
     }
 
     /**

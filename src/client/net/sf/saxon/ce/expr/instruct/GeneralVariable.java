@@ -200,15 +200,6 @@ public abstract class GeneralVariable extends Instruction implements Binding {
     }
 
     /**
-     * Get the name of this instruction (that is xsl:variable, xsl:param etc) for diagnostics
-     * @return the name of this instruction, as a name pool name code
-     */
-
-    public int getInstructionNameCode() {
-        return StandardNames.XSL_VARIABLE;
-    }
-
-    /**
      * Simplify this expression
      * @param visitor an expression
      * @return the simplified expression

@@ -22,7 +22,6 @@ public class StyleNodeFactory implements NodeFactory {
 
 
     protected Configuration config;
-    protected NamePool namePool;
 
     /**
      * Create the node factory for representing an XSLT stylesheet as a tree structure
@@ -32,7 +31,6 @@ public class StyleNodeFactory implements NodeFactory {
 
     public StyleNodeFactory(Configuration config) {
         this.config = config;
-        namePool = config.getNamePool();
     }
 
     /**

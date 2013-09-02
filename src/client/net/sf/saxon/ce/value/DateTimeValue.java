@@ -2,9 +2,7 @@ package client.net.sf.saxon.ce.value;
 
 import client.net.sf.saxon.ce.Controller;
 import client.net.sf.saxon.ce.expr.XPathContext;
-import client.net.sf.saxon.ce.expr.sort.ComparisonKey;
 import client.net.sf.saxon.ce.functions.Component;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.trans.Err;
 import client.net.sf.saxon.ce.trans.NoDynamicContextException;
 import client.net.sf.saxon.ce.trans.XPathException;
@@ -322,17 +320,6 @@ public final class DateTimeValue extends CalendarValue implements Comparable {
     }
 
     /**
-     * Get a comparison key for this value. Two values are equal if and only if they their comparison
-     * keys are equal
-     * @param context XPath dynamic context
-     * @throws NoDynamicContextException if the implicit timezone is needed and is not available
-     */
-
-    public ComparisonKey getComparisonKey(XPathContext context) throws NoDynamicContextException {
-        return new ComparisonKey(StandardNames.XS_DATE_TIME, normalize(context));
-    }
-
-    /**
      * Get the Julian instant: a decimal value whose integer part is the Julian day number
      * multiplied by the number of seconds per day,
      * and whose fractional part is the fraction of the second.
@@ -388,9 +375,9 @@ public final class DateTimeValue extends CalendarValue implements Comparable {
         if (requiredType == BuiltInAtomicType.ANY_ATOMIC || requiredType == BuiltInAtomicType.DATE_TIME) {
             return this;
         } else if (requiredType == BuiltInAtomicType.UNTYPED_ATOMIC) {
-            return new UntypedAtomicValue(getStringValueCS());
+            return new UntypedAtomicValue(getStringValue());
         } else if (requiredType == BuiltInAtomicType.STRING) {
-            return new StringValue(getStringValueCS());
+            return new StringValue(getStringValue());
         } else if (requiredType == BuiltInAtomicType.DATE) {
             return new DateValue(year, month, day, getTimezoneInMinutes());
         } else if (requiredType == BuiltInAtomicType.TIME) {
@@ -459,23 +446,6 @@ public final class DateTimeValue extends CalendarValue implements Comparable {
 
         return sb;
 
-    }
-
-
-    /**
-     * Get the canonical lexical representation as defined in XML Schema. This is not always the same
-     * as the result of casting to a string according to the XPath rules. For an xs:dateTime it is the
-     * date/time adjusted to UTC.
-     *
-     * @return the canonical lexical representation as defined in XML Schema
-     */
-
-    public CharSequence getCanonicalLexicalRepresentation() {
-        if (hasTimezone() && getTimezoneInMinutes() != 0) {
-            return adjustTimezone(0).getStringValueCS();
-        } else {
-            return getStringValueCS();
-        }
     }
 
     /**

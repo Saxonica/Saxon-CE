@@ -59,11 +59,11 @@ public class XSLAnalyzeString extends StyleElement {
 		for (int a=0; a<atts.getLength(); a++) {
 			StructuredQName qn = atts.getStructuredQName(a);
             String f = qn.getClarkName();
-			if (f.equals(StandardNames.REGEX)) {
+			if (f.equals("regex")) {
         		regexAtt = atts.getValue(a);
-			} else if (f.equals(StandardNames.SELECT)) {
+			} else if (f.equals("select")) {
         		selectAtt = atts.getValue(a);
-			} else if (f.equals(StandardNames.FLAGS)) {
+			} else if (f.equals("flags")) {
         		flagsAtt = atts.getValue(a); // not trimmed, see bugzilla 4315
         	} else {
         		checkUnknownAttribute(qn);

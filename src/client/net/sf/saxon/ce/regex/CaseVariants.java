@@ -1,8 +1,9 @@
 package client.net.sf.saxon.ce.regex;
 
-import client.net.sf.saxon.ce.expr.z.IntHashMap;
 import client.net.sf.saxon.ce.expr.z.IntToIntHashMap;
 import client.net.sf.saxon.ce.expr.z.IntToIntMap;
+
+import java.util.HashMap;
 
 /**
  * This class holds data about the case-variants of Unicode characters. The data is automatically
@@ -16,7 +17,7 @@ public class CaseVariants {
     // case variants, to reduce the number of objects that need to be allocated
 
     private static IntToIntMap monoVariants = new IntToIntHashMap(2500);
-    private static IntHashMap<int[]> polyVariants = new IntHashMap<int[]>(100);
+    private static HashMap<Integer, int[]> polyVariants = new HashMap<Integer, int[]>(100);
 
     private static void cv(int a, int b) {
         monoVariants.put(a, b);

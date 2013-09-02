@@ -1,7 +1,5 @@
 package client.net.sf.saxon.ce.type;
 
-import client.net.sf.saxon.ce.om.StandardNames;
-
 /**
  * This class has a singleton instance which represents the XML Schema built-in type xs:anyType,
  * also known as the urtype.
@@ -68,15 +66,6 @@ public final class AnyType extends BuiltInType implements SchemaType {
 
     public boolean isIdRefType() {
         return false;
-    }
-
-    /**
-     * Get the fingerprint of the name of this type
-     * @return the fingerprint.
-     */
-
-    public int getFingerprint() {
-        return StandardNames.XS_ANY_TYPE;
     }
 
     /**

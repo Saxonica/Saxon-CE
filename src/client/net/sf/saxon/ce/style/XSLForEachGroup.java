@@ -6,7 +6,6 @@ import client.net.sf.saxon.ce.lib.NamespaceConstant;
 import client.net.sf.saxon.ce.lib.StringCollator;
 import client.net.sf.saxon.ce.om.AttributeCollection;
 import client.net.sf.saxon.ce.om.Axis;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.pattern.Pattern;
 import client.net.sf.saxon.ce.pattern.PatternSponsor;
@@ -71,17 +70,17 @@ public final class XSLForEachGroup extends StyleElement {
 		for (int a=0; a<atts.getLength(); a++) {
 			StructuredQName qn = atts.getStructuredQName(a);
             String f = qn.getClarkName();
-            if (f.equals(StandardNames.SELECT)) {
+            if (f.equals("select")) {
         		selectAtt = atts.getValue(a);
-        	} else if (f.equals(StandardNames.GROUP_BY)) {
+        	} else if (f.equals("group-by")) {
         		groupByAtt = atts.getValue(a);
-        	} else if (f.equals(StandardNames.GROUP_ADJACENT)) {
+        	} else if (f.equals("group-adjacent")) {
         		groupAdjacentAtt = atts.getValue(a);
-        	} else if (f.equals(StandardNames.GROUP_STARTING_WITH)) {
+        	} else if (f.equals("group-starting-with")) {
         		startingAtt = atts.getValue(a);
-        	} else if (f.equals(StandardNames.GROUP_ENDING_WITH)) {
+        	} else if (f.equals("group-ending-with")) {
         		endingAtt = atts.getValue(a);
-        	} else if (f.equals(StandardNames.COLLATION)) {
+        	} else if (f.equals("collation")) {
         		collationAtt = Whitespace.trim(atts.getValue(a));
         	} else {
         		checkUnknownAttribute(qn);

@@ -65,8 +65,8 @@ public class LetExpression extends Assignation implements TailCallReturner {
 
         RoleLocator role = new RoleLocator(RoleLocator.VARIABLE, getVariableQName(), 0);
         //role.setSourceLocator(this);
-        sequence = TypeChecker.strictTypeCheck(
-                sequence, requiredType, role, visitor.getStaticContext());
+//        sequence = TypeChecker.strictTypeCheck(
+//                sequence, requiredType, role, visitor.getStaticContext());
         final TypeHierarchy th = visitor.getConfiguration().getTypeHierarchy();
         final ItemType actualItemType = sequence.getItemType(th);
 
@@ -132,7 +132,6 @@ public class LetExpression extends Assignation implements TailCallReturner {
     public Expression optimize(ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
 
         StaticContext env = visitor.getStaticContext();
-        Optimizer opt = visitor.getConfiguration().getOptimizer();
 
         // if this is a construct of the form "let $j := EXP return $j" replace it with EXP
         // Remarkably, people do write this, and it can also be produced by previous rewrites
@@ -140,8 +139,7 @@ public class LetExpression extends Assignation implements TailCallReturner {
 
         if (action instanceof VariableReference &&
                 ((VariableReference) action).getBinding() == this) {
-            Expression e2 = visitor.optimize(sequence, contextItemType);
-            return e2;
+            return visitor.optimize(sequence, contextItemType);
         }
 
         /**

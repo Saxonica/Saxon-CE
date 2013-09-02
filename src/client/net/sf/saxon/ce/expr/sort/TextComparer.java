@@ -69,7 +69,7 @@ public class TextComparer implements AtomicComparer {
         if (a instanceof StringValue) {
             return ((StringValue)a);
         } else {
-            return new StringValue((a == null ? "" : a.getStringValue()));
+            return new StringValue((a == null ?  "" : a.getStringValue()));
         }
     }
 

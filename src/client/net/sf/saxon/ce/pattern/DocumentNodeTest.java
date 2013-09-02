@@ -3,7 +3,6 @@ import client.net.sf.saxon.ce.om.Axis;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.tree.iter.AxisIterator;
 import client.net.sf.saxon.ce.om.NodeInfo;
-import client.net.sf.saxon.ce.om.NamePool;
 import client.net.sf.saxon.ce.type.Type;
 
 /**
@@ -26,10 +25,10 @@ public class DocumentNodeTest extends NodeTest {
     /**
     * Test whether this node test is satisfied by a given node
      * @param nodeKind The type of node to be matched
-      * @param fingerprint identifies the expanded name of the node to be matched
+      * @param qName identifies the expanded name of the node to be matched
      */
 
-    public boolean matches(int nodeKind, StructuredQName fingerprint, int annotation) {
+    public boolean matches(int nodeKind, StructuredQName qName) {
         throw new UnsupportedOperationException("DocumentNodeTest doesn't support this method");
     }
 
@@ -102,10 +101,6 @@ public class DocumentNodeTest extends NodeTest {
 
     public NodeTest getElementTest() {
         return elementTest;
-    }
-
-    public String toString(NamePool pool) {
-        return "document-node(" + elementTest.toString(pool) + ')';
     }
 
     public String toString() {

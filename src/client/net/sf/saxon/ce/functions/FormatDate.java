@@ -23,12 +23,12 @@ import java.math.BigDecimal;
 
 public class FormatDate extends SystemFunction {
 
-    public FormatDate(int operation) {
-        this.operation = operation;
+
+    public FormatDate() {
     }
 
     public FormatDate newInstance() {
-        return new FormatDate(operation);
+        return new FormatDate();
     }
 
     public void checkArguments(ExpressionVisitor visitor) throws XPathException {

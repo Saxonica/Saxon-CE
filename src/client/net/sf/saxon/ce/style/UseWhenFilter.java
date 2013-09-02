@@ -51,11 +51,11 @@ public class UseWhenFilter extends ProxyReceiver {
     /**
      * Notify the start of an element.
      *
-     * @param nameCode    integer code identifying the name of the element within the name pool.
+     * @param qName    integer code identifying the name of the element within the name pool.
      * @param properties  bit-significant properties of the element node
      */
 
-    public void startElement(StructuredQName nameCode, int properties) throws XPathException {
+    public void startElement(StructuredQName qName, int properties) throws XPathException {
         defaultNamespaceStack.push(startTag.getAttribute("", "xpath-default-namespace"));
         if (emptyStylesheetElement) {
             depthOfHole++;
@@ -63,7 +63,7 @@ public class UseWhenFilter extends ProxyReceiver {
         }
         if (depthOfHole == 0) {
             String useWhen;
-            String uriCode = nameCode.getNamespaceURI();
+            String uriCode = qName.getNamespaceURI();
             if (uriCode.equals(NamespaceConstant.XSLT)) {
                 useWhen = startTag.getAttribute("", "use-when");
             } else {
@@ -86,8 +86,8 @@ public class UseWhenFilter extends ProxyReceiver {
                     expr = prepareUseWhen(useWhen, staticContext, loc);
                     boolean b = evaluateUseWhen(expr, staticContext);
                     if (!b) {
-                        String local = nameCode.getLocalName();
-                        if (nameCode.getNamespaceURI().equals(NamespaceConstant.XSLT) &&
+                        String local = qName.getLocalName();
+                        if (qName.getNamespaceURI().equals(NamespaceConstant.XSLT) &&
                                 (local.equals("stylesheet") || local.equals("transform"))) {
                             emptyStylesheetElement = true;
                         } else {
@@ -104,7 +104,7 @@ public class UseWhenFilter extends ProxyReceiver {
                     throw err;
                 }
             }
-            nextReceiver.startElement(nameCode, properties);
+            nextReceiver.startElement(qName, properties);
         } else {
             depthOfHole++;
         }
@@ -230,7 +230,7 @@ public class UseWhenFilter extends ProxyReceiver {
         SlotManager stackFrameMap = new SlotManager();
         ExpressionTool.allocateSlots(expr, stackFrameMap.getNumberOfVariables(), stackFrameMap);
         Controller controller = new Controller(getConfiguration());
-        // TODO:CLAXON ensure calls on doc() are unsuccessful
+        // TODO ensure calls on doc() are unsuccessful
         controller.setCurrentDateTime(currentDateTime);
                 // this is to ensure that all use-when expressions in a module use the same date and time
         XPathContext dynamicContext = controller.newXPathContext();

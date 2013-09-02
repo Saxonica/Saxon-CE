@@ -42,9 +42,9 @@ public class StartTagBuffer extends ProxyReceiver {
     * startElement
     */
 
-    public void startElement(StructuredQName nameCode, int properties) throws XPathException {
+    public void startElement(StructuredQName qName, int properties) throws XPathException {
 
-        elementNameCode = nameCode;
+        elementNameCode = qName;
         elementProperties = properties;
 
         bufferedAttributes.clear();

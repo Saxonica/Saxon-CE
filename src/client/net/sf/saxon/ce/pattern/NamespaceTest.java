@@ -24,13 +24,13 @@ public final class NamespaceTest extends NodeTest {
     /**
     * Test whether this node test is satisfied by a given node
      * @param nodeType The type of node to be matched
-      * @param name identifies the expanded name of the node to be matched
+      * @param qName identifies the expanded name of the node to be matched
      */
 
-    public boolean matches(int nodeType, StructuredQName name, int annotation) {
-        return name != null &&
+    public boolean matches(int nodeType, StructuredQName qName) {
+        return qName != null &&
                 nodeType == nodeKind &&
-                uri.equals(name.getNamespaceURI());
+                uri.equals(qName.getNamespaceURI());
     }
 
     /**

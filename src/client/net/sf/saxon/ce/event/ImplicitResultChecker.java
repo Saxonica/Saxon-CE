@@ -40,11 +40,11 @@ public class ImplicitResultChecker extends ProxyReceiver {
         nextReceiver.startDocument();
     }
 
-    public void startElement(StructuredQName nameCode, int properties) throws XPathException {
+    public void startElement(StructuredQName qName, int properties) throws XPathException {
         if (clean) {
             firstContent();
         }
-        nextReceiver.startElement(nameCode, properties);
+        nextReceiver.startElement(qName, properties);
     }
 
     public void characters(CharSequence chars) throws XPathException {

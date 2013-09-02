@@ -63,9 +63,9 @@ public class Base64BinaryValue extends AtomicValue {
         if (requiredType == BuiltInAtomicType.ANY_ATOMIC || requiredType == BuiltInAtomicType.BASE64_BINARY) {
             return this;
         } else if (requiredType == BuiltInAtomicType.UNTYPED_ATOMIC) {
-            return new UntypedAtomicValue(getStringValueCS());
+            return new UntypedAtomicValue(getStringValue());
         } else if (requiredType == BuiltInAtomicType.STRING) {
-            return new StringValue(getStringValueCS());
+            return new StringValue(getStringValue());
         } else if (requiredType == BuiltInAtomicType.HEX_BINARY) {
             return new HexBinaryValue(binaryValue);
         } else {

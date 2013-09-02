@@ -27,10 +27,10 @@ public final class AnyChildNodeTest extends NodeTest {
     /**
     * Test whether this node test is satisfied by a given node
      * @param nodeKind The type of node to be matched
-      * @param fingerprint identifies the expanded name of the node to be matched
+      * @param qName identifies the expanded name of the node to be matched
      */
 
-    public boolean matches(int nodeKind, StructuredQName fingerprint, int annotation) {
+    public boolean matches(int nodeKind, StructuredQName qName) {
         return (nodeKind == Type.ELEMENT ||
                 nodeKind == Type.TEXT ||
                 nodeKind == Type.COMMENT ||

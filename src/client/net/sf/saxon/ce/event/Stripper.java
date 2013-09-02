@@ -70,15 +70,15 @@ public abstract class Stripper extends ProxyReceiver {
         super.open();
     }
 
-    public void startElement(StructuredQName nameCode, int properties) throws XPathException
+    public void startElement(StructuredQName qName, int properties) throws XPathException
     {
     	// System.err.println("startElement " + nameCode);
-        nextReceiver.startElement(nameCode, properties);
+        nextReceiver.startElement(qName, properties);
 
         byte preserveParent = stripStack[top];
         byte preserve = (byte)(preserveParent & PRESERVE_PARENT);
 
-        byte elementStrip = isSpacePreserving(nameCode);
+        byte elementStrip = isSpacePreserving(qName);
         if (elementStrip == ALWAYS_PRESERVE) {
             preserve |= ALWAYS_PRESERVE;
         } else if (elementStrip == ALWAYS_STRIP) {

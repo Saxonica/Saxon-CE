@@ -16,41 +16,6 @@ import client.net.sf.saxon.ce.trans.XPathException;
 public abstract class NameChecker  {
 
     /**
-     * Validate whether a given string constitutes a valid QName, as defined in XML Namespaces.
-     * Note that this does not test whether the prefix is actually declared.
-     *
-     * @param name the name to be tested
-     * @return true if the name is a lexically-valid QName
-     */
-
-    public static boolean isQName(String name) {
-        int colon = name.indexOf(':');
-        if (colon < 0) {
-            return isValidNCName(name);
-        }
-        return colon != 0 &&
-                colon != name.length() - 1 &&
-                isValidNCName(name.substring(0, colon)) &&
-                isValidNCName(name.substring(colon + 1));
-    }
-
-    /**
-     * Extract the prefix from a QName. Note, the QName is assumed to be valid.
-     *
-     * @param qname The lexical QName whose prefix is required
-     * @return the prefix, that is the part before the colon. Returns an empty
-     *         string if there is no prefix
-     */
-
-    public static String getPrefix(String qname) {
-        int colon = qname.indexOf(':');
-        if (colon < 0) {
-            return "";
-        }
-        return qname.substring(0, colon);
-    }
-
-    /**
      * Validate a QName, and return the prefix and local name. The local name is checked
      * to ensure it is a valid NCName. The prefix is not checked, on the theory that the caller
      * will look up the prefix to find a URI, and if the prefix is invalid, then no URI will
@@ -136,13 +101,6 @@ public abstract class NameChecker  {
 
     // XML Namespaces removes the ":" option
 
-    // In the regexes below, instead of matching all non-BMP characters, we match all UCS-16 codepoints in the surrogate
-    // pair range #xD800-#xDFFF. This allows through the private use characters in planes 15 and 16 (above xEFFFF), but
-    // we can live with that.
-
-    private static String ncNameStartChar = "[A-Za-z_\\xd8-\\xf6\\xf8-\\u02ff\\u0370-\\u037f-\\u1fff\\u200c\\u200d" +
-            "\\u2070-\\u218f\\u2c00-\\u2fef\\u3001-\\udfff\\uf900-\\ufdcf\\ufdf0-\\ufffd]";
-
     private static int[] nameStartRangeStartPoints = {
             'A', '_', 'a', 0xc0, 0xd8, 0xf8, 0x370, 0x37f, 0x200c, 0x2070, 0x2c00, 0x3001, 0xf900, 0xfdf0, 0x10000
     };
@@ -163,8 +121,6 @@ public abstract class NameChecker  {
 
     private static IntRangeSet ncNameChars = new IntRangeSet(nameRangeStartPoints, nameRangeEndPoints);
 
-//    private static String ncNameChar = "[A-Za-z0-9_\\-\\.\\xb7\\xd8-\\xf6\\xf8-\\u037d\\u037f-\\u1fff\\u200c\\u200d" +
-//            "\\u203f\\u2040\\u2070-\\u218f\\u2c00-\\u2fef\\u3001-\\udfff\\uf900-\\ufdcf\\ufdf0-\\ufffd]";
 
     public static boolean isNCNameStartChar(int c) {
         return ncNameStartChars.contains(c);

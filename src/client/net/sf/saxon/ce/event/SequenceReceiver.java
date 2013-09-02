@@ -2,7 +2,6 @@ package client.net.sf.saxon.ce.event;
 
 import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.om.Item;
-import client.net.sf.saxon.ce.om.NamePool;
 import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.trans.XPathException;
 
@@ -87,14 +86,6 @@ public abstract class SequenceReceiver implements Receiver {
         append(item, NodeInfo.ALL_NAMESPACES);
     }
 
-    /**
-     * Get the name pool
-     * @return the Name Pool that was supplied using the setConfiguration() method
-     */
-
-    public NamePool getNamePool() {
-        return pipelineConfiguration.getConfiguration().getNamePool();
-    }
 }
 
 // This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. 

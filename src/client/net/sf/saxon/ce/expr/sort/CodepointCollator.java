@@ -25,7 +25,7 @@ public class CodepointCollator implements StringCollator {
         //return ((String)a).compareTo((String)b);
         // Note that Java does UTF-16 code unit comparison, which is not the same as Unicode codepoint comparison
         // except in the "equals" case. So we have to do a character-by-character comparison
-        return compareCS((String)a, (String)b);
+        return compareCS(a, b);
     }
 
     /**

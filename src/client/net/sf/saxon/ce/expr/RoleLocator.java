@@ -1,6 +1,5 @@
 package client.net.sf.saxon.ce.expr;
 
-import client.net.sf.saxon.ce.om.NamePool;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.type.ItemType;
 
@@ -129,29 +128,29 @@ public class RoleLocator  {
 
     /**
      * Construct the part of the message giving the required item type
+     *
      * @param requiredItemType the item type required by the context of a particular expression
-     * @param pool the name pool
      * @return a message of the form "Required item type of X is Y"
      */
 
-    public String composeRequiredMessage(ItemType requiredItemType, NamePool pool) {
+    public String composeRequiredMessage(ItemType requiredItemType) {
         return "Required item type of " + getMessage() +
-                     " is " + requiredItemType.toString(pool);
+                     " is " + requiredItemType.toString();
     }
 
     /**
      * Construct a full error message
+     *
      * @param requiredItemType the item type required by the context of a particular expression
      * @param suppliedItemType the item type inferred by static analysis of an expression
-     * @param pool the name pool
      * @return a message of the form "Required item type of A is R; supplied value has item type S"
      */
 
-    public String composeErrorMessage(ItemType requiredItemType, ItemType suppliedItemType, NamePool pool) {
+    public String composeErrorMessage(ItemType requiredItemType, ItemType suppliedItemType) {
         return "Required item type of " + getMessage() +
-                     " is " + requiredItemType.toString(pool) +
+                     " is " + requiredItemType.toString() +
                      "; supplied value has item type " +
-                     suppliedItemType.toString(pool);
+                     suppliedItemType.toString();
     }
 
     /**

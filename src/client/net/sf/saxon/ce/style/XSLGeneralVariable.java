@@ -104,7 +104,7 @@ public abstract class XSLGeneralVariable extends StyleElement {
     */
 
     public String getVariableDisplayName() {
-    	return getAttributeValue("", StandardNames.NAME);
+    	return getAttributeValue("", "name");
     }
 
     /**
@@ -128,7 +128,7 @@ public abstract class XSLGeneralVariable extends StyleElement {
         // duplicate error messages
 
         if (getObjectName() == null) {
-            String nameAttribute = getAttributeValue("", StandardNames.NAME);
+            String nameAttribute = getAttributeValue("", "name");
             if (nameAttribute == null) {
                 return new StructuredQName("saxon", NamespaceConstant.SAXON, "error-variable-name");
             }
@@ -159,15 +159,15 @@ public abstract class XSLGeneralVariable extends StyleElement {
 		for (int a=0; a<atts.getLength(); a++) {
             StructuredQName qn = atts.getStructuredQName(a);
             String f = qn.getClarkName();
-			if (f.equals(StandardNames.NAME)) {
+			if (f.equals("name")) {
         		nameAtt = Whitespace.trim(atts.getValue(a)) ;
-        	} else if (f.equals(StandardNames.SELECT)) {
+        	} else if (f.equals("select")) {
         		selectAtt = atts.getValue(a);
-        	} else if (f.equals(StandardNames.AS) && allowsAsAttribute()) {
+        	} else if (f.equals("as") && allowsAsAttribute()) {
         		asAtt = atts.getValue(a);
-        	} else if (f.equals(StandardNames.REQUIRED) && allowsRequired()) {
+        	} else if (f.equals("required") && allowsRequired()) {
         		requiredAtt = Whitespace.trim(atts.getValue(a)) ;
-            } else if (f.equals(StandardNames.TUNNEL) && allowsTunnelAttribute()) {
+            } else if (f.equals("tunnel") && allowsTunnelAttribute()) {
         		tunnelAtt = Whitespace.trim(atts.getValue(a)) ;
         	} else {
         		checkUnknownAttribute(qn);
@@ -410,14 +410,7 @@ public abstract class XSLGeneralVariable extends StyleElement {
         // overridden in subclass
     }
     
-    /**
-     * Get the type of construct. This will be a constant in
-     * class Location. This method is part of the
-     * InstructionInfo interface
-     */
-    public int getConstructType() {
-        return StandardNames.XSL_VARIABLE;
-    }
+
 
  }
 

@@ -66,7 +66,7 @@ public class XSLCallTemplate extends StyleElement {
 		for (int a=0; a<atts.getLength(); a++) {
 			StructuredQName qn = atts.getStructuredQName(a);
             String f = qn.getClarkName();
-			if (f.equals(StandardNames.NAME)) {
+			if (f.equals("name")) {
         		nameAttribute = Whitespace.trim(atts.getValue(a));
         	} else {
         		checkUnknownAttribute(qn);
@@ -99,11 +99,9 @@ public class XSLCallTemplate extends StyleElement {
             }
             if (child instanceof XSLWithParam) {
                 // OK;
-            } else if (child instanceof XSLFallback && mayContainFallback()) {
-                // xsl:fallback is not allowed on xsl:call-template, but is allowed on claxon:call-template (cheat!)
             } else if (child.getNodeKind() == Type.TEXT) {
                     // with xml:space=preserve, white space nodes may still be there
-                if (!Whitespace.isWhite(child.getStringValueCS())) {
+                if (!Whitespace.isWhite(child.getStringValue())) {
                     compileError("No character data is allowed within xsl:call-template", "XTSE0010");
                 }
             } else {

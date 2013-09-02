@@ -155,15 +155,6 @@ public class ResultDocument extends Instruction  {
     }
 
     /**
-     * Get the name of this instruction for diagnostic and tracing purposes
-     * (the string "xsl:result-document")
-     */
-
-    public int getInstructionNameCode() {
-        return StandardNames.XSL_RESULT_DOCUMENT;
-    }
-
-    /**
      * Get the item type of the items returned by evaluating this instruction
      * @param th the type hierarchy cache
      * @return the static item type of the instruction. This is empty: the result-document instruction

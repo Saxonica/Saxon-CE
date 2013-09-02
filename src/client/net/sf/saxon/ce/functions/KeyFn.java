@@ -74,8 +74,7 @@ public class KeyFn extends SystemFunction {
         if (checked) return;
         checked = true;
         super.checkArguments(visitor);
-        Optimizer opt = visitor.getConfiguration().getOptimizer();
-        argument[1] = ExpressionTool.unsorted(opt, argument[1], false);
+        argument[1] = ExpressionTool.unsorted(visitor.getConfiguration(), argument[1], false);
         if (argument[0] instanceof StringLiteral) {
             // common case, key name is supplied as a constant
             StructuredQName keyName;

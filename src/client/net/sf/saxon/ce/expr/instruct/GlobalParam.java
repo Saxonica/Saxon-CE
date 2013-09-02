@@ -1,7 +1,6 @@
 package client.net.sf.saxon.ce.expr.instruct;
 import client.net.sf.saxon.ce.Controller;
 import client.net.sf.saxon.ce.expr.XPathContext;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.om.ValueRepresentation;
 import client.net.sf.saxon.ce.trans.XPathException;
 
@@ -15,14 +14,6 @@ import client.net.sf.saxon.ce.trans.XPathException;
 */
 
 public final class GlobalParam extends GlobalVariable {
-
-    /**
-    * Get the name of this instruction for diagnostic and tracing purposes
-    */
-
-    public int getInstructionNameCode() {
-        return StandardNames.XSL_PARAM;
-    }
 
     /**
     * Evaluate the variable

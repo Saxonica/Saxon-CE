@@ -9,7 +9,6 @@ import client.net.sf.saxon.ce.expr.instruct.ValueOf;
 import client.net.sf.saxon.ce.expr.number.NumberFormatter;
 import client.net.sf.saxon.ce.lib.Numberer;
 import client.net.sf.saxon.ce.om.AttributeCollection;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.pattern.NodeKindTest;
 import client.net.sf.saxon.ce.pattern.Pattern;
@@ -83,27 +82,27 @@ public class XSLNumber extends StyleElement {
 		for (int a=0; a<atts.getLength(); a++) {
 			StructuredQName qn = atts.getStructuredQName(a);
             String f = qn.getClarkName();
-			if (f.equals(StandardNames.SELECT)) {
+			if (f.equals("select")) {
         		selectAtt = atts.getValue(a);
-            } else if (f.equals(StandardNames.VALUE)) {
+            } else if (f.equals("value")) {
         		valueAtt = atts.getValue(a);
-        	} else if (f.equals(StandardNames.COUNT)) {
+        	} else if (f.equals("count")) {
         		countAtt = atts.getValue(a);
-        	} else if (f.equals(StandardNames.FROM)) {
+        	} else if (f.equals("from")) {
         		fromAtt = atts.getValue(a);
-        	} else if (f.equals(StandardNames.LEVEL)) {
+        	} else if (f.equals("level")) {
         		levelAtt = Whitespace.trim(atts.getValue(a));
-        	} else if (f.equals(StandardNames.FORMAT)) {
+        	} else if (f.equals("format")) {
         		formatAtt = atts.getValue(a);
-        	} else if (f.equals(StandardNames.LANG)) {
+        	} else if (f.equals("lang")) {
         		langAtt = atts.getValue(a);
-        	} else if (f.equals(StandardNames.LETTER_VALUE)) {
+        	} else if (f.equals("letter-value")) {
         		letterValueAtt = Whitespace.trim(atts.getValue(a));
-        	} else if (f.equals(StandardNames.GROUPING_SIZE)) {
+        	} else if (f.equals("grouping-size")) {
         		gsizeAtt = Whitespace.trim(atts.getValue(a));
-        	} else if (f.equals(StandardNames.GROUPING_SEPARATOR)) {
+        	} else if (f.equals("grouping-separator")) {
         		gsepAtt = atts.getValue(a);
-            } else if (f.equals(StandardNames.ORDINAL)) {
+            } else if (f.equals("ordinal")) {
                 ordinalAtt = atts.getValue(a);
         	} else {
         		checkUnknownAttribute(qn);

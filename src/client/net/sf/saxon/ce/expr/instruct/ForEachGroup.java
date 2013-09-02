@@ -7,7 +7,6 @@ import client.net.sf.saxon.ce.lib.StringCollator;
 import client.net.sf.saxon.ce.lib.TraceListener;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.SequenceIterator;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.pattern.PatternSponsor;
 import client.net.sf.saxon.ce.trans.Err;
 import client.net.sf.saxon.ce.trans.XPathException;
@@ -77,15 +76,6 @@ public class ForEachGroup extends Instruction
             Expression child = (Expression)kids.next();
             adoptChildExpression(child);
         }
-    }
-
-    /**
-     * Get the name of this instruction for diagnostic and tracing purposes
-     * @return the name of the instruction
-     */
-
-    public int getInstructionNameCode() {
-        return StandardNames.XSL_FOR_EACH_GROUP;
     }
 
     /**

@@ -4,7 +4,6 @@ import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.value.BooleanValue;
-import client.net.sf.saxon.ce.value.IntegerValue;
 import client.net.sf.saxon.ce.value.NumericValue;
 import client.net.sf.saxon.ce.value.StringValue;
 
@@ -90,26 +89,14 @@ public class FilterIterator implements SequenceIterator {
         if (first instanceof NodeInfo) {
             return true;
         } else {
+            if (iterator.next() != null) {
+                ExpressionTool.ebvError("sequence of two or more atomic values");
+            }
             if (first instanceof BooleanValue) {
-                if (iterator.next() != null) {
-                    ExpressionTool.ebvError("sequence of two or more items starting with a boolean");
-                }
                 return ((BooleanValue)first).getBooleanValue();
             } else if (first instanceof StringValue) {
-                if (iterator.next() != null) {
-                    ExpressionTool.ebvError("sequence of two or more items starting with a string");
-                }
-                return (first.getStringValueCS().length()!=0);
-            } else if (first instanceof IntegerValue) {
-                if (iterator.next() != null) {
-                    ExpressionTool.ebvError("sequence of two or more items starting with a numeric value");
-                }
-                return ((IntegerValue)first).intValue() == base.position();
-
+                return (first.getStringValue().length() != 0);
             } else if (first instanceof NumericValue) {
-                if (iterator.next() != null) {
-                    ExpressionTool.ebvError("sequence of two or more items starting with a numeric value");
-                }
                 return ((NumericValue)first).compareTo(base.position()) == 0;
             } else {
                 ExpressionTool.ebvError("sequence starting with an atomic value other than a boolean, number, or string");
@@ -131,61 +118,20 @@ public class FilterIterator implements SequenceIterator {
     */
 
     public SequenceIterator getAnother() throws XPathException {
-        return new FilterIterator(base.getAnother(), filter,
-                                    filterContext);
+        return new FilterIterator(base.getAnother(), filter, filterContext);
     }
 
     /**
      * Get properties of this iterator, as a bit-significant integer.
      *
      * @return the properties of this iterator. This will be some combination of
-     *         properties such as {@link SequenceIterator#GROUNDED}, {@link SequenceIterator#LAST_POSITION_FINDER},
-     *         and {@link SequenceIterator#LOOKAHEAD}. It is always
-     *         acceptable to return the value zero, indicating that there are no known special properties.
+     *         properties such as {@link SequenceIterator#GROUNDED}, {@link SequenceIterator#LAST_POSITION_FINDER}.
+     *         It is always acceptable to return the value zero, indicating that there are no known special properties.
      *         It is acceptable for the properties of the iterator to change depending on its state.
      */
 
     public int getProperties() {
         return 0;
-    }
-
-    /**
-    * Subclass to handle the common special case where it is statically known
-    * that the filter cannot return a numeric value
-    */
-
-    public static final class NonNumeric extends FilterIterator {
-
-        /**
-         * Create a FilterIterator for the situation where it is known that the filter
-         * expression will never evaluate to a number value. For this case we can simply
-         * use the effective boolean value of the predicate
-         * @param base iterator over the sequence to be filtered
-         * @param filter the filter expression
-         * @param context the current context (for evaluating the filter expression as a whole).
-         * A new context will be created to evaluate the predicate.
-         */
-
-        public NonNumeric(SequenceIterator base, Expression filter,
-                            XPathContext context) {
-            super(base, filter, context);
-        }
-
-        /**
-        * Determine whether the context item matches the filter predicate
-        */
-
-        protected boolean matches() throws XPathException {
-            return filter.effectiveBooleanValue(filterContext);
-        }
-
-        /**
-        * Get another iterator to return the same nodes
-        */
-
-        public SequenceIterator getAnother() throws XPathException {
-            return new FilterIterator.NonNumeric(base.getAnother(), filter, filterContext);
-        }
     }
 
 }

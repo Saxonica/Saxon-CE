@@ -6,7 +6,6 @@ import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.expr.instruct.SetProperty;
 import client.net.sf.saxon.ce.js.IXSLFunction;
 import client.net.sf.saxon.ce.om.AttributeCollection;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.value.Whitespace;
@@ -47,9 +46,9 @@ public class IXSLSetProperty extends StyleElement {
             String f = qn.getClarkName();
 			if (f.equals("object")) {
         		objectAtt = Whitespace.trim(atts.getValue(a));
-            } else if (f.equals(StandardNames.SELECT)) {
+            } else if (f.equals("select")) {
                 selectAtt = atts.getValue(a);
-            } else if (f.equals(StandardNames.NAME)) {
+            } else if (f.equals("name")) {
                 nameAtt = atts.getValue(a);
             } else {
         		checkUnknownAttribute(qn);

@@ -36,7 +36,7 @@ public class PatternParser extends ExpressionParser {
         if (inPredicate > 0) {
             return super.parseExpression();
         } else {
-            // TODO:CLAXON - disallow "union" as synonym for "|" in patterns
+            // TODO - disallow "union" as synonym for "|" in patterns
             return parseBinaryExpression(parsePathExpression(), 10);
         }
     }

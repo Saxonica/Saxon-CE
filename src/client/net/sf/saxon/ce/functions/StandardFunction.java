@@ -1,7 +1,6 @@
 package client.net.sf.saxon.ce.functions;
 
 import client.net.sf.saxon.ce.expr.StaticProperty;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.pattern.AnyNodeTest;
 import client.net.sf.saxon.ce.pattern.NodeKindTest;
 import client.net.sf.saxon.ce.type.AnyItemType;
@@ -212,7 +211,7 @@ public abstract class StandardFunction {
         e.maxArguments = Integer.MAX_VALUE;
         // Note, this has a variable number of arguments so it is treated specially
 
-        register("contains", new Contains(), SequenceType.SINGLE_BOOLEAN, "s? s? ?s");
+        register("contains", new Contains(Contains.CONTAINS), SequenceType.SINGLE_BOOLEAN, "s? s? ?s");
 //        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
 //        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
 //        e.optionalArg(SequenceType.SINGLE_STRING);
@@ -240,16 +239,13 @@ public abstract class StandardFunction {
 //        e.mandatoryArg(SequenceType.OPTIONAL_DATE);
 //        e.mandatoryArg(SequenceType.OPTIONAL_TIME);
 
-        register("day-from-date", new Component((Component.DAY << 16) + StandardNames.XS_DATE),
-                SequenceType.OPTIONAL_INTEGER, "dat?");
+        register("day-from-date", new Component(Component.DAY), SequenceType.OPTIONAL_INTEGER, "dat?");
 //        e.mandatoryArg(SequenceType.OPTIONAL_DATE);
 
-        register("day-from-dateTime", new Component((Component.DAY << 16) + StandardNames.XS_DATE_TIME),
-                SequenceType.OPTIONAL_INTEGER, "dt?");
+        register("day-from-dateTime", new Component(Component.DAY), SequenceType.OPTIONAL_INTEGER, "dt?");
 //        e.mandatoryArg(SequenceType.OPTIONAL_DATE_TIME);
 
-        register("days-from-duration", new Component((Component.DAY << 16) + StandardNames.XS_DURATION),
-                SequenceType.OPTIONAL_INTEGER, "dur?");
+        register("days-from-duration", new Component(Component.DAY), SequenceType.OPTIONAL_INTEGER, "dur?");
 //        e.mandatoryArg(SequenceType.OPTIONAL_DURATION);
 
         register("deep-equal", new DeepEqual(), SequenceType.SINGLE_BOOLEAN, "* * s?");
@@ -278,7 +274,7 @@ public abstract class StandardFunction {
         register("empty", new Empty(), SequenceType.SINGLE_BOOLEAN, "*");
 //        e.mandatoryArg(SequenceType.ANY_SEQUENCE);
 
-        register("ends-with", new EndsWith(), SequenceType.SINGLE_BOOLEAN, "s? s? ?s");
+        register("ends-with", new Contains(Contains.ENDS_WITH), SequenceType.SINGLE_BOOLEAN, "s? s? ?s");
 //        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
 //        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
 //        e.optionalArg(SequenceType.SINGLE_STRING);
@@ -313,7 +309,7 @@ public abstract class StandardFunction {
         e.sameItemTypeAsFirstArgument = true;
 //        e.mandatoryArg(SequenceType.OPTIONAL_NUMERIC);
 
-        e = register("format-date", new FormatDate(StandardNames.XS_DATE), SequenceType.SINGLE_STRING, "dat? s ?s? ?s? ?s?");
+        e = register("format-date", new FormatDate(), SequenceType.SINGLE_STRING, "dat? s ?s? ?s? ?s?");
         e.applicability = XSLT;
 //        e.mandatoryArg(SequenceType.OPTIONAL_DATE);
 //        e.mandatoryArg(SequenceType.SINGLE_STRING);
@@ -321,7 +317,7 @@ public abstract class StandardFunction {
 //        e.optionalArg(SequenceType.OPTIONAL_STRING);
 //        e.optionalArg(SequenceType.OPTIONAL_STRING);
 
-        e = register("format-dateTime", new FormatDate(StandardNames.XS_DATE_TIME), SequenceType.SINGLE_STRING, "dt? s ?s? ?s? ?s?");
+        e = register("format-dateTime", new FormatDate(), SequenceType.SINGLE_STRING, "dt? s ?s? ?s? ?s?");
         e.applicability = XSLT;
 //        e.mandatoryArg(SequenceType.OPTIONAL_DATE_TIME);
 //        e.mandatoryArg(SequenceType.SINGLE_STRING);
@@ -335,7 +331,7 @@ public abstract class StandardFunction {
 //        e.mandatoryArg(SequenceType.SINGLE_STRING);
 //        e.optionalArg(SequenceType.SINGLE_STRING);
 
-        e = register("format-time", new FormatDate(StandardNames.XS_TIME), SequenceType.SINGLE_STRING, "tim? s ?s? ?s? ?s?");
+        e = register("format-time", new FormatDate(), SequenceType.SINGLE_STRING, "tim? s ?s? ?s? ?s?");
         e.applicability = XSLT;
 //        e.mandatoryArg(SequenceType.OPTIONAL_TIME);
 //        e.mandatoryArg(SequenceType.SINGLE_STRING);
@@ -352,15 +348,15 @@ public abstract class StandardFunction {
         e.applicability = XSLT;
 //        e.mandatoryArg(SequenceType.OPTIONAL_NODE);
 
-        register("hours-from-dateTime", new Component((Component.HOURS << 16) + StandardNames.XS_DATE_TIME),
+        register("hours-from-dateTime", new Component(Component.HOURS),
                 SequenceType.OPTIONAL_INTEGER, "dt?");
 //        e.mandatoryArg(SequenceType.OPTIONAL_DATE_TIME);
 
-        register("hours-from-duration", new Component((Component.HOURS << 16) + StandardNames.XS_DURATION),
+        register("hours-from-duration", new Component(Component.HOURS),
                 SequenceType.OPTIONAL_INTEGER, "dur?");
 //        e.mandatoryArg(SequenceType.OPTIONAL_DURATION);
 
-        register("hours-from-time", new Component((Component.HOURS << 16) + StandardNames.XS_TIME),
+        register("hours-from-time", new Component(Component.HOURS),
                 SequenceType.OPTIONAL_INTEGER, "tim?");
 //        e.mandatoryArg(SequenceType.OPTIONAL_TIME);
 
@@ -401,7 +397,7 @@ public abstract class StandardFunction {
         register("local-name", new NamePart(NamePart.LOCAL_NAME), SequenceType.SINGLE_STRING, "N?");
 //        e.mandatoryArg(SequenceType.OPTIONAL_NODE);
 
-        register("local-name-from-QName", new Component((Component.LOCALNAME << 16) + StandardNames.XS_QNAME),
+        register("local-name-from-QName", new Component(Component.LOCALNAME),
                 SequenceType.OPTIONAL_STRING, "q?");
 //        e.mandatoryArg(SequenceType.OPTIONAL_QNAME);
 
@@ -421,27 +417,27 @@ public abstract class StandardFunction {
 //        e.mandatoryArg(SequenceType.ATOMIC_SEQUENCE);
 //        e.optionalArg(SequenceType.SINGLE_STRING);
 
-        register("minutes-from-dateTime", new Component((Component.MINUTES << 16) + StandardNames.XS_DATE_TIME),
+        register("minutes-from-dateTime", new Component(Component.MINUTES),
                 SequenceType.OPTIONAL_INTEGER, "dt?");
 //        e.mandatoryArg(SequenceType.OPTIONAL_DATE_TIME);
 
-        register("minutes-from-duration", new Component((Component.MINUTES << 16) + StandardNames.XS_DURATION),
+        register("minutes-from-duration", new Component(Component.MINUTES),
                 SequenceType.OPTIONAL_INTEGER, "dur?");
 //        e.mandatoryArg(SequenceType.OPTIONAL_DURATION);
 
-        register("minutes-from-time", new Component((Component.MINUTES << 16) + StandardNames.XS_TIME),
+        register("minutes-from-time", new Component(Component.MINUTES),
                 SequenceType.OPTIONAL_INTEGER, "tim?");
 //        e.mandatoryArg(SequenceType.OPTIONAL_TIME);
 
-        register("month-from-date", new Component((Component.MONTH << 16) + StandardNames.XS_DATE),
+        register("month-from-date", new Component(Component.MONTH),
                 SequenceType.OPTIONAL_INTEGER, "dat?");
 //        e.mandatoryArg(SequenceType.OPTIONAL_DATE);
 
-        register("month-from-dateTime", new Component((Component.MONTH << 16) + StandardNames.XS_DATE_TIME),
+        register("month-from-dateTime", new Component(Component.MONTH),
                 SequenceType.OPTIONAL_INTEGER, "dt?");
 //        e.mandatoryArg(SequenceType.OPTIONAL_DATE_TIME);
 
-        register("months-from-duration", new Component((Component.MONTH << 16) + StandardNames.XS_DURATION),
+        register("months-from-duration", new Component(Component.MONTH),
                 SequenceType.OPTIONAL_INTEGER, "dur?");
 //        e.mandatoryArg(SequenceType.OPTIONAL_DURATION);
 
@@ -455,7 +451,7 @@ public abstract class StandardFunction {
 //        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
 //        e.mandatoryArg(SequenceType.SINGLE_ELEMENT);
 
-        register("namespace-uri-from-QName", new Component((Component.NAMESPACE << 16) + StandardNames.XS_QNAME),
+        register("namespace-uri-from-QName", new Component(Component.NAMESPACE),
                 SequenceType.OPTIONAL_ANY_URI, "q?");
 //        e.mandatoryArg(SequenceType.OPTIONAL_QNAME);
 
@@ -480,7 +476,7 @@ public abstract class StandardFunction {
 
         register("position", new Position(), SequenceType.SINGLE_INTEGER, "");
 
-        register("prefix-from-QName", new Component((Component.PREFIX << 16) + StandardNames.XS_QNAME),
+        register("prefix-from-QName", new Component(Component.PREFIX),
                 SequenceType.OPTIONAL_STRING, "q?");
 //        e.mandatoryArg(SequenceType.OPTIONAL_QNAME);
 
@@ -526,19 +522,19 @@ public abstract class StandardFunction {
 //        e.mandatoryArg(SequenceType.OPTIONAL_NUMERIC);
 //        e.mandatoryArg(SequenceType.SINGLE_INTEGER);
 
-        register("seconds-from-dateTime", new Component((Component.SECONDS << 16) + StandardNames.XS_DATE_TIME),
+        register("seconds-from-dateTime", new Component(Component.SECONDS),
                 SequenceType.OPTIONAL_DECIMAL, "dt?");
 //        e.mandatoryArg(SequenceType.OPTIONAL_DATE_TIME);
 
-        register("seconds-from-duration", new Component((Component.SECONDS << 16) + StandardNames.XS_DURATION),
+        register("seconds-from-duration", new Component(Component.SECONDS),
                 SequenceType.OPTIONAL_DECIMAL, "dur?");
 //        e.mandatoryArg(SequenceType.OPTIONAL_DURATION);
 
-        register("seconds-from-time", new Component((Component.SECONDS << 16) + StandardNames.XS_TIME),
+        register("seconds-from-time", new Component(Component.SECONDS),
                 SequenceType.OPTIONAL_DECIMAL, "tim?");
 //        e.mandatoryArg(SequenceType.OPTIONAL_TIME);
 
-        register("starts-with", new StartsWith(), SequenceType.SINGLE_BOOLEAN, "s? s? ?s");
+        register("starts-with", new Contains(Contains.STARTS_WITH), SequenceType.SINGLE_BOOLEAN, "s? s? ?s");
 //        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
 //        e.mandatoryArg(SequenceType.OPTIONAL_STRING);
 //        e.optionalArg(SequenceType.SINGLE_STRING);
@@ -588,15 +584,15 @@ public abstract class StandardFunction {
         e.applicability = XSLT | USE_WHEN;
 //        e.mandatoryArg(SequenceType.SINGLE_STRING);
 
-        register("timezone-from-date", new Component((Component.TIMEZONE << 16) + StandardNames.XS_DATE),
+        register("timezone-from-date", new Component(Component.TIMEZONE),
                 SequenceType.OPTIONAL_DAY_TIME_DURATION, "dat?");
 //        e.mandatoryArg(SequenceType.OPTIONAL_DATE);
 
-        register("timezone-from-dateTime", new Component((Component.TIMEZONE << 16) + StandardNames.XS_DATE_TIME),
+        register("timezone-from-dateTime", new Component(Component.TIMEZONE),
                 SequenceType.OPTIONAL_DAY_TIME_DURATION, "dt?");
 //        e.mandatoryArg(SequenceType.OPTIONAL_DATE_TIME);
 
-        register("timezone-from-time", new Component((Component.TIMEZONE << 16) + StandardNames.XS_TIME),
+        register("timezone-from-time", new Component(Component.TIMEZONE),
                 SequenceType.OPTIONAL_DAY_TIME_DURATION, "tim?");
 //        e.mandatoryArg(SequenceType.OPTIONAL_TIME);
 
@@ -633,15 +629,15 @@ public abstract class StandardFunction {
 //        e.mandatoryArg(SequenceType.SINGLE_STRING);
 //        e.mandatoryArg(SequenceType.SINGLE_STRING);
 
-        register("year-from-date", new Component((Component.YEAR << 16) + StandardNames.XS_DATE),
+        register("year-from-date", new Component(Component.YEAR),
                 SequenceType.OPTIONAL_INTEGER, "dat?");
 //        e.mandatoryArg(SequenceType.OPTIONAL_DATE);
 
-        register("year-from-dateTime", new Component((Component.YEAR << 16) + StandardNames.XS_DATE_TIME),
+        register("year-from-dateTime", new Component(Component.YEAR),
                 SequenceType.OPTIONAL_INTEGER, "dt?");
 //        e.mandatoryArg(SequenceType.OPTIONAL_DATE_TIME);
 
-        register("years-from-duration", new Component((Component.YEAR << 16) + StandardNames.XS_DURATION),
+        register("years-from-duration", new Component(Component.YEAR),
                 SequenceType.OPTIONAL_INTEGER, "dur?");
 //        e.mandatoryArg(SequenceType.OPTIONAL_DURATION);
 

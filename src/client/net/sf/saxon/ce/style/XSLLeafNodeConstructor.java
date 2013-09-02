@@ -40,9 +40,9 @@ public abstract class XSLLeafNodeConstructor extends StyleElement {
 		for (int a=0; a<atts.getLength(); a++) {
 			StructuredQName qn = atts.getStructuredQName(a);
             String f = qn.getClarkName();
-			if (f.equals(StandardNames.NAME)) {
+			if (f.equals("name")) {
         		nameAtt = Whitespace.trim(atts.getValue(a));
-       	    } else if (f.equals(StandardNames.SELECT)) {
+       	    } else if (f.equals("select")) {
         		selectAtt = Whitespace.trim(atts.getValue(a));
         	} else {
         		checkUnknownAttribute(qn);

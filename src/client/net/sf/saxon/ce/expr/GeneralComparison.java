@@ -1,5 +1,6 @@
 package client.net.sf.saxon.ce.expr;
 
+import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.expr.sort.AtomicComparer;
 import client.net.sf.saxon.ce.expr.sort.CodepointCollator;
 import client.net.sf.saxon.ce.expr.sort.GenericAtomicComparer;
@@ -7,11 +8,13 @@ import client.net.sf.saxon.ce.functions.Minimax;
 import client.net.sf.saxon.ce.functions.SystemFunction;
 import client.net.sf.saxon.ce.lib.StringCollator;
 import client.net.sf.saxon.ce.om.Item;
-import client.net.sf.saxon.ce.om.NamePool;
 import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.pattern.EmptySequenceTest;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.type.*;
+import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.ItemType;
+import client.net.sf.saxon.ce.type.Type;
+import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.*;
 
 import java.math.BigDecimal;
@@ -43,6 +46,27 @@ public class GeneralComparison extends BinaryExpression implements ComparisonExp
     }
 
     /**
+     * Simplify a GeneralComparison expression
+     * @param gc the GeneralComparison to be simplified
+     * @param backwardsCompatible true if in 1.0 compatibility mode
+     * @return the simplified expression
+     */
+
+    public static BinaryExpression simplifyGeneralComparison(GeneralComparison gc, boolean backwardsCompatible) {
+        if (backwardsCompatible) {
+            Expression[] operands = gc.getOperands();
+            GeneralComparison10 gc10 = new GeneralComparison10(operands[0], gc.getOperator(), operands[1]);
+            gc10.setAtomicComparer(gc.getAtomicComparer());
+            return gc10;
+        } else {
+            Expression[] operands = gc.getOperands();
+            GeneralComparison20 gc20 = new GeneralComparison20(operands[0], gc.getOperator(), operands[1]);
+            gc20.setAtomicComparer(gc.getAtomicComparer());
+            return gc20;
+        }
+    }
+
+    /**
      * Set the comparer to be used
      * @param comparer the comparer to be used
      */
@@ -55,8 +79,7 @@ public class GeneralComparison extends BinaryExpression implements ComparisonExp
     public Expression simplify(ExpressionVisitor visitor) throws XPathException {
         Expression e = super.simplify(visitor);
         if (e == this) {
-            e = visitor.getConfiguration().getOptimizer().simplifyGeneralComparison(
-                    this, visitor.getStaticContext().isInBackwardsCompatibleMode());
+            e = simplifyGeneralComparison(this, visitor.getStaticContext().isInBackwardsCompatibleMode());
         }
         ExpressionTool.copyLocationInfo(this, e);
         return e;
@@ -95,7 +118,8 @@ public class GeneralComparison extends BinaryExpression implements ComparisonExp
 
     public Expression typeCheck(ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
 
-        final TypeHierarchy th = visitor.getConfiguration().getTypeHierarchy();
+        final Configuration config = visitor.getConfiguration();
+        final TypeHierarchy th = config.getTypeHierarchy();
 
         Expression oldOp0 = operand0;
         Expression oldOp1 = operand1;
@@ -111,9 +135,8 @@ public class GeneralComparison extends BinaryExpression implements ComparisonExp
 
         // Neither operand needs to be sorted
 
-        Optimizer opt = visitor.getConfiguration().getOptimizer();
-        operand0 = ExpressionTool.unsorted(opt, operand0, false);
-        operand1 = ExpressionTool.unsorted(opt, operand1, false);
+        operand0 = ExpressionTool.unsorted(config, operand0, false);
+        operand1 = ExpressionTool.unsorted(config, operand1, false);
 
         SequenceType atomicType = SequenceType.ATOMIC_SEQUENCE;
 
@@ -156,9 +179,8 @@ public class GeneralComparison extends BinaryExpression implements ComparisonExp
         } else {
 
             if (!Type.isComparable(pt0, pt1, Token.isOrderedOperator(singletonOperator))) {
-                final NamePool namePool = visitor.getConfiguration().getNamePool();
                 typeError("Cannot compare " +
-                        t0.toString(namePool) + " to " + t1.toString(namePool), "XPTY0004", null);
+                        t0.toString() + " to " + t1.toString(), "XPTY0004", null);
             }
         }
 
@@ -211,7 +233,7 @@ public class GeneralComparison extends BinaryExpression implements ComparisonExp
                 collation = CodepointCollator.getInstance();
             }
             comparer = GenericAtomicComparer.makeAtomicComparer(
-                    pt0, pt1, collation, visitor.getConfiguration().getConversionContext());
+                    pt0, pt1, collation, config.getConversionContext());
         }
 
 
@@ -238,9 +260,9 @@ public class GeneralComparison extends BinaryExpression implements ComparisonExp
 
     public Expression optimize(ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
 
-        final TypeHierarchy th = visitor.getConfiguration().getTypeHierarchy();
+        Configuration config = visitor.getConfiguration();
+        final TypeHierarchy th = config.getTypeHierarchy();
         final StaticContext env = visitor.getStaticContext();
-        final Optimizer opt = visitor.getConfiguration().getOptimizer();
 
         operand0 = visitor.optimize(operand0, contextItemType);
         operand1 = visitor.optimize(operand1, contextItemType);
@@ -253,8 +275,8 @@ public class GeneralComparison extends BinaryExpression implements ComparisonExp
 
         // Neither operand needs to be sorted
 
-        operand0 = ExpressionTool.unsorted(opt, operand0, false);
-        operand1 = ExpressionTool.unsorted(opt, operand1, false);
+        operand0 = ExpressionTool.unsorted(config, operand0, false);
+        operand1 = ExpressionTool.unsorted(config, operand1, false);
 
         if (operand0 instanceof Literal && operand1 instanceof Literal) {
             return new Literal(
@@ -320,14 +342,14 @@ public class GeneralComparison extends BinaryExpression implements ComparisonExp
 
         if (comparer == null) {
             final String defaultCollationName = env.getDefaultCollationName();
-            StringCollator comp = env.getConfiguration().getNamedCollation(defaultCollationName);
+            StringCollator comp = config.getNamedCollation(defaultCollationName);
             if (comp == null) {
                 comp = CodepointCollator.getInstance();
             }
             BuiltInAtomicType pt0 = (BuiltInAtomicType)t0.getPrimitiveItemType();
             BuiltInAtomicType pt1 = (BuiltInAtomicType)t1.getPrimitiveItemType();
             comparer = GenericAtomicComparer.makeAtomicComparer(pt0, pt1, comp,
-                    env.getConfiguration().getConversionContext());
+                    config.getConversionContext());
         }
 
         // If one operand is numeric, then construct code
@@ -335,21 +357,19 @@ public class GeneralComparison extends BinaryExpression implements ComparisonExp
 
         // TODO: shouldn't this happen during type checking?
 
-        Expression e0 = operand0;
-        Expression e1 = operand1;
 
         boolean numeric0 = th.isSubType(t0, BuiltInAtomicType.NUMERIC);
         boolean numeric1 = th.isSubType(t1, BuiltInAtomicType.NUMERIC);
         if (numeric1 && !numeric0) {
             RoleLocator role = new RoleLocator(RoleLocator.BINARY_EXPR, Token.tokens[operator], 0);
             //role.setSourceLocator(this);
-            e0 = TypeChecker.staticTypeCheck(e0, SequenceType.NUMERIC_SEQUENCE, false, role, visitor);
+            operand0 = TypeChecker.staticTypeCheck(operand0, SequenceType.NUMERIC_SEQUENCE, false, role, visitor);
         }
 
         if (numeric0 && !numeric1) {
             RoleLocator role = new RoleLocator(RoleLocator.BINARY_EXPR, Token.tokens[operator], 1);
             //role.setSourceLocator(this);
-            e1 = TypeChecker.staticTypeCheck(e1, SequenceType.NUMERIC_SEQUENCE, false, role, visitor);
+            operand1 = TypeChecker.staticTypeCheck(operand1, SequenceType.NUMERIC_SEQUENCE, false, role, visitor);
         }
 
 
@@ -401,17 +421,17 @@ public class GeneralComparison extends BinaryExpression implements ComparisonExp
             switch(operator) {
                 case Token.LT:
                 case Token.LE:
-                    vc = new ValueComparison(makeMinOrMax(e0, "min"),
+                    vc = new ValueComparison(makeMinOrMax(operand0, "min"),
                             singletonOperator,
-                            makeMinOrMax(e1, "max"));
+                            makeMinOrMax(operand1, "max"));
                     vc.setResultWhenEmpty(BooleanValue.FALSE);
                     vc.setAtomicComparer(comparer);
                     break;
                 case Token.GT:
                 case Token.GE:
-                    vc = new ValueComparison(makeMinOrMax(e0, "max"),
+                    vc = new ValueComparison(makeMinOrMax(operand0, "max"),
                             singletonOperator,
-                            makeMinOrMax(e1, "min"));
+                            makeMinOrMax(operand1, "min"));
                     vc.setResultWhenEmpty(BooleanValue.FALSE);
                     vc.setAtomicComparer(comparer);
                     break;

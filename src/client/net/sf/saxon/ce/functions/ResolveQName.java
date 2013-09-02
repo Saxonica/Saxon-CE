@@ -27,7 +27,7 @@ public class ResolveQName extends SystemFunction {
             return null;
         }
 
-        CharSequence lexicalQName = arg0.getStringValueCS();
+        CharSequence lexicalQName = arg0.getStringValue();
 
         NodeInfo element = (NodeInfo)argument[1].evaluateItem(context);
         NamespaceResolver resolver = new InscopeNamespaceResolver(element);

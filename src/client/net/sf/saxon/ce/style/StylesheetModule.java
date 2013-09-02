@@ -107,7 +107,7 @@ public class StylesheetModule {
             }
             if (child.getNodeKind() == Type.TEXT) {
                 // in an embedded stylesheet, white space nodes may still be there
-                if (!Whitespace.isWhite(child.getStringValueCS())) {
+                if (!Whitespace.isWhite(child.getStringValue())) {
                     previousElement.compileError(
                             "No character data is allowed between top-level elements", "XTSE0120");
                 }

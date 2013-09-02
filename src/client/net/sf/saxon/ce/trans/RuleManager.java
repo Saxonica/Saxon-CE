@@ -37,39 +37,11 @@ public final class RuleManager  {
     }
 
     /**
-     * Set the policy for handling recoverable errrors. Note that for some errors the decision can be
-     * made at run-time, but for the "ambiguous template match" error, the decision is (since 9.2)
-     * fixed at compile time.
-     * @param policy the recovery policy to be used. The options are {@link client.net.sf.saxon.ce.Configuration#RECOVER_SILENTLY},
-     * {@link client.net.sf.saxon.ce.Configuration#RECOVER_WITH_WARNINGS}, or {@link client.net.sf.saxon.ce.Configuration#DO_NOT_RECOVER}.
-     * @since 9.2
-     */
-
-    public void setRecoveryPolicy(int policy) {
-        recoveryPolicy = policy;
-        unnamedMode.setRecoveryPolicy(policy);
-    }
-
-    /**
-     * Get the policy for handling recoverable errors. Note that for some errors the decision can be
-     * made at run-time, but for the "ambiguous template match" error, the decision is (since 9.2)
-     * fixed at compile time.
-     *
-     * @return the current policy.
-     * @since 9.2
-     */
-
-    public int getRecoveryPolicy() {
-        return recoveryPolicy;
-    }
-
-    /**
     * Set up a new table of handlers.
     */
 
     public void resetHandlers() {
         unnamedMode = new Mode(Mode.UNNAMED_MODE, Mode.UNNAMED_MODE_NAME);
-        unnamedMode.setRecoveryPolicy(recoveryPolicy);
         modes = new HashMap<StructuredQName, Mode>(5);
     }
 
@@ -98,7 +70,6 @@ public final class RuleManager  {
         if (modeName.equals(Mode.ALL_MODES)) {
             if (omniMode==null) {
                 omniMode = new Mode(Mode.NAMED_MODE, modeName);
-                omniMode.setRecoveryPolicy(recoveryPolicy);
             }
             return omniMode;
         }
@@ -106,7 +77,6 @@ public final class RuleManager  {
         Mode m = modes.get(modeName);
         if (m == null && createIfAbsent) {
             m = new Mode(omniMode, modeName);
-            m.setRecoveryPolicy(recoveryPolicy);
             modes.put(modeName, m);
             // when creating a specific mode, copy all the rules currently held
             // in the omniMode, as these apply to all modes
@@ -129,32 +99,6 @@ public final class RuleManager  {
         }
         return result;
     }
-
-    /**
-      * Register a template rule for a particular pattern. The priority of the rule
-      * is the default priority for the pattern, which depends on the syntax of
-      * the pattern suppllied.
-      * @param pattern A match pattern
-      * @param eh The Template to be used
-      * @param mode The processing mode
-      * @param module The stylesheet module containing the template rule
-      */
-
-//    public void setTemplateRule(Pattern pattern, Template eh, Mode mode, StylesheetModule module) {
-//        // for a union pattern, register the parts separately (each with its own priority)
-//        if (pattern instanceof UnionPattern) {
-//            UnionPattern up = (UnionPattern)pattern;
-//            Pattern p1 = up.getLHS();
-//            Pattern p2 = up.getRHS();
-//            setTemplateRule(p1, eh, mode, module);
-//            setTemplateRule(p2, eh, mode, module);
-//            return;
-//        }
-//
-//        double priority = pattern.getDefaultPriority();
-//        setTemplateRule(pattern, eh, mode, module, priority);
-//    }
-
 
     /**
       * Register a template for a particular pattern.

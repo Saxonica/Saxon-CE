@@ -23,13 +23,13 @@ public final class LocalNameTest extends NodeTest {
     /**
     * Test whether this node test is satisfied by a given node
      * @param nodeType The type of node to be matched
-      * @param fingerprint identifies the expanded name of the node to be matched
+      * @param qName identifies the expanded name of the node to be matched
      */
 
-    public boolean matches(int nodeType, StructuredQName fingerprint, int annotation) {
-        if (fingerprint == null) return false;
+    public boolean matches(int nodeType, StructuredQName qName) {
+        if (qName == null) return false;
         if (nodeType != nodeKind) return false;
-        return localName.equals(fingerprint.getLocalName());
+        return localName.equals(qName.getLocalName());
     }
 
     /**

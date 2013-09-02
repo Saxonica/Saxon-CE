@@ -7,7 +7,6 @@ import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.functions.FunctionLibrary;
 import client.net.sf.saxon.ce.functions.FunctionLibraryList;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
-import client.net.sf.saxon.ce.om.NamePool;
 import client.net.sf.saxon.ce.trans.DecimalFormatManager;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.SourceLocator;
@@ -127,14 +126,6 @@ public abstract class AbstractStaticContext implements StaticContext {
 
     public String getDefaultCollationName() {
         return NamespaceConstant.CODEPOINT_COLLATION_URI;
-    }
-
-    /**
-    * Get the NamePool used for compiling expressions
-    */
-
-    public NamePool getNamePool() {
-        return config.getNamePool();
     }
 
     /**

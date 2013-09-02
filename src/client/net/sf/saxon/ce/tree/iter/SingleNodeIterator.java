@@ -129,7 +129,7 @@ public class SingleNodeIterator implements AxisIterator, UnfailingIterator,
 
     public CharSequence getStringValue() {
         if (position == 1) {
-            return item.getStringValueCS();
+            return item.getStringValue();
         } else {
             throw new NullPointerException();
         }

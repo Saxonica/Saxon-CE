@@ -3,7 +3,6 @@ package client.net.sf.saxon.ce.pattern;
 import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.js.JSObjectValue;
 import client.net.sf.saxon.ce.om.Item;
-import client.net.sf.saxon.ce.om.NamePool;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.type.*;
 
@@ -35,10 +34,6 @@ public class AnyJSObjectNodeTest extends NodeTest {
         return Type.ITEM;
     }
 
-    public String toString(NamePool pool) {
-        return "JavaScriptObject";
-    }
-
     public BuiltInAtomicType getAtomizedItemType() {
         return null;
     }
@@ -49,7 +44,7 @@ public class AnyJSObjectNodeTest extends NodeTest {
 	}
 
 	@Override
-	public boolean matches(int nodeKind, StructuredQName fingerprint, int annotation) {
+	public boolean matches(int nodeKind, StructuredQName qName) {
         // not yet used for matching
 		return false;
 	}

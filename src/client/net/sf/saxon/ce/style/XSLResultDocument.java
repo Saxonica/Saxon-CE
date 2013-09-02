@@ -7,7 +7,6 @@ import client.net.sf.saxon.ce.expr.instruct.ResultDocument;
 import client.net.sf.saxon.ce.lib.Validation;
 import client.net.sf.saxon.ce.om.AttributeCollection;
 import client.net.sf.saxon.ce.om.Axis;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
@@ -31,21 +30,21 @@ public class XSLResultDocument extends StyleElement {
     private static final HashSet fans = new HashSet(25);    // formatting attribute names
 
     static {
-        fans.add(StandardNames.METHOD);
-        fans.add(StandardNames.OUTPUT_VERSION);
-        fans.add(StandardNames.BYTE_ORDER_MARK);
-        fans.add(StandardNames.INDENT);
-        fans.add(StandardNames.ENCODING);
-        fans.add(StandardNames.MEDIA_TYPE);
-        fans.add(StandardNames.DOCTYPE_SYSTEM);
-        fans.add(StandardNames.DOCTYPE_PUBLIC);
-        fans.add(StandardNames.OMIT_XML_DECLARATION);
-        fans.add(StandardNames.STANDALONE);
-        fans.add(StandardNames.CDATA_SECTION_ELEMENTS);
-        fans.add(StandardNames.INCLUDE_CONTENT_TYPE);
-        fans.add(StandardNames.ESCAPE_URI_ATTRIBUTES);
-        fans.add(StandardNames.UNDECLARE_PREFIXES);
-        fans.add(StandardNames.NORMALIZATION_FORM);
+        fans.add("method");
+        fans.add("output-version");
+        fans.add("byte-order-mark");
+        fans.add("indent");
+        fans.add("encoding");
+        fans.add("media-type");
+        fans.add("doctype-system");
+        fans.add("doctype-public");
+        fans.add("omit-xml-declaration");
+        fans.add("standalone");
+        fans.add("cdata-section-elements");
+        fans.add("include-content-type");
+        fans.add("escape-uri-attributes");
+        fans.add("undeclare-prefixes");
+        fans.add("normalization-form");
     }
 
     private Expression href;
@@ -98,15 +97,15 @@ public class XSLResultDocument extends StyleElement {
 		for (int a=0; a<atts.getLength(); a++) {
 			StructuredQName qn = atts.getStructuredQName(a);
             String f = qn.getClarkName();
-			if (f.equals(StandardNames.METHOD)) {
+			if (f.equals("method")) {
         		methodAtt = Whitespace.trim(atts.getValue(a));
-        	} else if (f.equals(StandardNames.HREF)) {
+        	} else if (f.equals("href")) {
         		hrefAttribute = Whitespace.trim(atts.getValue(a));
-            } else if (f.equals(StandardNames.VALIDATION)) {
+            } else if (f.equals("validation")) {
                 validationAtt = Whitespace.trim(atts.getValue(a));
-            } else if (f.equals(StandardNames.TYPE)) {
+            } else if (f.equals("type")) {
                 typeAtt = Whitespace.trim(atts.getValue(a));
-            } else if (f.equals(StandardNames.USE_CHARACTER_MAPS)) {
+            } else if (f.equals("use-character-maps")) {
                 useCharacterMapsAtt = Whitespace.trim(atts.getValue(a));
             } else if (fans.contains(f) || f.startsWith("{")) {
                 // this is a serialization attribute

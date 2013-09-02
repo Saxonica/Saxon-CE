@@ -136,9 +136,9 @@ public final class DoubleValue extends NumericValue {
         } else if (requiredType == BuiltInAtomicType.FLOAT) {
             return new FloatValue((float) value);
         } else if (requiredType == BuiltInAtomicType.STRING) {
-            return new StringValue(getStringValueCS());
+            return new StringValue(getStringValue());
         } else if (requiredType == BuiltInAtomicType.UNTYPED_ATOMIC) {
-            return new UntypedAtomicValue(getStringValueCS());
+            return new UntypedAtomicValue(getStringValue());
         } else {
             ValidationFailure err = new ValidationFailure("Cannot convert double to " +
                     requiredType.getDisplayName());

@@ -1,6 +1,5 @@
 package client.net.sf.saxon.ce.dom;
 
-import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.event.Receiver;
 import client.net.sf.saxon.ce.om.*;
 import client.net.sf.saxon.ce.pattern.NodeTest;
@@ -54,10 +53,6 @@ public class HTMLAttributeNode implements NodeInfo {
         return element.getBaseURI();
     }
 
-    public int getLineNumber() {
-        return element.getLineNumber();
-    }
-
     public int compareOrder(NodeInfo other) {
         if (other instanceof HTMLAttributeNode) {
             if (element.isSameNodeInfo(((HTMLAttributeNode)other).element)) {
@@ -90,18 +85,6 @@ public class HTMLAttributeNode implements NodeInfo {
 
     public String getDisplayName() {
         return (prefix.length() == 0)? name : prefix + ':' + name;
-    }
-
-    public String getPrefix() {
-        return prefix;
-    }
-
-    public Configuration getConfiguration() {
-        return element.getConfiguration();
-    }
-
-    public int getTypeAnnotation() {
-        return StandardNames.XS_UNTYPED_ATOMIC;
     }
 
     public NodeInfo getParent() {
@@ -188,10 +171,6 @@ public class HTMLAttributeNode implements NodeInfo {
 
     public NamespaceBinding[] getDeclaredNamespaces(NamespaceBinding[] buffer) {
         return NamespaceBinding.EMPTY_ARRAY;
-    }
-
-    public CharSequence getStringValueCS() {
-        return value;
     }
 
     public AtomicValue getTypedValue() {

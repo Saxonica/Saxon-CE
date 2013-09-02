@@ -1,7 +1,6 @@
 package client.net.sf.saxon.ce.expr.instruct;
 
 import client.net.sf.saxon.ce.expr.*;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.AnyItemType;
@@ -59,14 +58,6 @@ public class CallTemplate extends Instruction {
         for (int i=0; i<tunnelParams.length; i++) {
             adoptChildExpression(tunnelParams[i]);
         }
-    }
-
-    /**
-    * Return the name of this instruction.
-    */
-
-    public int getInstructionNameCode() {
-        return StandardNames.XSL_CALL_TEMPLATE;
     }
 
     /**

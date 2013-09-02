@@ -1,7 +1,6 @@
 package client.net.sf.saxon.ce.expr.instruct;
 import client.net.sf.saxon.ce.event.SequenceReceiver;
 import client.net.sf.saxon.ce.expr.*;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.pattern.NodeKindTest;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
@@ -19,15 +18,6 @@ public final class Comment extends SimpleNodeConstructor {
     */
 
     public Comment() {}
-
-    /**
-    * Get the instruction name, for diagnostics and tracing
-    * return the string "xsl:comment"
-    */
-
-    public int getInstructionNameCode() {
-        return StandardNames.XSL_COMMENT;
-    }
 
     public ItemType getItemType(TypeHierarchy th) {
         return NodeKindTest.COMMENT;

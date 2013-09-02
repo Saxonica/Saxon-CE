@@ -2,7 +2,6 @@ package client.net.sf.saxon.ce.trace;
 
 import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.event.Receiver;
-import client.net.sf.saxon.ce.om.NamePool;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.TypeHierarchy;
 
@@ -200,15 +199,6 @@ public class ExpressionPresenter {
 
     public Configuration getConfiguration() {
         return config;
-    }
-
-    /**
-     * Get the name pool
-     * @return the name pool
-     */
-
-    public NamePool getNamePool() {
-        return config.getNamePool();
     }
 
     /**

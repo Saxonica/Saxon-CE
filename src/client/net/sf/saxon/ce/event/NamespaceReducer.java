@@ -56,9 +56,9 @@ public class NamespaceReducer extends ProxyReceiver implements NamespaceResolver
     * possibly adds an xmlns="" undeclaration.
     */
 
-    public void startElement(StructuredQName nameCode, int properties) throws XPathException {
+    public void startElement(StructuredQName qName, int properties) throws XPathException {
 
-        nextReceiver.startElement(nameCode, properties);
+        nextReceiver.startElement(qName, properties);
 
         // If the parent element specified inherit=no, keep a list of namespaces that need to be
         // undeclared
@@ -89,7 +89,7 @@ public class NamespaceReducer extends ProxyReceiver implements NamespaceResolver
         // result element).
 
         if ((properties & ReceiverOptions.NAMESPACE_OK) == 0) {
-            namespace(new NamespaceBinding(nameCode.getPrefix(), nameCode.getNamespaceURI()), 0);
+            namespace(new NamespaceBinding(qName.getPrefix(), qName.getNamespaceURI()), 0);
         }
 
     }
@@ -120,7 +120,7 @@ public class NamespaceReducer extends ProxyReceiver implements NamespaceResolver
     */
 
     private boolean isNeeded(NamespaceBinding nscode) {
-        if (nscode.isXmlNamespace()) {
+        if ("xml".equals(nscode.getPrefix())) {
         		// Ignore the XML namespace
             return false;
         }
@@ -148,7 +148,7 @@ public class NamespaceReducer extends ProxyReceiver implements NamespaceResolver
         }
 
         // we need it unless it's a redundant xmlns=""
-        return (!nscode.isDefaultUndeclaration());
+        return (!nscode.equals(NamespaceBinding.DEFAULT_UNDECLARATION));
     }
 
     /**

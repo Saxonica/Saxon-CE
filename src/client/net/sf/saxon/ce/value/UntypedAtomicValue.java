@@ -31,21 +31,6 @@ public class UntypedAtomicValue extends StringValue {
     }
 
     /**
-     * Create a copy of this atomic value, with a different type label
-     *
-     * @param typeLabel the type label of the new copy. The caller is responsible for checking that
-     *                  the value actually conforms to this type.
-     */
-
-    public AtomicValue copyAsSubType(BuiltInAtomicType typeLabel) {
-        UntypedAtomicValue v = new UntypedAtomicValue(value);
-        v.noSurrogates = noSurrogates;
-        v.doubleValue = doubleValue;
-        v.typeLabel = typeLabel;
-        return v;
-    }
-
-    /**
      * Determine the primitive type of the value. This delivers the same answer as
      * getItemType().getPrimitiveItemType(). The primitive types are
      * the 19 primitive types of XML Schema, plus xs:integer, xs:dayTimeDuration and xs:yearMonthDuration,
@@ -125,18 +110,12 @@ public class UntypedAtomicValue extends StringValue {
                     ).asAtomic();
                 } catch (XPathException err) {
                     throw new ClassCastException("Cannot convert untyped value " +
-                        '\"' + getStringValueCS() + "\" to a double");
+                        '\"' + getStringValue() + "\" to a double");
                 }
             }
             return doubleValue.compareTo(other);
         } else if (other instanceof StringValue) {
-            if (collator instanceof CodepointCollator) {
-                // This optimization avoids creating String objects for the purpose of the comparison
-                return ((CodepointCollator)collator).compareCS(getStringValueCS(),
-                                                              other.getStringValueCS());
-            } else {
-                return collator.compareStrings(getStringValue(), other.getStringValue());
-            }
+            return collator.compareStrings(getStringValue(), other.getStringValue());
         } else {
             final Configuration config = context.getConfiguration();
             final TypeHierarchy th = config.getTypeHierarchy();
@@ -146,7 +125,7 @@ public class UntypedAtomicValue extends StringValue {
                 throw new ClassCastException("Cannot convert untyped atomic value '" + getStringValue()
                         + "' to type " + other.getItemType(th));
             }
-            return ((Comparable)((AtomicValue)result)).compareTo(other);
+            return ((Comparable) result).compareTo(other);
 
         } 
     }

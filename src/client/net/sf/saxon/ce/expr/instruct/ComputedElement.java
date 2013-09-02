@@ -1,6 +1,5 @@
 package client.net.sf.saxon.ce.expr.instruct;
 
-import client.net.sf.saxon.ce.Controller;
 import client.net.sf.saxon.ce.LogController;
 import client.net.sf.saxon.ce.event.Receiver;
 import client.net.sf.saxon.ce.expr.*;
@@ -100,7 +99,7 @@ public class ComputedElement extends ElementCreator {
             try {
                 AtomicValue val = (AtomicValue)((Literal)elementName).getValue();
                 if (val instanceof StringValue) {
-                    String[] parts = NameChecker.checkQNameParts(val.getStringValueCS());
+                    String[] parts = NameChecker.checkQNameParts(val.getStringValue());
                     if (namespace == null) {
                         String prefix = parts[0];
                         String uri = getNamespaceResolver().getURIForPrefix(prefix, true);
@@ -204,9 +203,6 @@ public class ComputedElement extends ElementCreator {
     public StructuredQName getNameCode(XPathContext context, NodeInfo copiedNode)
             throws XPathException {
 
-        Controller controller = context.getController();
-        NamePool pool = controller.getNamePool();
-
         String prefix = null;
         String localName = null;
         String uri = null;
@@ -219,7 +215,7 @@ public class ComputedElement extends ElementCreator {
         //nameValue = nameValue.getPrimitiveValue();
         if (nameValue instanceof StringValue) {  // which includes UntypedAtomic
             // this will always be the case in XSLT
-            CharSequence rawName = nameValue.getStringValueCS();
+            CharSequence rawName = nameValue.getStringValue();
             rawName = Whitespace.trimWhitespace(rawName); // required in XSLT; possibly wrong in XQuery
             try {
                 String[] parts = NameChecker.getQNameParts(rawName);
@@ -301,14 +297,6 @@ public class ComputedElement extends ElementCreator {
         // no action
     }
 
-
-    /**
-     * Get the name of this instruction for diagnostic and tracing purposes
-     */
-
-    public int getInstructionNameCode() {
-        return StandardNames.XSL_ELEMENT;
-    }
 
 }
 

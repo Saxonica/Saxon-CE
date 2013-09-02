@@ -728,7 +728,7 @@ public class FormatNumber extends SystemFunction {
          */
 
         private void formatInteger(NumericValue value, FastStringBuffer fsb) {
-            fsb.append(value.getStringValueCS());
+            fsb.append(value.getStringValue());
             int leadingZeroes = minWholePartSize - fsb.length();
             fsb.prependRepeated('0', leadingZeroes);
             if (minFractionPartSize != 0) {

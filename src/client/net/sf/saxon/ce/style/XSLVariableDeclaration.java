@@ -175,11 +175,8 @@ public abstract class XSLVariableDeclaration
         if (global && !redundant && select!=null) {
             Expression exp2 = select;
             ExpressionVisitor visitor = makeExpressionVisitor();
-            Optimizer opt = getConfiguration().getOptimizer();
             try {
-                if (opt.getOptimizationLevel() != Optimizer.NO_OPTIMIZATION) {
-                    exp2 = exp2.optimize(visitor, AnyNodeTest.getInstance());
-                }
+                exp2 = exp2.optimize(visitor, AnyNodeTest.getInstance());
 
             } catch (XPathException err) {
                 err.maybeSetLocation(this);

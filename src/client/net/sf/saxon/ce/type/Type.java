@@ -11,11 +11,6 @@ import client.net.sf.saxon.ce.value.AtomicValue;
 /**
  * This class contains static information about types and methods for constructing type codes.
  * The class is never instantiated.
- *
- * <p><i>The constant integers used for type names in earlier versions of this class have been replaced
- * by constants in {@link StandardNames}. The constants representing atomic types are now
- * available through the {@link BuiltInAtomicType} class.</i></p>
- *
  */
 
 public abstract class Type  {
@@ -196,24 +191,6 @@ public abstract class Type  {
             // If we hit the root of the tree, one of the earlier conditions will be satisfied,
             // so the recursion will stop.
         }
-    }
-
-    /**
-     * Determine whether this type is a primitive type. The primitive types are
-     * the 19 primitive types of XML Schema, plus xs:integer, xs:dayTimeDuration and xs:yearMonthDuration;
-     * xs:untypedAtomic; the 7 node kinds; and all supertypes of these (item(), node(), xs:anyAtomicType,
-     * xs:numeric, ...)
-     * @param code the item type code to be tested
-     * @return true if the type is considered primitive under the above rules
-     */
-    public static boolean isPrimitiveType(int code) {
-        return code >= 0 && (code <= StandardNames.XS_INTEGER ||
-                code == StandardNames.XS_NUMERIC ||
-                code == StandardNames.XS_UNTYPED_ATOMIC ||
-                code == StandardNames.XS_ANY_ATOMIC_TYPE ||
-                code == StandardNames.XS_DAY_TIME_DURATION ||
-                code == StandardNames.XS_YEAR_MONTH_DURATION ||
-                code == StandardNames.XS_ANY_SIMPLE_TYPE);
     }
 
     /**

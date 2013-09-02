@@ -76,7 +76,7 @@ public class StringFn extends SystemFunction {
             } else if (arg instanceof StringValue && ((StringValue)arg).getTypeLabel() == BuiltInAtomicType.STRING) {
                 return arg;
             } else {
-                return StringValue.makeStringValue(arg.getStringValueCS());
+                return StringValue.makeStringValue(arg.getStringValue());
             }
         } catch (UnsupportedOperationException e) {
             // Cannot obtain the string value of a function item

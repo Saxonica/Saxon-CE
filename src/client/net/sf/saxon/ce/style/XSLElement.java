@@ -1,7 +1,5 @@
 package client.net.sf.saxon.ce.style;
 
-import com.google.gwt.logging.client.LogConfiguration;
-
 import client.net.sf.saxon.ce.LogController;
 import client.net.sf.saxon.ce.expr.Expression;
 import client.net.sf.saxon.ce.expr.Literal;
@@ -10,10 +8,10 @@ import client.net.sf.saxon.ce.expr.instruct.*;
 import client.net.sf.saxon.ce.lib.StandardURIChecker;
 import client.net.sf.saxon.ce.lib.Validation;
 import client.net.sf.saxon.ce.om.*;
-import client.net.sf.saxon.ce.trans.Err;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.value.EmptySequence;
 import client.net.sf.saxon.ce.value.Whitespace;
+import com.google.gwt.logging.client.LogConfiguration;
 
 
 /**
@@ -61,17 +59,17 @@ public class XSLElement extends StyleElement {
         for (int a = 0; a < atts.getLength(); a++) {
             StructuredQName qn = atts.getStructuredQName(a);
             String f = qn.getClarkName();
-            if (f.equals(StandardNames.NAME)) {
+            if (f.equals("name")) {
                 nameAtt = Whitespace.trim(atts.getValue(a));
-            } else if (f.equals(StandardNames.NAMESPACE)) {
+            } else if (f.equals("namespace")) {
                 namespaceAtt = atts.getValue(a);
-            } else if (f.equals(StandardNames.VALIDATION)) {
+            } else if (f.equals("validation")) {
                 validationAtt = Whitespace.trim(atts.getValue(a));
-            } else if (f.equals(StandardNames.TYPE)) {
+            } else if (f.equals("type")) {
                 typeAtt = Whitespace.trim(atts.getValue(a));
-            } else if (f.equals(StandardNames.INHERIT_NAMESPACES)) {
+            } else if (f.equals("inherit-namespaces")) {
                 inheritAtt = Whitespace.trim(atts.getValue(a));
-            } else if (f.equals(StandardNames.USE_ATTRIBUTE_SETS)) {
+            } else if (f.equals("use-attribute-sets")) {
                 use = atts.getValue(a);
             } else {
                 checkUnknownAttribute(qn);
@@ -82,15 +80,6 @@ public class XSLElement extends StyleElement {
             reportAbsence("name");
         } else {
             elementName = makeAttributeValueTemplate(nameAtt);
-            if (elementName instanceof StringLiteral) {
-                if (!NameChecker.isQName(((StringLiteral)elementName).getStringValue())) {
-                    compileError("Element name " +
-                            Err.wrap(((StringLiteral)elementName).getStringValue(), Err.ELEMENT) +
-                            " is not a valid QName", "XTDE0820");
-                    // to prevent duplicate error messages:
-                    elementName = new StringLiteral("saxon-error-element");
-                }
-            }
         }
 
         if (namespaceAtt != null) {

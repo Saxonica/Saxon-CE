@@ -1,6 +1,5 @@
 package client.net.sf.saxon.ce.trans;
 
-import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.lib.ErrorListener;
 import client.net.sf.saxon.ce.om.StructuredQName;
 
@@ -15,7 +14,6 @@ import client.net.sf.saxon.ce.om.StructuredQName;
 public class CompilerInfo {
 
     private transient ErrorListener errorListener;
-    private int recoveryPolicy = Configuration.RECOVER_WITH_WARNINGS;
     private boolean versionWarning;
     private StructuredQName defaultInitialMode;
     private StructuredQName defaultInitialTemplate;
@@ -26,20 +24,6 @@ public class CompilerInfo {
      */
 
     public CompilerInfo() {}
-
-    /**
-     * Create a CompilerInfo object as a copy of another CompilerInfo object
-     * @param info the existing CompilerInfo object
-     * @since 9.2
-     */
-
-    public CompilerInfo(CompilerInfo info) {
-        errorListener = info.errorListener;
-        recoveryPolicy = info.recoveryPolicy;
-        versionWarning = info.versionWarning;
-        defaultInitialMode = info.defaultInitialMode;
-        defaultInitialTemplate = info.defaultInitialTemplate;
-    }
 
     /**
      * Set the ErrorListener to be used during this compilation episode
@@ -61,32 +45,6 @@ public class CompilerInfo {
 
     public ErrorListener getErrorListener() {
         return errorListener;
-    }
-
-    /**
-     * Set the policy for handling recoverable errrors. Note that for some errors the decision can be
-     * made at run-time, but for the "ambiguous template match" error, the decision is (since 9.2)
-     * fixed at compile time.
-     * @param policy the recovery policy to be used. The options are {@link Configuration#RECOVER_SILENTLY},
-     * {@link Configuration#RECOVER_WITH_WARNINGS}, or {@link Configuration#DO_NOT_RECOVER}.
-     * @since 9.2
-     */
-
-    public void setRecoveryPolicy(int policy) {
-        recoveryPolicy = policy;
-    }
-
-    /**
-     * Get the policy for handling recoverable errors. Note that for some errors the decision can be
-     * made at run-time, but for the "ambiguous template match" error, the decision is (since 9.2)
-     * fixed at compile time.
-     *
-     * @return the current policy.
-     * @since 9.2
-     */
-
-    public int getRecoveryPolicy() {
-        return recoveryPolicy;
     }
 
     /**

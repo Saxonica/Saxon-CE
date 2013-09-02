@@ -203,7 +203,7 @@ public final class Bindery  {
                 ItemMappingFunction promoter = new ItemMappingFunction() {
                     public Item mapItem(Item item) throws XPathException {
                         if (item instanceof AnyURIValue) {
-                            return new StringValue(item.getStringValueCS());
+                            return new StringValue(item.getStringValue());
                         } else {
                             return item;
                         }

@@ -55,9 +55,9 @@ public class XSLApplyTemplates extends StyleElement {
 		for (int a=0; a<atts.getLength(); a++) {
 			StructuredQName qn = atts.getStructuredQName(a);
             String f = qn.getClarkName();
-			if (f.equals(StandardNames.MODE)) {
+			if (f.equals("mode")) {
         		modeAttribute = Whitespace.trim(atts.getValue(a));
-        	} else if (f.equals(StandardNames.SELECT)) {
+        	} else if (f.equals("select")) {
         		selectAtt = atts.getValue(a);
                 defaultedSelectExpression = false;
             } else {
@@ -116,7 +116,7 @@ public class XSLApplyTemplates extends StyleElement {
                 // usesParams = true;
             } else if (child.getNodeKind() == Type.TEXT) {
                     // with xml:space=preserve, white space nodes may still be there
-                if (!Whitespace.isWhite(child.getStringValueCS())) {
+                if (!Whitespace.isWhite(child.getStringValue())) {
                     compileError("No character data is allowed within xsl:apply-templates", "XTSE0010");
                 }
             } else {

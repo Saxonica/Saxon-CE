@@ -292,12 +292,12 @@ public class ExpressionParser {
 
     public Expression parseExpression() throws XPathException {
         Expression exp = parseExprSingle();
-        ArrayList list = null;
+        ArrayList<Expression> list = null;
         while (t.currentToken == Token.COMMA) {
             // An expression containing a comma often contains many, so we accumulate all the
             // subexpressions into a list before creating the Block expression which reduces it to an array
             if (list == null) {
-                list = new ArrayList(10);
+                list = new ArrayList<Expression>(10);
                 list.add(exp);
             }
             nextToken();
@@ -504,7 +504,7 @@ public class ExpressionParser {
                 if (type == BuiltInAtomicType.QNAME && lhs instanceof StringLiteral) {
                     try {
                         String source = ((StringLiteral) lhs).getStringValue();
-                        makeNameCode(source, false);
+                        makeStructuredQName(source, false);
                         return new Literal(BooleanValue.TRUE);
                     } catch (Exception e) {
                         return new Literal(BooleanValue.FALSE);
@@ -548,7 +548,7 @@ public class ExpressionParser {
     private Expression parseMappingExpression() throws XPathException {
         int offset = t.currentTokenStartOffset;
         int operator = t.currentToken;
-        List<FLWORClause> clauseList = new ArrayList<FLWORClause>(3);
+        List<ForClause> clauseList = new ArrayList<ForClause>(3);
         do {
             ForClause clause = new ForClause();
             clause.offset = offset;
@@ -568,12 +568,11 @@ public class ExpressionParser {
                 v = new QuantifiedExpression();
                 ((QuantifiedExpression)v).setOperator(operator);
             }
-            v.setRequiredType(SequenceType.SINGLE_ITEM);
             v.setVariableQName(makeStructuredQName(var, false));
             clause.rangeVariable = v;
             nextToken();
 
-            // process the "in" or ":=" clause
+            // process the "in" clause
             expect(Token.IN);
             nextToken();
             clause.sequence = parseExprSingle();
@@ -595,7 +594,7 @@ public class ExpressionParser {
 
         final TypeHierarchy th = env.getConfiguration().getTypeHierarchy();
         for (int i = clauseList.size()-1; i>=0; i--) {
-            ForClause fc = (ForClause)clauseList.get(i);
+            ForClause fc = clauseList.get(i);
             Assignation exp = fc.rangeVariable;
             setLocation(exp);
             exp.setSequence(fc.sequence);
@@ -606,13 +605,9 @@ public class ExpressionParser {
             // of all expressions to return some kind of type information even if this is
             // imprecise.
 
-            if (fc.requiredType == SequenceType.SINGLE_ITEM) {
-                SequenceType type = SequenceType.makeSequenceType(
-                        fc.sequence.getItemType(th), StaticProperty.EXACTLY_ONE);
-                fc.rangeVariable.setRequiredType(type);
-            } else {
-                fc.rangeVariable.setRequiredType(fc.requiredType);
-            }
+            SequenceType type = SequenceType.makeSequenceType(
+                    fc.sequence.getItemType(th), StaticProperty.EXACTLY_ONE);
+            fc.rangeVariable.setRequiredType(type);
             exp.setAction(action);
 
             // for the next outermost "for" clause, the "action" is this ForExpression
@@ -622,7 +617,7 @@ public class ExpressionParser {
         // undeclare all the range variables
 
         for (int i = clauseList.size()-1; i>=0; i--) {
-            FLWORClause clause = clauseList.get(i);
+            ForClause clause = clauseList.get(i);
             for (int n = 0; n < clause.numberOfRangeVariables(); n++) {
                 undeclareRangeVariable();
             }
@@ -666,40 +661,11 @@ public class ExpressionParser {
      * name exists as a built-in type or a type in an imported schema
      */
     private BuiltInAtomicType getAtomicType(String qname) throws XPathException {
-        String uri;
-        String local;
-        if (qname.startsWith("{")) {
-            StructuredQName sq = StructuredQName.fromClarkName(qname);
-            uri = sq.getNamespaceURI();
-            local = sq.getLocalName();
-        } else {
-            try {
-                String[] parts = NameChecker.getQNameParts(qname);
-                if (parts[0].length() == 0) {
-                    uri = env.getDefaultElementNamespace();
-                } else {
-                    try {
-                        uri = env.getURIForPrefix(parts[0]);
-                    } catch (XPathException err) {
-                        grumble(err.getMessage(), err.getErrorCodeQName());
-                        uri = "";
-                    }
-                }
-                local = parts[1];
-            } catch (QNameException err) {
-                grumble(err.getMessage());
-                return null;
-            }
-        }
+        StructuredQName name = makeStructuredQName(qname, true);
+        String uri = name.getNamespaceURI();
+        String local = name.getLocalName();
 
-        boolean builtInNamespace = uri.equals(NamespaceConstant.SCHEMA);
-
-//            if (!builtInNamespace && NamespaceConstant.isXDTNamespace(uri)) {
-//                uri = NamespaceConstant.XDT;
-//                builtInNamespace = true;
-//            }
-
-        if (builtInNamespace) {
+        if (uri.equals(NamespaceConstant.SCHEMA)) {
             BuiltInType t = BuiltInType.getSchemaType(local);
             if (t == null) {
                 grumble("Unknown atomic type " + qname, "XPST0051");
@@ -708,20 +674,6 @@ public class ExpressionParser {
                 return (BuiltInAtomicType)t;
             } else {
                 grumble("The type " + qname + " is not atomic", "XPST0051");
-            }
-        } else {
-            if (NamespaceConstant.SCHEMA.equals(uri)) {
-                BuiltInType st = BuiltInType.getSchemaType(local);
-                if (st instanceof BuiltInAtomicType) {
-                    return (BuiltInAtomicType)st;
-                } else {
-                    grumble("Type (" + qname + ") is not a known atomic type", "XPST0051");
-                    return null;
-                }
-
-            } else {
-                grumble("There is no imported schema for the namespace " + uri, "XPST0051");
-                return null;
             }
         }
         grumble("Unknown atomic type " + qname, "XPST0051");
@@ -1180,7 +1132,6 @@ public class ExpressionParser {
         String var = t.currentTokenValue;
         nextToken();
 
-        //int vtest = makeNameCode(var, false) & 0xfffff;
         StructuredQName vtest = makeStructuredQName(var, false);
 
         // See if it's a range variable or a variable in the context
@@ -1214,7 +1165,7 @@ public class ExpressionParser {
      * @return The string value of the string literal
      */
 
-    protected Literal makeStringLiteral(String currentTokenValue) throws XPathException {
+    private Literal makeStringLiteral(String currentTokenValue) {
         StringLiteral literal = new StringLiteral(currentTokenValue);
         setLocation(literal);
         return literal;
@@ -1230,7 +1181,7 @@ public class ExpressionParser {
      * @return the resulting NodeTest object
      */
 
-    protected NodeTest parseNodeTest(short nodeType) throws XPathException {
+    private NodeTest parseNodeTest(short nodeType) throws XPathException {
         int tok = t.currentToken;
         String tokv = t.currentTokenValue;
         switch (tok) {
@@ -1308,16 +1259,16 @@ public class ExpressionParser {
                     grumble("No arguments are allowed in comment()");
                     return null;
                 }
-            case Type.NAMESPACE:
-                if (empty) {
-                    if (!isNamespaceTestAllowed()) {
-                        grumble("namespace-node() test is not allowed in XPath 2.0/XQuery 1.0");
-                    }
-                    return NodeKindTest.NAMESPACE;
-                } else {
-                    grumble("No arguments are allowed in namespace-node()");
-                    return null;
-                }
+//            case Type.NAMESPACE:
+//                if (empty) {
+//                    if (!isNamespaceTestAllowed()) {
+//                        grumble("namespace-node() test is not allowed in XPath 2.0/XQuery 1.0");
+//                    }
+//                    return NodeKindTest.NAMESPACE;
+//                } else {
+//                    grumble("No arguments are allowed in namespace-node()");
+//                    return null;
+//                }
             case Type.DOCUMENT:
                 if (empty) {
                     return NodeKindTest.DOCUMENT;
@@ -1352,7 +1303,7 @@ public class ExpressionParser {
                     try {
                         String[] parts = NameChecker.getQNameParts(t.currentTokenValue);
                         if (parts[0].length() == 0) {
-                            nameCode = makeNameCode(parts[1], false);
+                            nameCode = makeStructuredQName(parts[1], false);
                         } else {
                             grumble("Processing instruction name must not contain a colon");
                         }
@@ -1383,7 +1334,7 @@ public class ExpressionParser {
                     nameCode = null;
                 } else if (t.currentToken == Token.NAME) {
                     nodeName = t.currentTokenValue;
-                    nameCode = makeNameCode(t.currentTokenValue, primaryType == Type.ELEMENT);
+                    nameCode = makeStructuredQName(t.currentTokenValue, primaryType == Type.ELEMENT);
                 } else {
                     grumble("Unexpected " + Token.tokens[t.currentToken] + " after '(' in SequenceType");
                 }
@@ -1431,7 +1382,7 @@ public class ExpressionParser {
                         return null;
                     } else if (t.currentToken == Token.NAME) {
                         BuiltInType schemaType;
-                        contentType = makeNameCode(t.currentTokenValue, true);
+                        contentType = makeStructuredQName(t.currentTokenValue, true);
                         schemaType = null;
                         if (contentType.getNamespaceURI().equals(NamespaceConstant.SCHEMA)) {
                             schemaType = BuiltInType.getSchemaType(contentType.getLocalName());
@@ -1513,7 +1464,7 @@ public class ExpressionParser {
         else if ("comment".equals(name))           return Type.COMMENT;
         else if ("processing-instruction".equals(name))
                                                    return Type.PROCESSING_INSTRUCTION;
-        else if ("namespace-node".equals(name))    return Type.NAMESPACE;
+        //else if ("namespace-node".equals(name))    return Type.NAMESPACE;
         else if ("node".equals(name))              return Type.NODE;
         else {
             grumble("Unknown type " + name);
@@ -1696,45 +1647,6 @@ public class ExpressionParser {
     }
 
     /**
-     * Make a NameCode, using the static context for namespace resolution
-     *
-     * @throws XPathException if the name is invalid, or the prefix
-     *     undeclared
-     * @param qname The name as written, in the form "[prefix:]localname"
-     * @param useDefault Defines the action when there is no prefix. If
-     *      true, use the default namespace URI for element names. If false,
-     *     use no namespace URI (as for attribute names).
-     * @return the namecode, which can be used to identify this name in the
-     *     name pool
-     */
-
-    public final StructuredQName makeNameCode(String qname, boolean useDefault) throws XPathException {
-        try {
-            String[] parts = NameChecker.getQNameParts(qname);
-            String prefix = parts[0];
-            if (prefix.length() == 0) {
-                if (useDefault) {
-                    String uri = env.getDefaultElementNamespace();
-                    return new StructuredQName("", uri, qname);
-                } else {
-                    return new StructuredQName("", "", qname);
-                }
-            } else {
-                try {
-                    String uri = env.getURIForPrefix(prefix);
-                    return new StructuredQName(prefix, uri, parts[1]);
-                } catch (XPathException err) {
-                    grumble(err.getMessage(), err.getErrorCodeQName());
-                    return null;
-                }
-            }
-        } catch (QNameException e) {
-            grumble(e.getMessage());
-            return null;
-        }
-    }
-
-    /**
      * Make a Structured QName, using the static context for namespace resolution
      *
      * @throws XPathException if the name is invalid, or the prefix
@@ -1743,8 +1655,8 @@ public class ExpressionParser {
      * @param useDefault Defines the action when there is no prefix. If
      *      true, use the default namespace URI for element names. If false,
      *     use no namespace URI (as for attribute names).
-     * @return the namecode, which can be used to identify this name in the
-     *     name pool
+     * @return the structured QName
+     * @throws XPathException if the syntax is bad or the prefix is undefined
      */
 
     public final StructuredQName makeStructuredQName(String qname, boolean useDefault) throws XPathException {
@@ -1790,7 +1702,7 @@ public class ExpressionParser {
 
 	public NameTest makeNameTest(short nodeType, String qname, boolean useDefault)
 		    throws XPathException {
-        StructuredQName nameCode = makeNameCode(qname, useDefault);
+        StructuredQName nameCode = makeStructuredQName(qname, useDefault);
 		return new NameTest(nodeType, nameCode);
 	}
 
@@ -1850,11 +1762,7 @@ public class ExpressionParser {
         }
     }
 
-    public static interface FLWORClause {
-        public int numberOfRangeVariables();
-    }
-
-    public static class ForClause implements FLWORClause {
+    public static class ForClause {
 
         public Assignation rangeVariable;
         public Expression sequence;

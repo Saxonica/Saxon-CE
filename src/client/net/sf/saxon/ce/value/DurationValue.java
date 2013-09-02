@@ -327,9 +327,9 @@ public class DurationValue extends AtomicValue {
         if (requiredType == BuiltInAtomicType.ANY_ATOMIC || requiredType == BuiltInAtomicType.DURATION) {
             return this;
         } else if (requiredType == BuiltInAtomicType.UNTYPED_ATOMIC) {
-            return new UntypedAtomicValue(getStringValueCS());
+            return new UntypedAtomicValue(getStringValue());
         } else if (requiredType == BuiltInAtomicType.STRING) {
-            return new StringValue(getStringValueCS());
+            return new StringValue(getStringValue());
         } else if (requiredType == BuiltInAtomicType.YEAR_MONTH_DURATION) {
             return YearMonthDurationValue.fromMonths(months * (negative ? -1 : +1));
         } else if (requiredType == BuiltInAtomicType.DAY_TIME_DURATION) {

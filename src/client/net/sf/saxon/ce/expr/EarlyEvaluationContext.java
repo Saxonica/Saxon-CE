@@ -191,14 +191,6 @@ public class EarlyEvaluationContext implements XPathContext {
     }
 
     /**
-     * Get the Name Pool
-     */
-
-    public NamePool getNamePool() {
-        return config.getNamePool();
-    }
-
-    /**
      * Get the Receiver to which output is currently being written.
      *
      * @return the current Receiver

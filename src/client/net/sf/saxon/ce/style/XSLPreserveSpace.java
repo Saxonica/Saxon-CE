@@ -37,7 +37,7 @@ public class XSLPreserveSpace extends StyleElement {
 		for (int a=0; a<atts.getLength(); a++) {
 			StructuredQName qn = atts.getStructuredQName(a);
             String f = qn.getClarkName();
-			if (f.equals(StandardNames.ELEMENTS)) {
+			if (f.equals("elements")) {
         		elements = atts.getValue(a);
         	} else {
         		checkUnknownAttribute(qn);
@@ -68,7 +68,7 @@ public class XSLPreserveSpace extends StyleElement {
             NodeTest nt;
             if (s.equals("*")) {
                 nt = NodeKindTest.ELEMENT;
-                stripperRules.addRule(nt, preserve, decl.getModule(), decl.getSourceElement().getLineNumber());
+                stripperRules.addRule(nt, preserve, decl.getModule());
 
             } else if (s.endsWith(":*")) {
                 if (s.length()==2) {
@@ -77,7 +77,7 @@ public class XSLPreserveSpace extends StyleElement {
                 String prefix = s.substring(0, s.length()-2);
                 String uri = getURIForPrefix(prefix, false);
                 nt = new NamespaceTest(Type.ELEMENT, uri);
-                stripperRules.addRule(nt, preserve, decl.getModule(), decl.getSourceElement().getLineNumber());
+                stripperRules.addRule(nt, preserve, decl.getModule());
 
             } else if (s.startsWith("*:")) {
                 if (s.length()==2) {
@@ -85,7 +85,7 @@ public class XSLPreserveSpace extends StyleElement {
                 }
                 String localname = s.substring(2);
                 nt = new LocalNameTest(Type.ELEMENT, localname);
-                stripperRules.addRule(nt, preserve, decl.getModule(), decl.getSourceElement().getLineNumber());
+                stripperRules.addRule(nt, preserve, decl.getModule());
 
             } else {
                 String prefix;
@@ -110,7 +110,7 @@ public class XSLPreserveSpace extends StyleElement {
                 }
                 StructuredQName nameCode = new StructuredQName("", uri, localName);
                 nt = new NameTest(Type.ELEMENT, nameCode);
-                stripperRules.addRule(nt, preserve, decl.getModule(), decl.getSourceElement().getLineNumber());
+                stripperRules.addRule(nt, preserve, decl.getModule());
             }
 
         }

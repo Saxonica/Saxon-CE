@@ -206,7 +206,7 @@ public abstract class SimpleNodeConstructor extends Instruction {
         String content = contentItem.getStringValue();
         content = checkContent(content, context);
         final TypeHierarchy th = context.getConfiguration().getTypeHierarchy();
-        Orphan o = new Orphan(context.getConfiguration());
+        Orphan o = new Orphan();
         o.setNodeKind(((NodeTest)getItemType(th)).getRequiredNodeKind());
         o.setStringValue(content);
         o.setNodeName(evaluateNameCode(context));

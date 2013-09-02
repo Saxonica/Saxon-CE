@@ -31,7 +31,7 @@ public class Replace extends SystemFunction {
         }
 
         AtomicValue arg2 = (AtomicValue) argument[2].evaluateItem(c);
-        CharSequence replacement = arg2.getStringValueCS();
+        CharSequence replacement = arg2.getStringValue();
         String msg = checkReplacement(replacement);
         if (msg != null) {
             dynamicError(msg, "FORX0004", c);
@@ -45,11 +45,11 @@ public class Replace extends SystemFunction {
             flags = "";
         } else {
             AtomicValue arg3 = (AtomicValue) argument[3].evaluateItem(c);
-            flags = arg3.getStringValueCS();
+            flags = arg3.getStringValue();
         }
 
         try {
-            ARegularExpression re = new ARegularExpression(arg1.getStringValueCS(), flags.toString(), "XP20", null);
+            ARegularExpression re = new ARegularExpression(arg1.getStringValue(), flags.toString(), "XP20", null);
             // check that it's not a pattern that matches ""
             if (re.matches("")) {
                 dynamicError(

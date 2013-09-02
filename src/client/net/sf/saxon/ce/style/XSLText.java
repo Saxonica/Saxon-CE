@@ -39,7 +39,7 @@ public class XSLText extends XSLLeafNodeConstructor {
 		for (int a=0; a<atts.getLength(); a++) {
 			StructuredQName qn = atts.getStructuredQName(a);
             String f = qn.getClarkName();
-			if (f.equals(StandardNames.DISABLE_OUTPUT_ESCAPING)) {
+			if (f.equals("disable-output-escaping")) {
         		disableAtt = Whitespace.trim(atts.getValue(a));
         	} else {
         		checkUnknownAttribute(qn);
@@ -70,7 +70,7 @@ public class XSLText extends XSLLeafNodeConstructor {
                 ((StyleElement)child).compileError("xsl:text must not contain child elements", "XTSE0010");
                 return;
             } else {
-                value = StringValue.makeStringValue(child.getStringValueCS());
+                value = StringValue.makeStringValue(child.getStringValue());
                 //continue;
             }
         }

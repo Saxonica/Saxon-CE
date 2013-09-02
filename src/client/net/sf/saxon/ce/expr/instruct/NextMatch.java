@@ -4,7 +4,6 @@ import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.expr.XPathContextMajor;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.NodeInfo;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.trans.Mode;
 import client.net.sf.saxon.ce.trans.Rule;
 import client.net.sf.saxon.ce.trans.XPathException;
@@ -21,14 +20,6 @@ public class NextMatch extends ApplyImports {
 
     public NextMatch(boolean useTailRecursion) {
         this.useTailRecursion = useTailRecursion;
-    }
-
-    /**
-    * Get the name of this instruction for diagnostic and tracing purposes
-    */
-
-    public int getInstructionNameCode() {
-        return StandardNames.XSL_NEXT_MATCH;
     }
 
 

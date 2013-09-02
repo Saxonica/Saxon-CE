@@ -1,5 +1,4 @@
 package client.net.sf.saxon.ce.om;
-import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.event.Receiver;
 import client.net.sf.saxon.ce.pattern.NodeTest;
 import client.net.sf.saxon.ce.trans.XPathException;
@@ -127,33 +126,6 @@ public interface NodeInfo extends Item, ValueRepresentation {
     public String getBaseURI();
 
     /**
-     * Get line number. Line numbers are not maintained by default, except for
-     * stylesheets and schema documents. Line numbering can be requested using the
-     * -l option on the command line, or by setting options on the TransformerFactory
-     * or the Configuration before the source document is built.
-     * <p>
-     * The granularity of line numbering is normally the element level: for other nodes
-     * such as text nodes and attributes, the line number of the parent element will normally be returned.
-     * <p>
-     * In the case of a tree constructed by taking input from a SAX parser, the line number will reflect the
-     * SAX rules: that is, the line number of an element is the line number where the start tag ends. This
-     * may be a little confusing where elements have many attributes spread over multiple lines, or where
-     * single attributes (as can easily happen with XSLT 2.0 stylesheets) occupy several lines.
-     * <p>
-     * In the case of a tree constructed by a stylesheet or query, the line number may reflect the line in
-     * the stylesheet or query that caused the node to be constructed.
-     * <p>
-     * The line number can be read from within an XPath expression using the Saxon extension function
-     * claxon:line-number()
-     *
-     * @return the line number of the node in its original source document; or
-     *      -1 if not available
-     * @since 8.4
-     */
-
-    public int getLineNumber();
-
-    /**
      * Determine the relative position of this node and another node, in document order.
      * <p>
      * The other node must always be in the same tree; the effect of calling this method
@@ -230,51 +202,6 @@ public interface NodeInfo extends Item, ValueRepresentation {
      */
 
     public String getDisplayName();
-
-    /**
-     * Get the prefix of the name of the node. This is defined only for elements and attributes.
-     * If the node has no prefix, or for other kinds of node, returns a zero-length string.
-     * @return The prefix of the name of the node.
-     * @since 8.4
-     */
-
-    public String getPrefix();
-
-    /**
-     * Get the configuration used to build the tree containing this node.
-     * @return the Configuration
-     * @since 8.4
-     */
-
-    public Configuration getConfiguration();
-
-    /**
-     * Get the type annotation of this node, if any. The type annotation is represented as an integer;
-     * this is the fingerprint of the name of the type, as defined in the name pool. Anonymous types
-     * are given a system-defined name. The value of the type annotation can be used to retrieve the
-     * actual schema type definition.
-     * <p>
-     * The bit IS_DTD_TYPE (1<<30) will be set in the case of an attribute node if the type annotation
-     * is one of ID, IDREF, or IDREFS and this is derived from DTD rather than schema validation.
-     *
-     * @return the type annotation of the node, under the mask NamePool.FP_MASK, and optionally the
-     * bit setting IS_DTD_TYPE in the case of a DTD-derived ID or IDREF/S type (which is treated
-     * as untypedAtomic for the purposes of obtaining the typed value).
-     *
-     * <p>For elements and attributes, this is the type annotation as defined in XDM. For document
-     * nodes, it should be one of XS_UNTYPED if the document has not been validated, or XS_ANY_TYPE
-     * if validation has taken place (that is, if any node in the document has an annotation other than
-     * Untyped or UntypedAtomic).</p>
-     * @since 8.4. Refinement for document nodes introduced in 9.2
-     */
-
-    public int getTypeAnnotation();
-
-    /**
-     * Bit setting in the returned type annotation indicating a DTD_derived type on an attribute node
-     */
-
-    public static int IS_DTD_TYPE = 1<<30;
 
     /**
      * Get the NodeInfo object representing the parent of this node

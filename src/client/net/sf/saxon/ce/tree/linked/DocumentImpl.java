@@ -35,7 +35,6 @@ public final class DocumentImpl extends ParentNodeImpl implements DocumentInfo {
     private HashMap<StructuredQName, ArrayList<NodeImpl>> elementList;
     private HashMap<String, Object> userData;
     private Configuration config;
-    private LineNumberMap lineNumberMap;
     private SystemIdMap systemIdMap = new SystemIdMap();
     private boolean imaginary;
 
@@ -115,18 +114,6 @@ public final class DocumentImpl extends ParentNodeImpl implements DocumentInfo {
     }
 
     /**
-     * Copy the system ID and line number map from another document
-     * (used when grafting a simplified stylesheet)
-     * @param original the document whose system ID and line number maps are to be grafted
-     * onto this tree
-     */
-
-    public void graftLocationMap(DocumentImpl original) {
-        systemIdMap = original.systemIdMap;
-        lineNumberMap = original.lineNumberMap;
-    }
-
-    /**
     * Set the system id (base URI) of this node
     */
 
@@ -189,67 +176,6 @@ public final class DocumentImpl extends ParentNodeImpl implements DocumentInfo {
 
     String getSystemId(int seq) {
         return systemIdMap.getSystemId(seq);
-    }
-
-
-    /**
-    * Set line numbering on
-    */
-
-    public void setLineNumbering() {
-        lineNumberMap = new LineNumberMap();
-        lineNumberMap.setLineAndColumn(getRawSequenceNumber(), 0, -1);
-    }
-
-    /**
-     * Set the line number for an element. Ignored if line numbering is off.
-     * @param sequence the sequence number of the element
-     * @param line the line number of the element
-     * @param column the column number of the element
-    */
-
-    void setLineAndColumn(int sequence, int line, int column) {
-        if (lineNumberMap != null && sequence >= 0) {
-            lineNumberMap.setLineAndColumn(sequence, line, column);
-        }
-    }
-
-    /**
-     * Get the line number for an element.
-     * @param sequence the sequence number of the element
-     * @return the line number for an element. Return -1 if line numbering is off, or if
-     * the element was added subsequent to document creation by use of XQuery update
-    */
-
-    int getLineNumber(int sequence) {
-        if (lineNumberMap != null && sequence >= 0) {
-            return lineNumberMap.getLineNumber(sequence);
-        }
-        return -1;
-    }
-
-    /**
-    * Get the column number for an element.
-     * @param sequence the sequence number of the element
-     * @return the column number for an element. Return -1 if line numbering is off, or if
-     * the element was added subsequent to document creation by use of XQuery update
-    */
-
-    int getColumnNumber(int sequence) {
-        if (lineNumberMap != null && sequence >= 0) {
-            return lineNumberMap.getColumnNumber(sequence);
-        }
-        return -1;
-    }
-
-
-    /**
-    * Get the line number of this root node.
-    * @return 0 always
-    */
-
-    public int getLineNumber() {
-        return 0;
     }
 
     /**
@@ -412,20 +338,6 @@ public final class DocumentImpl extends ParentNodeImpl implements DocumentInfo {
         return idTable.get(id);
     }
 
-
-    /**
-     * Get the type annotation of this node, if any. By convention for a document node this is
-     * XS_ANY_TYPE if the document is validated, or XS_UNTYPED otherwise
-     * @return the type annotation, as the integer name code of the type name
-     */
-
-    public int getTypeAnnotation() {
-        if (documentElement == null || documentElement.getTypeAnnotation() == StandardNames.XS_UNTYPED) {
-            return StandardNames.XS_UNTYPED;
-        } else {
-            return StandardNames.XS_ANY_TYPE;
-        }
-    }
 
     /**
     * Copy this node to a given outputter

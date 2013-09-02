@@ -1,5 +1,6 @@
 package client.net.sf.saxon.ce.expr;
 
+import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.expr.sort.DocumentSorter;
 import client.net.sf.saxon.ce.functions.SystemFunction;
 import client.net.sf.saxon.ce.om.Axis;
@@ -288,9 +289,9 @@ public final class PathExpression extends SlashExpression implements ContextMapp
             // We don't need the operands to be sorted; any sorting that's needed
             // will be done at the top level
 
-            Optimizer opt = visitor.getConfiguration().getOptimizer();
-            setStartExpression(ExpressionTool.unsorted(opt, start, false));
-            setStepExpression(ExpressionTool.unsorted(opt, step, false));
+            Configuration config = visitor.getConfiguration();
+            setStartExpression(ExpressionTool.unsorted(config, start, false));
+            setStepExpression(ExpressionTool.unsorted(config, step, false));
 
             // Try to simplify expressions such as a//b
             PathExpression p = simplifyDescendantPath(visitor.getStaticContext());
@@ -311,8 +312,6 @@ public final class PathExpression extends SlashExpression implements ContextMapp
      */
 
     public Expression optimize(ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
-
-        Optimizer opt = visitor.getConfiguration().getOptimizer();
 
         // TODO: recognize explosive path expressions such as ..//../..//.. : eliminate duplicates early to contain the size
         // Mainly for benchmarks, but one sees following-sibling::p/preceding-sibling::h2. We could define an expression as
@@ -361,16 +360,6 @@ public final class PathExpression extends SlashExpression implements ContextMapp
 
     public Expression promote(PromotionOffer offer, Expression parent) throws XPathException {
         Expression p = this;
-        if (offer.action == PromotionOffer.RANGE_INDEPENDENT) {
-            // try converting the expression first from a/b/c[pred] to (a/b/c)[pred] so that a/b/c can be promoted
-
-            final Optimizer optimizer = offer.getOptimizer();
-            FilterExpression p2 = optimizer.convertToFilterExpression(
-                    this, optimizer.getConfiguration().getTypeHierarchy());
-            if (p2 != null) {
-                return p2.promote(offer, parent);
-            }
-        }
         Expression exp = offer.accept(parent, p);
         if (exp != null) {
             return exp;

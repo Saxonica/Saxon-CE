@@ -2,7 +2,6 @@ package client.net.sf.saxon.ce.expr;
 
 import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.functions.FunctionLibrary;
-import client.net.sf.saxon.ce.om.NamePool;
 import client.net.sf.saxon.ce.om.NamespaceResolver;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.DecimalFormatManager;
@@ -68,13 +67,6 @@ public interface StaticContext {
     */
 
     public String getURIForPrefix(String prefix) throws XPathException;
-
-    /**
-     * Get the NamePool used for compiling expressions
-     * @return the name pool
-     */
-
-    public NamePool getNamePool();
 
     /**
      * Bind a variable used in this element to the XSLVariable element in which it is declared

@@ -100,15 +100,15 @@ public class XSLStylesheet extends StyleElement {
 
             StructuredQName qn = atts.getStructuredQName(a);
             String f = qn.getClarkName();
-            if (f.equals(StandardNames.VERSION)) {
+            if (f.equals("version")) {
                 // already processed
-            } else if (f.equals(StandardNames.ID)) {
+            } else if (f.equals("id")) {
                 //
-            } else if (f.equals(StandardNames.EXTENSION_ELEMENT_PREFIXES)) {
+            } else if (f.equals("extension-element-prefixes")) {
                 //
-            } else if (f.equals(StandardNames.EXCLUDE_RESULT_PREFIXES)) {
+            } else if (f.equals("exclude-result-prefixes")) {
                 //
-            } else if (f.equals(StandardNames.DEFAULT_VALIDATION)) {
+            } else if (f.equals("default-validation")) {
                 String val = Whitespace.trim(atts.getValue(a));
                 defaultValidation = Validation.getCode(val);
                 if (defaultValidation == Validation.INVALID) {
@@ -119,9 +119,9 @@ public class XSLStylesheet extends StyleElement {
                     compileError("default-validation='" + val + "' requires a schema-aware processor",
                             "XTSE1660");
                 }
-            } else if (f.equals(StandardNames.INPUT_TYPE_ANNOTATIONS)) {
+            } else if (f.equals("input-type-annotations")) {
                 inputTypeAnnotationsAtt = atts.getValue(a);
-            } else if (f.equals(StandardNames.DEFAULT_MODE)) {
+            } else if (f.equals("default-mode")) {
                 String val = Whitespace.trim(atts.getValue(a));
                 if (!val.equals("#unnamed")) {
                     try {
@@ -173,7 +173,7 @@ public class XSLStylesheet extends StyleElement {
      */
 
     public int getInputTypeAnnotationsAttribute() throws XPathException {
-        String inputTypeAnnotationsAtt = getAttributeValue("", StandardNames.INPUT_TYPE_ANNOTATIONS);
+        String inputTypeAnnotationsAtt = getAttributeValue("", "input-type-annotations");
         if (inputTypeAnnotationsAtt != null) {
             if (inputTypeAnnotationsAtt.equals("strip")) {
                 return ANNOTATION_STRIP;

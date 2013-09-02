@@ -545,12 +545,12 @@ public final class Navigator {
                 }
             case Type.ATTRIBUTE:
                 {
-                    out.attribute(node.getNodeName(), node.getStringValueCS());
+                    out.attribute(node.getNodeName(), node.getStringValue());
                     return;
                 }
             case Type.TEXT:
                 {
-                    CharSequence value = node.getStringValueCS();
+                    CharSequence value = node.getStringValue();
                     if (value.length() != 0) {
                         // zero-length text nodes can arise from external model wrappers
                         out.characters(value);
@@ -559,12 +559,12 @@ public final class Navigator {
                 }
             case Type.COMMENT:
                 {
-                    out.comment(node.getStringValueCS());
+                    out.comment(node.getStringValue());
                     return;
                 }
             case Type.PROCESSING_INSTRUCTION:
                 {
-                    out.processingInstruction(node.getLocalPart(), node.getStringValueCS());
+                    out.processingInstruction(node.getLocalPart(), node.getStringValue());
                     return;
                 }
             case Type.NAMESPACE:
@@ -885,7 +885,7 @@ public final class Navigator {
                     position = -1;
                     return null;
                 }
-                if (!(current.getNodeKind() == Type.TEXT && current.getStringValueCS().length() == 0)) {
+                if (!(current.getNodeKind() == Type.TEXT && current.getStringValue().length() == 0)) {
                     position++;
                     return current;
                 }

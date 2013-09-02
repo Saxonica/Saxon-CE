@@ -82,12 +82,10 @@ public class ArithmeticExpression extends BinaryExpression {
         BuiltInAtomicType type0 = (BuiltInAtomicType) itemType0.getPrimitiveItemType();
         if (type0 == BuiltInAtomicType.UNTYPED_ATOMIC) {
             operand0 = new UntypedAtomicConverter(operand0, BuiltInAtomicType.DOUBLE, true, role0);
-            type0 = BuiltInAtomicType.DOUBLE;
         } else if (/*!(operand0 instanceof UntypedAtomicConverter)*/
                 (operand0.getSpecialProperties() & StaticProperty.NOT_UNTYPED) == 0 &&
                         th.relationship(type0, BuiltInAtomicType.UNTYPED_ATOMIC) != TypeHierarchy.DISJOINT) {
             operand0 = new UntypedAtomicConverter(operand0, BuiltInAtomicType.DOUBLE, false, role0);
-            type0 = (BuiltInAtomicType) operand0.getItemType(th);
         }
 
         // System.err.println("First operand"); operand0.display(10);
@@ -102,12 +100,10 @@ public class ArithmeticExpression extends BinaryExpression {
         BuiltInAtomicType type1 = (BuiltInAtomicType) itemType1.getPrimitiveItemType();
         if (type1 == BuiltInAtomicType.UNTYPED_ATOMIC) {
             operand1 = new UntypedAtomicConverter(operand1, BuiltInAtomicType.DOUBLE, true, role1);
-            type1 = BuiltInAtomicType.DOUBLE;
         } else if (/*!(operand1 instanceof UntypedAtomicConverter) &&*/
                 (operand1.getSpecialProperties() & StaticProperty.NOT_UNTYPED) == 0 &&
                         th.relationship(type1, BuiltInAtomicType.UNTYPED_ATOMIC) != TypeHierarchy.DISJOINT) {
             operand1 = new UntypedAtomicConverter(operand1, BuiltInAtomicType.DOUBLE, false, role1);
-            type1 = (BuiltInAtomicType) operand1.getItemType(th);
         }
 
         if (operand0 != oldOp0) {
@@ -177,10 +173,10 @@ public class ArithmeticExpression extends BinaryExpression {
             p1 = BuiltInAtomicType.DATE_TIME;
         }
 
-        if (th.isSubType(p0, BuiltInAtomicType.NUMERIC) && th.isSubType(p1, BuiltInAtomicType.NUMERIC)) {
+        if (value0 instanceof NumericValue && value1 instanceof NumericValue) {
             NumericValue n0 = (NumericValue) value0;
             NumericValue n1 = (NumericValue) value1;
-            if (p0 == BuiltInAtomicType.DOUBLE || p1 == BuiltInAtomicType.DOUBLE) {
+            if (value0 instanceof DoubleValue || value1 instanceof DoubleValue) {
                 double d0 = n0.getDoubleValue();
                 double d1 = n1.getDoubleValue();
                 double result;
@@ -215,38 +211,38 @@ public class ArithmeticExpression extends BinaryExpression {
 
                 }
                 return new DoubleValue(result);
-            } else if (p0 == BuiltInAtomicType.FLOAT || p1 == BuiltInAtomicType.FLOAT) {
-                float d0 = n0.getFloatValue();
-                float d1 = n1.getFloatValue();
+            } else if (value0 instanceof FloatValue || value1 instanceof FloatValue) {
+                float f0 = n0.getFloatValue();
+                float f1 = n1.getFloatValue();
                 float result;
                 switch (operator) {
                     case Token.PLUS:
                     default:
-                        result = d0 + d1;
+                        result = f0 + f1;
                         break;
                     case Token.MINUS:
-                        result = d0 - d1;
+                        result = f0 - f1;
                         break;
                     case Token.MULT:
-                        result = d0 * d1;
+                        result = f0 * f1;
                         break;
                     case Token.DIV:
-                        result = d0 / d1;
+                        result = f0 / f1;
                         break;
                     case Token.MOD:
-                        result = d0 % d1;
+                        result = f0 % f1;
                         break;
                     case Token.IDIV:
-                        if (d1 == 0.0) {
+                        if (f1 == 0.0) {
                             throw new XPathException("Integer division by zero", "FOAR0001", context);
                         }
-                        if (Float.isNaN(d0) || Float.isInfinite(d0)) {
+                        if (Float.isNaN(f0) || Float.isInfinite(f0)) {
                             throw new XPathException("First operand of idiv is NaN or infinity", "FOAR0002", context);
                         }
-                        if (Float.isNaN(d1)) {
+                        if (Float.isNaN(f1)) {
                             throw new XPathException("Second operand of idiv is NaN", "FOAR0002", context);
                         }
-                        return new FloatValue(d0 / d1).convert(BuiltInAtomicType.INTEGER, true).asAtomic();
+                        return new FloatValue(f0 / f1).convert(BuiltInAtomicType.INTEGER, true).asAtomic();
 
                 }
                 return new FloatValue(result);

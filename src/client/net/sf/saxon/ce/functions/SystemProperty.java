@@ -74,7 +74,7 @@ public class SystemProperty extends SystemFunction {
 
         StructuredQName qName = propertyName;
         if (qName == null) {
-            CharSequence name = argument[0].evaluateItem(context).getStringValueCS();
+            CharSequence name = argument[0].evaluateItem(context).getStringValue();
             try {
                 qName = StructuredQName.fromLexicalQName(name,
                         false,

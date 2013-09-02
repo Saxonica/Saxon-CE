@@ -76,7 +76,7 @@ public class CodepointCollatingComparer implements AtomicComparer {
         StringValue as = (StringValue)a;
         StringValue bs = (StringValue)b;
         if (as.containsSurrogatePairs() || bs.containsSurrogatePairs()) {
-            return collator.compareCS(as.getStringValueCS(), bs.getStringValueCS());
+            return collator.compareCS(as.getStringValue(), bs.getStringValue());
         } else {
             // optimize to use UTF-16 binary comparison
             return as.getStringValue().compareTo(bs.getStringValue());

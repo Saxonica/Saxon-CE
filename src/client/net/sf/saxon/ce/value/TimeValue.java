@@ -1,9 +1,7 @@
 package client.net.sf.saxon.ce.value;
 
 import client.net.sf.saxon.ce.expr.XPathContext;
-import client.net.sf.saxon.ce.expr.sort.ComparisonKey;
 import client.net.sf.saxon.ce.functions.Component;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.trans.Err;
 import client.net.sf.saxon.ce.trans.NoDynamicContextException;
 import client.net.sf.saxon.ce.trans.XPathException;
@@ -168,9 +166,9 @@ public final class TimeValue extends CalendarValue implements Comparable {
         if (requiredType == BuiltInAtomicType.ANY_ATOMIC || requiredType == BuiltInAtomicType.TIME) {
             return this;
         } else if (requiredType == BuiltInAtomicType.UNTYPED_ATOMIC) {
-            return new UntypedAtomicValue(getStringValueCS());
+            return new UntypedAtomicValue(getStringValue());
         } else if (requiredType == BuiltInAtomicType.STRING) {
-            return new StringValue(getStringValueCS());
+            return new StringValue(getStringValue());
         } else {
             ValidationFailure err = new ValidationFailure("Cannot convert gYear to " +
                     requiredType.getDisplayName());
@@ -214,25 +212,6 @@ public final class TimeValue extends CalendarValue implements Comparable {
         return sb;
 
     }
-
-
-    /**
-     * Get the canonical lexical representation as defined in XML Schema. This is not always the same
-     * as the result of casting to a string according to the XPath rules. For an xs:time it is the
-     * time adjusted to UTC
-     *
-     * @return the canonical lexical representation if defined in XML Schema
-     */
-
-    public CharSequence getCanonicalLexicalRepresentation() {
-        if (hasTimezone() && getTimezoneInMinutes() != 0) {
-            return adjustTimezone(0).getStringValueCS();
-        } else {
-            return getStringValueCS();
-        }
-    }
-
-
 
     /**
      * Convert to a DateTime value. The date components represent a reference date, as defined
@@ -395,18 +374,6 @@ public final class TimeValue extends CalendarValue implements Comparable {
         } else {
             return toDateTime().compareTo(otherTime.toDateTime(), context);
         }
-    }
-
-
-    /**
-     * Get a comparison key for this value. Two values are equal if and only if they their comparison
-     * keys are equal
-     * @param context XPath dynamic context
-     * @throws NoDynamicContextException if the implicit timezone is required and is not available
-     */
-
-    public ComparisonKey getComparisonKey(XPathContext context) throws NoDynamicContextException {
-        return new ComparisonKey(StandardNames.XS_TIME, toDateTime().normalize(context));
     }
 
 

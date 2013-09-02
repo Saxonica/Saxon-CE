@@ -42,11 +42,11 @@ public class Matches extends SystemFunction {
         } else {
             AtomicValue sv2 = (AtomicValue)argument[2].evaluateItem(c);
             if (sv2==null) return null;
-            flags = sv2.getStringValueCS();
+            flags = sv2.getStringValue();
         }
 
         try {
-            ARegularExpression re = new ARegularExpression(pat.getStringValueCS(), flags.toString(), "XP20", null);
+            ARegularExpression re = new ARegularExpression(pat.getStringValue(), flags.toString(), "XP20", null);
             return BooleanValue.get(re.containsMatch(sv0.getStringValue()));
 
         } catch (XPathException err) {

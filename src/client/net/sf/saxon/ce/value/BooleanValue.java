@@ -130,7 +130,7 @@ public final class BooleanValue extends AtomicValue implements Comparable {
         if (requiredType == BuiltInAtomicType.ANY_ATOMIC || requiredType == BuiltInAtomicType.BOOLEAN) {
             return this;
         } else if (requiredType == BuiltInAtomicType.UNTYPED_ATOMIC) {
-            return new UntypedAtomicValue(getStringValueCS());
+            return new UntypedAtomicValue(getStringValue());
         } else if (requiredType == BuiltInAtomicType.STRING) {
             return (value ? StringValue.TRUE : StringValue.FALSE);
         } else if (requiredType == BuiltInAtomicType.NUMERIC || requiredType == BuiltInAtomicType.INTEGER ||

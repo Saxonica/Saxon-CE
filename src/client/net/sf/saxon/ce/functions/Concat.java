@@ -33,7 +33,7 @@ public class Concat extends SystemFunction {
     */
 
     public CharSequence evaluateAsString(XPathContext c) throws XPathException {
-        return evaluateItem(c).getStringValueCS();
+        return evaluateItem(c).getStringValue();
     }
 
     /**
@@ -46,7 +46,7 @@ public class Concat extends SystemFunction {
         for (int i=0; i<numArgs; i++) {
             AtomicValue val = (AtomicValue)argument[i].evaluateItem(c);
             if (val!=null) {
-                sb.append(val.getStringValueCS());
+                sb.append(val.getStringValue());
             }
         }
         return StringValue.makeStringValue(sb.condense());
@@ -70,7 +70,7 @@ public class Concat extends SystemFunction {
             for (int i=0; i<numArgs; i++) {
                 AtomicValue val = (AtomicValue)argument[i].evaluateItem(context);
                 if (val!=null) {
-                    out.characters(val.getStringValueCS());
+                    out.characters(val.getStringValue());
                     empty = false;
                 }
             }

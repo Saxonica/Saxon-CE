@@ -5,16 +5,10 @@ import java.util.Iterator;
 
 import com.google.gwt.core.client.JavaScriptObject;
 
-import client.net.sf.saxon.ce.dom.HTMLNodeWrapper;
 import client.net.sf.saxon.ce.js.IXSLFunction;
-import client.net.sf.saxon.ce.om.Item;
-import client.net.sf.saxon.ce.om.SequenceIterator;
-import client.net.sf.saxon.ce.om.StandardNames;
-import client.net.sf.saxon.ce.om.ValueRepresentation;
 import client.net.sf.saxon.ce.pattern.EmptySequenceTest;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
-import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.expr.*;
 
@@ -33,10 +27,6 @@ public class SetProperty extends Instruction {
     	this.name = name;
     	this.select = select;
     	adoptChildren();
-    }
-    
-    public int getInstructionNameCode() {
-        return StandardNames.IXSL_SET_PROPERTY;
     }
 
     /**

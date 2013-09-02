@@ -7,7 +7,6 @@ import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.expr.instruct.ValueOf;
 import client.net.sf.saxon.ce.om.AttributeCollection;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.value.Whitespace;
 import client.net.sf.saxon.ce.pattern.NodeKindTest;
 import client.net.sf.saxon.ce.trans.XPathException;
@@ -54,11 +53,11 @@ public final class XSLValueOf extends XSLLeafNodeConstructor {
 		for (int a=0; a<atts.getLength(); a++) {
 			StructuredQName qn = atts.getStructuredQName(a);
             String f = qn.getClarkName();
-			if (f.equals(StandardNames.DISABLE_OUTPUT_ESCAPING)) {
+			if (f.equals("disable-output-escaping")) {
         		disableAtt = Whitespace.trim(atts.getValue(a));
-			} else if (f.equals(StandardNames.SELECT)) {
+			} else if (f.equals("select")) {
         		selectAtt = atts.getValue(a);
-			} else if (f.equals(StandardNames.SEPARATOR)) {
+			} else if (f.equals("separator")) {
         		separatorAtt = atts.getValue(a);
         	} else {
         		checkUnknownAttribute(qn);

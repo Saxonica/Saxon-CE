@@ -2,13 +2,11 @@ package client.net.sf.saxon.ce.expr.instruct;
 
 import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.lib.StandardErrorListener;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.om.ValueRepresentation;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.AnyItemType;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.TypeHierarchy;
-import com.google.gwt.user.client.Window;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -75,14 +73,6 @@ public class Message extends Instruction {
         return this;
     }
 
-
-    /**
-    * Get the name of this instruction for diagnostic and tracing purposes
-    */
-
-    public int getInstructionNameCode() {
-        return StandardNames.XSL_MESSAGE;
-    }
 
     /**
      * Get the item type. To avoid spurious compile-time type errors, we falsely declare that the

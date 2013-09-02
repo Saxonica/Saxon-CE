@@ -47,7 +47,7 @@ public abstract class XSLGeneralIncorporate extends StyleElement {
 		for (int a=0; a<atts.getLength(); a++) {
 			StructuredQName qn = atts.getStructuredQName(a);
             String f = qn.getClarkName();
-			if (f.equals(StandardNames.HREF)) {
+			if (f.equals("href")) {
         		href = Whitespace.trim(atts.getValue(a));
         	} else {
         		checkUnknownAttribute(qn);

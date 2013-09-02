@@ -57,13 +57,13 @@ public class TeeOutputter extends SequenceReceiver {
     /**
      * Notify the start of an element
      *
-     * @param nameCode    integer code identifying the name of the element within the name pool.
+     * @param qName    integer code identifying the name of the element within the name pool.
      * @param properties  bit-significant properties of the element node. If there are no revelant
      */
 
-    public void startElement(StructuredQName nameCode, int properties) throws XPathException {
-        seq1.startElement(nameCode, properties);
-        seq2.startElement(nameCode, properties);
+    public void startElement(StructuredQName qName, int properties) throws XPathException {
+        seq1.startElement(qName, properties);
+        seq2.startElement(qName, properties);
     }
 
     /**

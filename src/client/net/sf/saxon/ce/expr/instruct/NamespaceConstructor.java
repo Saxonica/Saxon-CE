@@ -33,14 +33,6 @@ public class NamespaceConstructor extends SimpleNodeConstructor {
         adoptChildExpression(name);
     }
 
-    /**
-    * Set the name of this instruction for diagnostic and tracing purposes
-    */
-
-    public int getInstructionNameCode() {
-        return StandardNames.XSL_NAMESPACE;
-    }
-
     public Expression simplify(ExpressionVisitor visitor) throws XPathException {
         name = visitor.simplify(name);
         return super.simplify(visitor);

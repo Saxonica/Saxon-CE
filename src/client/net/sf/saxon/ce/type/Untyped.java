@@ -1,7 +1,5 @@
 package client.net.sf.saxon.ce.type;
 
-import client.net.sf.saxon.ce.om.StandardNames;
-
 /**
  * This class has a singleton instance which represents the complex type xs:untyped,
  * used for elements that have not been validated.
@@ -15,16 +13,6 @@ public final class Untyped extends BuiltInType implements SchemaType {
      * Private constructor
      */
     private Untyped() {
-    }
-
-    /**
-     * Get the fingerprint of the name of this type
-     *
-     * @return the fingerprint. Returns an invented fingerprint for an anonymous type.
-     */
-
-    public int getFingerprint() {
-        return StandardNames.XS_UNTYPED;
     }
 
     /**

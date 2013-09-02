@@ -38,8 +38,7 @@ public interface DocumentInfo extends NodeInfo {
      * Set user data on the document node. The user data can be retrieved subsequently
      * using {@link #getUserData}
      * @param key A string giving the name of the property to be set. Clients are responsible
-     * for choosing a key that is likely to be unique. Must not be null. Keys used internally
-     * by Saxon are prefixed "claxon:".
+     * for choosing a key that is likely to be unique. Must not be null.
      * @param value The value to be set for the property. May be null, which effectively
      * removes the existing value for the property.
      */

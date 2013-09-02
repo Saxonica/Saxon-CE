@@ -114,7 +114,7 @@ public class Err {
 
     public static CharSequence depict(Item item) {
         if (item instanceof AtomicValue) {
-            CharSequence cs = item.getStringValueCS();
+            CharSequence cs = item.getStringValue();
             if (item instanceof StringValue) {
                 return '\"' + truncate30(cs).toString() + '\"';
             } else {

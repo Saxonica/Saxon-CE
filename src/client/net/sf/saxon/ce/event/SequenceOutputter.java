@@ -190,11 +190,11 @@ public final class SequenceOutputter extends SequenceReceiver {
 
     /**
     * Output an element start tag.
-     * @param nameCode The element name code - a code held in the Name Pool
+     * @param qName The element name code - a code held in the Name Pool
       * @param properties bit-significant flags indicating any special information
      */
 
-    public void startElement(StructuredQName nameCode, int properties) throws XPathException {
+    public void startElement(StructuredQName qName, int properties) throws XPathException {
 
         if (inStartTag) {
             startContent();
@@ -204,7 +204,7 @@ public final class SequenceOutputter extends SequenceReceiver {
             createTree();
         }
 
-        outputter.startElement(nameCode, properties);
+        outputter.startElement(qName, properties);
         level++;
         inStartTag = true;
         previousAtomic = false;
@@ -242,8 +242,7 @@ public final class SequenceOutputter extends SequenceReceiver {
     public void namespace(NamespaceBinding nsBinding, int properties)
     throws XPathException {
         if (level == 0) {
-            NamePool namePool = getNamePool();
-            Orphan o = new Orphan(getConfiguration());
+            Orphan o = new Orphan();
             o.setNodeKind(Type.NAMESPACE);
             o.setNodeName(new StructuredQName("", "", nsBinding.getPrefix()));
             o.setStringValue(nsBinding.getURI());
@@ -266,7 +265,7 @@ public final class SequenceOutputter extends SequenceReceiver {
     public void attribute(StructuredQName nameCode, CharSequence value)
     throws XPathException {
         if (level == 0) {
-            Orphan o = new Orphan(getConfiguration());
+            Orphan o = new Orphan();
             o.setNodeKind(Type.ATTRIBUTE);
             o.setNodeName(nameCode);
             o.setStringValue(value);
@@ -297,7 +296,7 @@ public final class SequenceOutputter extends SequenceReceiver {
 
     public void characters(CharSequence s) throws XPathException {
         if (level == 0) {
-            Orphan o = new Orphan(getConfiguration());
+            Orphan o = new Orphan();
             o.setNodeKind(Type.TEXT);
             o.setStringValue(s.toString());
             append(o, NodeInfo.ALL_NAMESPACES);
@@ -321,7 +320,7 @@ public final class SequenceOutputter extends SequenceReceiver {
             startContent();
         }
         if (level == 0) {
-            Orphan o = new Orphan(getConfiguration());
+            Orphan o = new Orphan();
             o.setNodeKind(Type.COMMENT);
             o.setStringValue(comment);
             append(o, NodeInfo.ALL_NAMESPACES);
@@ -341,7 +340,7 @@ public final class SequenceOutputter extends SequenceReceiver {
             startContent();
         }
         if (level == 0) {
-            Orphan o = new Orphan(getConfiguration());
+            Orphan o = new Orphan();
             o.setNodeName(new StructuredQName("", "", target));
             o.setNodeKind(Type.PROCESSING_INSTRUCTION);
             o.setStringValue(data);
@@ -383,7 +382,7 @@ public final class SequenceOutputter extends SequenceReceiver {
                 if (previousAtomic) {
                     outputter.characters(" ");
                 }
-                outputter.characters(item.getStringValueCS());
+                outputter.characters(item.getStringValue());
                 previousAtomic = true;
             } else {
                 ((NodeInfo)item).copy(outputter, (CopyOptions.ALL_NAMESPACES | CopyOptions.TYPE_ANNOTATIONS));

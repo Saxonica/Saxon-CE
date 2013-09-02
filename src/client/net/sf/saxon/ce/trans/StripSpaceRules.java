@@ -40,8 +40,7 @@ public class StripSpaceRules  {
      * @param module the stylesheet module containing the rule
      */
 
-    public void addRule(NodeTest test, Template action,
-                        StylesheetModule module, int lineNumber) {
+    public void addRule(NodeTest test, Template action, StylesheetModule module) {
 
         // for fast lookup, we maintain one list for each element name for patterns that can only
         // match elements of a given name, one list for each node type for patterns that can only
@@ -156,7 +155,7 @@ public class StripSpaceRules  {
                 } else if (rank == 0) {
                     // this rule has the same precedence and priority as the matching rule already found
                     if (head.isAlwaysMatches() ||
-                            head.getPattern().getNodeTest().matches(Type.ELEMENT, fingerprint, -1)) {
+                            head.getPattern().getNodeTest().matches(Type.ELEMENT, fingerprint)) {
                         // reportAmbiguity(bestRule, head);
                         // We no longer report the recoverable error XTRE0270, we always
                         // take the recovery action.
@@ -169,12 +168,12 @@ public class StripSpaceRules  {
                 } else {
                     // this rule has higher rank than the matching rule already found
                     if (head.isAlwaysMatches() ||
-                            head.getPattern().getNodeTest().matches(Type.ELEMENT, fingerprint, -1)) {
+                            head.getPattern().getNodeTest().matches(Type.ELEMENT, fingerprint)) {
                         bestRule = head;
                     }
                 }
             } else if (head.isAlwaysMatches() ||
-                    head.getPattern().getNodeTest().matches(Type.ELEMENT, fingerprint, -1)) {
+                    head.getPattern().getNodeTest().matches(Type.ELEMENT, fingerprint)) {
                 bestRule = head;
                 break;
             }

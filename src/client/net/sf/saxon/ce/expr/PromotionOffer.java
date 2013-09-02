@@ -1,5 +1,6 @@
 package client.net.sf.saxon.ce.expr;
 
+import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.expr.sort.DocumentSorter;
 import client.net.sf.saxon.ce.functions.Current;
 import client.net.sf.saxon.ce.functions.Reverse;
@@ -19,6 +20,8 @@ import client.net.sf.saxon.ce.value.SequenceType;
 */
 
 public class PromotionOffer  {
+
+    private Configuration config;
 
     /**
     * FOCUS_INDEPENDENT requests promotion of all non-trivial subexpressions that don't depend on the
@@ -66,12 +69,6 @@ public class PromotionOffer  {
      */
 
     public static final int REPLACE_CURRENT = 14;
-
-    /**
-     * The optimizer in use
-     */
-
-    private Optimizer optimizer;
 
     /**
      * The expression visitor in use
@@ -137,20 +134,10 @@ public class PromotionOffer  {
 
     /**
      * Create a PromotionOffer for use with a particular Optimizer
-     * @param optimizer the optimizer
      */
 
-    public PromotionOffer(Optimizer optimizer) {
-        this.optimizer = optimizer;
-    }
-
-    /**
-     * Get the optimizer in use
-     * @return the optimizer
-     */
-
-    public Optimizer getOptimizer() {
-        return optimizer;
+    public PromotionOffer(Configuration config) {
+        this.config = config;
     }
 
     /**
@@ -236,7 +223,7 @@ public class PromotionOffer  {
     */
 
     private Expression promote(Expression parent, Expression child) {
-        final TypeHierarchy th = optimizer.getConfiguration().getTypeHierarchy();
+        final TypeHierarchy th = config.getTypeHierarchy();
         LetExpression let = new LetExpression();
         let.setVariableQName(new StructuredQName("zz", NamespaceConstant.SAXON, "zz" + let.hashCode()));
         SequenceType type = SequenceType.makeSequenceType(child.getItemType(th), child.getCardinality());

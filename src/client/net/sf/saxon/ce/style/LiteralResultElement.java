@@ -147,7 +147,7 @@ public class LiteralResultElement extends StyleElement {
 
         toplevel = (getParent() instanceof XSLStylesheet);
 
-        resultNameCode = new StructuredQName(getPrefix(), getURI(), getLocalPart());
+        resultNameCode = getNodeName();
 
         String elementURI = getURI();
 
@@ -400,9 +400,7 @@ public class LiteralResultElement extends StyleElement {
             builder.endDocument();
             builder.close();
 
-            DocumentImpl newRoot = (DocumentImpl)builder.getCurrentRoot();
-            newRoot.graftLocationMap(oldRoot);
-            return newRoot;
+            return (DocumentImpl)builder.getCurrentRoot();
         } catch (XPathException err) {
             //TransformerConfigurationException e = new TransformerConfigurationException(err);
             err.setLocator(this);

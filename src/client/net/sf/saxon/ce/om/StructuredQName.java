@@ -45,16 +45,6 @@ public class StructuredQName implements Comparable<StructuredQName> {
     }
 
     /**
-     * Make a structuredQName from a Namepool nameCode
-     * @param pool the NamePool
-     * @param nameCode a name code that has been registered in the NamePool
-     */
-
-    public StructuredQName(NamePool pool, int nameCode) {
-        this(pool.getPrefix(nameCode), pool.getURI(nameCode), pool.getLocalName(nameCode));
-    }
-
-    /**
      * Make a structuredQName from a Clark name
      * @param expandedName the name in Clark notation "{uri}local" if in a namespace, or "local" otherwise.
      * The format "{}local" is also accepted for a name in no namespace.

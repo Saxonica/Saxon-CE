@@ -11,7 +11,6 @@ import client.net.sf.saxon.ce.functions.SystemFunction;
 import client.net.sf.saxon.ce.om.DocumentInfo;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.SequenceIterator;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.pattern.NodeKindTest;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
@@ -153,7 +152,7 @@ public class DocumentInstr extends ParentNodeConstructor {
                 while (true) {
                     Item item = iter.next();
                     if (item==null) break;
-                    sb.append(item.getStringValueCS());
+                    sb.append(item.getStringValue());
                 }
                 textValue = sb.condense();
             }
@@ -189,16 +188,6 @@ public class DocumentInstr extends ParentNodeConstructor {
             }
         }
         return root;
-    }
-
-
-    /**
-     * Get the name of this instruction for diagnostic and tracing purposes
-     * (the string "document-constructor")
-     */
-
-    public int getInstructionNameCode() {
-        return StandardNames.XSL_DOCUMENT;
     }
 
 

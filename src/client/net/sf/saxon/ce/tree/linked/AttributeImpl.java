@@ -1,7 +1,6 @@
 package client.net.sf.saxon.ce.tree.linked;
 import client.net.sf.saxon.ce.event.Receiver;
 import client.net.sf.saxon.ce.om.NodeInfo;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
@@ -45,14 +44,6 @@ final class AttributeImpl extends NodeImpl {
             return null;
         }
         return ((ElementImpl)getRawParent()).getAttributeList().getStructuredQName(getSiblingPosition());
-    }
-
-    /**
-     * Get the type annotation of this node, if any
-     */
-
-    public int getTypeAnnotation() {
-        return StandardNames.XS_UNTYPED_ATOMIC;
     }
 
     /**

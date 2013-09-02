@@ -7,7 +7,6 @@ import client.net.sf.saxon.ce.expr.sort.SortExpression;
 import client.net.sf.saxon.ce.expr.sort.SortKeyDefinition;
 import client.net.sf.saxon.ce.om.AttributeCollection;
 import client.net.sf.saxon.ce.om.Axis;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
@@ -79,7 +78,7 @@ public class XSLForEach extends StyleElement {
 		for (int a=0; a<atts.getLength(); a++) {
 			StructuredQName qn = atts.getStructuredQName(a);
             String f = qn.getClarkName();
-			if (f.equals(StandardNames.SELECT)) {
+			if (f.equals("select")) {
         		selectAtt = atts.getValue(a);
             } else {
         		checkUnknownAttribute(qn);

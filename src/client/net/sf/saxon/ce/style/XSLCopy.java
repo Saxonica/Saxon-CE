@@ -5,7 +5,6 @@ import client.net.sf.saxon.ce.expr.instruct.*;
 import client.net.sf.saxon.ce.lib.Validation;
 import client.net.sf.saxon.ce.om.AttributeCollection;
 import client.net.sf.saxon.ce.om.Axis;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.pattern.NodeKindTest;
 import client.net.sf.saxon.ce.trans.XPathException;
@@ -53,15 +52,15 @@ public class XSLCopy extends StyleElement {
         for (int a=0; a<atts.getLength(); a++) {
 			StructuredQName qn = atts.getStructuredQName(a);
             String f = qn.getClarkName();
-			if (f.equals(StandardNames.USE_ATTRIBUTE_SETS)) {
+			if (f.equals("use-attribute-sets")) {
         		use = atts.getValue(a);
-            } else if (f.equals(StandardNames.COPY_NAMESPACES)) {
+            } else if (f.equals("copy-namespaces")) {
                 copyNamespacesAtt = Whitespace.trim(atts.getValue(a));
-            } else if (f.equals(StandardNames.TYPE)) {
+            } else if (f.equals("type")) {
                 typeAtt = Whitespace.trim(atts.getValue(a));
-            } else if (f.equals(StandardNames.VALIDATION)) {
+            } else if (f.equals("validation")) {
                 validationAtt = Whitespace.trim(atts.getValue(a));
-            } else if (f.equals(StandardNames.INHERIT_NAMESPACES)) {
+            } else if (f.equals("inherit-namespaces")) {
                 inheritAtt = Whitespace.trim(atts.getValue(a));
         	} else {
         		checkUnknownAttribute(qn);

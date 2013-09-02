@@ -208,7 +208,7 @@ public final class UntypedAtomicConverter extends UnaryExpression {
                 if (item instanceof UntypedAtomicValue) {
                     ConversionResult val = ((UntypedAtomicValue)item).convert(requiredItemType, true);
                     if (val instanceof ValidationFailure) {
-                        String msg = role.composeRequiredMessage(requiredItemType, context.getNamePool());
+                        String msg = role.composeRequiredMessage(requiredItemType);
                         msg += ". " + ((ValidationFailure)val).getMessage();
                         XPathException err = new XPathException(msg);
                         err.setErrorCode(role.getErrorCode());
@@ -235,7 +235,7 @@ public final class UntypedAtomicConverter extends UnaryExpression {
         if (item instanceof UntypedAtomicValue) {
             ConversionResult val = ((UntypedAtomicValue)item).convert(requiredItemType, true);
             if (val instanceof ValidationFailure) {
-                String msg = role.composeRequiredMessage(requiredItemType, context.getNamePool());
+                String msg = role.composeRequiredMessage(requiredItemType);
                 msg += ". " + ((ValidationFailure)val).getMessage();
                 XPathException err = new XPathException(msg);
                 err.setErrorCode(role.getErrorCode());

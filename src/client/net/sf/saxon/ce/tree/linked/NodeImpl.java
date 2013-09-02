@@ -38,24 +38,6 @@ public abstract class NodeImpl
             {'x', 'e', 'a', 't', 'x', 'x', 'x', 'p', 'c', 'r', 'x', 'x', 'x', 'n'};
 
     /**
-     * Get the value of the item as a CharSequence. This is in some cases more efficient than
-     * the version of the method that returns a String.
-     */
-
-    public CharSequence getStringValueCS() {
-        return getStringValue();
-    }
-
-    /**
-     * Get the type annotation of this node, if any
-     * @return the type annotation, as the integer name code of the type name
-     */
-
-    public int getTypeAnnotation() {
-        return StandardNames.XS_UNTYPED;
-    }
-
-    /**
      * Get the document number of the document containing this node. For a free-standing
      * orphan node, just return the hashcode.
      */
@@ -90,7 +72,7 @@ public abstract class NodeImpl
      */
 
     public AtomicValue getTypedValue() {
-        return new UntypedAtomicValue(getStringValueCS());
+        return new UntypedAtomicValue(getStringValue());
     }
 
      /**
@@ -231,17 +213,6 @@ public abstract class NodeImpl
     }
 
     /**
-     * Get the prefix part of the name of this node. This is the name before the ":" if any.
-     *
-     * @return the prefix part of the name. For an unnamed node, return an empty string.
-     */
-
-    public String getPrefix() {
-        StructuredQName qName = getNodeName();
-        return (qName == null ? "" : qName.getPrefix());
-    }
-
-    /**
      * Get the URI part of the name of this node. This is the URI corresponding to the
      * prefix, or the URI of the default namespace if appropriate.
      *
@@ -277,14 +248,6 @@ public abstract class NodeImpl
     public String getLocalPart() {
         StructuredQName qName = getNodeName();
         return (qName == null ? "" : qName.getLocalName());
-    }
-
-    /**
-     * Get the line number of the node within its source document entity
-     */
-
-    public int getLineNumber() {
-        return parent.getLineNumber();
     }
 
     /**

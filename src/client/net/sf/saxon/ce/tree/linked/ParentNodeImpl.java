@@ -1,14 +1,13 @@
 package client.net.sf.saxon.ce.tree.linked;
-import client.net.sf.saxon.ce.om.*;
+import client.net.sf.saxon.ce.om.NodeInfo;
+import client.net.sf.saxon.ce.pattern.AnyNodeTest;
+import client.net.sf.saxon.ce.pattern.NodeTest;
 import client.net.sf.saxon.ce.tree.iter.AxisIterator;
 import client.net.sf.saxon.ce.tree.iter.EmptyIterator;
 import client.net.sf.saxon.ce.tree.iter.NodeArrayIterator;
 import client.net.sf.saxon.ce.tree.iter.SingleNodeIterator;
-import client.net.sf.saxon.ce.pattern.AnyNodeTest;
-import client.net.sf.saxon.ce.pattern.NodeTest;
-import client.net.sf.saxon.ce.type.Type;
-import client.net.sf.saxon.ce.tree.util.Navigator;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
+import client.net.sf.saxon.ce.tree.util.Navigator;
 
 /**
   * ParentNodeImpl is an implementation of a non-leaf node (specifically, an Element node
@@ -63,21 +62,6 @@ abstract class ParentNodeImpl extends NodeImpl {
 
     public final boolean hasChildNodes() {
         return (children!=null);
-    }
-
-    /**
-     * Determine how many children the node has
-     * @return the number of children of this parent node
-     */
-
-    public final int getNumberOfChildren() {
-        if (children == null) {
-            return 0;
-        } else if (children instanceof NodeImpl) {
-            return 1;
-        } else {
-            return ((NodeInfo[])children).length;
-        }
     }
 
     /**
@@ -153,12 +137,7 @@ abstract class ParentNodeImpl extends NodeImpl {
     * @return the accumulated character content of the element, including descendant elements.
     */
 
-    public String getStringValue() {
-        return getStringValueCS().toString();
-    }
-
-
-    public CharSequence getStringValueCS() {
+    public String getStringValue()  {
         FastStringBuffer sb = null;
 
         NodeImpl next = (NodeImpl)getFirstChild();
@@ -167,12 +146,12 @@ abstract class ParentNodeImpl extends NodeImpl {
                 if (sb==null) {
                     sb = new FastStringBuffer(FastStringBuffer.SMALL);
                 }
-                sb.append(next.getStringValueCS());
+                sb.append(next.getStringValue());
             }
             next = next.getNextInDocument(this);
         }
         if (sb==null) return "";
-        return sb.condense();
+        return sb.toString();
     }
 
     /**

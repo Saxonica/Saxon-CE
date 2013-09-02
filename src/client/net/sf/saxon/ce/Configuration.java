@@ -5,7 +5,6 @@ import client.net.sf.saxon.ce.dom.HTMLDocumentWrapper.DocType;
 import client.net.sf.saxon.ce.dom.XMLDOM;
 import client.net.sf.saxon.ce.event.PipelineConfiguration;
 import client.net.sf.saxon.ce.expr.EarlyEvaluationContext;
-import client.net.sf.saxon.ce.expr.Optimizer;
 import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.expr.number.Numberer_en;
 import client.net.sf.saxon.ce.expr.sort.CaseInsensitiveCollator;
@@ -13,8 +12,6 @@ import client.net.sf.saxon.ce.expr.sort.CodepointCollator;
 import client.net.sf.saxon.ce.lib.*;
 import client.net.sf.saxon.ce.om.DocumentInfo;
 import client.net.sf.saxon.ce.om.DocumentPool;
-import client.net.sf.saxon.ce.om.NamePool;
-import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.CompilerInfo;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.DocumentNumberAllocator;
@@ -42,15 +39,6 @@ import java.util.logging.Logger;
  * providing service in particular areas: error handling, URI resolution, and the like. Some
  * of these services are chosen on the basis of the current platform (Java or .NET), some vary
  * depending whether the environment is schema-aware or not.</p>
- * <p/>
- * <p>The <code>Configuration</code> provides access to a {@link NamePool} which is used to manage
- * all the names used in stylesheets, queries, schemas, and source and documents: the NamePool
- * allocates integer codes to these names allowing efficient storage and comparison. Normally
- * there will be a one-to-one relationship between a <code>NamePool</code> and a <code>Configuration</code>.
- * It is possible, however, for several <code>Configuration</code> objects to share the same
- * <code>NamePool</code>. Until Saxon 8.9, by default all <code>Configuration</code> objects
- * shared a single <code>NamePool</code> unless configured otherwise; this changed in 8.9 so that
- * the default is to allocate a new <code>NamePool</code> for each <code>Configuration</code>.</p>
  * <p/>
  * <p>The <code>Configuration</code> establishes the scope within which node identity is managed.
  * Every document belongs to a <code>Configuration</code>, and every node has a distinct identity
@@ -80,22 +68,16 @@ public class Configuration {
 
     private boolean timing = false;
     private boolean allowExternalFunctions = true;
-    private boolean useTypedValueCache = true;
-    private boolean useDisableOutputEscaping = false;
-    private NamePool namePool = new NamePool();
     private DocumentNumberAllocator documentNumberAllocator = new DocumentNumberAllocator();
     private DocumentPool globalDocumentPool = new DocumentPool();
     private transient XPathContext conversionContext = null;
     private transient TypeHierarchy typeHierarchy;
 
     private ParseOptions defaultParseOptions = new ParseOptions();
-    protected Optimizer optimizer = null;
-    protected int optimizationLevel = Optimizer.FULL_OPTIMIZATION;
 
     private CompilerInfo defaultXsltCompilerInfo = new CompilerInfo();
     private DocumentPool sourceDocumentPool = new DocumentPool();
     private Logger logger = Logger.getLogger("Configuration");
-
 
 
     /**
@@ -143,21 +125,21 @@ public class Configuration {
      *
      * @since 8.4
      */
-    
+
     public Configuration() {
     }
 
-     /**
+    /**
      * Get the edition code identifying this configuration: "CE" for "client edition"
      */
 
     public static String getEditionCode() {
         return "CE";
     }
-    
-    public DocumentInfo getHostPage(){
-    	// attempt to initialise this only once - in the Configuration constructor led
-    	// to NamePool exception
+
+    public DocumentInfo getHostPage() {
+        // attempt to initialise this only once - in the Configuration constructor led
+        // to NamePool exception
         Document page = Document.get();
         return new HTMLDocumentWrapper(page, page.getURL(), this, DocType.UNKNOWN);
     }
@@ -174,13 +156,14 @@ public class Configuration {
         }
         return conversionContext;
     }
-    
+
     public static URI getLocation() {
-    	URI location = null;
-    	try {
-    		location = new URI(Window.Location.getHref());
-    	} catch(Exception err) {}
-    	return location;
+        URI location = null;
+        try {
+            location = new URI(Window.Location.getHref());
+        } catch (Exception err) {
+        }
+        return location;
     }
 
     /**
@@ -188,6 +171,7 @@ public class Configuration {
      * not been registered in this CollationMap, the CollationURIResolver registered
      * with the Configuration is called. If this cannot resolve the collation name,
      * it should return null.
+     *
      * @param name the collation name (should be an absolute URI)
      * @return the StringCollator with this name if known, or null if not known
      */
@@ -205,12 +189,13 @@ public class Configuration {
     /**
      * Load a Numberer class for a given language and check it is OK.
      * This method is provided primarily for internal use.
+     *
      * @param language the language for which a Numberer is required. May be null,
-     * indicating default language
-     * @param country the country for which a Numberer is required. May be null,
-     * indicating default country
+     *                 indicating default language
+     * @param country  the country for which a Numberer is required. May be null,
+     *                 indicating default country
      * @return a suitable numberer. If no specific numberer is available
-     * for the language, the default numberer (normally English) is used.
+     *         for the language, the default numberer (normally English) is used.
      */
 
     public Numberer makeNumberer(String language, String country) {
@@ -218,28 +203,15 @@ public class Configuration {
     }
 
 
-
-   /**
+    /**
      * Get the default options for XSLT compilation
+     *
      * @return the default options for XSLT compilation. The CompilerInfo object will reflect any options
-     * set using other methods available for this Configuration object
+     *         set using other methods available for this Configuration object
      */
 
     public CompilerInfo getDefaultXsltCompilerInfo() {
         return defaultXsltCompilerInfo;
-    }
-
-    /**
-     * Determine how recoverable run-time errors are to be handled. This applies
-     * only if the standard ErrorListener is used.
-     *
-     * @return the current recovery policy. The options are {@link #RECOVER_SILENTLY},
-     *         {@link #RECOVER_WITH_WARNINGS}, or {@link #DO_NOT_RECOVER}.
-     * @since 8.4
-     */
-
-    public int getRecoveryPolicy() {
-        return defaultXsltCompilerInfo.getRecoveryPolicy();
     }
 
     public ErrorListener getErrorListener() {
@@ -248,22 +220,6 @@ public class Configuration {
 
     public void setErrorListener(ErrorListener listener) {
         this.errorListener = listener;
-    }
-
-    /**
-     * Determine how recoverable run-time errors are to be handled. This applies
-     * only if the standard ErrorListener is used. The recovery policy applies to
-     * errors classified in the XSLT 2.0 specification as recoverable dynamic errors,
-     * but only in those cases where Saxon provides a choice over how the error is handled:
-     * in some cases, Saxon makes the decision itself.
-     *
-     * @param recoveryPolicy the recovery policy to be used. The options are {@link #RECOVER_SILENTLY},
-     *                       {@link #RECOVER_WITH_WARNINGS}, or {@link #DO_NOT_RECOVER}.
-     * @since 8.4
-     */
-
-    public void setRecoveryPolicy(int recoveryPolicy) {
-        defaultXsltCompilerInfo.setRecoveryPolicy(recoveryPolicy);
     }
 
     /**
@@ -376,7 +332,7 @@ public class Configuration {
 
     /**
      * Get the document pool. This is used only for source documents, not for stylesheet modules.
-     * <p>
+     * <p/>
      * This method is intended for internal use only.
      *
      * @return the source document pool
@@ -397,36 +353,6 @@ public class Configuration {
 
     public void setValidation(boolean validation) {
         defaultParseOptions.setDTDValidationMode(validation ? Validation.STRICT : Validation.STRIP);
-    }
-
-    /**
-     * Get the target namepool to be used for stylesheets/queries and for source documents.
-     *
-     * @return the target name pool. If no NamePool has been specified explicitly, the
-     *         default NamePool is returned.
-     * @since 8.4
-     */
-
-    public NamePool getNamePool() {
-        return namePool;
-    }
-
-    /**
-     * Set the NamePool to be used for stylesheets/queries and for source documents.
-     * <p/>
-     * <p> Using this method allows several Configurations to share the same NamePool. This
-     * was the normal default arrangement until Saxon 8.9, which changed the default so
-     * that each Configuration uses its own NamePool.</p>
-     * <p/>
-     * <p>Sharing a NamePool creates a potential bottleneck, since changes to the namepool are
-     * synchronized.</p>
-     *
-     * @param targetNamePool The NamePool to be used.
-     * @since 8.4
-     */
-
-    public void setNamePool(NamePool targetNamePool) {
-        namePool = targetNamePool;
     }
 
     /**
@@ -483,20 +409,6 @@ public class Configuration {
     }
 
     /**
-     * Determine whether two Configurations are compatible. When queries, transformations, and path expressions
-     * are run, all the Configurations used to build the documents and to compile the queries and stylesheets
-     * must be compatible. Two Configurations are compatible if they share the same NamePool and the same
-     * DocumentNumberAllocator.
-     *
-     * @param other the other Configuration to be compared with this one
-     * @return true if the two configurations are compatible
-     */
-
-    public boolean isCompatible(Configuration other) {
-        return namePool == other.namePool && documentNumberAllocator == other.documentNumberAllocator;
-    }
-
-    /**
      * Get the global document pool. This is used for documents preloaded during query or stylesheet
      * compilation. The user application can preload documents into the global pool, where they will be found
      * if any query or stylesheet requests the specified document using the doc() or document() function.
@@ -533,22 +445,6 @@ public class Configuration {
         return defaultParseOptions.getStripSpace();
     }
 
-    /**
-     * Factory method to get an Optimizer.
-     * <p/>
-     * This method is intended for internal use only.
-     *
-     * @return the optimizer used in this configuration
-     */
-
-    public Optimizer getOptimizer() {
-        if (optimizer == null) {
-            optimizer = new Optimizer(this);
-            optimizer.setOptimizationLevel(optimizationLevel);
-        }
-        return optimizer;
-    }
-
 
     /**
      * Make a PipelineConfiguration from the properties of this Configuration
@@ -570,18 +466,19 @@ public class Configuration {
     public void issueWarning(String message) {
         logger.warning(message);
     }
-    
+
     /**
      * Build a document, using specified options for parsing and building.
+     *
      * @param url the URL of the document to be fetched and parsed.
      * @throws XPathException if the URL cannot be dereferenced or if parsing fails
      */
     public DocumentInfo buildDocument(final String url) throws XPathException {
         if (url.equals("html:document")) {
             // special case this URI
-        	return getHostPage();
+            return getHostPage();
         }
-        
+
         String xml;
         try {
             xml = XMLDOM.makeHTTPRequest(url);
@@ -590,273 +487,47 @@ public class Configuration {
         }
         Document jsDoc;
         try {
-        	jsDoc = (Document)XMLDOM.parseXML(xml);
-        	if (jsDoc.getDocumentElement() == null) {
-        		throw new XPathException("null returned for " + url);
-        	}
+            jsDoc = (Document) XMLDOM.parseXML(xml);
+            if (jsDoc.getDocumentElement() == null) {
+                throw new XPathException("null returned for " + url);
+            }
         } catch (Exception ec) {
-        	throw new XPathException("XML parser error: " + ec.getMessage());
+            throw new XPathException("XML parser error: " + ec.getMessage());
         }
         return new HTMLDocumentWrapper(jsDoc, url, Configuration.this, DocType.NONHTML);
     }
-    
-   
+
+
     public DocumentInfo wrapHTMLDocument(com.google.gwt.dom.client.Document doc, String uri) {
-    	return new HTMLDocumentWrapper(doc, uri, Configuration.this, DocType.UNKNOWN);
+        return new HTMLDocumentWrapper(doc, uri, Configuration.this, DocType.UNKNOWN);
     }
-    
+
     public DocumentInfo wrapXMLDocument(Node doc, String uri) {
-    	return new HTMLDocumentWrapper(doc, uri, Configuration.this, DocType.NONHTML);
+        return new HTMLDocumentWrapper(doc, uri, Configuration.this, DocType.NONHTML);
     }
-    
+
     private static int ieVersion = 0;
-    
+
     /**
      * Returns -1 if host is not IE or the version number when IE is found
      */
-    public static int getIeVersion(){
-    	if (ieVersion == 0){
-    		ieVersion = getNativeIEVersion();
-    	}
-    	return ieVersion;  	
+    public static int getIeVersion() {
+        if (ieVersion == 0) {
+            ieVersion = getNativeIEVersion();
+        }
+        return ieVersion;
     }
-    
+
     public static native int getNativeIEVersion() /*-{
-	    var rv = -1;
-	    if (navigator.appName == 'Microsoft Internet Explorer')
-	    {	      
-		      var ua = navigator.userAgent;
-		      var re  = new RegExp("MSIE ([0-9]{1,}[\.0-9]{0,})");
-		      if (re.exec(ua) != null)
-		         rv = parseFloat( RegExp.$1 );
-	    }
-	    return rv;
+        var rv = -1;
+        if (navigator.appName == 'Microsoft Internet Explorer') {
+            var ua = navigator.userAgent;
+            var re = new RegExp("MSIE ([0-9]{1,}[\.0-9]{0,})");
+            if (re.exec(ua) != null)
+                rv = parseFloat(RegExp.$1);
+        }
+        return rv;
     }-*/;
-  
-    /**
-     * Set a property of the configuration. This method underpins the setAttribute() method of the
-     * TransformerFactory implementation, and is provided
-     * to enable setting of Configuration properties using URIs without instantiating a TransformerFactory:
-     * specifically, this may be useful when running XQuery, and it is also used by the Validator API
-     *
-     * @param name  the URI identifying the property to be set. See the class {@link FeatureKeys} for
-     *              constants representing the property names that can be set.
-     * @param value the value of the property
-     * @throws IllegalArgumentException if the property name is not recognized or if the value is not
-     * a valid value for the named property
-     */
-
-    public void setConfigurationProperty(String name, Object value) {
-
-        if (name.equals(FeatureKeys.ALLOW_EXTERNAL_FUNCTIONS)) {
-            boolean b = requireBoolean(name, value);
-            setAllowExternalFunctions(b);
-
-        } else if (name.equals(FeatureKeys.DTD_VALIDATION)) {
-            boolean b = requireBoolean(name, value);
-            setValidation(b);
-
-        } else if (name.equals(FeatureKeys.DTD_VALIDATION_RECOVERABLE)) {
-            boolean b = requireBoolean(name, value);
-            if (b) {
-                defaultParseOptions.setDTDValidationMode(Validation.LAX);
-            } else {
-                defaultParseOptions.setDTDValidationMode(isValidation() ? Validation.STRICT : Validation.SKIP);
-            }
-
-        } else if (name.equals(FeatureKeys.NAME_POOL)) {
-            if (!(value instanceof NamePool)) {
-                throw new IllegalArgumentException("NAME_POOL value must be an instance of client.net.sf.saxon.ce.om.NamePool");
-            }
-            setNamePool((NamePool)value);
-
-        } else if (name.equals(FeatureKeys.OPTIMIZATION_LEVEL)) {
-            String s = requireString(name, value);
-            try {
-                optimizationLevel = Integer.parseInt(s);
-                if (optimizationLevel < Optimizer.NO_OPTIMIZATION || optimizationLevel > Optimizer.FULL_OPTIMIZATION) {
-                    throw new IllegalArgumentException("OPTIMIZATION_LEVEL must be in the range " +
-                            Optimizer.NO_OPTIMIZATION + " to " + Optimizer.FULL_OPTIMIZATION);
-                }
-                if (optimizer != null) {
-                    optimizer.setOptimizationLevel(optimizationLevel);
-                }
-            } catch (NumberFormatException e) {
-                throw new IllegalArgumentException("OPTIMIZATION_LEVEL value must be a number represented as a string");
-            }
-
-        } else if (name.equals(FeatureKeys.RECOVERY_POLICY)) {
-            if (!(value instanceof Integer)) {
-                throw new IllegalArgumentException("RECOVERY_POLICY value must be an Integer");
-            }
-            setRecoveryPolicy(((Integer)value).intValue());
-
-        } else if (name.equals(FeatureKeys.RECOVERY_POLICY_NAME)) {
-            if (!(value instanceof String)) {
-                throw new IllegalArgumentException("RECOVERY_POLICY_NAME value must be a String");
-            }
-            int rval;
-            if (value.equals("recoverSilently")) {
-                rval = RECOVER_SILENTLY;
-            } else if (value.equals("recoverWithWarnings")) {
-                rval = RECOVER_WITH_WARNINGS;
-            } else if (value.equals("doNotRecover")) {
-                rval = DO_NOT_RECOVER;
-            } else {
-                throw new IllegalArgumentException(
-                        "Unrecognized value of RECOVERY_POLICY_NAME = '" + value +
-                                "': must be 'recoverSilently', 'recoverWithWarnings', or 'doNotRecover'");
-            }
-            setRecoveryPolicy(rval);
-
-        } else if (name.equals(FeatureKeys.STRIP_WHITESPACE)) {
-            String s = requireString(name, value);
-            int ival;
-            if (s.equals("all")) {
-                ival = Whitespace.ALL;
-            } else if (s.equals("none")) {
-                ival = Whitespace.NONE;
-            } else if (s.equals("ignorable")) {
-                ival = Whitespace.IGNORABLE;
-            } else {
-                throw new IllegalArgumentException(
-                        "Unrecognized value STRIP_WHITESPACE = '" + value +
-                                "': must be 'all', 'none', or 'ignorable'");
-            }
-            setStripsWhiteSpace(ival);
-
-
-        } else if (name.equals(FeatureKeys.TIMING)) {
-            setTiming(requireBoolean(name, value));
-
-        } else if (name.equals(FeatureKeys.USE_PI_DISABLE_OUTPUT_ESCAPING)) {
-            useDisableOutputEscaping = requireBoolean(name, value);
-
-        } else if (name.equals(FeatureKeys.USE_TYPED_VALUE_CACHE)) {
-            useTypedValueCache = requireBoolean(name, value);
-
-        } else if (name.equals(FeatureKeys.VERSION_WARNING)) {
-            setVersionWarning(requireBoolean(name, value));
-
-        } else if (name.equals(FeatureKeys.XSLT_INITIAL_MODE)) {
-            String s = requireString(name, value);
-            getDefaultXsltCompilerInfo().setDefaultInitialMode(StructuredQName.fromClarkName(s));
-
-        } else if (name.equals(FeatureKeys.XSLT_INITIAL_TEMPLATE)) {
-            String s = requireString(name, value);
-            getDefaultXsltCompilerInfo().setDefaultInitialTemplate(StructuredQName.fromClarkName(s));
-
-        } else {
-            new IllegalArgumentException("Unknown configuration option " + name).printStackTrace();
-            throw new IllegalArgumentException("Unknown configuration option " + name);
-        }
-    }
-
-    /**
-     * Validate a property value where the required type is boolean
-     * @param propertyName the name of the property
-     * @param value the supplied value of the property. This may be either a java.lang.Boolean, or a string
-     * taking one of the values on|off, true|false, yes|no, or 1|0 (suited to the conventions of different
-     * configuration APIs that end up calling this method)
-     * @return the value as a boolean
-     * @throws IllegalArgumentException if the supplied value cannot be validated as a recognized boolean value
-     */
-
-    protected boolean requireBoolean(String propertyName, Object value) {
-        if (value instanceof Boolean) {
-            return ((Boolean)value).booleanValue();
-        } else if (value instanceof String) {
-            if ("true".equals(value) || "on".equals(value) || "yes".equals(value) || "1".equals(value)) {
-                return true;
-            } else if ("false".equals(value) || "off".equals(value) || "no".equals(value) || "0".equals(value)) {
-                return false;
-            } else {
-                throw new IllegalArgumentException(propertyName + " must be 'true' or 'false' (or on|off, yes|no, 1|0)");
-            }
-        } else {
-            throw new IllegalArgumentException(propertyName + " must be a boolean (or a string representing a boolean)");
-        }
-    }
-
-    protected String requireString(String propertyName, Object value) {
-        if (value instanceof String) {
-            return ((String)value);
-        } else {
-            throw new IllegalArgumentException("The value of " + propertyName + " must be a string");
-        }
-    }
-
-    /**
-     * Get a property of the configuration
-     *
-     * @param name the name of the required property. See the class {@link FeatureKeys} for
-     *             constants representing the property names that can be requested.
-     * @return the value of the property
-     * @throws IllegalArgumentException thrown if the property is not one that Saxon recognizes.
-     */
-
-    public Object getConfigurationProperty(String name) {
-        if (name.equals(FeatureKeys.ALLOW_EXTERNAL_FUNCTIONS)) {
-            return Boolean.valueOf(isAllowExternalFunctions());
-
-        } else if (name.equals(FeatureKeys.DTD_VALIDATION)) {
-            return Boolean.valueOf(isValidation());
-
-        } else if (name.equals(FeatureKeys.DTD_VALIDATION_RECOVERABLE)) {
-            return Boolean.valueOf(defaultParseOptions.getDTDValidationMode() == Validation.LAX);
-
-        } else if (name.equals(FeatureKeys.NAME_POOL)) {
-            return getNamePool();
-
-        } else if (name.equals(FeatureKeys.OPTIMIZATION_LEVEL)) {
-            return "" + optimizationLevel;
-
-        } else if (name.equals(FeatureKeys.RECOVERY_POLICY)) {
-            return Integer.valueOf(getRecoveryPolicy());
-
-        } else if (name.equals(FeatureKeys.RECOVERY_POLICY_NAME)) {
-            switch (getRecoveryPolicy()) {
-                case RECOVER_SILENTLY: return "recoverSilently";
-                case RECOVER_WITH_WARNINGS: return "recoverWithWarnings";
-                case DO_NOT_RECOVER: return "doNotRecover";
-                default: return null;
-            }
-
-        } else if (name.equals(FeatureKeys.STRIP_WHITESPACE)) {
-            int s = getStripsWhiteSpace();
-            if (s == Whitespace.ALL) {
-                return "all";
-            } else if (s == Whitespace.IGNORABLE) {
-                return "ignorable";
-            } else {
-                return "none";
-            }
-
-        } else if (name.equals(FeatureKeys.TIMING)) {
-            return Boolean.valueOf(isTiming());
-
-        } else if (name.equals(FeatureKeys.USE_PI_DISABLE_OUTPUT_ESCAPING)) {
-            return Boolean.valueOf(useDisableOutputEscaping);
-            
-        } else if (name.equals(FeatureKeys.USE_TYPED_VALUE_CACHE)) {
-            return Boolean.valueOf(useTypedValueCache);
-
-        } else if (name.equals(FeatureKeys.VERSION_WARNING)) {
-            return Boolean.valueOf(isVersionWarning());
-
-        } else if (name.equals(FeatureKeys.XSLT_INITIAL_MODE)) {
-            return getDefaultXsltCompilerInfo().getDefaultInitialMode().getClarkName();
-
-        } else if (name.equals(FeatureKeys.XSLT_INITIAL_TEMPLATE)) {
-            return getDefaultXsltCompilerInfo().getDefaultInitialTemplate().getClarkName();
-
-        } else if (name.equals(FeatureKeys.XSLT_STATIC_ERROR_LISTENER_CLASS)) {
-            return getDefaultXsltCompilerInfo().getErrorListener().getClass().getName();
-
-        } else {
-            throw new IllegalArgumentException("Unknown attribute " + name);
-        }
-    }
 
 }
 

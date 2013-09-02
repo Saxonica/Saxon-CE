@@ -75,7 +75,7 @@ public class IntHashSet extends AbstractIntSet implements IntSet, Serializable {
 
     public IntSet copy() {
         if (_size == 0) {
-            return IntEmptySet.getInstance();
+            return new IntHashSet();  // return empty set
         } else {
             IntHashSet s = new IntHashSet(_size, ndv);
             s._nmax  = _nmax;

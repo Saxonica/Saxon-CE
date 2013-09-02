@@ -3,7 +3,6 @@ package client.net.sf.saxon.ce.expr.instruct;
 import client.net.sf.saxon.ce.event.SequenceReceiver;
 import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.om.NameChecker;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.pattern.NodeKindTest;
 import client.net.sf.saxon.ce.trans.Err;
@@ -34,15 +33,6 @@ public class ProcessingInstruction extends SimpleNodeConstructor {
     public ProcessingInstruction(Expression name) {
         this.name = name;
         adoptChildExpression(name);
-    }
-
-    /**
-     * Get the name of this instruction for diagnostic and tracing purposes
-     * @return the string "xsl:processing-instruction"
-     */
-
-    public int getInstructionNameCode() {
-        return StandardNames.XSL_PROCESSING_INSTRUCTION;
     }
 
     /**

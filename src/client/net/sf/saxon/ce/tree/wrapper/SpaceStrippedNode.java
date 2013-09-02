@@ -4,12 +4,10 @@ import client.net.sf.saxon.ce.event.Receiver;
 import client.net.sf.saxon.ce.event.Stripper;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
 import client.net.sf.saxon.ce.om.*;
-import client.net.sf.saxon.ce.pattern.NodeKindTest;
 import client.net.sf.saxon.ce.pattern.NodeTest;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.AxisIterator;
 import client.net.sf.saxon.ce.tree.iter.EmptyIterator;
-import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
 import client.net.sf.saxon.ce.tree.util.Navigator;
 import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.value.AtomicValue;
@@ -87,7 +85,7 @@ public class SpaceStrippedNode extends AbstractVirtualNode implements WrappingFu
      */
 
     public AtomicValue getTypedValue() {
-        return new UntypedAtomicValue(getStringValueCS());
+        return new UntypedAtomicValue(getStringValue());
     }
 
     /**
@@ -120,31 +118,6 @@ public class SpaceStrippedNode extends AbstractVirtualNode implements WrappingFu
             return node.compareOrder(((SpaceStrippedNode)other).node);
         } else {
             return node.compareOrder(other);
-        }
-    }
-
-    /**
-     * Get the value of the item as a CharSequence. This is in some cases more efficient than
-     * the version of the method that returns a String.
-     */
-
-    public CharSequence getStringValueCS() {
-        // Might not be the same as the string value of the underlying node because of space stripping
-        switch (getNodeKind()) {
-            case Type.DOCUMENT:
-            case Type.ELEMENT:
-                AxisIterator iter = iterateAxis(Axis.DESCENDANT, NodeKindTest.makeNodeKindTest(Type.TEXT));
-                FastStringBuffer sb = new FastStringBuffer(FastStringBuffer.SMALL);
-                while(true) {
-                    NodeInfo it = (NodeInfo)iter.next();
-                    if (it == null) {
-                        break;
-                    }
-                    sb.append(it.getStringValueCS());
-                }
-                return sb.condense();
-            default:
-                return node.getStringValueCS();
         }
     }
 
@@ -263,7 +236,7 @@ public class SpaceStrippedNode extends AbstractVirtualNode implements WrappingFu
             if (nextRealNode.getNodeKind() != Type.TEXT) {
                 return true;
             }
-            if (!Whitespace.isWhite(nextRealNode.getStringValueCS())) {
+            if (!Whitespace.isWhite(nextRealNode.getStringValue())) {
                 return true;
             }
             NodeInfo actualParent =

@@ -116,7 +116,7 @@ public class PrependIterator implements AxisIterator {
      */
 
     public CharSequence getStringValue() {
-        return ((NodeInfo)current()).getStringValueCS();
+        return current().getStringValue();
     }
 
     /**

@@ -59,39 +59,39 @@ public class XSLOutput extends StyleElement {
         for (int a=0; a<atts.getLength(); a++) {
 			StructuredQName qn = atts.getStructuredQName(a);
             String f = qn.getClarkName();
-			if (f.equals(StandardNames.NAME)) {
+			if (f.equals("name")) {
         		nameAtt = Whitespace.trim(atts.getValue(a));
-			} else if (f.equals(StandardNames.METHOD)) {
+			} else if (f.equals("method")) {
         		method = Whitespace.trim(atts.getValue(a));
-        	} else if (f.equals(StandardNames.VERSION)) {
+        	} else if (f.equals("version")) {
         		version = Whitespace.trim(atts.getValue(a));
-        	} else if (f.equals(StandardNames.BYTE_ORDER_MARK)) {
+        	} else if (f.equals("byte-order-mark")) {
                 byteOrderMark = Whitespace.trim(atts.getValue(a));
-            } else if (f.equals(StandardNames.ENCODING)) {
+            } else if (f.equals("encoding")) {
         		encoding = Whitespace.trim(atts.getValue(a));
-        	} else if (f.equals(StandardNames.OMIT_XML_DECLARATION)) {
+        	} else if (f.equals("omit-xml-declaration")) {
         		omitDeclaration = Whitespace.trim(atts.getValue(a));
-        	} else if (f.equals(StandardNames.STANDALONE)) {
+        	} else if (f.equals("standalone")) {
         		standalone = Whitespace.trim(atts.getValue(a));
-        	} else if (f.equals(StandardNames.DOCTYPE_PUBLIC)) {
+        	} else if (f.equals("doctype-public")) {
         		doctypePublic = Whitespace.trim(atts.getValue(a));
-        	} else if (f.equals(StandardNames.DOCTYPE_SYSTEM)) {
+        	} else if (f.equals("doctype-system")) {
         		doctypeSystem = Whitespace.trim(atts.getValue(a));
-        	} else if (f.equals(StandardNames.CDATA_SECTION_ELEMENTS)) {
+        	} else if (f.equals("cdata-section-elements")) {
         		cdataElements = atts.getValue(a);
-        	} else if (f.equals(StandardNames.INDENT)) {
+        	} else if (f.equals("indent")) {
         		indent = Whitespace.trim(atts.getValue(a));
-        	} else if (f.equals(StandardNames.MEDIA_TYPE)) {
+        	} else if (f.equals("media-type")) {
         		mediaType = Whitespace.trim(atts.getValue(a));
-        	} else if (f.equals(StandardNames.INCLUDE_CONTENT_TYPE)) {
+        	} else if (f.equals("include-content-type")) {
         		includeContentType = Whitespace.trim(atts.getValue(a));
-        	} else if (f.equals(StandardNames.NORMALIZATION_FORM)) {
+        	} else if (f.equals("normalization-form")) {
         		normalizationForm = Whitespace.trim(atts.getValue(a));
-        	} else if (f.equals(StandardNames.ESCAPE_URI_ATTRIBUTES)) {
+        	} else if (f.equals("escape-uri-attributes")) {
         		escapeURIAttributes = Whitespace.trim(atts.getValue(a));
-            } else if (f.equals(StandardNames.USE_CHARACTER_MAPS)) {
+            } else if (f.equals("use-character-maps")) {
         		useCharacterMaps = atts.getValue(a);
-            } else if (f.equals(StandardNames.UNDECLARE_PREFIXES)) {
+            } else if (f.equals("undeclare-prefixes")) {
         		undeclareNamespaces = atts.getValue(a);
          	} else {
         	    String attributeURI = qn.getNamespaceURI();

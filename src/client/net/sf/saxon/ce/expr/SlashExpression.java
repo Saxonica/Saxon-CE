@@ -1,5 +1,6 @@
 package client.net.sf.saxon.ce.expr;
 
+import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.expr.instruct.ForEach;
 import client.net.sf.saxon.ce.expr.sort.DocumentOrderIterator;
 import client.net.sf.saxon.ce.expr.sort.GlobalOrderComparer;
@@ -167,9 +168,9 @@ public class SlashExpression extends Expression
                 // We don't need the operands to be sorted; any sorting that's needed
                 // will be done at the top level
 
-                Optimizer opt = visitor.getConfiguration().getOptimizer();
-                start2 = ExpressionTool.unsorted(opt, start, false);
-                Expression step2 = ExpressionTool.unsorted(opt, step, false);
+                Configuration config = visitor.getConfiguration();
+                start2 = ExpressionTool.unsorted(config, start, false);
+                Expression step2 = ExpressionTool.unsorted(config, step, false);
                 PathExpression path = new PathExpression(start2, step2);
                 ExpressionTool.copyLocationInfo(this, path);
                 Expression sortedPath = path.addDocumentSorter();
@@ -239,9 +240,9 @@ public class SlashExpression extends Expression
     protected Expression promoteFocusIndependentSubexpressions(
             ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
 
-        Optimizer opt = visitor.getConfiguration().getOptimizer();
+        Configuration config = visitor.getConfiguration();
 
-        PromotionOffer offer = new PromotionOffer(opt);
+        PromotionOffer offer = new PromotionOffer(config);
         offer.action = PromotionOffer.FOCUS_INDEPENDENT;
         offer.promoteDocumentDependent = (start.getSpecialProperties() & StaticProperty.CONTEXT_DOCUMENT_NODESET) != 0;
         offer.containingExpression = this;

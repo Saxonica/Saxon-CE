@@ -32,20 +32,6 @@ public interface ValueRepresentation {
 
     public String getStringValue() throws XPathException;
 
-    /**
-     * Convert the value to a string, using the serialization rules,
-     * and returning the result as a CharSequence. In some cases this may be more
-     * efficient than obtaining the result as a string.
-     * For atomic values the result is the same as a cast; for sequence values
-     * it gives a space-separated list. For nodes, it returns the string value of the
-     * node as defined in XDM.
-     * @throws XPathException The method can fail if evaluation of the value
-     * has been deferred, and if a failure occurs during the deferred evaluation.
-     * No failure is possible in the case of an AtomicValue or a Node.
-     */
-
-    public CharSequence getStringValueCS() throws XPathException;
-
 
 }
 

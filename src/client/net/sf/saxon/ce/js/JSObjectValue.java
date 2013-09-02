@@ -27,10 +27,6 @@ public class JSObjectValue implements Item {
         return jsObject.toString();
     }
 
-    public CharSequence getStringValueCS() {
-        return jsObject.toString();
-    }
-
     public AtomicValue getTypedValue() {
         return new StringValue(getStringValue());
     }

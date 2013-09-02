@@ -4,7 +4,6 @@ import client.net.sf.saxon.ce.expr.StringLiteral;
 import client.net.sf.saxon.ce.expr.instruct.Comment;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.om.AttributeCollection;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.value.StringValue;
@@ -23,7 +22,7 @@ public final class XSLComment extends XSLLeafNodeConstructor {
 		for (int a=0; a<atts.getLength(); a++) {
 			StructuredQName qn = atts.getStructuredQName(a);
             String f = qn.getClarkName();
-			if (f.equals(StandardNames.SELECT)) {
+			if (f.equals("select")) {
         		selectAtt = atts.getValue(a);
         	} else {
         		checkUnknownAttribute(qn);

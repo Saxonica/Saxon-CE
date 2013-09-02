@@ -3,7 +3,6 @@ package client.net.sf.saxon.ce.expr.instruct;
 import client.net.sf.saxon.ce.LogController;
 import client.net.sf.saxon.ce.SaxonceApi;
 import client.net.sf.saxon.ce.expr.*;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.pattern.EmptySequenceTest;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
@@ -12,7 +11,6 @@ import client.net.sf.saxon.ce.value.IntegerValue;
 
 import com.google.gwt.logging.client.LogConfiguration;
 import com.google.gwt.user.client.Timer;
-import com.google.gwt.user.client.Window;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -39,10 +37,6 @@ public class ScheduleExecution extends Instruction  {
         this.wait = wait;
         adoptChildExpression(call);
         adoptChildExpression(wait);
-    }
-    
-    public int getInstructionNameCode() {
-        return StandardNames.IXSL_SCHEDULE_ACTION;
     }
 
     /**

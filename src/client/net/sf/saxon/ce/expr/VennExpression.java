@@ -3,7 +3,6 @@ package client.net.sf.saxon.ce.expr;
 import client.net.sf.saxon.ce.expr.instruct.Block;
 import client.net.sf.saxon.ce.expr.sort.DocumentOrderIterator;
 import client.net.sf.saxon.ce.expr.sort.GlobalOrderComparer;
-import client.net.sf.saxon.ce.functions.SystemFunction;
 import client.net.sf.saxon.ce.om.Axis;
 import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.trans.XPathException;
@@ -11,9 +10,6 @@ import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.SequenceType;
-
-import java.util.HashSet;
-import java.util.Set;
 
 
 /**
@@ -113,27 +109,6 @@ public class VennExpression extends BinaryExpression {
                 return (prop0 & StaticProperty.CONTEXT_DOCUMENT_NODESET) != 0;
         }
         return false;
-    }
-
-    /**
-     * Gather the component operands of a union or intersect expression
-     * @param operator union or intersect
-     * @param set the set into which the components are to be gathered. If the operator
-     * is union, this follows the tree gathering all operands of union expressions. Ditto,
-     * mutatis mutandis, for intersect expressions.
-     */
-
-    public void gatherComponents(int operator, Set set) {
-        if (operand0 instanceof VennExpression && ((VennExpression)operand0).operator == operator) {
-            ((VennExpression)operand0).gatherComponents(operator, set);
-        } else {
-            set.add(operand0);
-        }
-        if (operand1 instanceof VennExpression && ((VennExpression)operand1).operator == operator) {
-            ((VennExpression)operand1).gatherComponents(operator, set);
-        } else {
-            set.add(operand1);
-        }
     }
 
     /**
@@ -245,45 +220,6 @@ public class VennExpression extends BinaryExpression {
             }
         }
 
-        // Try merging two non-positional filter expressions:
-        // A[exp0] | A[exp1] becomes A[exp0 or exp1]
-
-        if (operand0 instanceof FilterExpression && operand1 instanceof FilterExpression) {
-            final FilterExpression exp0 = (FilterExpression)operand0;
-            final FilterExpression exp1 = (FilterExpression)operand1;
-
-            final TypeHierarchy th = visitor.getConfiguration().getTypeHierarchy();
-            if (!exp0.isPositional(th) &&
-                    !exp1.isPositional(th) &&
-                    exp0.getControllingExpression().equals(exp1.getControllingExpression())) {
-                final Expression filter;
-                switch (operator) {
-                    case Token.UNION:
-                        filter = new BooleanExpression(exp0.getFilter(),
-                                                Token.OR,
-                                                exp1.getFilter());
-                        break;
-                    case Token.INTERSECT:
-                        filter = new BooleanExpression(exp0.getFilter(),
-                                                Token.AND,
-                                                exp1.getFilter());
-                        break;
-                    case Token.EXCEPT:
-                        final FunctionCall negate2 = SystemFunction.makeSystemFunction(
-                                "not", new Expression[]{exp1.getFilter()});
-                        filter = new BooleanExpression(exp0.getFilter(),
-                                                Token.AND,
-                                                negate2);
-                        break;
-                    default:
-                        throw new AssertionError("Unknown operator " + operator);
-                }
-                ExpressionTool.copyLocationInfo(this, filter);
-                FilterExpression f = new FilterExpression(exp0.getControllingExpression(), filter);
-                ExpressionTool.copyLocationInfo(this, f);
-                return visitor.simplify(f);
-            }
-        }
         return this;
     }
 
@@ -349,36 +285,6 @@ public class VennExpression extends BinaryExpression {
     }
 
     /**
-    * Is this expression the same as another expression?
-    */
-
-    public boolean equals(Object other) {
-        // NOTE: it's possible that the method in the superclass is already adequate for this
-        if (other instanceof VennExpression) {
-            VennExpression b = (VennExpression)other;
-            if (operator != b.operator) {
-                return false;
-            }
-            if (operand0.equals(b.operand0) && operand1.equals(b.operand1)) {
-               return true;
-            }
-            if (operator == Token.UNION || operator == Token.INTERSECT) {
-                // These are commutative and associative, so for example (A|B)|C equals B|(A|C)
-                Set s0 = new HashSet(10);
-                gatherComponents(operator, s0);
-                Set s1 = new HashSet(10);
-                ((VennExpression)other).gatherComponents(operator, s1);
-                return s0.equals(s1);
-            }
-        }
-        return false;
-    }
-
-    public int hashCode() {
-        return operand0.hashCode() ^ operand1.hashCode();
-    }
-
-    /**
     * Iterate over the value of the expression. The result will always be sorted in document order,
     * with duplicates eliminated
     * @param c The context for evaluation
@@ -409,7 +315,7 @@ public class VennExpression extends BinaryExpression {
                 return new DifferenceEnumeration(i1, i2,
                                             GlobalOrderComparer.getInstance());
         }
-        throw new UnsupportedOperationException("Unknown operator in Venn Expression");
+        throw new UnsupportedOperationException();
     }
 
     /**

@@ -1,14 +1,11 @@
 package client.net.sf.saxon.ce.functions;
-import client.net.sf.saxon.ce.Configuration;
-import client.net.sf.saxon.ce.expr.Expression;
-import client.net.sf.saxon.ce.expr.ExpressionVisitor;
 import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.expr.sort.GenericAtomicComparer;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
 import client.net.sf.saxon.ce.om.*;
-import client.net.sf.saxon.ce.pattern.NameTest;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.AxisIterator;
+import client.net.sf.saxon.ce.tree.util.Navigator;
 import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.value.AtomicValue;
 import client.net.sf.saxon.ce.value.BooleanValue;
@@ -25,18 +22,6 @@ public class DeepEqual extends CollatingFunction {
         return new DeepEqual();
     }
 
-    private transient Configuration config = null;
-
-    /**
-    * preEvaluate: if all arguments are known statically, evaluate early
-     * @param visitor an expression visitor
-     */
-
-    public Expression preEvaluate(ExpressionVisitor visitor) throws XPathException {
-        config = visitor.getConfiguration();
-        return super.preEvaluate(visitor);
-    }
-
     /**
     * Evaluate the expression
     */
@@ -47,10 +32,8 @@ public class DeepEqual extends CollatingFunction {
         SequenceIterator op1 = argument[0].iterate(context);
         SequenceIterator op2 = argument[1].iterate(context);
 
-        Configuration config =
-                (this.config!=null ? this.config : context.getConfiguration());
         try {
-            return BooleanValue.get(deepEquals(op1, op2, collator, config));
+            return BooleanValue.get(deepEquals(op1, op2, collator));
         } catch (XPathException e) {
             e.maybeSetLocation(getSourceLocator());
             e.maybeSetContext(context);
@@ -60,17 +43,16 @@ public class DeepEqual extends CollatingFunction {
 
     /**
      * Determine when two sequences are deep-equal
+     *
      * @param op1 the first sequence
      * @param op2 the second sequence
      * @param collator the collator to be used
-     * @param config the configuration (gives access to the NamePool)
      * @return true if the sequences are deep-equal
      * @throws XPathException if either sequence contains a function item
      */
 
-    private static boolean deepEquals(SequenceIterator op1, SequenceIterator op2,
-                                     GenericAtomicComparer collator, Configuration config)
-    throws XPathException {
+    private static boolean deepEquals(SequenceIterator op1, SequenceIterator op2, GenericAtomicComparer collator)
+            throws XPathException {
         boolean result = true;
 
         try {
@@ -90,7 +72,7 @@ public class DeepEqual extends CollatingFunction {
 
                 if (item1 instanceof NodeInfo) {
                     if (item2 instanceof NodeInfo) {
-                        if (!deepEquals((NodeInfo)item1, (NodeInfo)item2, collator, config)) {
+                        if (!deepEquals((NodeInfo)item1, (NodeInfo)item2, collator)) {
                             result = false;
                             break;
                         }
@@ -134,9 +116,8 @@ public class DeepEqual extends CollatingFunction {
     * Determine whether two nodes are deep-equal
     */
 
-    private static boolean deepEquals(NodeInfo n1, NodeInfo n2,
-                                      GenericAtomicComparer collator, Configuration config)
-    throws XPathException {
+    private static boolean deepEquals(NodeInfo n1, NodeInfo n2, GenericAtomicComparer comparer)
+            throws XPathException {
         // shortcut: a node is always deep-equal to itself
         if (n1.isSameNodeInfo(n2)) return true;
 
@@ -144,7 +125,6 @@ public class DeepEqual extends CollatingFunction {
             return false;
         }
 
-        final NamePool pool = config.getNamePool();
         switch (n1.getNodeKind()) {
             case Type.ELEMENT:
                 if (!n1.getNodeName().equals(n2.getNodeName())) {
@@ -157,16 +137,14 @@ public class DeepEqual extends CollatingFunction {
                 }
                 while (true) {
                     NodeInfo att1 = (NodeInfo)a1.next();
-                    if (att1 == null) break;
-
-                    AxisIterator a2iter = n2.iterateAxis(Axis.ATTRIBUTE,
-                                            new NameTest(Type.ATTRIBUTE, att1.getNodeName()));
-                    NodeInfo att2 = (NodeInfo)a2iter.next();
-
-                    if (att2==null) {
+                    if (att1 == null) {
+                        break;
+                    }
+                    String val2 = Navigator.getAttributeValue(n2, att1.getURI(), att1.getLocalPart());
+                    if (val2 == null) {
                         return false;
                     }
-                    if (!deepEquals(att1, att2, collator, config)) {
+                    if (!comparer.getCollator().comparesEqual(att1.getStringValue(), val2)) {
                         return false;
                     }
                 }
@@ -187,7 +165,7 @@ public class DeepEqual extends CollatingFunction {
                     if (d1 == null || d2 == null) {
                         return (d1 == d2);
                     }
-                    if (!deepEquals(d1, d2, collator, config)) {
+                    if (!deepEquals(d1, d2, comparer)) {
                         return false;
                     }
                 }
@@ -200,7 +178,7 @@ public class DeepEqual extends CollatingFunction {
                 StructuredQName s1 = n1.getNodeName();
                 StructuredQName s2 = n2.getNodeName();
                 return ((s1==null ? s2==null : s1.equals(s2)) &&
-                        collator.comparesEqual(n1.getTypedValue(), n2.getTypedValue()));
+                        comparer.comparesEqual(n1.getTypedValue(), n2.getTypedValue()));
 
 
             default:

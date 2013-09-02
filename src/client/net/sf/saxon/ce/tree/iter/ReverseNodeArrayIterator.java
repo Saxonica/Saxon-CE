@@ -69,7 +69,7 @@ public class ReverseNodeArrayIterator extends ReverseArrayIterator implements Ax
      */
 
     public CharSequence getStringValue() {
-        return ((NodeInfo)current()).getStringValueCS();
+        return current().getStringValue();
     }
 
     /**
@@ -78,7 +78,7 @@ public class ReverseNodeArrayIterator extends ReverseArrayIterator implements Ax
      */
 
     public SequenceIterator getAnother() {
-         return new ReverseNodeArrayIterator((NodeInfo[])items, start, end);
+         return new ReverseNodeArrayIterator(items, start, end);
     }
 
     /**

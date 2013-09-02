@@ -205,7 +205,7 @@ public final class Tokenizer {
                     if (val==null) {
                         break;
                     } else {
-                        currentToken = val.intValue();
+                        currentToken = val;
                         currentTokenValue = composite;
                         lookAhead();
                         return;
@@ -615,7 +615,7 @@ public final class Tokenizer {
             default:
                 if (s.equals("document-node")) return Token.NODEKIND;
                 if (s.equals("empty-sequence")) return Token.NODEKIND;
-                if (s.equals("namespace-node")) return Token.NODEKIND;
+                //if (s.equals("namespace-node")) return Token.NODEKIND;
                 if (s.equals("schema-element")) return Token.NODEKIND;
                 if (s.equals("schema-attribute")) return Token.NODEKIND;
                 if (s.equals("processing-instruction")) return Token.NODEKIND;

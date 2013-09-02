@@ -4,7 +4,6 @@ import client.net.sf.saxon.ce.expr.instruct.CopyOf;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.lib.Validation;
 import client.net.sf.saxon.ce.om.AttributeCollection;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.value.Whitespace;
@@ -39,13 +38,13 @@ public final class XSLCopyOf extends StyleElement {
 		for (int a=0; a<atts.getLength(); a++) {
 			StructuredQName qn = atts.getStructuredQName(a);
             String f = qn.getClarkName();
-			if (f.equals(StandardNames.SELECT)) {
+			if (f.equals("select")) {
         		selectAtt = atts.getValue(a);
-            } else if (f.equals(StandardNames.COPY_NAMESPACES)) {
+            } else if (f.equals("copy-namespaces")) {
                 copyNamespacesAtt = Whitespace.trim(atts.getValue(a));
-            } else if (f.equals(StandardNames.VALIDATION)) {
+            } else if (f.equals("validation")) {
                 validationAtt = Whitespace.trim(atts.getValue(a));
-            } else if (f.equals(StandardNames.TYPE)) {
+            } else if (f.equals("type")) {
                 typeAtt = Whitespace.trim(atts.getValue(a));
         	} else {
         		checkUnknownAttribute(qn);

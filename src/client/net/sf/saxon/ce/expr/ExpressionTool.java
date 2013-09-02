@@ -88,7 +88,7 @@ public class ExpressionTool {
 
     /**
      * Remove unwanted sorting from an expression, at compile time
-     * @param opt the expression optimizer
+     * @param config the expression optimizer
      * @param exp the expression to be optimized
      * @param retainAllNodes true if there is a need to retain exactly those nodes returned by exp
      * even if there are duplicates; false if the caller doesn't mind whether duplicate nodes
@@ -96,12 +96,12 @@ public class ExpressionTool {
      * @return the expression after rewriting
      */
 
-    public static Expression unsorted(Optimizer opt, Expression exp, boolean retainAllNodes)
+    public static Expression unsorted(Configuration config, Expression exp, boolean retainAllNodes)
     throws XPathException {
         if (exp instanceof Literal) {
             return exp;   // fast exit
         }
-        PromotionOffer offer = new PromotionOffer(opt);
+        PromotionOffer offer = new PromotionOffer(config);
         offer.action = PromotionOffer.UNORDERED;
         offer.retainAllNodes = retainAllNodes;
         return exp.promote(offer, null);
@@ -370,52 +370,18 @@ public class ExpressionTool {
         if (first instanceof NodeInfo) {
             return true;
         } else {
-            //first = ((AtomicValue)first).getPrimitiveValue();
+            if (iterator.next() != null) {
+                ebvError("a sequence of two or more atomic values");
+            }
             if (first instanceof BooleanValue) {
-                if (iterator.next() != null) {
-                    ebvError("a sequence of two or more items starting with a boolean");
-                }
                 return ((BooleanValue)first).getBooleanValue();
             } else if (first instanceof StringValue) {   // includes anyURI value
-                if (iterator.next() != null) {
-                    ebvError("a sequence of two or more items starting with a string");
-                }
                 return (!((StringValue)first).isZeroLength());
             } else if (first instanceof NumericValue) {
-                if (iterator.next() != null) {
-                    ebvError("a sequence of two or more items starting with a numeric value");
-                }
                 final NumericValue n = (NumericValue)first;
                 return (n.compareTo(0) != 0) && !n.isNaN();
              } else {
                 ebvError("a sequence starting with an atomic value other than a boolean, number, string, or URI");
-                return false;
-            }
-        }
-    }
-
-    /**
-     * Determine the effective boolean value of a single item
-     * @param item the item whose effective boolean value is required
-     * @return the effective boolean value
-     * @throws XPathException if a dynamic error occurs
-     */
-    public static boolean effectiveBooleanValue(Item item) throws XPathException {
-        if (item == null) {
-            return false;
-        }
-        if (item instanceof NodeInfo) {
-            return true;
-        } else {
-            if (item instanceof BooleanValue) {
-                return ((BooleanValue)item).getBooleanValue();
-            } else if (item instanceof StringValue) {   // includes anyURI value
-                return !((StringValue)item).isZeroLength();
-            } else if (item instanceof NumericValue) {
-                final NumericValue n = (NumericValue)item;
-                return (n.compareTo(0) != 0) && !n.isNaN();
-            } else {
-                ebvError("an item other than a boolean, number, string, or URI");
                 return false;
             }
         }
@@ -476,7 +442,7 @@ public class ExpressionTool {
     }
 
     /**
-     * Determine whether an expression contains a call on the function with a given fingerprint
+     * Determine whether an expression contains a call on the function with a given name
      * @param exp The expression being tested
      * @param qName The name of the function
      * @return true if the expression contains a call on the function
@@ -512,7 +478,7 @@ public class ExpressionTool {
                     new StructuredQName("saxon", NamespaceConstant.SAXON, "current" + exp.hashCode()));
             let.setRequiredType(SequenceType.SINGLE_ITEM);
             let.setSequence(new CurrentItemExpression());
-            PromotionOffer offer = new PromotionOffer(config.getOptimizer());
+            PromotionOffer offer = new PromotionOffer(config);
             offer.action = PromotionOffer.REPLACE_CURRENT;
             offer.containingExpression = let;
             exp = exp.promote(offer, null);

@@ -55,7 +55,7 @@ public class XSLNamespace extends XSLLeafNodeConstructor {
                 // there is exactly one child node
                 if (firstChild.getNodeKind() == Type.TEXT) {
                     // it is a text node: optimize for this case
-                    select = new StringLiteral(firstChild.getStringValueCS());
+                    select = new StringLiteral(firstChild.getStringValue());
                 }
             }
         }

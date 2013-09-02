@@ -2,7 +2,6 @@ package client.net.sf.saxon.ce.trace;
 
 import client.net.sf.saxon.ce.expr.parser.CodeInjector;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.om.StructuredQName;
 
 /**

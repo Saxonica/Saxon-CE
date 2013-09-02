@@ -9,7 +9,6 @@ import client.net.sf.saxon.ce.expr.instruct.Choose;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.om.AttributeCollection;
 import client.net.sf.saxon.ce.om.Axis;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.value.Value;
@@ -76,7 +75,7 @@ public class XSLIf extends StyleElement {
 		for (int a=0; a<atts.getLength(); a++) {
 			StructuredQName qn = atts.getStructuredQName(a);
             String f = qn.getClarkName();
-			if (f.equals(StandardNames.TEST)) {
+			if (f.equals("test")) {
         		testAtt = atts.getValue(a);
         	} else {
         		se.checkUnknownAttribute(qn);
@@ -99,7 +98,7 @@ public class XSLIf extends StyleElement {
 		for (int a=0; a<atts.getLength(); a++) {
 			StructuredQName qn = atts.getStructuredQName(a);
             String f = qn.getClarkName();
-			if (f.equals(StandardNames.TEST)) {
+			if (f.equals("test")) {
         		testAtt = atts.getValue(a);
         	} else {
         		se.checkUnknownAttribute(qn);

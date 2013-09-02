@@ -132,7 +132,7 @@ public class AtomicSortComparer implements AtomicComparer {
             return +1;
         } else if (a instanceof StringValue && b instanceof StringValue) {
             if (collator instanceof CodepointCollator) {
-                return ((CodepointCollator)collator).compareCS(a.getStringValueCS(), b.getStringValueCS());
+                return ((CodepointCollator)collator).compareCS(a.getStringValue(), b.getStringValue());
             } else {
                 return collator.compareStrings(a.getStringValue(), b.getStringValue());
             }

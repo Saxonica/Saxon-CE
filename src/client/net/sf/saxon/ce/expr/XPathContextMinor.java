@@ -118,14 +118,6 @@ public class XPathContextMinor implements XPathContext {
     }
 
     /**
-     * Get the Name Pool
-     */
-
-    public final NamePool getNamePool() {
-        return controller.getNamePool();
-    }
-
-    /**
      * Get the calling XPathContext (the next one down the stack). This will be null if unknown, or
      * if the bottom of the stack has been reached.
      */

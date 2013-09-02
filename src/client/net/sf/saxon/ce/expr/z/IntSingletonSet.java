@@ -74,13 +74,13 @@ public class IntSingletonSet implements IntSet {
         if (other.contains(value)) {
             return this;
         } else {
-            return IntEmptySet.getInstance();
+            return new IntHashSet();  // return empty set
         }
     }
 
     public IntSet except(IntSet other) {
         if (other.contains(value)) {
-            return IntEmptySet.getInstance();
+            return new IntHashSet();  // return empty set
         } else {
             return this;
         }

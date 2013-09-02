@@ -148,13 +148,13 @@ public class LinkedTreeBuilder extends Builder
     * Notify the start of an element
     */
 
-    public void startElement(StructuredQName nameCode, int properties) throws XPathException {
+    public void startElement(StructuredQName qName, int properties) throws XPathException {
         //System.err.println("LinkedTreeBuilder: " + this + " Start element depth=" + depth);
         if (currentNode == null) {
             startDocument();
             ((DocumentImpl)currentRoot).setImaginary(true);
         }
-        elementNameCode = nameCode;
+        elementNameCode = qName;
         namespacesUsed = 0;
         attributes = null;
         contentStarted = false;

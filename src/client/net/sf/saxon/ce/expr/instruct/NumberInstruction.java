@@ -36,14 +36,24 @@ public class NumberInstruction extends Expression {
     private int level;
     private Pattern count = null;
     private Pattern from = null;
-    private Expression select = null;
-    private Expression value = null;
-    private Expression format = null;
-    private Expression groupSize = null;
-    private Expression groupSeparator = null;
-    private Expression letterValue = null;
-    private Expression ordinal = null;
-    private Expression lang = null;
+    private Expression[] arguments = new Expression[8];
+    private static final int SELECT = 0;
+    private static final int VALUE = 1;
+    private static final int FORMAT = 2;
+    private static final int GROUP_SIZE = 3;
+    private static final int GROUP_SEPARATOR = 4;
+    private static final int LETTER_VALUE = 5;
+    private static final int ORDINAL = 6;
+    private static final int LANG = 7;
+    private static final int ARGS = 8;
+//    private Expression select = null;
+//    private Expression value = null;
+//    private Expression format = null;
+//    private Expression groupSize = null;
+//    private Expression groupSeparator = null;
+//    private Expression letterValue = null;
+//    private Expression ordinal = null;
+//    private Expression lang = null;
     private NumberFormatter formatter = null;
     private Numberer numberer = null;
     private boolean hasVariablesInPatterns;
@@ -85,25 +95,25 @@ public class NumberInstruction extends Expression {
                              Numberer numberer,
                              boolean hasVariablesInPatterns,
                              boolean backwardsCompatible) {
-        this.select = select;
+        arguments[SELECT] = select;
         this.level = level;
         this.count = count;
         this.from = from;
-        this.value = value;
-        this.format = format;
-        this.groupSize = groupSize;
-        this.groupSeparator = groupSeparator;
-        this.letterValue = letterValue;
-        this.ordinal = ordinal;
-        this.lang = lang;
+        arguments[VALUE] = value;
+        arguments[FORMAT] = format;
+        arguments[GROUP_SIZE] = groupSize;
+        arguments[GROUP_SEPARATOR] = groupSeparator;
+        arguments[LETTER_VALUE] = letterValue;
+        arguments[ORDINAL] = ordinal;
+        arguments[LANG] = lang;
         this.formatter = formatter;
         this.numberer = numberer;
         this.hasVariablesInPatterns = hasVariablesInPatterns;
         this.backwardsCompatible = backwardsCompatible;
 
         final TypeHierarchy th = config.getTypeHierarchy();
-        if (this.value != null && !this.value.getItemType(th).isAtomicType()) {
-            this.value = new Atomizer(this.value);
+        if (arguments[VALUE] != null && !arguments[VALUE].getItemType(th).isAtomicType()) {
+            arguments[VALUE] = new Atomizer(arguments[VALUE]);
         }
 
         Iterator<Expression> kids = iterateSubExpressions();
@@ -114,14 +124,9 @@ public class NumberInstruction extends Expression {
     }
 
     public Expression simplify(ExpressionVisitor visitor) throws XPathException {
-        select = visitor.simplify(select);
-        value = visitor.simplify(value);
-        format = visitor.simplify(format);
-        groupSize = visitor.simplify(groupSize);
-        groupSeparator = visitor.simplify(groupSeparator);
-        letterValue = visitor.simplify(letterValue);
-        ordinal = visitor.simplify(ordinal);
-        lang = visitor.simplify(lang);
+        for (int i=0; i<ARGS; i++) {
+            arguments[i] = visitor.simplify(arguments[i]);
+        }
         if (count != null) {
             count = count.simplify(visitor);
         }
@@ -156,48 +161,26 @@ public class NumberInstruction extends Expression {
      */
 
     public Expression typeCheck(ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
-        if (select != null) {
-            select = visitor.typeCheck(select, contextItemType);
-        } else {
-            if (value==null) {
-                // we are numbering the context node
-                XPathException err = null;
-                if (contextItemType == null) {
-                    err = new XPathException(
-                            "xsl:number requires a select attribute, a value attribute, or a context item");
-                } else if (contextItemType.isAtomicType()) {
-                    err = new XPathException(
-                            "xsl:number requires the context item to be a node, but it is an atomic value");
+        if (arguments[SELECT] == null && arguments[VALUE]==null) {
+            // we are numbering the context node
+            XPathException err = null;
+            if (contextItemType == null) {
+                err = new XPathException(
+                        "xsl:number requires a select attribute, a value attribute, or a context item");
+            } else if (contextItemType.isAtomicType()) {
+                err = new XPathException(
+                        "xsl:number requires the context item to be a node, but it is an atomic value");
 
-                }
-                if (err != null) {
-                    err.setIsTypeError(true);
-                    err.setErrorCode("XTTE0990");
-                    err.setLocator(getSourceLocator());
-                    throw err;
-                }
+            }
+            if (err != null) {
+                err.setIsTypeError(true);
+                err.setErrorCode("XTTE0990");
+                err.setLocator(getSourceLocator());
+                throw err;
             }
         }
-        if (value != null) {
-            value = visitor.typeCheck(value, contextItemType);
-        }
-        if (format != null) {
-            format = visitor.typeCheck(format, contextItemType);
-        }
-        if (groupSize != null) {
-            groupSize = visitor.typeCheck(groupSize, contextItemType);
-        }
-        if (groupSeparator != null) {
-            groupSeparator = visitor.typeCheck(groupSeparator, contextItemType);
-        }
-        if (letterValue != null) {
-            letterValue = visitor.typeCheck(letterValue, contextItemType);
-        }
-        if (ordinal != null) {
-            ordinal = visitor.typeCheck(ordinal, contextItemType);
-        }
-        if (lang != null) {
-            lang = visitor.typeCheck(lang, contextItemType);
+        for (int i=0; i<ARGS; i++) {
+            arguments[i] = visitor.typeCheck(arguments[i], contextItemType);
         }
         if (count != null) {
             visitor.typeCheck(new PatternSponsor(count), contextItemType);
@@ -225,29 +208,8 @@ public class NumberInstruction extends Expression {
      */
 
     public Expression optimize(ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
-        if (select != null) {
-            select = visitor.optimize(select, contextItemType);
-        }
-        if (value != null) {
-            value = visitor.optimize(value, contextItemType);
-        }
-        if (format != null) {
-            format = visitor.optimize(format, contextItemType);
-        }
-        if (groupSize != null) {
-            groupSize = visitor.optimize(groupSize, contextItemType);
-        }
-        if (groupSeparator != null) {
-            groupSeparator = visitor.optimize(groupSeparator, contextItemType);
-        }
-        if (letterValue != null) {
-            letterValue = visitor.optimize(letterValue, contextItemType);
-        }
-        if (ordinal != null) {
-            ordinal = visitor.optimize(ordinal, contextItemType);
-        }
-        if (lang != null) {
-            lang = visitor.optimize(lang, contextItemType);
+        for (int i=0; i<ARGS; i++) {
+            arguments[i] = visitor.optimize(arguments[i], contextItemType);
         }
         return this;
     }
@@ -261,29 +223,10 @@ public class NumberInstruction extends Expression {
 
     public Iterator<Expression> iterateSubExpressions() {
         List<Expression> sub = new ArrayList<Expression>(9);
-        if (select != null) {
-            sub.add(select);
-        }
-        if (value != null) {
-            sub.add(value);
-        }
-        if (format != null) {
-            sub.add(format);
-        }
-        if (groupSize != null) {
-            sub.add(groupSize);
-        }
-        if (groupSeparator != null) {
-            sub.add(groupSeparator);
-        }
-        if (letterValue != null) {
-            sub.add(letterValue);
-        }
-        if (ordinal != null) {
-            sub.add(ordinal);
-        }
-        if (lang != null) {
-            sub.add(lang);
+        for (int i=0; i<ARGS; i++) {
+            if (arguments[i] != null) {
+                sub.add(arguments[i]);
+            }
         }
         if (count != null) {
             sub.add(new PatternSponsor(count));
@@ -304,39 +247,13 @@ public class NumberInstruction extends Expression {
 
     public boolean replaceSubExpression(Expression original, Expression replacement) {
         boolean found = false;
-        if (select == original) {
-            select = replacement;
-            found = true;
+        for (int i=0; i<ARGS; i++) {
+            if (arguments[i] == original) {
+                arguments[i] = replacement;
+                found = true;
+            }
         }
-        if (value == original) {
-            value = replacement;
-            found = true;
-        }
-        if (format == original) {
-            format = replacement;
-            found = true;
-        }
-        if (groupSize == original) {
-            groupSize = replacement;
-            found = true;
-        }
-        if (groupSeparator == original) {
-            groupSeparator = replacement;
-            found = true;
-        }
-        if (letterValue == original) {
-            letterValue = replacement;
-            found = true;
-        }
-        if (ordinal == original) {
-            ordinal = replacement;
-            found = true;
-        }
-        if (lang == original) {
-            lang = replacement;
-            found = true;
-        }
-                return found;
+        return found;
     }
 
 
@@ -351,7 +268,7 @@ public class NumberInstruction extends Expression {
      */
 
     public int getIntrinsicDependencies() {
-        return (select == null ? StaticProperty.DEPENDS_ON_CONTEXT_ITEM : 0);
+        return ((arguments[SELECT] == null && arguments[VALUE] == null) ? StaticProperty.DEPENDS_ON_CONTEXT_ITEM : 0);
     }
 
     public ItemType getItemType(TypeHierarchy th) {
@@ -385,29 +302,10 @@ public class NumberInstruction extends Expression {
         if (exp!=null) {
             return exp;
         } else {
-            if (select != null) {
-                select = doPromotion(select, offer);
-            }
-            if (value != null) {
-                value = doPromotion(value, offer);
-            }
-            if (format != null) {
-                format = doPromotion(format, offer);
-            }
-            if (groupSize != null) {
-                groupSize = doPromotion(groupSize, offer);
-            }
-            if (groupSeparator != null) {
-                groupSeparator = doPromotion(groupSeparator, offer);
-            }
-            if (letterValue != null) {
-                letterValue = doPromotion(letterValue, offer);
-            }
-            if (ordinal != null) {
-                ordinal = doPromotion(ordinal, offer);
-            }
-            if (lang != null) {
-                lang = doPromotion(lang, offer);
+            for (int i=0; i<ARGS; i++) {
+                if (arguments[i] != null) {
+                    arguments[i] = doPromotion(arguments[i], offer);
+                }
             }
             if (count != null) {
                 count.promote(offer, this);
@@ -423,9 +321,9 @@ public class NumberInstruction extends Expression {
         long value = -1;
         List vec = null;    // a list whose items may be of type either Long or
                             // BigDecimal or the string to be output (e.g. "NaN")
-        if (this.value != null) {
+        if (arguments[VALUE] != null) {
 
-            SequenceIterator iter = this.value.iterate(context);
+            SequenceIterator iter = arguments[VALUE].iterate(context);
             vec = new ArrayList(4);
             while (true) {
                 AtomicValue val = (AtomicValue) iter.next();
@@ -474,8 +372,8 @@ public class NumberInstruction extends Expression {
             }
         } else {
             NodeInfo source;
-            if (select != null) {
-                source = (NodeInfo) select.evaluateItem(context);
+            if (arguments[SELECT] != null) {
+                source = (NodeInfo) arguments[SELECT].evaluateItem(context);
             } else {
                 Item item = context.getContextItem();
                 if (!(item instanceof NodeInfo)) {
@@ -510,8 +408,8 @@ public class NumberInstruction extends Expression {
         String letterVal;
         String ordinalVal = null;
 
-        if (groupSize != null) {
-            String g = groupSize.evaluateAsString(context).toString();
+        if (arguments[GROUP_SIZE] != null) {
+            String g = arguments[GROUP_SIZE].evaluateAsString(context).toString();
             try {
                 gpsize = Integer.parseInt(g);
             } catch (NumberFormatException err) {
@@ -522,17 +420,17 @@ public class NumberInstruction extends Expression {
             }
         }
 
-        if (groupSeparator != null) {
-            gpseparator = groupSeparator.evaluateAsString(context).toString();
+        if (arguments[GROUP_SEPARATOR] != null) {
+            gpseparator = arguments[GROUP_SEPARATOR].evaluateAsString(context).toString();
         }
 
-        if (ordinal != null) {
-            ordinalVal = ordinal.evaluateAsString(context).toString();
+        if (arguments[ORDINAL] != null) {
+            ordinalVal = arguments[ORDINAL].evaluateAsString(context).toString();
         }
 
         // fast path for the simple case
 
-        if (vec == null && format == null && gpsize == 0 && lang == null) {
+        if (vec == null && arguments[FORMAT] == null && gpsize == 0 && arguments[LANG] == null) {
             return new StringValue("" + value);
         }
 
@@ -541,17 +439,17 @@ public class NumberInstruction extends Expression {
         // add it to the table.
         Numberer numb = numberer;
         if (numb == null) {
-            String language = lang.evaluateAsString(context).toString();
+            String language = arguments[LANG].evaluateAsString(context).toString();
             if (!StringValue.isValidLanguageCode(language)) {
                  throw new XPathException("The lang attribute of xsl:number must be a valid language code", "XTDE0030");
             }   
             numb = context.getConfiguration().makeNumberer(language, null);
         }
 
-        if (letterValue == null) {
+        if (arguments[LETTER_VALUE] == null) {
             letterVal = "";
         } else {
-            letterVal = letterValue.evaluateAsString(context).toString();
+            letterVal = arguments[LETTER_VALUE].evaluateAsString(context).toString();
             if (!("alphabetic".equals(letterVal) || "traditional".equals(letterVal))) {
                 XPathException e = new XPathException("letter-value must be \"traditional\" or \"alphabetic\"");
                 e.setXPathContext(context);
@@ -562,13 +460,13 @@ public class NumberInstruction extends Expression {
 
         if (vec == null) {
             vec = new ArrayList(1);
-            vec.add(Long.valueOf(value));
+            vec.add(value);
         }
 
         NumberFormatter nf;
         if (formatter == null) {              // format not known until run-time
             nf = new NumberFormatter();
-            nf.prepare(format.evaluateAsString(context).toString());
+            nf.prepare(arguments[FORMAT].evaluateAsString(context).toString());
         } else {
             nf = formatter;
         }

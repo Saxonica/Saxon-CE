@@ -61,7 +61,7 @@ public class NumericComparer implements AtomicComparer {
             d1 = Double.NaN;
         } else {
             try {
-                d1 = StringToDouble.stringToNumber(a.getStringValueCS());
+                d1 = StringToDouble.stringToNumber(a.getStringValue());
             } catch (NumberFormatException err) {
                 d1 = Double.NaN;
             }
@@ -73,7 +73,7 @@ public class NumericComparer implements AtomicComparer {
             d2 = Double.NaN;
         } else {
             try {
-                d2 = StringToDouble.stringToNumber(b.getStringValueCS());
+                d2 = StringToDouble.stringToNumber(b.getStringValue());
             } catch (NumberFormatException err) {
                 d2 = Double.NaN;
             }

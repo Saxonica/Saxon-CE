@@ -146,9 +146,9 @@ public class DateValue extends GDateValue implements Comparable {
         if (requiredType == BuiltInAtomicType.ANY_ATOMIC || requiredType == BuiltInAtomicType.DATE) {
             return this;
         } else if (requiredType == BuiltInAtomicType.UNTYPED_ATOMIC) {
-            return new UntypedAtomicValue(getStringValueCS());
+            return new UntypedAtomicValue(getStringValue());
         } else if (requiredType == BuiltInAtomicType.STRING) {
-            return new StringValue(getStringValueCS());
+            return new StringValue(getStringValue());
         } else if (requiredType == BuiltInAtomicType.DATE_TIME) {
             return toDateTime();
         } else if (requiredType == BuiltInAtomicType.G_YEAR) {
@@ -207,18 +207,6 @@ public class DateValue extends GDateValue implements Comparable {
      * @return the canonical lexical representation if defined in XML Schema; otherwise, the result
      *         of casting to string according to the XPath 2.0 rules
      */
-
-    public CharSequence getCanonicalLexicalRepresentation() {
-        DateValue target = this;
-        if (hasTimezone()) {
-            if (getTimezoneInMinutes() > 12 * 60) {
-                target = (DateValue) adjustTimezone(getTimezoneInMinutes() - 24 * 60);
-            } else if (getTimezoneInMinutes() <= -12 * 60) {
-                target = (DateValue) adjustTimezone(getTimezoneInMinutes() + 24 * 60);
-            }
-        }
-        return target.getStringValueCS();
-    }
 
     /**
      * Make a copy of this date value, but with a new type label

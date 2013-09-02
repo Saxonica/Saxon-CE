@@ -44,7 +44,7 @@ public class Component extends SystemFunction {
         if (arg == null) {
             return null;
         }
-        return arg.getComponent((operation >> 16) & 0xffff);
+        return arg.getComponent(operation);
 
     }
 

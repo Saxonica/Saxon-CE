@@ -1,6 +1,5 @@
 package client.net.sf.saxon.ce.trans;
 
-import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.expr.XPathContextMajor;
 import client.net.sf.saxon.ce.expr.instruct.Template;
@@ -59,7 +58,6 @@ public class Mode  {
     private boolean hasRules = false;
     private StructuredQName modeName;
     private int stackFrameSlotsNeeded = 0;
-    private int recoveryPolicy = Configuration.RECOVER_WITH_WARNINGS; // since 9.2 fixed at compile time
 
     /**
      * Default constructor - creates a Mode containing no rules
@@ -160,31 +158,6 @@ public class Mode  {
     public boolean isEmpty() {
         return !hasRules;
     }
-
-    /**
-     * Set the policy for handling recoverable errrors. Note that for some errors the decision can be
-     * made at run-time, but for the "ambiguous template match" error, the decision is (since 9.2)
-     * fixed at compile time.
-     * @param policy the recovery policy to be used. The options are {@link Configuration#RECOVER_SILENTLY},
-     * {@link Configuration#RECOVER_WITH_WARNINGS}, or {@link Configuration#DO_NOT_RECOVER}.
-     */
-
-    public void setRecoveryPolicy(int policy) {
-        recoveryPolicy = policy;
-    }
-
-    /**
-     * Get the policy for handling recoverable errors. Note that for some errors the decision can be
-     * made at run-time, but for the "ambiguous template match" error, the decision is (since 9.2)
-     * fixed at compile time.
-     *
-     * @return the current policy.
-     */
-
-    public int getRecoveryPolicy() {
-        return recoveryPolicy;
-    }
-
 
     /**
      * Add a rule to the Mode.
@@ -491,9 +464,7 @@ public class Mode  {
                 }
             } else if (head.isAlwaysMatches() || head.getPattern().matches(node, context)) {
                 bestRule = head;
-                if (recoveryPolicy == Configuration.RECOVER_SILENTLY) {
-                    break;   // choose the first match; rules within a chain are in order of rank
-                }
+                break;   // choose the first match; rules within a chain are in order of rank
             }
             head = head.getNext();
         }
@@ -604,9 +575,7 @@ public class Mode  {
                     }
                 } else if (head.isAlwaysMatches() || head.getPattern().matches(node, context)) {
                     bestRule = head;
-                    if (recoveryPolicy == Configuration.RECOVER_SILENTLY) {
-                        break;   // choose the first match; rules within a chain are in order of rank
-                    }
+                    break;   // choose the first match; rules within a chain are in order of rank
                 }
             }
             head = head.getNext();

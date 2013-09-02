@@ -1,13 +1,10 @@
 package client.net.sf.saxon.ce.expr.instruct;
 import client.net.sf.saxon.ce.LogController;
 import client.net.sf.saxon.ce.expr.*;
-import client.net.sf.saxon.ce.expr.parser.CodeInjector;
 import client.net.sf.saxon.ce.functions.BooleanFn;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.SequenceIterator;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.om.StructuredQName;
-import client.net.sf.saxon.ce.style.StyleElement;
 import client.net.sf.saxon.ce.trace.XSLTTraceListener;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.EmptyIterator;
@@ -18,11 +15,10 @@ import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.BooleanValue;
 import client.net.sf.saxon.ce.value.Cardinality;
 import client.net.sf.saxon.ce.value.SequenceType;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-
 import com.google.gwt.logging.client.LogConfiguration;
+
+import java.util.Arrays;
+import java.util.Iterator;
 
 /**
  * Compiled representation of an xsl:choose or xsl:if element in the stylesheet.
@@ -94,18 +90,6 @@ public class Choose extends Instruction {
     }
 
     /**
-     * Test whether an expression is a single-branch choose, that is, an expression of the form
-     * if (condition) then exp else ()
-     * @param exp the expression to be tested
-     * @return true if the expression is a choose expression and there is only one condition,
-     * so that the expression returns () if this condition is false
-     */
-
-    public static boolean isSingleBranchChoice(Expression exp) {
-        return (exp instanceof Choose && ((Choose)exp).conditions.length == 1);
-    }
-
-    /**
      * Get the array of conditions to be tested
      * @return the array of condition expressions
      */
@@ -127,18 +111,6 @@ public class Choose extends Instruction {
     
     public void setConditionTests(String[] conditionTests) {
     	this.conditionTests = conditionTests;
-    }
-
-    /**
-    * Get the name of this instruction for diagnostic and tracing purposes
-    * We assume that if there was
-     * only one condition then it was an xsl:if; this is not necessarily so, but
-     * it's adequate for tracing purposes.
-    */
-
-
-    public int getInstructionNameCode() {
-        return (conditions.length==1 ? StandardNames.XSL_IF : StandardNames.XSL_CHOOSE);
     }
 
     /**
@@ -311,8 +283,8 @@ public class Choose extends Instruction {
 
     public int markTailFunctionCalls(StructuredQName qName, int arity) {
         int result = 0;
-        for (int i=0; i<actions.length; i++) {
-            result = Math.max(result, actions[i].markTailFunctionCalls(qName, arity));
+        for (Expression action : actions) {
+            result = Math.max(result, action.markTailFunctionCalls(qName, arity));
         }
         return result;
     }
@@ -376,8 +348,8 @@ public class Choose extends Instruction {
      */
 
     public final boolean createsNewNodes() {
-        for (int i=0; i<actions.length; i++) {
-            int props = actions[i].getSpecialProperties();
+        for (Expression action : actions) {
+            int props = action.getSpecialProperties();
             if ((props & StaticProperty.NON_CREATIVE) == 0) {
                 return true;
             }
@@ -392,35 +364,10 @@ public class Choose extends Instruction {
      */
 
     public Iterator<Expression> iterateSubExpressions() {
-        return new Iterator<Expression>() {
-            boolean doingConditions = true;
-            int index = 0;
-            public boolean hasNext() {
-                return doingConditions || index<actions.length;
-            }
-
-            public Expression next() {
-                if (doingConditions) {
-                    if (index < conditions.length) {
-                        return conditions[index++];
-                    } else {
-                        doingConditions = false;
-                        index = 0;
-                        return actions[index++];
-                    }
-                } else {
-                    if (index < actions.length) {
-                        return actions[index++];
-                    } else {
-                        return null;
-                    }
-                }
-            }
-
-            public void remove() {
-                throw new UnsupportedOperationException();
-            }
-        };
+        Expression[] all = new Expression[conditions.length*2];
+        System.arraycopy(conditions, 0, all, 0, conditions.length);
+        System.arraycopy(actions, 0, all, conditions.length, conditions.length);
+        return Arrays.asList(all).iterator();
     }
 
     /**
@@ -515,7 +462,6 @@ public class Choose extends Instruction {
                 throw e;
             }
             if (b) {
-
             	enterConditionTrace(i);
             	TailCall tail;
                 if (actions[i] instanceof TailCallReturner) {
@@ -556,11 +502,9 @@ public class Choose extends Instruction {
                 throw e;
             }
             if (b) {
-            		
             	enterConditionTrace(i);
                 Item result = actions[i].evaluateItem(context);
                 leaveConditionTrace(i);
-
                 return result;
             }
         }

@@ -43,10 +43,6 @@ public class DocumentSorter extends UnaryExpression {
             // this can happen as a result of further simplification
             return operand;
         }
-        if (operand instanceof PathExpression) {
-            return visitor.getConfiguration().getOptimizer().makeConditionalDocumentSorter(
-                    this, (PathExpression)operand);
-        }
         return this;
     }
 

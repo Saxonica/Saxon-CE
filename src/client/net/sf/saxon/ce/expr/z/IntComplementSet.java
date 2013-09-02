@@ -61,7 +61,7 @@ public class IntComplementSet implements IntSet {
 
     public IntSet intersect(IntSet other) {
         if (other.isEmpty()) {
-            return IntEmptySet.getInstance();
+            return new IntHashSet(); // return empty set
         } else if (other == IntUniversalSet.getInstance()) {
             return copy();
         } else if (other instanceof IntComplementSet) {

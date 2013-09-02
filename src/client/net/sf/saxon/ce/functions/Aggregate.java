@@ -2,7 +2,6 @@ package client.net.sf.saxon.ce.functions;
 
 import client.net.sf.saxon.ce.expr.ExpressionTool;
 import client.net.sf.saxon.ce.expr.ExpressionVisitor;
-import client.net.sf.saxon.ce.expr.Optimizer;
 import client.net.sf.saxon.ce.trans.XPathException;
 
 /**
@@ -19,8 +18,7 @@ public abstract class Aggregate extends SystemFunction  {
 
     public void checkArguments(ExpressionVisitor visitor) throws XPathException {
         super.checkArguments(visitor);
-        Optimizer opt = visitor.getConfiguration().getOptimizer();
-        argument[0] = ExpressionTool.unsorted(opt, argument[0], true);
+        argument[0] = ExpressionTool.unsorted(visitor.getConfiguration(), argument[0], true);
         // we don't care about the order of the results, but we do care about how many nodes there are
     }
 

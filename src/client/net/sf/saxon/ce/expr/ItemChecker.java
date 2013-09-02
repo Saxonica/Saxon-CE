@@ -1,6 +1,5 @@
 package client.net.sf.saxon.ce.expr;
 import client.net.sf.saxon.ce.om.Item;
-import client.net.sf.saxon.ce.om.NamePool;
 import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.*;
@@ -81,18 +80,16 @@ public final class ItemChecker extends UnaryExpression {
         if (relation == TypeHierarchy.SAME_TYPE || relation == TypeHierarchy.SUBSUMES) {
             return operand;
         } else if (relation == TypeHierarchy.DISJOINT) {
-            final NamePool namePool = visitor.getConfiguration().getNamePool();
             if (Cardinality.allowsZero(card)) {
-
                 String message = role.composeErrorMessage(
-                        requiredItemType, operand.getItemType(th), namePool);
+                        requiredItemType, operand.getItemType(th));
                 visitor.getStaticContext().issueWarning("The only value that can pass type-checking is an empty sequence. " +
                         message, getSourceLocator());
             } else if (requiredItemType.equals(BuiltInAtomicType.STRING) && th.isSubType(supplied, BuiltInAtomicType.ANY_URI)) {
                 // URI promotion will take care of this at run-time
                 return operand;
             } else {
-                String message = role.composeErrorMessage(requiredItemType, operand.getItemType(th), namePool);
+                String message = role.composeErrorMessage(requiredItemType, operand.getItemType(th));
                 typeError(message, role.getErrorCode(), null);
             }
         }
@@ -170,9 +167,8 @@ public final class ItemChecker extends UnaryExpression {
                 message = "Supplied value of type " + Type.displayTypeName(item) +
                         " does not match the required type of " + role.getMessage();
             } else {
-                final NamePool pool = context.getNamePool();
                 final TypeHierarchy th = context.getConfiguration().getTypeHierarchy();
-                message = role.composeErrorMessage(requiredItemType, Value.asValue(item).getItemType(th), pool);
+                message = role.composeErrorMessage(requiredItemType, Value.asValue(item).getItemType(th));
             }
             String errorCode = role.getErrorCode();
             if ("XPDY0050".equals(errorCode)) {

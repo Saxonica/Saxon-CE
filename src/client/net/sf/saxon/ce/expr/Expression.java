@@ -18,14 +18,9 @@ import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.Cardinality;
 import client.net.sf.saxon.ce.value.SequenceType;
 import client.net.sf.saxon.ce.value.StringValue;
-
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashSet;
-import java.util.Iterator;
-
 import com.google.gwt.logging.client.LogConfiguration;
+
+import java.util.*;
 
 /**
  * Interface supported by an XPath expression. This includes both compile-time
@@ -383,11 +378,7 @@ public abstract class Expression {
      */
 
     public boolean effectiveBooleanValue(XPathContext context) throws XPathException {
-        if (Cardinality.allowsMany(getCardinality())) {
-            return ExpressionTool.effectiveBooleanValue(iterate(context));
-        } else {
-            return ExpressionTool.effectiveBooleanValue(evaluateItem(context));
-        }
+        return ExpressionTool.effectiveBooleanValue(iterate(context));
     }
 
     /**

@@ -6,7 +6,6 @@ import client.net.sf.saxon.ce.Controller.APIcommand;
 import client.net.sf.saxon.ce.event.PipelineConfiguration;
 import client.net.sf.saxon.ce.event.Receiver;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
-import client.net.sf.saxon.ce.om.NamePool;
 import client.net.sf.saxon.ce.om.NamespaceBinding;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.XPathException;
@@ -25,7 +24,6 @@ import java.util.logging.Logger;
 public class HTMLWriter implements Receiver {
 
     private PipelineConfiguration pipe;
-    private NamePool namePool;
     private Node currentNode;
     private Document document;
     private Node nextSibling;
@@ -138,7 +136,6 @@ public class HTMLWriter implements Receiver {
 
     public void setPipelineConfiguration(PipelineConfiguration pipe) {
         this.pipe = pipe;
-        namePool = pipe.getConfiguration().getNamePool();
     }
 
     /**
@@ -198,10 +195,10 @@ public class HTMLWriter implements Receiver {
     * Start of an element.
     */
 
-    public void startElement(StructuredQName nameCode, int properties) throws XPathException {
-        String localName = nameCode.getLocalName();
-        String prefix = nameCode.getPrefix();
-        String uri = nameCode.getNamespaceURI();
+    public void startElement(StructuredQName qName, int properties) throws XPathException {
+        String localName = qName.getLocalName();
+        String prefix = qName.getPrefix();
+        String uri = qName.getNamespaceURI();
         
         // TODO: For XML Writer it should write prefixes in a
         // way compliant with the XSLT2.0 specification - using xsl:output attributes

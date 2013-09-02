@@ -70,14 +70,14 @@ public class NormalizeSpace extends SystemFunction {
                 return null;
             }
             return StringValue.makeStringValue(
-                    Whitespace.collapseWhitespace(item.getStringValueCS()));
+                    Whitespace.collapseWhitespace(item.getStringValue()));
         } else {
             AtomicValue sv = (AtomicValue)argument[0].evaluateItem(c);
             if (sv==null) {
                 return StringValue.EMPTY_STRING;
             }
             return StringValue.makeStringValue(
-                    Whitespace.collapseWhitespace(sv.getStringValueCS()));
+                    Whitespace.collapseWhitespace(sv.getStringValue()));
         }
     }
 
@@ -105,13 +105,13 @@ public class NormalizeSpace extends SystemFunction {
                 dynamicError("Context item for normalize-space() is undefined", "FONC0001", c);
                 return false;
             }
-            cs = item.getStringValueCS();
+            cs = item.getStringValue();
         } else {
             AtomicValue sv = (AtomicValue)argument[0].evaluateItem(c);
             if (sv==null) {
                 return false;
             }
-            cs = sv.getStringValueCS();
+            cs = sv.getStringValue();
         }
         return !Whitespace.isWhite(cs);
     }

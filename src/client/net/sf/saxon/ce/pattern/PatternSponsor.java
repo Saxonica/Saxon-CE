@@ -335,7 +335,7 @@ public class PatternSponsor extends Expression {
      */
 
     public CharSequence evaluateAsString(XPathContext context) throws XPathException {
-        return evaluateItem(context).getStringValueCS();
+        return evaluateItem(context).getStringValue();
     }
 
     /**

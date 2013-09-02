@@ -64,13 +64,13 @@ public class XSLKey extends StyleElement implements StylesheetProcedure {
 		for (int a=0; a<atts.getLength(); a++) {
 			StructuredQName qn = atts.getStructuredQName(a);
             String f = qn.getClarkName();
-			if (f.equals(StandardNames.NAME)) {
+			if (f.equals("name")) {
         		nameAtt = Whitespace.trim(atts.getValue(a)) ;
-        	} else if (f.equals(StandardNames.USE)) {
+        	} else if (f.equals("use")) {
         		useAtt = atts.getValue(a);
-        	} else if (f.equals(StandardNames.MATCH)) {
+        	} else if (f.equals("match")) {
         		matchAtt = atts.getValue(a);
-        	} else if (f.equals(StandardNames.COLLATION)) {
+        	} else if (f.equals("collation")) {
         		collationName = Whitespace.trim(atts.getValue(a)) ;
         	} else {
         		checkUnknownAttribute(qn);
@@ -106,7 +106,7 @@ public class XSLKey extends StyleElement implements StylesheetProcedure {
         try {
         	if (getObjectName()==null) {
         		// allow for forwards references
-        		String nameAtt = getAttributeValue("", StandardNames.NAME);
+        		String nameAtt = getAttributeValue("", "name");
         		if (nameAtt != null) {
         			setObjectName(makeQName(nameAtt));
                 }

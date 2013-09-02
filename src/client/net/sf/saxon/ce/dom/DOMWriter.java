@@ -86,10 +86,10 @@ public class DOMWriter implements Receiver {
     * Start of an element.
     */
 
-    public void startElement(StructuredQName nameCode, int properties) throws XPathException {
-        String qname = nameCode.getDisplayName();
-        String prefix = nameCode.getPrefix();
-        String uri = nameCode.getNamespaceURI();
+    public void startElement(StructuredQName qName, int properties) throws XPathException {
+        String qname = qName.getDisplayName();
+        String prefix = qName.getPrefix();
+        String uri = qName.getNamespaceURI();
         try {
             Element element = document.createElement(qname);
             addNamespace(element, prefix, uri);
@@ -233,12 +233,6 @@ public class DOMWriter implements Receiver {
             document = (Document)node;
         } else {
             document = currentNode.getOwnerDocument();
-            if (document == null) {
-                // which might be because currentNode() is a parentless ElementOverNodeInfo.
-                // we create a DocumentOverNodeInfo, which is immutable, and will cause the DOMWriter to fail
-                //document = new DocumentOverNodeInfo();
-                // TODO:CLAXON - check this
-            }
         }
     }
 

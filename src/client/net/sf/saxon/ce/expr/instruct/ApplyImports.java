@@ -4,7 +4,6 @@ import client.net.sf.saxon.ce.Controller;
 import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.NodeInfo;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.trans.Mode;
 import client.net.sf.saxon.ce.trans.Rule;
 import client.net.sf.saxon.ce.trans.XPathException;
@@ -36,14 +35,7 @@ public class ApplyImports extends Instruction {
         this.tunnelParams = tunnelParams;
     }
 
-    /**
-    * Get the name of this instruction for diagnostic and tracing purposes
-    */
-    public int getInstructionNameCode() {
-        return StandardNames.XSL_APPLY_IMPORTS;
-    }
 
- 
     /**
      * Get the actual parameters passed to the called template
      * @return the non-tunnel parameters

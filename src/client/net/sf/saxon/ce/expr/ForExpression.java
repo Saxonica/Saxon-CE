@@ -1,6 +1,5 @@
 package client.net.sf.saxon.ce.expr;
 
-import client.net.sf.saxon.ce.expr.instruct.Choose;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.om.StructuredQName;
@@ -72,8 +71,8 @@ public class ForExpression extends Assignation {
             RoleLocator role = new RoleLocator(RoleLocator.VARIABLE, variableName, 0
             );
             //role.setSourceLocator(this);
-            sequence = TypeChecker.strictTypeCheck(
-                                    sequence, sequenceType, role, visitor.getStaticContext());
+//            sequence = TypeChecker.strictTypeCheck(
+//                                    sequence, sequenceType, role, visitor.getStaticContext());
             ItemType actualItemType = sequence.getItemType(th);
             refineTypeInformation(actualItemType,
                     getRangeVariableCardinality(),
@@ -104,16 +103,6 @@ public class ForExpression extends Assignation {
     */
 
     public Expression optimize(ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
-        // Try to promote any WHERE clause appearing immediately within the FOR expression
-
-        if (Choose.isSingleBranchChoice(action)) {
-            Expression act2 = visitor.optimize(action, contextItemType);
-            if (act2 != action) {
-                action = act2;
-                adoptChildExpression(action);
-                visitor.resetStaticProperties();
-            }
-        }
 
         Expression seq2 = visitor.optimize(sequence, contextItemType);
         if (seq2 != sequence) {
@@ -216,7 +205,7 @@ public class ForExpression extends Assignation {
         // If a subexpression is (or might be) creative, this is, if it creates new nodes, we don't
         // extract it from the loop, but we do extract its non-creative subexpressions
 
-        PromotionOffer offer = new PromotionOffer(visitor.getConfiguration().getOptimizer());
+        PromotionOffer offer = new PromotionOffer(visitor.getConfiguration());
         offer.containingExpression = this;
         offer.action = PromotionOffer.RANGE_INDEPENDENT;
         offer.bindingList = new Binding[] {this};

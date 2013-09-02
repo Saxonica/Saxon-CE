@@ -69,15 +69,6 @@ public abstract class AtomicValue extends Value implements Item, GroundedValue, 
     public abstract boolean equals(Object o);
 
     /**
-     * Get the value of the item as a CharSequence. This is in some cases more efficient than
-     * the version of the method that returns a String.
-     */
-
-    public final CharSequence getStringValueCS() {
-        return getPrimitiveStringValue();
-    }
-
-    /**
      * Process the instruction, without returning any tail calls
      *
      * @param context The dynamic context, giving access to the current node,
@@ -211,7 +202,7 @@ public abstract class AtomicValue extends Value implements Item, GroundedValue, 
      */
 
     public final String getStringValue() {
-        return getStringValueCS().toString();
+        return getPrimitiveStringValue().toString();
     }
 
     /**
@@ -320,7 +311,7 @@ public abstract class AtomicValue extends Value implements Item, GroundedValue, 
      */
 
     public String toString() {
-        return typeLabel.toString() + " (\"" + getStringValueCS() + "\")";
+        return typeLabel.toString() + " (\"" + getStringValue() + "\")";
     }
 
 }

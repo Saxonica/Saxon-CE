@@ -77,7 +77,6 @@ public final class TypeChecker {
         
         Expression exp = supplied;
         //final StaticContext env = visitor.getStaticContext();
-        final NamePool namePool = visitor.getConfiguration().getNamePool();
         final TypeHierarchy th = visitor.getConfiguration().getTypeHierarchy();
 
         ItemType reqItemType = req.getPrimaryType();
@@ -307,17 +306,17 @@ public final class TypeChecker {
                     Cardinality.allowsZero(reqCard)) {
                 if (suppliedCard != StaticProperty.EMPTY) {
                     String msg = "Required item type of " + role.getMessage() +
-                            " is " + reqItemType.toString(namePool) +
+                            " is " + reqItemType.toString() +
                             "; supplied value has item type " +
-                            suppliedItemType.toString(namePool) +
+                            suppliedItemType.toString() +
                             ". The expression can succeed only if the supplied value is an empty sequence.";
                     visitor.issueWarning(msg, supplied.getSourceLocator());
                 }
             } else {
                 XPathException err = new XPathException("Required item type of " + role.getMessage() +
-                        " is " + reqItemType.toString(namePool) +
+                        " is " + reqItemType.toString() +
                         "; supplied value has item type " +
-                        suppliedItemType.toString(namePool), supplied.getSourceLocator());
+                        suppliedItemType.toString(), supplied.getSourceLocator());
                 err.setErrorCode(role.getErrorCode());
                 err.setIsTypeError(true);
                 throw err;
@@ -331,9 +330,9 @@ public final class TypeChecker {
         if (!(relation == TypeHierarchy.SAME_TYPE || relation == TypeHierarchy.SUBSUMED_BY)) {
             if (exp instanceof Literal) {
                 XPathException err = new XPathException("Required item type of " + role.getMessage() +
-                        " is " + reqItemType.toString(namePool) +
+                        " is " + reqItemType.toString() +
                         "; supplied value has item type " +
-                        suppliedItemType.toString(namePool), supplied.getSourceLocator());
+                        suppliedItemType.toString(), supplied.getSourceLocator());
                 err.setErrorCode(role.getErrorCode());
                 err.setIsTypeError(true);
                 throw err;
@@ -380,134 +379,134 @@ public final class TypeChecker {
      *                      required type (that is, if they have no common subtype)
      */
 
-    public static Expression strictTypeCheck(Expression supplied,
-                                             SequenceType req,
-                                             RoleLocator role,
-                                             StaticContext env)
-    throws XPathException {
-
-        // System.err.println("Strict Type Check on expression (requiredType = " + req + "):"); supplied.display(10);
-
-        Expression exp = supplied;
-        final TypeHierarchy th = env.getConfiguration().getTypeHierarchy();
-
-        ItemType reqItemType = req.getPrimaryType();
-        int reqCard = req.getCardinality();
-
-        ItemType suppliedItemType = null;
-            // item type of the supplied expression: null means not yet calculated
-        int suppliedCard = -1;
-            // cardinality of the supplied expression: -1 means not yet calculated
-
-        boolean cardOK = (reqCard == StaticProperty.ALLOWS_ZERO_OR_MORE);
-        // Unless the required cardinality is zero-or-more (no constraints).
-        // check the static cardinality of the supplied expression
-        if (!cardOK) {
-            suppliedCard = exp.getCardinality();
-            cardOK = Cardinality.subsumes(reqCard, suppliedCard);
-        }
-
-        boolean itemTypeOK = req.getPrimaryType() instanceof AnyItemType;
-        // Unless the required item type and content type are ITEM (no constraints)
-        // check the static item type against the supplied expression.
-        // NOTE: we don't currently do any static inference regarding the content type
-        if (!itemTypeOK) {
-            suppliedItemType = exp.getItemType(th);
-            int relation = th.relationship(reqItemType, suppliedItemType);
-            itemTypeOK = relation == TypeHierarchy.SAME_TYPE || relation == TypeHierarchy.SUBSUMES;
-        }
-
-        // If both the cardinality and item type are statically OK, return now.
-        if (itemTypeOK && cardOK) {
-            return exp;
-        }
-
-        // If we haven't evaluated the cardinality of the supplied expression, do it now
-        if (suppliedCard == -1) {
-            if (suppliedItemType instanceof EmptySequenceTest) {
-                suppliedCard = StaticProperty.EMPTY;
-            } else {
-                suppliedCard = exp.getCardinality();
-            }
-            if (!cardOK) {
-                cardOK = Cardinality.subsumes(reqCard, suppliedCard);
-            }
-        }
-
-        // If an empty sequence was explicitly supplied, and empty sequence is allowed,
-        // then the item type doesn't matter
-        if (cardOK && suppliedCard==StaticProperty.EMPTY) {
-            return exp;
-        }
-
-        // If we haven't evaluated the item type of the supplied expression, do it now
-        if (suppliedItemType == null) {
-            suppliedItemType = exp.getItemType(th);
-        }
-
-        if (suppliedCard==StaticProperty.EMPTY && ((reqCard & StaticProperty.ALLOWS_ZERO) == 0) ) {
-            XPathException err = new XPathException("An empty sequence is not allowed as the " + role.getMessage(), supplied.getSourceLocator());
-            err.setErrorCode(role.getErrorCode());
-            err.setIsTypeError(true);
-            err.setLocator(exp.getSourceLocator());
-            throw err;
-        }
-
-        // Try a static type check. We only throw it out if the call cannot possibly succeed.
-
-        int relation = th.relationship(suppliedItemType, reqItemType);
-        if (relation == TypeHierarchy.DISJOINT) {
-            // The item types may be disjoint, but if both the supplied and required types permit
-            // an empty sequence, we can't raise a static error. Raise a warning instead.
-            if (Cardinality.allowsZero(suppliedCard) &&
-                    Cardinality.allowsZero(reqCard)) {
-                if (suppliedCard != StaticProperty.EMPTY) {
-                    String msg = "Required item type of " + role.getMessage() +
-                            " is " + reqItemType.toString(env.getNamePool()) +
-                            "; supplied value has item type " +
-                            suppliedItemType.toString(env.getNamePool()) +
-                            ". The expression can succeed only if the supplied value is an empty sequence.";
-                    env.issueWarning(msg, supplied.getSourceLocator());
-                }
-            } else {
-                XPathException err = new XPathException("Required item type of " + role.getMessage() +
-                        " is " + reqItemType.toString(env.getNamePool()) +
-                        "; supplied value has item type " +
-                        suppliedItemType.toString(env.getNamePool()), supplied.getSourceLocator());
-                err.setErrorCode(role.getErrorCode());
-                err.setIsTypeError(true);
-                throw err;
-            }
-        }
-
-        // Unless the type is guaranteed to match, add a dynamic type check,
-        // unless the value is already known in which case we might as well report
-        // the error now.
-
-        if (!(relation == TypeHierarchy.SAME_TYPE || relation == TypeHierarchy.SUBSUMED_BY)) {
-                Expression cexp = new ItemChecker(exp, reqItemType, role);
-                cexp.adoptChildExpression(exp);
-                exp = cexp;
-        }
-
-        if (!cardOK) {
-            if (exp instanceof Literal) {
-                XPathException err = new XPathException("Required cardinality of " + role.getMessage() +
-                        " is " + Cardinality.toString(reqCard) +
-                        "; supplied value has cardinality " +
-                        Cardinality.toString(suppliedCard), supplied.getSourceLocator());
-                err.setIsTypeError(true);
-                err.setErrorCode(role.getErrorCode());
-                throw err;
-            } else {
-                Expression cexp = CardinalityChecker.makeCardinalityChecker(exp, reqCard, role);
-                cexp.adoptChildExpression(exp);
-                exp = cexp;
-            }
-        }
-
-        return exp;
-    }
+//    public static Expression strictTypeCheck(Expression supplied,
+//                                             SequenceType req,
+//                                             RoleLocator role,
+//                                             StaticContext env)
+//    throws XPathException {
+//
+//        // System.err.println("Strict Type Check on expression (requiredType = " + req + "):"); supplied.display(10);
+//
+//        Expression exp = supplied;
+//        final TypeHierarchy th = env.getConfiguration().getTypeHierarchy();
+//
+//        ItemType reqItemType = req.getPrimaryType();
+//        int reqCard = req.getCardinality();
+//
+//        ItemType suppliedItemType = null;
+//            // item type of the supplied expression: null means not yet calculated
+//        int suppliedCard = -1;
+//            // cardinality of the supplied expression: -1 means not yet calculated
+//
+//        boolean cardOK = (reqCard == StaticProperty.ALLOWS_ZERO_OR_MORE);
+//        // Unless the required cardinality is zero-or-more (no constraints).
+//        // check the static cardinality of the supplied expression
+//        if (!cardOK) {
+//            suppliedCard = exp.getCardinality();
+//            cardOK = Cardinality.subsumes(reqCard, suppliedCard);
+//        }
+//
+//        boolean itemTypeOK = req.getPrimaryType() instanceof AnyItemType;
+//        // Unless the required item type and content type are ITEM (no constraints)
+//        // check the static item type against the supplied expression.
+//        // NOTE: we don't currently do any static inference regarding the content type
+//        if (!itemTypeOK) {
+//            suppliedItemType = exp.getItemType(th);
+//            int relation = th.relationship(reqItemType, suppliedItemType);
+//            itemTypeOK = relation == TypeHierarchy.SAME_TYPE || relation == TypeHierarchy.SUBSUMES;
+//        }
+//
+//        // If both the cardinality and item type are statically OK, return now.
+//        if (itemTypeOK && cardOK) {
+//            return exp;
+//        }
+//
+//        // If we haven't evaluated the cardinality of the supplied expression, do it now
+//        if (suppliedCard == -1) {
+//            if (suppliedItemType instanceof EmptySequenceTest) {
+//                suppliedCard = StaticProperty.EMPTY;
+//            } else {
+//                suppliedCard = exp.getCardinality();
+//            }
+//            if (!cardOK) {
+//                cardOK = Cardinality.subsumes(reqCard, suppliedCard);
+//            }
+//        }
+//
+//        // If an empty sequence was explicitly supplied, and empty sequence is allowed,
+//        // then the item type doesn't matter
+//        if (cardOK && suppliedCard==StaticProperty.EMPTY) {
+//            return exp;
+//        }
+//
+//        // If we haven't evaluated the item type of the supplied expression, do it now
+//        if (suppliedItemType == null) {
+//            suppliedItemType = exp.getItemType(th);
+//        }
+//
+//        if (suppliedCard==StaticProperty.EMPTY && ((reqCard & StaticProperty.ALLOWS_ZERO) == 0) ) {
+//            XPathException err = new XPathException("An empty sequence is not allowed as the " + role.getMessage(), supplied.getSourceLocator());
+//            err.setErrorCode(role.getErrorCode());
+//            err.setIsTypeError(true);
+//            err.setLocator(exp.getSourceLocator());
+//            throw err;
+//        }
+//
+//        // Try a static type check. We only throw it out if the call cannot possibly succeed.
+//
+//        int relation = th.relationship(suppliedItemType, reqItemType);
+//        if (relation == TypeHierarchy.DISJOINT) {
+//            // The item types may be disjoint, but if both the supplied and required types permit
+//            // an empty sequence, we can't raise a static error. Raise a warning instead.
+//            if (Cardinality.allowsZero(suppliedCard) &&
+//                    Cardinality.allowsZero(reqCard)) {
+//                if (suppliedCard != StaticProperty.EMPTY) {
+//                    String msg = "Required item type of " + role.getMessage() +
+//                            " is " + reqItemType.toString() +
+//                            "; supplied value has item type " +
+//                            suppliedItemType.toString() +
+//                            ". The expression can succeed only if the supplied value is an empty sequence.";
+//                    env.issueWarning(msg, supplied.getSourceLocator());
+//                }
+//            } else {
+//                XPathException err = new XPathException("Required item type of " + role.getMessage() +
+//                        " is " + reqItemType.toString() +
+//                        "; supplied value has item type " +
+//                        suppliedItemType.toString(), supplied.getSourceLocator());
+//                err.setErrorCode(role.getErrorCode());
+//                err.setIsTypeError(true);
+//                throw err;
+//            }
+//        }
+//
+//        // Unless the type is guaranteed to match, add a dynamic type check,
+//        // unless the value is already known in which case we might as well report
+//        // the error now.
+//
+//        if (!(relation == TypeHierarchy.SAME_TYPE || relation == TypeHierarchy.SUBSUMED_BY)) {
+//                Expression cexp = new ItemChecker(exp, reqItemType, role);
+//                cexp.adoptChildExpression(exp);
+//                exp = cexp;
+//        }
+//
+//        if (!cardOK) {
+//            if (exp instanceof Literal) {
+//                XPathException err = new XPathException("Required cardinality of " + role.getMessage() +
+//                        " is " + Cardinality.toString(reqCard) +
+//                        "; supplied value has cardinality " +
+//                        Cardinality.toString(suppliedCard), supplied.getSourceLocator());
+//                err.setIsTypeError(true);
+//                err.setErrorCode(role.getErrorCode());
+//                throw err;
+//            } else {
+//                Expression cexp = CardinalityChecker.makeCardinalityChecker(exp, reqCard, role);
+//                cexp.adoptChildExpression(exp);
+//                exp = cexp;
+//            }
+//        }
+//
+//        return exp;
+//    }
 
     /**
      * Test whether a given value conforms to a given type

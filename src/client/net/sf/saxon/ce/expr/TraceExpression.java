@@ -380,14 +380,6 @@ public class TraceExpression extends Instruction implements InstructionInfo {
         return child;
     }
 
-    public int getInstructionNameCode() {
-        if (child instanceof Instruction) {
-            return ((Instruction)child).getInstructionNameCode();
-        } else {
-            return -1;
-        }
-    }
-
     /**
      * Diagnostic print of expression structure. The abstract expression tree
      * is written to the supplied output destination.

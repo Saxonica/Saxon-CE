@@ -1,9 +1,9 @@
 package client.net.sf.saxon.ce.expr;
 
+import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.expr.instruct.Choose;
 import client.net.sf.saxon.ce.functions.*;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
-import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.om.ValueRepresentation;
@@ -31,7 +31,6 @@ public final class FilterExpression extends Expression {
     private Expression filter;
     private boolean filterIsPositional;         // true if the value of the filter might depend on
     // the context position
-    private boolean filterIsSingletonBoolean;   // true if the filter expression always returns a single boolean
     private boolean filterIsIndependentNumeric; // true if the filter expression returns a number that doesn't
     // depend on the context item or position
 
@@ -152,11 +151,6 @@ public final class FilterExpression extends Expression {
             return new LastItemExpression(start);
         }
 
-        // determine whether the filter always evaluates to a single boolean
-        filterIsSingletonBoolean =
-                filter.getCardinality() == StaticProperty.EXACTLY_ONE &&
-                        filter.getItemType(th).equals(BuiltInAtomicType.BOOLEAN);
-
         // determine whether the filter evaluates to a single number, where the number will be the same for
         // all values in the sequence
         filterIsIndependentNumeric =
@@ -185,8 +179,8 @@ public final class FilterExpression extends Expression {
      */
 
     public Expression optimize(ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
-        final Optimizer opt = visitor.getConfiguration().getOptimizer();
-        final TypeHierarchy th = visitor.getConfiguration().getTypeHierarchy();
+        final Configuration config = visitor.getConfiguration();
+        final TypeHierarchy th = config.getTypeHierarchy();
 
         Expression start2 = visitor.optimize(start, contextItemType);
         if (start2 != start) {
@@ -211,9 +205,6 @@ public final class FilterExpression extends Expression {
 
         // determine whether the filter might depend on position
         filterIsPositional = isPositionalFilter(filter, th);
-        filterIsSingletonBoolean =
-                filter.getCardinality() == StaticProperty.EXACTLY_ONE &&
-                        filter.getItemType(th).equals(BuiltInAtomicType.BOOLEAN);
 
         Expression subsequence = tryToRewritePositionalFilter(visitor);
         if (subsequence != null) {
@@ -228,7 +219,7 @@ public final class FilterExpression extends Expression {
         // expression. Note: we do this even if the filter is numeric, because it ensures that
         // the subscript is pre-evaluated, allowing direct indexing into the sequence.
 
-        PromotionOffer offer = new PromotionOffer(opt);
+        PromotionOffer offer = new PromotionOffer(config);
         offer.action = PromotionOffer.FOCUS_INDEPENDENT;
         offer.promoteDocumentDependent = (start.getSpecialProperties() & StaticProperty.CONTEXT_DOCUMENT_NODESET) != 0;
         offer.containingExpression = this;
@@ -240,32 +231,7 @@ public final class FilterExpression extends Expression {
         if (offer.containingExpression instanceof LetExpression) {
             offer.containingExpression = visitor.optimize(offer.containingExpression, contextItemType);
         }
-        Expression result = offer.containingExpression;
-
-        if (result instanceof FilterExpression) {
-            Value value = ((FilterExpression)result).tryEarlyEvaluation(visitor);
-            if (value != null) {
-                return new Literal(value);
-            }
-        }
-        return result;
-    }
-
-    private Value tryEarlyEvaluation(ExpressionVisitor visitor) throws XPathException {
-        // Attempt early evaluation of a filter expression if the base sequence is constant and the
-        // filter depends only on the context. (This can't be done if, for example, the predicate uses
-        // local variables, even variables declared within the predicate)
-        try {
-            if (start instanceof Literal && (filter.getDependencies()&~StaticProperty.DEPENDS_ON_FOCUS) == 0) {
-                XPathContext context = visitor.getStaticContext().makeEarlyEvaluationContext();
-                return (Value)SequenceExtent.makeSequenceExtent(iterate(context));
-            }
-        } catch (Exception e) {
-            // can happen for a variety of reasons, for example the filter references a global parameter,
-            // references the doc() function, etc.
-            return null;
-        }
-        return null;
+        return offer.containingExpression;
     }
 
     /**
@@ -656,62 +622,34 @@ public final class FilterExpression extends Expression {
         // all cases where the filter expression is independent of the context, that is, where the
         // value of the filter expression is the same for all items in the sequence being filtered.
 
-        if (filterValue != null) {
-            if (filterValue instanceof Value) {
-                filterValue = ((Value)filterValue).reduce();
-                if (filterValue instanceof NumericValue) {
-                    // Filter is a constant number
-                    if (((NumericValue)filterValue).isWholeNumber()) {
-                        int pos = (int)(((NumericValue)filterValue).intValue());
-                        if (startValue != null) {
-                            // if sequence is a value, use direct indexing - unless its a Closure!
-                        	return SingletonIterator.makeIterator(startValue.itemAt(pos - 1));
-                        }
-                        if (pos >= 1) {
-                            SequenceIterator base = startExp.iterate(context);
-                            return SubsequenceIterator.make(base, pos, pos);
-                        } else {
-                            // index is less than one, no items will be selected
-                            return EmptyIterator.getInstance();
-                        }
+        if (filterValue instanceof Value) {
+            filterValue = ((Value)filterValue).reduce();
+            if (filterValue instanceof NumericValue) {
+                // Filter is a constant number
+                if (((NumericValue)filterValue).isWholeNumber()) {
+                    int pos = (int)(((NumericValue)filterValue).intValue());
+                    if (startValue != null) {
+                        // if sequence is a value, use direct indexing - unless its a Closure!
+                        return SingletonIterator.makeIterator(startValue.itemAt(pos - 1));
+                    }
+                    if (pos >= 1) {
+                        SequenceIterator base = startExp.iterate(context);
+                        return SubsequenceIterator.make(base, pos, pos);
                     } else {
-                        // a non-integer value will never be equal to position()
+                        // index is less than one, no items will be selected
                         return EmptyIterator.getInstance();
                     }
-                }
-                // Filter is a value that we can treat as boolean
-                boolean b;
-                try {
-                    b = ((Value)filterValue).effectiveBooleanValue();
-                } catch (XPathException err) {
-                    err.maybeSetLocation(getSourceLocator());
-                    throw err;
-                }
-                if (b) {
-                    return start.iterate(context);
                 } else {
+                    // a non-integer value will never be equal to position()
                     return EmptyIterator.getInstance();
                 }
-            } else if (filterValue instanceof NodeInfo) {
-                return start.iterate(context);
             }
         }
 
         // get an iterator over the base nodes
 
         SequenceIterator base = startExp.iterate(context);
-
-        // quick exit for an empty sequence
-
-        if (base instanceof EmptyIterator) {
-            return base;
-        }
-
-        if (filterIsPositional && !filterIsSingletonBoolean) {
-            return new FilterIterator(base, filter, context);
-        } else {
-            return new FilterIterator.NonNumeric(base, filter, context);
-        }
+        return new FilterIterator(base, filter, context);
 
     }
 

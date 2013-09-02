@@ -90,15 +90,6 @@ public final class TextFragmentValue implements DocumentInfo {
     }
 
     /**
-     * Get the value of the item as a CharSequence. This is in some cases more efficient than
-     * the version of the method that returns a String.
-     */
-
-    public CharSequence getStringValueCS() {
-        return text;
-    }
-
-    /**
     * Determine whether this is the same node as another node
     * @return true if this Node object and the supplied Node object represent the
     * same node in the tree.
@@ -167,15 +158,6 @@ public final class TextFragmentValue implements DocumentInfo {
     }
 
     /**
-    * Get the prefix part of the name of this node. This is the name before the ":" if any.
-    * @return the prefix part of the name. For an unnamed node, return "".
-    */
-
-    public String getPrefix() {
-        return "";
-    }
-
-    /**
     * Get the URI part of the name of this node. This is the URI corresponding to the
     * prefix, or the URI of the default namespace if appropriate.
     * @return The URI of the namespace of this node. For an unnamed node, or for
@@ -215,30 +197,6 @@ public final class TextFragmentValue implements DocumentInfo {
 
     public boolean hasChildNodes() {
         return !("".equals(text));
-    }
-
-    /**
-     * Get line number
-     *
-     * @return the line number of the node in its original source document; or
-     *         -1 if not available
-     */
-
-    public int getLineNumber() {
-        return -1;
-    }
-
-    /**
-     * Get the type annotation of this node, if any.
-     * Returns XS_UNTYPED for kinds of nodes that have no annotation, and for elements annotated as
-     * untyped, and attributes annotated as untypedAtomic.
-     *
-     * @return the type annotation of the node.
-     * @see client.net.sf.saxon.ce.type.Type
-     */
-
-    public int getTypeAnnotation() {
-        return StandardNames.XS_UNTYPED;
     }
 
     /**
@@ -466,15 +424,6 @@ public final class TextFragmentValue implements DocumentInfo {
         }
 
         /**
-         * Get the value of the item as a CharSequence. This is in some cases more efficient than
-         * the version of the method that returns a String.
-         */
-
-        public CharSequence getStringValueCS() {
-            return text;
-        }
-
-        /**
         * Determine whether this is the same node as another node
         * @return true if this Node object and the supplied Node object represent the
         * same node in the tree.
@@ -526,15 +475,6 @@ public final class TextFragmentValue implements DocumentInfo {
         }
 
         /**
-        * Get the prefix part of the name of this node. This is the name before the ":" if any.
-        * @return the prefix part of the name. For an unnamed node, return "".
-        */
-
-        public String getPrefix() {
-            return "";
-        }
-
-        /**
         * Get the URI part of the name of this node. This is the URI corresponding to the
         * prefix, or the URI of the default namespace if appropriate.
         * @return The URI of the namespace of this node. For an unnamed node, or for
@@ -574,29 +514,6 @@ public final class TextFragmentValue implements DocumentInfo {
 
         public boolean hasChildNodes() {
             return false;
-        }
-
-        /**
-         * Get line number
-         *
-         * @return the line number of the node in its original source document; or
-         *         -1 if not available
-         */
-
-        public int getLineNumber() {
-            return -1;
-        }
-
-        /**
-         * Get the type annotation of this node, if any.
-         * <p>The result is undefined for nodes other than elements and attributes.</p>
-         *
-         * @return the type annotation of the node.
-         * @see client.net.sf.saxon.ce.type.Type
-         */
-
-        public int getTypeAnnotation() {
-            return -1;
         }
 
         /**

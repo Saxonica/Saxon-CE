@@ -2,7 +2,6 @@ package client.net.sf.saxon.ce.style;
 import client.net.sf.saxon.ce.expr.Expression;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.om.AttributeCollection;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.UTF16CharacterSet;
@@ -25,7 +24,7 @@ public class XSLOutputCharacter extends StyleElement {
 		for (int a=0; a<atts.getLength(); a++) {
 			StructuredQName qn = atts.getStructuredQName(a);
             String f = qn.getClarkName();
-			if (f.equals(StandardNames.CHARACTER)) {
+			if (f.equals("character")) {
                 String s = atts.getValue(a);
                 switch (s.length()) {
                     case 0:
@@ -48,7 +47,7 @@ public class XSLOutputCharacter extends StyleElement {
                         compileError("character attribute must be a single XML character", "XTSE0020");
                         codepoint = 256; // for error recovery
                 }
-        	} else if (f.equals(StandardNames.STRING)) {
+        	} else if (f.equals("string")) {
         		replacementString = atts.getValue(a);
         	} else {
         		checkUnknownAttribute(qn);

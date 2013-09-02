@@ -54,25 +54,6 @@ public final class NamespaceBinding {
     }
 
     /**
-     * Ask whether this is a binding for the XML namespace
-     * @return true if this is the binding of the prefix "xml" to the standard XML namespace.
-     */
-
-    public boolean isXmlNamespace() {
-        return prefix.equals("xml");
-    }
-
-    /**
-     * Ask whether this is an undeclaration of the default prefix, that is, a namespace binding
-     * corresponding to <code>xmlns=""</code>
-     * @return true if this corresponding to <code>xmlns=""</code>
-     */
-
-    public boolean isDefaultUndeclaration() {
-        return prefix.isEmpty() && uri.isEmpty();
-    }
-
-    /**
      * Test if this namespace binding is the same as another
      * @param obj the comparand
      * @return true if the comparand is a Namespace binding of the same prefix to the same URI
@@ -88,6 +69,7 @@ public final class NamespaceBinding {
     public int hashCode() {
         return prefix.hashCode() ^ uri.hashCode();
     }
+
 }
 
 // This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. 

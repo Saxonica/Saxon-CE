@@ -40,17 +40,17 @@ public class XSLAttribute extends XSLLeafNodeConstructor {
 		for (int a=0; a<atts.getLength(); a++) {
 			StructuredQName qn = atts.getStructuredQName(a);
             String f = qn.getClarkName();
-			if (f.equals(StandardNames.NAME)) {
+			if (f.equals("name")) {
         		nameAtt = Whitespace.trim(atts.getValue(a));
-        	} else if (f.equals(StandardNames.NAMESPACE)) {
+        	} else if (f.equals("namespace")) {
         		namespaceAtt = Whitespace.trim(atts.getValue(a));
-        	} else if (f.equals(StandardNames.SELECT)) {
+        	} else if (f.equals("select")) {
         		selectAtt = atts.getValue(a);
-        	} else if (f.equals(StandardNames.SEPARATOR)) {
+        	} else if (f.equals("separator")) {
         		separatorAtt = atts.getValue(a);
-        	} else if (f.equals(StandardNames.VALIDATION)) {
+        	} else if (f.equals("validation")) {
         		validationAtt = Whitespace.trim(atts.getValue(a));
-        	} else if (f.equals(StandardNames.TYPE)) {
+        	} else if (f.equals("type")) {
         		typeAtt = Whitespace.trim(atts.getValue(a));
         	} else {
         		checkUnknownAttribute(qn);
@@ -63,9 +63,6 @@ public class XSLAttribute extends XSLLeafNodeConstructor {
         }
         attributeName = makeAttributeValueTemplate(nameAtt);
         if (attributeName instanceof StringLiteral) {
-            if (!NameChecker.isQName(((StringLiteral)attributeName).getStringValue())) {
-                invalidAttributeName("Attribute name " + Err.wrap(nameAtt) + " is not a valid QName");
-            }
             if (nameAtt.equals("xmlns")) {
                 if (namespace==null) {
                     invalidAttributeName("Invalid attribute name: xmlns");

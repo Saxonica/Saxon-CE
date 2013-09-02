@@ -2,7 +2,6 @@ package client.net.sf.saxon.ce.pattern;
 
 import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.om.Item;
-import client.net.sf.saxon.ce.om.NamePool;
 import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.type.*;
@@ -21,7 +20,7 @@ import java.util.HashSet;
   *
   * <p>For use in user-written application calling {@link NodeInfo#iterateAxis(byte, NodeTest)},
  * it is possible to write a user-defined subclass of <code>NodeTest</code> that implements
- * a single method, {@link #matches(int, client.net.sf.saxon.ce.om.StructuredQName, int)}</p>
+ * a single method, {@link #matches(int, client.net.sf.saxon.ce.om.StructuredQName)}</p>
   *
   * @author Michael H. Kay
   */
@@ -133,24 +132,23 @@ public abstract class NodeTest implements ItemType {
      * simple node tests found in the XPath 1.0 subset used in XML Schema, and (b) to evaluate
      * node tests where the node kind is known to be an attribute.
      * @param nodeKind The kind of node to be matched
-     * @param fingerprint identifies the expanded name of the node to be matched.
-     *  The value should be -1 for a node with no name.
-     * @param annotation The actual content type of the node
+     * @param qName identifies the expanded name of the node to be matched.
+     *  The value should be null for a node with no name.
      *
     */
 
-    public abstract boolean matches(int nodeKind, StructuredQName fingerprint, int annotation);
+    public abstract boolean matches(int nodeKind, StructuredQName qName);
 
     /**
      * Test whether this node test is satisfied by a given node. This alternative
      * method is used in the case of nodes where calculating the fingerprint is expensive,
      * for example DOM or JDOM nodes. The default implementation calls the method
-     * {@link #matches(int, client.net.sf.saxon.ce.om.StructuredQName, int)}
+     * {@link #matches(int, client.net.sf.saxon.ce.om.StructuredQName)}
      * @param node the node to be matched
      */
 
     public boolean matches(NodeInfo node) {
-        return matches(node.getNodeKind(), node.getNodeName(), node.getTypeAnnotation());
+        return matches(node.getNodeKind(), node.getNodeName());
     }
 
     /**
@@ -183,15 +181,6 @@ public abstract class NodeTest implements ItemType {
     public HashSet<StructuredQName> getRequiredNodeNames() {
         return null;
     }
-
-    /**
-     * Display the type descriptor for diagnostics
-     */
-
-    public String toString(NamePool pool) {
-        return toString();
-    }
-
 
 
 }

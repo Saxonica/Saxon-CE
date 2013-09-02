@@ -149,10 +149,10 @@ public final class ComplexContentOutputter extends SequenceReceiver {
     * Output an element start tag. <br>
     * The actual output of the tag is deferred until all attributes have been output
     * using attribute().
-     * @param nameCode The element name code
+     * @param qName The element name code
      */
 
-    public void startElement(StructuredQName nameCode, int properties) throws XPathException {
+    public void startElement(StructuredQName qName, int properties) throws XPathException {
         // System.err.println("StartElement " + nameCode);
         level++;
         started = true;
@@ -162,7 +162,7 @@ public final class ComplexContentOutputter extends SequenceReceiver {
         startElementProperties = properties;
         pendingAttListSize = 0;
         pendingNSListSize = 0;
-        pendingStartTag = nameCode;
+        pendingStartTag = qName;
         pendingStartTagDepth = 1;
         elementIsInNullNamespace = null; // meaning not yet computed
         declaresDefaultNamespace = false;
@@ -191,7 +191,6 @@ public final class ComplexContentOutputter extends SequenceReceiver {
     throws XPathException {
 
         // System.err.println("Write namespace prefix=" + (nscode>>16) + " uri=" + (nscode&0xffff));
-        NamePool pool = getNamePool();
         if (pendingStartTagDepth < 0) {
             throw NoOpenStartTagException.makeNoOpenStartTagException(
                     Type.NAMESPACE,
@@ -212,7 +211,7 @@ public final class ComplexContentOutputter extends SequenceReceiver {
                 return;
             }
             if (nsBinding.getPrefix().equals(pendingNSList[i].getPrefix())) {
-                if (pendingNSList[i].isDefaultUndeclaration() || nsBinding.isDefaultUndeclaration()) {
+                if (pendingNSList[i].equals(NamespaceBinding.DEFAULT_UNDECLARATION) || nsBinding.equals(NamespaceBinding.DEFAULT_UNDECLARATION)) {
                     // xmlns="" overridden by xmlns="abc"
                     pendingNSList[i] = nsBinding;
                 } else if (rejectDuplicates) {
@@ -324,7 +323,6 @@ public final class ComplexContentOutputter extends SequenceReceiver {
 	*/
 
 	private StructuredQName checkProposedPrefix(StructuredQName nameCode, int seq) throws XPathException {
-        NamePool namePool = getNamePool();
 		String nsprefix = nameCode.getPrefix();
         String nsuri = nameCode.getNamespaceURI();
 
@@ -423,7 +421,7 @@ public final class ComplexContentOutputter extends SequenceReceiver {
             if (previousAtomic) {
                 characters(" ");
             }
-            characters(item.getStringValueCS());
+            characters(item.getStringValue());
             previousAtomic = true;
         } else if (((NodeInfo)item).getNodeKind() == Type.DOCUMENT) {
             startDocument();

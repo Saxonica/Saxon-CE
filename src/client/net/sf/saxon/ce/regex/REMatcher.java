@@ -1,12 +1,12 @@
 package client.net.sf.saxon.ce.regex;
 
-import client.net.sf.saxon.ce.expr.z.IntHashMap;
 import client.net.sf.saxon.ce.expr.z.IntHashSet;
 import client.net.sf.saxon.ce.expr.z.IntSet;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 
 
@@ -169,7 +169,7 @@ public class REMatcher  {
     int[] startBackref;                 // Lazy-alloced array of backref starts
     int[] endBackref;                   // Lazy-alloced array of backref ends
 
-    IntHashMap<IntSet> history;         // Tracks progress of a match operation
+    HashMap<Integer, IntSet> history;         // Tracks progress of a match operation
     // Key is an integer offset in the source string
     // Value is a set of instructions that have visited this offset
     Operation[] instructions;
@@ -448,7 +448,7 @@ public class REMatcher  {
         endn = new int[3];
         endn[0] = endn[1] = endn[2] = -1;
         parenCount = 1;
-        history = new IntHashMap<IntSet>(search.length());
+        history = new HashMap<Integer, IntSet>(search.length());
         anchoredMatch = anchored;
         setParenStart(0, i);
 

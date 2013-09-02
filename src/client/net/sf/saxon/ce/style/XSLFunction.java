@@ -68,7 +68,7 @@ public class XSLFunction extends StyleElement implements StylesheetProcedure {
     	for (int a=0; a<atts.getLength(); a++) {
             StructuredQName qn = atts.getStructuredQName(a);
             String f = qn.getClarkName();
-            if (f.equals(StandardNames.NAME)) {
+            if (f.equals("name")) {
 				nameAtt = Whitespace.trim(atts.getValue(a));
 				if (nameAtt.indexOf(':')<0) {
 					compileError("Function name must have a namespace prefix", "XTSE0740");
@@ -80,9 +80,9 @@ public class XSLFunction extends StyleElement implements StylesheetProcedure {
         		} catch (XPathException err) {
                     compileError(err);
                 }
-        	} else if (f.equals(StandardNames.AS)) {
+        	} else if (f.equals("as")) {
         		asAtt = atts.getValue(a);
-            } else if (f.equals(StandardNames.OVERRIDE)) {
+            } else if (f.equals("override")) {
                 overrideAtt = Whitespace.trim(atts.getValue(a));
                 if (overrideAtt.equals("yes")) {
                     override = true;
@@ -287,12 +287,8 @@ public class XSLFunction extends StyleElement implements StylesheetProcedure {
         Expression exp = compiledFunction.getBody();
         ExpressionVisitor visitor = makeExpressionVisitor();
         Expression exp2 = exp;
-        Optimizer opt = getConfiguration().getOptimizer();
         try {
-            if (opt.getOptimizationLevel() != Optimizer.NO_OPTIMIZATION) {
-                exp2 = exp.optimize(visitor, null);
-            }
-
+            exp2 = exp.optimize(visitor, null);
         } catch (XPathException err) {
             err.maybeSetLocation(this);
             compileError(err);

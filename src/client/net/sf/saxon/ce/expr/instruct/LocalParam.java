@@ -1,7 +1,6 @@
 package client.net.sf.saxon.ce.expr.instruct;
 
 import client.net.sf.saxon.ce.expr.*;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.om.ValueRepresentation;
 import client.net.sf.saxon.ce.trans.XPathException;
 
@@ -60,14 +59,6 @@ public final class LocalParam extends GeneralVariable {
         if (convertor != null) {
             conversionEvaluationMode = ExpressionTool.eagerEvaluationMode(conversion);
         }
-    }
-
-    /**
-     * Get the name of this instruction for diagnostic and tracing purposes
-     */
-
-    public int getInstructionNameCode() {
-        return StandardNames.XSL_PARAM;
     }
 
     /**

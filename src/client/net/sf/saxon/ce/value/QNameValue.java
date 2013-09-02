@@ -46,20 +46,6 @@ public class QNameValue extends QualifiedNameValue {
     }
 
     /**
-     * Constructor starting from a NamePool namecode
-     * @param namePool The name pool containing the specified name code
-     * @param nameCode The name code identifying this name in the name pool
-     */
-
-    public QNameValue(NamePool namePool, int nameCode) {
-        String prefix = namePool.getPrefix(nameCode);
-        String uri = namePool.getURI(nameCode);
-        String localPart = namePool.getLocalName(nameCode);
-        qName = new StructuredQName(prefix, uri, localPart);
-        typeLabel = BuiltInAtomicType.QNAME;
-    }
-
-    /**
      * Constructor starting from a StructuredQName
      * @param name the QName
      */
@@ -141,9 +127,9 @@ public class QNameValue extends QualifiedNameValue {
         if (requiredType == BuiltInAtomicType.ANY_ATOMIC || requiredType == BuiltInAtomicType.QNAME) {
             return this;
         } else if (requiredType == BuiltInAtomicType.UNTYPED_ATOMIC) {
-            return new UntypedAtomicValue(getStringValueCS());
+            return new UntypedAtomicValue(getStringValue());
         } else if (requiredType == BuiltInAtomicType.STRING) {
-            return new StringValue(getStringValueCS());
+            return new StringValue(getStringValue());
         } else {
             ValidationFailure err = new ValidationFailure("Cannot convert gYear to " +
                     requiredType.getDisplayName());

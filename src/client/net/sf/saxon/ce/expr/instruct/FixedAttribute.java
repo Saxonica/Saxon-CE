@@ -5,7 +5,6 @@ import client.net.sf.saxon.ce.expr.ExpressionVisitor;
 import client.net.sf.saxon.ce.expr.StaticProperty;
 import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.functions.SystemFunction;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.pattern.NodeKindTest;
 import client.net.sf.saxon.ce.trans.XPathException;
@@ -32,14 +31,6 @@ public final class FixedAttribute extends AttributeCreator {
 
     public FixedAttribute (StructuredQName nameCode) {
         this.nameCode = nameCode;
-    }
-
-    /**
-     * Get the name of this instruction (return 'xsl:attribute')
-     */
-
-    public int getInstructionNameCode() {
-        return StandardNames.XSL_ATTRIBUTE;
     }
 
     /**

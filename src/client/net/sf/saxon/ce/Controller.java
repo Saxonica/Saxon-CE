@@ -1,20 +1,17 @@
 package client.net.sf.saxon.ce;
 
-import client.net.sf.saxon.ce.dom.HTMLDocumentWrapper.DocType;
 import client.net.sf.saxon.ce.dom.HTMLWriter;
 import client.net.sf.saxon.ce.event.*;
 import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.expr.XPathContextMajor;
 import client.net.sf.saxon.ce.expr.instruct.*;
 import client.net.sf.saxon.ce.functions.Component;
-import client.net.sf.saxon.ce.functions.EscapeURI;
 import client.net.sf.saxon.ce.js.IXSLFunction;
 import client.net.sf.saxon.ce.lib.ErrorListener;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
 import client.net.sf.saxon.ce.lib.StandardErrorListener;
 import client.net.sf.saxon.ce.lib.TraceListener;
 import client.net.sf.saxon.ce.om.*;
-import client.net.sf.saxon.ce.trans.CompilerInfo;
 import client.net.sf.saxon.ce.trans.Mode;
 import client.net.sf.saxon.ce.trans.RuleManager;
 import client.net.sf.saxon.ce.trans.XPathException;
@@ -29,12 +26,9 @@ import com.google.gwt.user.client.Event;
 
 import java.io.PrintStream;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Map.Entry;
-import java.util.Set;
 
 /**
  * The Controller is equivalent to Saxon-HE's implementation of the same name, and represents
@@ -67,16 +61,12 @@ public class Controller {
     private Configuration config;
     private Item initialContextItem;
     private Item contextForGlobalVariables;
-    private Bindery bindery;                // holds values of global and local variables
-    private NamePool namePool;
+    private Bindery bindery;                // holds values of global variables
     private RuleManager ruleManager;
     private HashMap<StructuredQName, ValueRepresentation> parameters;
     private PreparedStylesheet preparedStylesheet;
     private String principalResultURI;
-    private String cookedPrincipalResultURI;
-    //private boolean thereHasBeenAnExplicitResultDocument;
     private ErrorListener errorListener;
-    private int recoveryPolicy;
     private Executable executable;
     private Template initialTemplate = null;
     private HashSet<DocumentURI> allOutputDestinations;
@@ -90,7 +80,6 @@ public class Controller {
     private int lastRememberedNumber = -1;
     private boolean inUse = false;
     private boolean stripSourceTrees = true;
-    //private HashMap<String, Document> resultTrees = new HashMap<String, Document>();
     private PendingUpdateList pendingUpdateList;
     private String initialTemplateName = null;
     private boolean isInert;
@@ -107,7 +96,7 @@ public class Controller {
      * create the Controller by using the JAXP newTransformer() method, or in S9API
      * by using XsltExecutable.load()
      *
-     * @param config The Configuration used by this Controller
+     * @param proc The processor
      */
     
     public static void addEventProcessor(Xslt20ProcessorImpl proc) {
@@ -203,8 +192,6 @@ public class Controller {
 
     public void reset() {
         bindery = new Bindery();
-		namePool = config.getNamePool();
-        recoveryPolicy = config.getRecoveryPolicy();
         if (errorListener instanceof StandardErrorListener) {
             // if using a standard error listener, make a fresh one
             // for each transformation, because it is stateful - and also because the
@@ -212,7 +199,6 @@ public class Controller {
             PrintStream ps = ((StandardErrorListener)errorListener).getErrorOutput();
             errorListener = ((StandardErrorListener)errorListener).makeAnother();
             ((StandardErrorListener)errorListener).setErrorOutput(ps);
-            ((StandardErrorListener)errorListener).setRecoveryPolicy(recoveryPolicy);
         }
 
         contextForGlobalVariables = null;
@@ -233,7 +219,7 @@ public class Controller {
     
     public void importControllerSettings(Controller lc) throws XPathException {
     	this.setBaseOutputURI(lc.getBaseOutputURI());
-    	this.setInitialMode(lc.getInitialModeName());
+    	this.setInitialMode(lc.getInitialMode());
     	this.setInitialTemplate(lc.getInitialTemplateName());
     	this.setParameters(lc.getParameters()); // shared reference only
     	this.setBaseOutputURI(lc.getBaseOutputURI());
@@ -331,13 +317,6 @@ public class Controller {
     	}
     }
     
-    public String getInitialModeName() {
-    	if (initialMode == null) {
-    		return null;
-    	}
-    	return initialMode.getDisplayName();
-    }
-    
     public HashMap<StructuredQName, ValueRepresentation> getParameters() {
     	return parameters;
     }
@@ -387,25 +366,6 @@ public class Controller {
     public String getBaseOutputURI() {
         return principalResultURI;
     }
-
-    /**
-     * Get the base output URI after processing. The processing consists of (a) defaulting
-     * to the current user directory if no base URI is available and if the stylesheet is trusted,
-     * and (b) applying IRI-to-URI escaping
-     * @return the base output URI after processing.
-     */
-
-    public String getCookedBaseOutputURI() {
-        if (cookedPrincipalResultURI == null) {
-            String base = getBaseOutputURI();
-            if (base != null) {
-                base = EscapeURI.iriToUri(base).toString();
-            }
-            cookedPrincipalResultURI = base;
-        }
-        return cookedPrincipalResultURI;
-    }
-
 
     /**
      * Check that an output destination has not been used before, optionally adding
@@ -471,18 +431,6 @@ public class Controller {
         }
     }
     
-    private JavaScriptObject getJsResultSet() {   	
-        	JavaScriptObject docArray = IXSLFunction.jsArray(resultDocumentPool.size());
-        	int poolSize = resultDocumentPool.size();
-        	Node[] nodes = new Node[poolSize];
-            nodes = resultDocumentPool.values().toArray(nodes);
-            poolSize--;
-            for (int i = 0; i <= poolSize; i++) {
-            	IXSLFunction.jsSetArrayItem(docArray, poolSize -i, nodes[i]);
-            }
-            return docArray;
-    }
-    
     private JavaScriptObject getJsResultURIset() {   	
         	JavaScriptObject uriArray = IXSLFunction.jsArray(resultDocumentPool.size());
         	int poolSize = resultDocumentPool.size();
@@ -512,7 +460,6 @@ public class Controller {
      * Returns a JavaScript object with a property for each result document.
      * The property name is the URI and the property value the document object
      * @param keys A JavaScript array of result document keys (URIs)
-     * @param values A JavaScript array of result document values (DOM objects)
      * @return A JavaScript object with similar functionality to a HashMap.
      */
     
@@ -542,21 +489,12 @@ public class Controller {
     }
 
     /**
-     * Set that an explicit result tree has been written using xsl:result-document
-     */
-
-    public void setThereHasBeenAnExplicitResultDocument() {    	
-        //thereHasBeenAnExplicitResultDocument = true;
-    }
-
-    /**
      * Test whether an explicit result tree has been written using xsl:result-document
      * @return true if the transformation has evaluated an xsl:result-document instruction
      */
 
     public boolean hasThereBeenAnExplicitResultDocument() {
     	return (resultDocumentPool != null && resultDocumentPool.size() > 0);
-        //return thereHasBeenAnExplicitResultDocument;
     }
 
     /**
@@ -676,42 +614,6 @@ public class Controller {
         pipe.setErrorListener(getErrorListener());
         pipe.setController(this);
         return pipe;
-    }
-
-    /**
-     * Set the policy for handling recoverable XSLT errors.
-     *
-     * <p>Since 9.3 this call has no effect unless the error listener in use is a {@link StandardErrorListener}
-     * or a subclass thereof. Calling this method then results in a call to the StandardErrorListener
-     * to set the recovery policy, and the action that is taken on calls of the various methods
-     * error(), fatalError(), and warning() is then the responsibility of the ErrorListener itself.</p>
-     *
-     * <p>Since 9.2 the policy for handling the most common recoverable error, namely the ambiguous template
-     * match that arises when a node matches more than one match pattern, is a compile-time rather than run-time
-     * setting, and can be controlled using {@link CompilerInfo#setRecoveryPolicy(int)} </p>
-     *
-     * @param policy the recovery policy to be used. The options are {@link Configuration#RECOVER_SILENTLY},
-     * {@link Configuration#RECOVER_WITH_WARNINGS}, or {@link Configuration#DO_NOT_RECOVER}.
-     * @since 8.7.1
-     */
-
-    public void setRecoveryPolicy(int policy) {
-        recoveryPolicy = policy;
-        if (errorListener instanceof StandardErrorListener) {
-            ((StandardErrorListener)errorListener).setRecoveryPolicy(policy);
-        }
-    }
-
-    /**
-     * Get the policy for handling recoverable errors
-     *
-     * @return the current policy. If none has been set with this Controller, the value registered with the
-     * Configuration is returned.
-     * @since 8.7.1
-     */
-
-    public int getRecoveryPolicy() {
-        return recoveryPolicy;
     }
 
 	/**
@@ -855,21 +757,6 @@ public class Controller {
         // See bug 5224, which points out that the rules for XQuery 1.0 weren't clearly defined
     }
 
-	/**
-	 * Get the name pool in use. The name pool is responsible for mapping QNames used in source
-     * documents and compiled stylesheets and queries into numeric codes. All source documents
-     * used by a given transformation or query must use the same name pool as the compiled stylesheet
-     * or query.
-	 *
-	 * @return the name pool in use
-     * @since 8.4
-	 */
-
-	public NamePool getNamePool() {
-		return namePool;
-	}
-
-
     /**
      * Make a builder for the selected tree model.
      *
@@ -979,7 +866,6 @@ public class Controller {
     public void setPreparedStylesheet(PreparedStylesheet sheet) {
         preparedStylesheet = sheet;
         executable = sheet.getExecutable();
-        recoveryPolicy = sheet.getCompilerInfo().getRecoveryPolicy();
     }
     
     public PreparedStylesheet getPreparedStylesheet(){
@@ -1550,10 +1436,8 @@ public class Controller {
      * Adds the specified trace listener to receive trace events from
      * this instance. Note that although TraceListeners can be added
      * or removed dynamically, this has no effect unless the stylesheet
-     * or query has been compiled with tracing enabled. This is achieved
-     * by calling {@link Configuration#setTraceListener} or by setting
-     * the attribute {@link net.sf.saxon.lib.FeatureKeys#TRACE_LISTENER} on the
-     * TransformerFactory. Conversely, if this property has been set in the
+     * or query has been compiled with tracing enabled.
+     * Conversely, if this property has been set in the
      * Configuration or TransformerFactory, the TraceListener will automatically
      * be added to every Controller that uses that Configuration.
      *

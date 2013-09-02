@@ -1,7 +1,5 @@
 package client.net.sf.saxon.ce.type;
 
-import client.net.sf.saxon.ce.om.StandardNames;
-
 /**
  * This class has a singleton instance which represents the XML Schema built-in type xs:anySimpleType
  */
@@ -54,15 +52,6 @@ public final class AnySimpleType extends BuiltInType implements SchemaType {
 
     public SchemaType getBaseType() {
         return AnyType.getInstance();
-    }
-
-    /**
-     * Get the fingerprint of the name of this type
-     * @return the fingerprint.
-     */
-
-    public int getFingerprint() {
-        return StandardNames.XS_ANY_SIMPLE_TYPE;
     }
 
     /**

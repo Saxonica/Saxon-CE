@@ -9,7 +9,6 @@ import client.net.sf.saxon.ce.functions.StringLength;
 import client.net.sf.saxon.ce.functions.SystemFunction;
 import client.net.sf.saxon.ce.lib.StringCollator;
 import client.net.sf.saxon.ce.om.Item;
-import client.net.sf.saxon.ce.om.NamePool;
 import client.net.sf.saxon.ce.trans.NoDynamicContextException;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.BuiltInAtomicType;
@@ -97,7 +96,6 @@ public final class ValueComparison extends BinaryExpression implements Compariso
 
     public Expression typeCheck(ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
 
-        NamePool namePool = visitor.getConfiguration().getNamePool();
         TypeHierarchy th = visitor.getConfiguration().getTypeHierarchy();
         StaticContext env = visitor.getStaticContext();
 
@@ -147,21 +145,21 @@ public final class ValueComparison extends BinaryExpression implements Compariso
                 if (opt1) which = "the second operand is";
                 if (opt0 && opt1) which = "one or both operands are";
 
-                visitor.getStaticContext().issueWarning("Comparison of " + t0.toString(namePool) +
-                        (opt0 ? "?" : "") + " to " + t1.toString(namePool) +
+                visitor.getStaticContext().issueWarning("Comparison of " + t0.toString() +
+                        (opt0 ? "?" : "") + " to " + t1.toString() +
                         (opt1 ? "?" : "") + " will fail unless " + which + " empty", getSourceLocator());
                 needsRuntimeCheck = true;
             } else {
-                typeError("Cannot compare " + t0.toString(namePool) +
-                        " to " + t1.toString(namePool), "XPTY0004", null);
+                typeError("Cannot compare " + t0.toString() +
+                        " to " + t1.toString(), "XPTY0004", null);
             }
         }
         if (!(operator == Token.FEQ || operator == Token.FNE)) {
             if (!p0.isOrdered()) {
-                typeError("Type " + t0.toString(env.getNamePool()) + " is not an ordered type", "XPTY0004", null);
+                typeError("Type " + t0.toString() + " is not an ordered type", "XPTY0004", null);
             }
             if (!p1.isOrdered()) {
-                typeError("Type " + t1.toString(env.getNamePool()) + " is not an ordered type", "XPTY0004", null);
+                typeError("Type " + t1.toString() + " is not an ordered type", "XPTY0004", null);
             }
         }
 

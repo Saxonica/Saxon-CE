@@ -1,7 +1,9 @@
 package client.net.sf.saxon.ce.tree.wrapper;
 
-import client.net.sf.saxon.ce.Configuration;
-import client.net.sf.saxon.ce.om.*;
+import client.net.sf.saxon.ce.om.DocumentInfo;
+import client.net.sf.saxon.ce.om.NamespaceBinding;
+import client.net.sf.saxon.ce.om.NodeInfo;
+import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.pattern.NodeTest;
 import client.net.sf.saxon.ce.tree.iter.AxisIterator;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
@@ -12,7 +14,7 @@ import client.net.sf.saxon.ce.value.AtomicValue;
 /**
  * AbstractVirtualNode is an abstract superclass for VirtualNode implementations in which
  * the underlying node is itself a Saxon NodeInfo.
-*/
+ */
 
 public abstract class AbstractVirtualNode implements VirtualNode {
 
@@ -21,8 +23,8 @@ public abstract class AbstractVirtualNode implements VirtualNode {
     protected AbstractVirtualNode docWrapper;
 
     /**
-    * Get the underlying node, to implement the VirtualNode interface
-    */
+     * Get the underlying node, to implement the VirtualNode interface
+     */
 
     public NodeInfo getUnderlyingNode() {
         return node;
@@ -31,248 +33,215 @@ public abstract class AbstractVirtualNode implements VirtualNode {
     /**
      * Get the node underlying this virtual node. If this is a VirtualNode the method
      * will automatically drill down through several layers of wrapping.
+     *
      * @return The underlying node.
      */
 
     public Object getRealNode() {
         Object u = this;
         do {
-            u = ((VirtualNode)u).getUnderlyingNode();
+            u = ((VirtualNode) u).getUnderlyingNode();
         } while (u instanceof VirtualNode);
         return u;
     }
 
-
     /**
-     * Get the configuration
+     * Return the type of node.
+     *
+     * @return one of the values Node.ELEMENT, Node.TEXT, Node.ATTRIBUTE, etc.
      */
-
-    public Configuration getConfiguration() {
-        return node.getConfiguration();
-    }
-
-    /**
-    * Return the type of node.
-    * @return one of the values Node.ELEMENT, Node.TEXT, Node.ATTRIBUTE, etc.
-    */
 
     public int getNodeKind() {
         return node.getNodeKind();
     }
 
     /**
-    * Get the typed value of the item
-    */
+     * Get the typed value of the item
+     */
 
     public AtomicValue getTypedValue() {
         return node.getTypedValue();
     }
 
     /**
-    * Get the type annotation
-    * @return the type annotation of the base node
-    */
-
-    public int getTypeAnnotation() {
-        return node.getTypeAnnotation();
-    }
-
-    /**
-    * Determine whether this is the same node as another node. <br />
-    * Note: a.isSameNode(b) if and only if generateId(a)==generateId(b)
-    * @return true if this Node object and the supplied Node object represent the
-    * same node in the tree.
-    */
+     * Determine whether this is the same node as another node. <br />
+     * Note: a.isSameNode(b) if and only if generateId(a)==generateId(b)
+     *
+     * @return true if this Node object and the supplied Node object represent the
+     *         same node in the tree.
+     */
 
     public boolean isSameNodeInfo(NodeInfo other) {
         if (other instanceof AbstractVirtualNode) {
-            return node.isSameNodeInfo(((AbstractVirtualNode)other).node);
+            return node.isSameNodeInfo(((AbstractVirtualNode) other).node);
         } else {
             return node.isSameNodeInfo(other);
         }
     }
 
-   /**
-      * The equals() method compares nodes for identity. It is defined to give the same result
-      * as isSameNodeInfo().
-      * @param other the node to be compared with this node
-      * @return true if this NodeInfo object and the supplied NodeInfo object represent
-      *      the same node in the tree.
-      * @since 8.7 Previously, the effect of the equals() method was not defined. Callers
-      * should therefore be aware that third party implementations of the NodeInfo interface may
-      * not implement the correct semantics. It is safer to use isSameNodeInfo() for this reason.
-      * The equals() method has been defined because it is useful in contexts such as a Java Set or HashMap.
-      */
+    /**
+     * The equals() method compares nodes for identity. It is defined to give the same result
+     * as isSameNodeInfo().
+     *
+     * @param other the node to be compared with this node
+     * @return true if this NodeInfo object and the supplied NodeInfo object represent
+     *         the same node in the tree.
+     * @since 8.7 Previously, the effect of the equals() method was not defined. Callers
+     *        should therefore be aware that third party implementations of the NodeInfo interface may
+     *        not implement the correct semantics. It is safer to use isSameNodeInfo() for this reason.
+     *        The equals() method has been defined because it is useful in contexts such as a Java Set or HashMap.
+     */
 
-     public boolean equals(Object other) {
-       return other instanceof NodeInfo && isSameNodeInfo((NodeInfo)other);
-   }
-
-     /**
-      * The hashCode() method obeys the contract for hashCode(): that is, if two objects are equal
-      * (represent the same node) then they must have the same hashCode()
-      * @since 8.7 Previously, the effect of the equals() and hashCode() methods was not defined. Callers
-      * should therefore be aware that third party implementations of the NodeInfo interface may
-      * not implement the correct semantics.
-      */
-
-     public int hashCode() {
-         return node.hashCode() ^ 0x3c3c3c3c;
-     }
+    public boolean equals(Object other) {
+        return other instanceof NodeInfo && isSameNodeInfo((NodeInfo) other);
+    }
 
     /**
-    * Get the System ID for the node.
-    * @return the System Identifier of the entity in the source document containing the node,
-    * or null if not known. Note this is not the same as the base URI: the base URI can be
-    * modified by xml:base, but the system ID cannot.
-    */
+     * The hashCode() method obeys the contract for hashCode(): that is, if two objects are equal
+     * (represent the same node) then they must have the same hashCode()
+     *
+     * @since 8.7 Previously, the effect of the equals() and hashCode() methods was not defined. Callers
+     *        should therefore be aware that third party implementations of the NodeInfo interface may
+     *        not implement the correct semantics.
+     */
+
+    public int hashCode() {
+        return node.hashCode() ^ 0x3c3c3c3c;
+    }
+
+    /**
+     * Get the System ID for the node.
+     *
+     * @return the System Identifier of the entity in the source document containing the node,
+     *         or null if not known. Note this is not the same as the base URI: the base URI can be
+     *         modified by xml:base, but the system ID cannot.
+     */
 
     public String getSystemId() {
         return node.getSystemId();
     }
 
     /**
-    * Get the Base URI for the node, that is, the URI used for resolving a relative URI contained
+     * Get the Base URI for the node, that is, the URI used for resolving a relative URI contained
      * in the node. In the JDOM model, base URIs are held only an the document level. We don't
      * currently take any account of xml:base attributes.
-    */
+     */
 
     public String getBaseURI() {
         return node.getBaseURI();
     }
 
     /**
-    * Get line number
-    * @return the line number of the node in its original source document; or -1 if not available
-    */
-
-    public int getLineNumber() {
-        return node.getLineNumber();
-    }
-
-    /**
-    * Determine the relative position of this node and another node, in document order.
-    * The other node will always be in the same document.
-    * @param other The other node, whose position is to be compared with this node
-    * @return -1 if this node precedes the other node, +1 if it follows the other
-    * node, or 0 if they are the same node. (In this case, isSameNode() will always
-    * return true, and the two nodes will produce the same result for generateId())
-    */
+     * Determine the relative position of this node and another node, in document order.
+     * The other node will always be in the same document.
+     *
+     * @param other The other node, whose position is to be compared with this node
+     * @return -1 if this node precedes the other node, +1 if it follows the other
+     *         node, or 0 if they are the same node. (In this case, isSameNode() will always
+     *         return true, and the two nodes will produce the same result for generateId())
+     */
 
     public int compareOrder(NodeInfo other) {
         if (other instanceof AbstractVirtualNode) {
-            return node.compareOrder(((AbstractVirtualNode)other).node);
+            return node.compareOrder(((AbstractVirtualNode) other).node);
         } else {
             return node.compareOrder(other);
         }
     }
 
     /**
-    * Return the string value of the node. The interpretation of this depends on the type
-    * of node. For an element it is the accumulated character content of the element,
-    * including descendant elements.
-    * @return the string value of the node
-    */
-
-    public final String getStringValue() {
-        return getStringValueCS().toString();
-    }
-
-    /**
-     * Get the value of the item as a CharSequence. This is in some cases more efficient than
-     * the version of the method that returns a String.
+     * Return the string value of the node. The interpretation of this depends on the type
+     * of node. For an element it is the accumulated character content of the element,
+     * including descendant elements.
+     *
+     * @return the string value of the node
      */
 
-    public CharSequence getStringValueCS() {
+    public final String getStringValue() {
         // default implementation returns the string value of the base node
-        return node.getStringValueCS();
+        return node.getStringValue();
     }
 
-	/**
-	* Get node name as an expanded QName
-	*/
+    /**
+     * Get node name as an expanded QName
+     */
 
-	public StructuredQName getNodeName() {
+    public StructuredQName getNodeName() {
         return node.getNodeName();
-	}
+    }
 
     /**
-    * Get the local part of the name of this node. This is the name after the ":" if any.
-    * @return the local part of the name. For an unnamed node, returns null, except for
-     * un unnamed namespace node, which returns "".
-    */
+     * Get the local part of the name of this node. This is the name after the ":" if any.
+     *
+     * @return the local part of the name. For an unnamed node, returns null, except for
+     *         un unnamed namespace node, which returns "".
+     */
 
     public String getLocalPart() {
         return node.getLocalPart();
     }
 
-   /**
-    * Get the URI part of the name of this node. This is the URI corresponding to the
-    * prefix, or the URI of the default namespace if appropriate.
-    * @return The URI of the namespace of this node. For an unnamed node, return null.
-    * For a node with an empty prefix, return an empty string.
-    */
+    /**
+     * Get the URI part of the name of this node. This is the URI corresponding to the
+     * prefix, or the URI of the default namespace if appropriate.
+     *
+     * @return The URI of the namespace of this node. For an unnamed node, return null.
+     *         For a node with an empty prefix, return an empty string.
+     */
 
     public String getURI() {
         return node.getURI();
     }
 
     /**
-     * Get the prefix of the name of the node. This is defined only for elements and attributes.
-     * If the node has no prefix, or for other kinds of node, return a zero-length string.
+     * Get the display name of this node. For elements and attributes this is [prefix:]localname.
+     * For unnamed nodes, it is an empty string.
      *
-     * @return The prefix of the name of the node.
+     * @return The display name of this node.
+     *         For a node with no name, return an empty string.
      */
-
-    public String getPrefix() {
-        return node.getPrefix();
-    }
-
-    /**
-    * Get the display name of this node. For elements and attributes this is [prefix:]localname.
-    * For unnamed nodes, it is an empty string.
-    * @return The display name of this node.
-    * For a node with no name, return an empty string.
-    */
 
     public String getDisplayName() {
         return node.getDisplayName();
     }
 
     /**
-    * Return an iteration over the nodes reached by the given axis from this node
-    * @param axisNumber the axis to be used
-    * @param nodeTest A pattern to be matched by the returned nodes
-    * @return a SequenceIterator that scans the nodes reached by the axis in turn.
-    */
+     * Return an iteration over the nodes reached by the given axis from this node
+     *
+     * @param axisNumber the axis to be used
+     * @param nodeTest   A pattern to be matched by the returned nodes
+     * @return a SequenceIterator that scans the nodes reached by the axis in turn.
+     */
 
     public AxisIterator iterateAxis(byte axisNumber, NodeTest nodeTest) {
         return new Navigator.AxisFilter(iterateAxis(axisNumber), nodeTest);
     }
 
     /**
-    * Get the root node - always a document node with this tree implementation
-    * @return the NodeInfo representing the containing document
-    */
+     * Get the root node - always a document node with this tree implementation
+     *
+     * @return the NodeInfo representing the containing document
+     */
 
     public NodeInfo getRoot() {
         return docWrapper;
     }
 
     /**
-    * Get the root (document) node
-    * @return the DocumentInfo representing the containing document
-    */
+     * Get the root (document) node
+     *
+     * @return the DocumentInfo representing the containing document
+     */
 
     public DocumentInfo getDocumentRoot() {
-        return (DocumentInfo)docWrapper;
+        return (DocumentInfo) docWrapper;
     }
 
     /**
-    * Determine whether the node has any children. <br />
-    * Note: the result is equivalent to <br />
-    * getEnumeration(Axis.CHILD, AnyNodeTest.getInstance()).hasNext()
-    */
+     * Determine whether the node has any children. <br />
+     * Note: the result is equivalent to <br />
+     * getEnumeration(Axis.CHILD, AnyNodeTest.getInstance()).hasNext()
+     */
 
     public boolean hasChildNodes() {
         return node.hasChildNodes();
@@ -281,10 +250,11 @@ public abstract class AbstractVirtualNode implements VirtualNode {
     /**
      * Get a character string that uniquely identifies this node.
      * Note: a.isSameNode(b) if and only if generateId(a)==generateId(b)
+     *
      * @param buffer a buffer, into which will be placed
-     * a string that uniquely identifies this node, within this
-     * document. The calling code prepends information to make the result
-     * unique across all documents.
+     *               a string that uniquely identifies this node, within this
+     *               document. The calling code prepends information to make the result
+     *               unique across all documents.
      */
 
     public void generateId(FastStringBuffer buffer) {

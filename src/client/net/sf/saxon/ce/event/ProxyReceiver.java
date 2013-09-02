@@ -1,7 +1,6 @@
 package client.net.sf.saxon.ce.event;
 
 import client.net.sf.saxon.ce.Configuration;
-import client.net.sf.saxon.ce.om.NamePool;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.NamespaceBinding;
 import client.net.sf.saxon.ce.om.StructuredQName;
@@ -64,14 +63,6 @@ public abstract class ProxyReceiver extends SequenceReceiver {
     }
 
     /**
-     * Get the namepool for this configuration
-     */
-
-    public NamePool getNamePool() {
-        return pipelineConfiguration.getConfiguration().getNamePool();
-    }
-
-    /**
      * Start of event stream
      */
 
@@ -115,12 +106,12 @@ public abstract class ProxyReceiver extends SequenceReceiver {
     /**
      * Notify the start of an element
      *
-     * @param nameCode   integer code identifying the name of the element within the name pool.
+     * @param qName   integer code identifying the name of the element within the name pool.
      * @param properties properties of the element node
      */
 
-    public void startElement(StructuredQName nameCode, int properties) throws XPathException {
-        nextReceiver.startElement(nameCode, properties);
+    public void startElement(StructuredQName qName, int properties) throws XPathException {
+        nextReceiver.startElement(qName, properties);
     }
 
     /**

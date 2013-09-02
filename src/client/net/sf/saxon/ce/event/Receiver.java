@@ -61,12 +61,12 @@ public interface Receiver  {
 
     /**
      * Notify the start of an element
-     * @param nameCode integer code identifying the name of the element within the name pool.
+     * @param qName the name of the element.
      * @param properties bit-significant properties of the element node. If there are no revelant
      * properties, zero is supplied. The definitions of the bits are in class {@link ReceiverOptions}
      */
 
-    public void startElement(StructuredQName nameCode, int properties)
+    public void startElement(StructuredQName qName, int properties)
             throws XPathException;
 
     /**

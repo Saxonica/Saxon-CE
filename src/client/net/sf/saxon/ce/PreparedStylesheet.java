@@ -55,26 +55,10 @@ public class PreparedStylesheet extends Executable {
         super(config);
         nodeFactory = new StyleNodeFactory(config);
         RuleManager rm = new RuleManager();
-        rm.setRecoveryPolicy(info.getRecoveryPolicy());
         setRuleManager(rm);
         compilerInfo = info;
 
     }
-
-    /**
-     * Factory method to make a PreparedStylesheet
-     * @param url the source of this principal stylesheet module
-     * @param config the Saxon configuration
-     * @param info   compile-time options for this stylesheet compilation
-     * @return the prepared stylesheet
-     */
-
-//    public static PreparedStylesheet compile(String url, Configuration config, CompilerInfo info)
-//            throws XPathException {
-//        PreparedStylesheet pss = new PreparedStylesheet(config, info);
-//        pss.prepare(url);
-//        return pss;
-//    }
 
     /**
      * Make a Transformer from this Templates object.

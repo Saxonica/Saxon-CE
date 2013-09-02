@@ -100,7 +100,7 @@ public class WrappingIterator implements AxisIterator {
      */
 
     public CharSequence getStringValue() {
-        return current.getStringValueCS();
+        return current.getStringValue();
     }
 
     public SequenceIterator getAnother() {

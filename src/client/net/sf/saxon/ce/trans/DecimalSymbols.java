@@ -1,7 +1,5 @@
 package client.net.sf.saxon.ce.trans;
 
-import client.net.sf.saxon.ce.om.StandardNames;
-
 import java.util.Arrays;
 import java.util.HashMap;
 
@@ -32,35 +30,35 @@ public class DecimalSymbols  {
 
     public void checkDistinctRoles() throws XPathException {
         HashMap<Integer, String> map = new HashMap(20);
-        map.put(decimalSeparator, StandardNames.DECIMAL_SEPARATOR);
+        map.put(decimalSeparator, "decimal-separator");
 
         if (map.get(groupingSeparator) != null) {
-            duplicate(StandardNames.GROUPING_SEPARATOR, map.get(groupingSeparator));
+            duplicate("grouping-separator", map.get(groupingSeparator));
         }
-        map.put(groupingSeparator, StandardNames.GROUPING_SEPARATOR);
+        map.put(groupingSeparator, "grouping-separator");
 
         if (map.get(percent) != null) {
-            duplicate(StandardNames.PERCENT, map.get(percent));
+            duplicate("percent", map.get(percent));
         }
-        map.put(percent, StandardNames.PERCENT);
+        map.put(percent, "percent");
 
         if (map.get(permill) != null) {
-            duplicate(StandardNames.PER_MILLE, map.get(permill));
+            duplicate("per-mille", map.get(permill));
         }
-        map.put(permill, StandardNames.PER_MILLE);
+        map.put(permill, "per-mille");
 
         if (map.get(zeroDigit) != null) {
-            duplicate(StandardNames.ZERO_DIGIT, map.get(zeroDigit));
+            duplicate("zero-digit", map.get(zeroDigit));
         }
-        map.put(zeroDigit, StandardNames.ZERO_DIGIT);
+        map.put(zeroDigit, "zero-digit");
 
         if (map.get(digit) != null) {
-            duplicate(StandardNames.DIGIT, map.get(digit));
+            duplicate("digit", map.get(digit));
         }
-        map.put(digit, StandardNames.DIGIT);
+        map.put(digit, "digit");
 
         if (map.get(patternSeparator) != null) {
-            duplicate(StandardNames.PATTERN_SEPARATOR, map.get(patternSeparator));
+            duplicate("pattern-separator", map.get(patternSeparator));
         }
         //map.put(patternSeparator, StandardNames.PATTERN_SEPARATOR);
     }

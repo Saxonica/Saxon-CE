@@ -161,7 +161,7 @@ public class AdjacentTextNodeMerger extends UnaryExpression {
                 break;
             }
             if (isTextNode(item)) {
-                CharSequence s = item.getStringValueCS();
+                String s = item.getStringValue();
                 if (s.length() > 0) {
                     fsb.append(s);
                     prevText = true;
@@ -210,15 +210,15 @@ public class AdjacentTextNodeMerger extends UnaryExpression {
 
             if (isTextNode(current)) {
                 FastStringBuffer fsb = new FastStringBuffer(FastStringBuffer.MEDIUM);
-                fsb.append(current.getStringValueCS());
+                fsb.append(current.getStringValue());
                 while (next != null && isTextNode(next)) {
-                    fsb.append(next.getStringValueCS());
+                    fsb.append(next.getStringValue());
                     next = base.next();
                 }
                 if (fsb.length() == 0) {
                     return next();
                 } else {
-                    Orphan o = new Orphan(((NodeInfo)current).getConfiguration());
+                    Orphan o = new Orphan();
                     o.setNodeKind(Type.TEXT);
                     o.setStringValue(fsb);
                     current = o;

@@ -142,75 +142,6 @@ public class ElementImpl extends ParentNodeImpl implements NamespaceResolver {
         return Navigator.getBaseURI(this);
     }
 
-    /**
-     * Get the attribute list. Note that if the attribute list is empty, it should not be modified, as it
-     * will be shared by other elements. Instead, set a new attribute list.
-     * @return the list of attributes of this element (not including namespace attributes)
-     */
-
-    public AttributeCollection gsetAttributeCollection() {
-        return this.attributeList;
-    }
-
-
-    /**
-     * Determine whether the node has the is-nilled property
-     *
-     * @return true if the node has the is-nilled property
-     */
-
-    public boolean isNilled() {
-        return false;
-    }
-
-    /**
-     * Get the type annotation of this node, if any
-     * @return the type annotation, as the integer name code of the type name
-     */
-
-    public int getTypeAnnotation() {
-        return StandardNames.XS_UNTYPED;
-    }
-
-    /**
-     * Set the line number of the element within its source document entity
-     * @param line the line number
-     * @param column the column number
-    */
-
-    public void setLineAndColumn(int line, int column) {
-        DocumentImpl root = getPhysicalRoot();
-        if (root != null) {
-            root.setLineAndColumn(getRawSequenceNumber(), line, column);
-        }
-    }
-
-    /**
-    * Get the line number of the node within its source document entity
-    */
-
-    public int getLineNumber() {
-        DocumentImpl root = getPhysicalRoot();
-        if (root == null) {
-            return -1;
-        } else {
-            return root.getLineNumber(getRawSequenceNumber());
-        }
-    }
-
-    /**
-    * Get the line number of the node within its source document entity
-    */
-
-    public int getColumnNumber() {
-        DocumentImpl root = getPhysicalRoot();
-        if (root == null) {
-            return -1;
-        } else {
-            return root.getColumnNumber(getRawSequenceNumber());
-        }
-    }
-
     public StructuredQName getNodeName() {
         return elementName;
     }
@@ -250,7 +181,7 @@ public class ElementImpl extends ParentNodeImpl implements NamespaceResolver {
 
     public void copy(Receiver out, int copyOptions) throws XPathException {
 
-        out.startElement(new StructuredQName(getPrefix(), getURI(), getLocalPart()), 0);
+        out.startElement(getNodeName(), 0);
 
         // output the namespaces
 
@@ -434,15 +365,6 @@ public class ElementImpl extends ParentNodeImpl implements NamespaceResolver {
     	return (attributeList == null ? null : attributeList.getValue(uri, localName));
     }
 
-    /**
-     * Determine whether this node has the is-id property
-     * @return true if the node is an ID
-     */
-
-    public boolean isId() {
-        int tc = getTypeAnnotation();
-        return tc < 1024 ? tc == StandardNames.XS_ID : getConfiguration().getTypeHierarchy().isIdCode(tc);
-    }
 }
 
 // This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. 

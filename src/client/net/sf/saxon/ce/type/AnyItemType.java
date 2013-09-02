@@ -1,7 +1,6 @@
 package client.net.sf.saxon.ce.type;
 import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.om.Item;
-import client.net.sf.saxon.ce.om.NamePool;
 
 
 /**
@@ -67,10 +66,6 @@ public class AnyItemType implements ItemType {
     }
 
     public String toString() {
-        return "item()";
-    }
-
-    public String toString(NamePool pool) {
         return "item()";
     }
 

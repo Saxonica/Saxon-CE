@@ -8,7 +8,6 @@ import client.net.sf.saxon.ce.lib.NamespaceConstant;
 import client.net.sf.saxon.ce.lib.StringCollator;
 import client.net.sf.saxon.ce.om.AttributeCollection;
 import client.net.sf.saxon.ce.om.Axis;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.URI;
@@ -59,19 +58,19 @@ public class XSLSort extends StyleElement {
 		for (int a=0; a<atts.getLength(); a++) {
 			StructuredQName qn = atts.getStructuredQName(a);
             String f = qn.getClarkName();
-			if (f.equals(StandardNames.SELECT)) {
+			if (f.equals("select")) {
         		selectAtt = atts.getValue(a);
-        	} else if (f.equals(StandardNames.ORDER)) {
+        	} else if (f.equals("order")) {
         		orderAtt = Whitespace.trim(atts.getValue(a));
-        	} else if (f.equals(StandardNames.DATA_TYPE)) {
+        	} else if (f.equals("data-type")) {
         		dataTypeAtt = Whitespace.trim(atts.getValue(a));
-        	} else if (f.equals(StandardNames.CASE_ORDER)) {
+        	} else if (f.equals("case-order")) {
         		caseOrderAtt = Whitespace.trim(atts.getValue(a));
-        	} else if (f.equals(StandardNames.LANG)) {
+        	} else if (f.equals("lang")) {
         		langAtt = Whitespace.trim(atts.getValue(a));
-        	} else if (f.equals(StandardNames.COLLATION)) {
+        	} else if (f.equals("collation")) {
         		collationAtt = Whitespace.trim(atts.getValue(a));
-            } else if (f.equals(StandardNames.STABLE)) {
+            } else if (f.equals("stable")) {
         		stableAtt = Whitespace.trim(atts.getValue(a));
         	} else {
         		checkUnknownAttribute(qn);

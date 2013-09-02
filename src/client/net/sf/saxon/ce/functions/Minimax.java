@@ -58,8 +58,7 @@ public class Minimax extends CollatingFunction {
 
     public void checkArguments(ExpressionVisitor visitor) throws XPathException {
         super.checkArguments(visitor);
-        Optimizer opt = visitor.getConfiguration().getOptimizer();
-        argument[0] = ExpressionTool.unsorted(opt, argument[0], false);
+        argument[0] = ExpressionTool.unsorted(visitor.getConfiguration(), argument[0], false);
     }
 
     /**
@@ -190,11 +189,11 @@ public class Minimax extends CollatingFunction {
             prim = min;
             if (min instanceof UntypedAtomicValue) {
                 try {
-                    min = new DoubleValue(StringToDouble.stringToNumber(min.getStringValueCS()));
+                    min = new DoubleValue(StringToDouble.stringToNumber(min.getStringValue()));
                     prim = min;
                     foundDouble = true;
                 } catch (NumberFormatException e) {
-                    XPathException de = new XPathException("Failure converting " + Err.wrap(min.getStringValueCS()) + " to a number");
+                    XPathException de = new XPathException("Failure converting " + Err.wrap(min.getStringValue()) + " to a number");
                     de.setErrorCode("FORG0001");
                     de.setXPathContext(context);
                     throw de;
@@ -241,14 +240,14 @@ public class Minimax extends CollatingFunction {
             prim = test2;
             if (test instanceof UntypedAtomicValue) {
                 try {
-                    test2 = new DoubleValue(StringToDouble.stringToNumber(test.getStringValueCS()));
+                    test2 = new DoubleValue(StringToDouble.stringToNumber(test.getStringValue()));
                     if (foundNaN) {
                         return DoubleValue.NaN;
                     }
                     prim = test2;
                     foundDouble = true;
                 } catch (NumberFormatException e) {
-                    XPathException de = new XPathException("Failure converting " + Err.wrap(test.getStringValueCS()) + " to a number");
+                    XPathException de = new XPathException("Failure converting " + Err.wrap(test.getStringValue()) + " to a number");
                     de.setErrorCode("FORG0001");
                     de.setXPathContext(context);
                     throw de;

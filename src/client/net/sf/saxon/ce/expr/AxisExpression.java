@@ -1,6 +1,5 @@
 package client.net.sf.saxon.ce.expr;
 
-import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.om.*;
 import client.net.sf.saxon.ce.pattern.AnyNodeTest;
 import client.net.sf.saxon.ce.pattern.NameTest;
@@ -68,15 +67,13 @@ public final class AxisExpression extends Expression {
 
     public Expression typeCheck(ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
 
-        Configuration config = visitor.getConfiguration();
-        NamePool namePool = config.getNamePool();
         StaticContext env = visitor.getStaticContext();
         if (contextItemType == null) {
-            typeError(visitor, "Axis step " + toString(namePool) +
+            typeError(visitor, "Axis step " + toString() +
                     " cannot be used here: the context item is undefined", "XPDY0002", null);
         }
         if (contextItemType.isAtomicType()) {
-            typeError(visitor, "Axis step " + toString(namePool) +
+            typeError(visitor, "Axis step " + toString() +
                     " cannot be used here: the context item is an atomic value", "XPTY0020", null);
         }
 
@@ -316,13 +313,7 @@ public final class AxisExpression extends Expression {
                 return ((NodeInfo)item).iterateAxis(axis, test);
             }
         } catch (Exception exe) {
-            NamePool pool;
-            try {
-                pool = context.getConfiguration().getNamePool();
-            } catch (Exception err) {
-                pool = null;
-            }
-            String cName = (pool == null) ? toString() : toString(pool);
+            String cName = toString();
             boolean isCCE = (exe instanceof ClassCastException);
            if (exe instanceof NullPointerException || item == null || isCCE) {
                 String appendText = " is " + ((isCCE)? "not a node" : "undefined");
@@ -359,17 +350,6 @@ public final class AxisExpression extends Expression {
                 (test==null ? "node()" : test.toString());
     }
 
-    /**
-     * Represent the expression as a string for diagnostics
-     * @param pool the name pool, used for expanding names in the node test
-     * @return a string representation of the expression
-     */
-
-    public String toString(NamePool pool) {
-        return Axis.axisName[axis] +
-                "::" +
-                (test==null ? "node()" : test.toString(pool));
-    }
 }
 
 

@@ -6,7 +6,6 @@ import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.expr.instruct.Message;
 import client.net.sf.saxon.ce.om.AttributeCollection;
 import client.net.sf.saxon.ce.om.Axis;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.value.Whitespace;
 import client.net.sf.saxon.ce.trans.XPathException;
@@ -48,9 +47,9 @@ public final class XSLMessage extends StyleElement {
 		for (int a=0; a<atts.getLength(); a++) {
 			StructuredQName qn = atts.getStructuredQName(a);
             String f = qn.getClarkName();
-			if (f.equals(StandardNames.TERMINATE)) {
+			if (f.equals("terminate")) {
         		terminateAtt = Whitespace.trim(atts.getValue(a));
-            } else if (f.equals(StandardNames.SELECT)) {
+            } else if (f.equals("select")) {
                 selectAtt = atts.getValue(a);
 
             } else {

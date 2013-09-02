@@ -62,7 +62,7 @@ public class IntUniversalSet implements IntSet {
 
     public IntSet except(IntSet other) {
         if (other instanceof IntUniversalSet) {
-            return IntEmptySet.getInstance();
+            return new IntHashSet();  // return empty set
         } else {
             return new IntComplementSet(other.copy());
         }

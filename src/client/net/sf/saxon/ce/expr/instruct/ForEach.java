@@ -1,18 +1,17 @@
 package client.net.sf.saxon.ce.expr.instruct;
+import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.LogController;
 import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.lib.TraceListener;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.SequenceIterator;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.TypeHierarchy;
+import com.google.gwt.logging.client.LogConfiguration;
 
 import java.util.Arrays;
 import java.util.Iterator;
-
-import com.google.gwt.logging.client.LogConfiguration;
 
 
 /**
@@ -45,15 +44,6 @@ public class ForEach extends Instruction implements ContextMappingFunction {
         adoptChildExpression(action);
     }
 
-
-    /**
-     * Get the name of this instruction for diagnostic and tracing purposes
-     * @return the code for name xsl:for-each
-    */
-
-    public int getInstructionNameCode() {
-        return StandardNames.XSL_FOR_EACH;
-    }
 
     /**
      * Get the select expression
@@ -127,7 +117,8 @@ public class ForEach extends Instruction implements ContextMappingFunction {
     }
 
     public Expression optimize(ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
-        final TypeHierarchy th = visitor.getConfiguration().getTypeHierarchy();
+        final Configuration config = visitor.getConfiguration();
+        final TypeHierarchy th = config.getTypeHierarchy();
         select = visitor.optimize(select, contextItemType);
         adoptChildExpression(select);
         action = action.optimize(visitor, select.getItemType(th));
@@ -142,7 +133,7 @@ public class ForEach extends Instruction implements ContextMappingFunction {
         // If any subexpressions within the body of the for-each are not dependent on the focus,
         // promote them: this causes them to be evaluated once, outside the for-each loop
 
-        PromotionOffer offer = new PromotionOffer(visitor.getConfiguration().getOptimizer());
+        PromotionOffer offer = new PromotionOffer(config);
         offer.action = PromotionOffer.FOCUS_INDEPENDENT;
         offer.promoteDocumentDependent = (select.getSpecialProperties() & StaticProperty.CONTEXT_DOCUMENT_NODESET) != 0;
         offer.promoteXSLTFunctions = false;

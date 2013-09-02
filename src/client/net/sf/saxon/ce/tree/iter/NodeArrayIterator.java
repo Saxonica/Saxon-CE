@@ -63,7 +63,7 @@ public class NodeArrayIterator extends ArrayIterator implements AxisIterator {
      */
 
     public CharSequence getStringValue() {
-        return ((NodeInfo)current()).getStringValueCS();
+        return current().getStringValue();
     }
 
     /**

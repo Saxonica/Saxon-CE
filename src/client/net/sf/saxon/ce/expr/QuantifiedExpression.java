@@ -1,5 +1,6 @@
 package client.net.sf.saxon.ce.expr;
 
+import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.functions.BooleanFn;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.SequenceIterator;
@@ -8,7 +9,6 @@ import client.net.sf.saxon.ce.type.BuiltInAtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.BooleanValue;
-import client.net.sf.saxon.ce.value.SequenceType;
 
 /**
 * A QuantifiedExpression tests whether some/all items in a sequence satisfy
@@ -64,16 +64,16 @@ public class QuantifiedExpression extends Assignation {
 
         // "some" and "every" have no ordering constraints
 
-        Optimizer opt = visitor.getConfiguration().getOptimizer();
-        sequence = ExpressionTool.unsorted(opt, sequence, false);
+        Configuration config = visitor.getConfiguration();
+        sequence = ExpressionTool.unsorted(config, sequence, false);
 
-        SequenceType decl = getRequiredType();
-        SequenceType sequenceType = SequenceType.makeSequenceType(decl.getPrimaryType(),
-                                             StaticProperty.ALLOWS_ZERO_OR_MORE);
-        RoleLocator role = new RoleLocator(RoleLocator.VARIABLE, getVariableQName(), 0);
+//        SequenceType decl = getRequiredType();
+//        SequenceType sequenceType = SequenceType.makeSequenceType(decl.getPrimaryType(),
+//                                             StaticProperty.ALLOWS_ZERO_OR_MORE);
+//        RoleLocator role = new RoleLocator(RoleLocator.VARIABLE, getVariableQName(), 0);
         //role.setSourceLocator(this);
-        sequence = TypeChecker.strictTypeCheck(
-                                sequence, sequenceType, role, visitor.getStaticContext());
+//        sequence = TypeChecker.strictTypeCheck(
+//                                sequence, sequenceType, role, visitor.getStaticContext());
         ItemType actualItemType = sequence.getItemType(th);
         refineTypeInformation(actualItemType,
                 StaticProperty.EXACTLY_ONE,
@@ -109,7 +109,7 @@ public class QuantifiedExpression extends Assignation {
 
     public Expression optimize(ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
 
-        Optimizer opt = visitor.getConfiguration().getOptimizer();
+        Configuration config = visitor.getConfiguration();
 
         sequence = visitor.optimize(sequence, contextItemType);
         action = visitor.optimize(action, contextItemType);
@@ -118,7 +118,7 @@ public class QuantifiedExpression extends Assignation {
             action = ebv;
             adoptChildExpression(ebv);
         }
-        PromotionOffer offer = new PromotionOffer(opt);
+        PromotionOffer offer = new PromotionOffer(config);
         offer.containingExpression = this;
         offer.action = PromotionOffer.RANGE_INDEPENDENT;
         offer.bindingList = new Binding[] {this};

@@ -45,14 +45,6 @@ public final class ComputedAttribute extends AttributeCreator {
     }
 
     /**
-    * Get the name of this instruction
-    */
-
-    public int getInstructionNameCode() {
-        return StandardNames.XSL_ATTRIBUTE;
-    }
-
-    /**
      * Get the namespace resolver used to resolve any prefix in the name of the attribute
      * @return the namespace resolver if one has been saved; or null otherwise
      */
@@ -218,7 +210,6 @@ public final class ComputedAttribute extends AttributeCreator {
      */
 
     public StructuredQName evaluateNameCode(XPathContext context) throws XPathException {
-        NamePool pool = context.getNamePool();
 
         Item nameValue = attributeName.evaluateItem(context);
 
@@ -228,7 +219,7 @@ public final class ComputedAttribute extends AttributeCreator {
 
         if (nameValue instanceof StringValue) {
             // this will always be the case in XSLT
-            CharSequence rawName = nameValue.getStringValueCS();
+            CharSequence rawName = nameValue.getStringValue();
             rawName = Whitespace.trimWhitespace(rawName); // required in XSLT; possibly wrong in XQuery
             try {
                 String[] parts = NameChecker.getQNameParts(rawName);
@@ -286,10 +277,14 @@ public final class ComputedAttribute extends AttributeCreator {
                 // if a suggested prefix is given, use it; otherwise try to find a prefix
                 // associated with this URI; if all else fails, invent one.
                 if (prefix.length() == 0) {
-                    prefix = pool.suggestPrefixForURI(uri);
-                    if (prefix == null) {
-                        prefix = "ns0";
-                        // this will be replaced later if it is already in use
+                    prefix = "ns0"; // this will be replaced later if it is already in use
+                    Iterator<String> prefixes = nsContext.iteratePrefixes();
+                    while (prefixes.hasNext()) {
+                        String p = prefixes.next();
+                        if (nsContext.getURIForPrefix(p, false).equals(uri)) {
+                            prefix = p;
+                            break;
+                        }
                     }
                 }
             }

@@ -2,7 +2,6 @@ package client.net.sf.saxon.ce.regex;
 
 import client.net.sf.saxon.ce.event.Receiver;
 import client.net.sf.saxon.ce.expr.XPathContext;
-import client.net.sf.saxon.ce.expr.z.IntHashMap;
 import client.net.sf.saxon.ce.expr.z.IntToIntHashMap;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.SequenceIterator;
@@ -13,6 +12,7 @@ import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
 import client.net.sf.saxon.ce.value.StringValue;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -213,7 +213,7 @@ public class ARegexIterator implements RegexIterator {
         } else {
             // Create a map from positions in the string to lists of actions.
             // The "actions" in each list are: +N: start group N; -N: end group N.
-            IntHashMap<List<Integer>> actions = new IntHashMap<List<Integer>>(c);
+            HashMap<Integer, List<Integer>> actions = new HashMap<Integer, List<Integer>>(c);
             for (int i=1; i<=c; i++) {
                 int start = matcher.getParenStart(i) - matcher.getParenStart(0);
                 if (start != -1) {

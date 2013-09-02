@@ -1,6 +1,5 @@
 package client.net.sf.saxon.ce.expr.instruct;
 
-import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.js.IXSLFunction;
 import client.net.sf.saxon.ce.om.*;
@@ -8,7 +7,6 @@ import client.net.sf.saxon.ce.trans.Mode;
 import client.net.sf.saxon.ce.trans.Rule;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.EmptyIterator;
-import client.net.sf.saxon.ce.tree.iter.SingletonIterator;
 import client.net.sf.saxon.ce.tree.util.SourceLocator;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.Type;
@@ -16,8 +14,6 @@ import client.net.sf.saxon.ce.value.Value;
 
 import java.util.ArrayList;
 import java.util.Iterator;
-
-import com.google.gwt.core.client.JavaScriptObject;
 
 /**
 * An instruction representing an xsl:apply-templates element in the stylesheet
@@ -74,14 +70,6 @@ public class ApplyTemplates extends Instruction {
                         WithParam[] tunnelParams ) {
         this.actualParams = actualParams;
         this.tunnelParams = tunnelParams;
-    }
-
-    /**
-    * Get the name of this instruction for diagnostic and tracing purposes
-    */
-
-    public int getInstructionNameCode() {
-        return StandardNames.XSL_APPLY_TEMPLATES;
     }
 
     /**
@@ -334,7 +322,7 @@ public class ApplyTemplates extends Instruction {
 	            // NOTE: I tried changing this to use the text node's copy() method, but
 	            // performance was worse
 	        case Type.ATTRIBUTE:
-	            context.getReceiver().characters(node.getStringValueCS());
+	            context.getReceiver().characters(node.getStringValue());
 	            return;
 	        case Type.COMMENT:
 	        case Type.PROCESSING_INSTRUCTION:

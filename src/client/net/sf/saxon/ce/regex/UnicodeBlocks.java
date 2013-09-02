@@ -1,7 +1,7 @@
 package client.net.sf.saxon.ce.regex;
 
 import client.net.sf.saxon.ce.Configuration;
-import client.net.sf.saxon.ce.expr.z.IntBlockSet;
+import client.net.sf.saxon.ce.expr.z.IntRangeSet;
 import client.net.sf.saxon.ce.expr.z.IntSet;
 import client.net.sf.saxon.ce.om.Axis;
 import client.net.sf.saxon.ce.om.DocumentInfo;
@@ -72,7 +72,7 @@ public class UnicodeBlocks {
                 break;
             }
             String blockName = normalizeBlockName(Navigator.getAttributeValue(item, "", "name"));
-            IntSet range = null;
+            IntRangeSet range = null;
             AxisIterator ranges = item.iterateAxis(Axis.CHILD, NodeKindTest.ELEMENT);
             while (true) {
                 NodeInfo rangeElement = (NodeInfo)ranges.next();
@@ -81,13 +81,10 @@ public class UnicodeBlocks {
                 }
                 int from = Integer.parseInt(Navigator.getAttributeValue(rangeElement, "", "from").substring(2), 16);
                 int to = Integer.parseInt(Navigator.getAttributeValue(rangeElement, "", "to").substring(2), 16);
-                IntSet cr = new IntBlockSet(from, to);
                 if (range == null) {
-                    range = cr;
-                } else if (range instanceof IntBlockSet) {
-                    range = range.mutableCopy().union(cr);
+                    range = new IntRangeSet(new int[]{from}, new int[]{to});
                 } else {
-                    range = range.union(cr);
+                    range.addRange(from, to);
                 }
             }
             blocks.put(blockName, range);

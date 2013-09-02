@@ -1,5 +1,6 @@
 package client.net.sf.saxon.ce.expr;
 
+import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.expr.sort.AtomicComparer;
 import client.net.sf.saxon.ce.expr.sort.CodepointCollator;
 import client.net.sf.saxon.ce.expr.sort.GenericAtomicComparer;
@@ -96,16 +97,16 @@ public class GeneralComparison10 extends BinaryExpression {
 
     public Expression optimize(ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
 
-        Optimizer opt = visitor.getConfiguration().getOptimizer();
         StaticContext env = visitor.getStaticContext();
+        Configuration config = visitor.getConfiguration();
 
         operand0 = visitor.optimize(operand0, contextItemType);
         operand1 = visitor.optimize(operand1, contextItemType);
 
         // Neither operand needs to be sorted
 
-        operand0 = ExpressionTool.unsorted(opt, operand0, false);
-        operand1 = ExpressionTool.unsorted(opt, operand1, false);
+        operand0 = ExpressionTool.unsorted(config, operand0, false);
+        operand1 = ExpressionTool.unsorted(config, operand1, false);
 
         // evaluate the expression now if both arguments are constant
 
@@ -144,13 +145,13 @@ public class GeneralComparison10 extends BinaryExpression {
             if (operator == Token.EQUALS || operator == Token.NE) {
                 if ((!maybeNumeric0 && !maybeNumeric1) || (numeric0 && numeric1)) {
                     GeneralComparison gc = new GeneralComparison20(operand0, operator, operand1);
-                    BinaryExpression binExp = visitor.getConfiguration().getOptimizer().simplifyGeneralComparison(gc, false);
+                    BinaryExpression binExp = GeneralComparison.simplifyGeneralComparison(gc, false);
                     ExpressionTool.copyLocationInfo(this, binExp);
                     return visitor.optimize(visitor.typeCheck(binExp, contextItemType), contextItemType);
                 }
             } else if (numeric0 && numeric1) {
                 GeneralComparison gc = new GeneralComparison20(operand0, operator, operand1);
-                BinaryExpression binExp = visitor.getConfiguration().getOptimizer().simplifyGeneralComparison(gc, false);
+                BinaryExpression binExp = GeneralComparison.simplifyGeneralComparison(gc, false);
                 ExpressionTool.copyLocationInfo(this, binExp);
                 return visitor.optimize(visitor.typeCheck(binExp, contextItemType), contextItemType);
             }

@@ -1,11 +1,9 @@
 package client.net.sf.saxon.ce.tree.wrapper;
 
-import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.event.Stripper;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
 import client.net.sf.saxon.ce.om.Axis;
 import client.net.sf.saxon.ce.om.DocumentInfo;
-import client.net.sf.saxon.ce.om.NamePool;
 import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.pattern.NodeKindTest;
 import client.net.sf.saxon.ce.tree.iter.AxisIterator;
@@ -53,14 +51,6 @@ public class SpaceStrippedDocument extends SpaceStrippedNode implements Document
 
     public Stripper getStripper() {
         return stripper;
-    }
-
-    /**
-     * Get the configuration previously set using setConfiguration
-     */
-
-    public Configuration getConfiguration() {
-        return node.getConfiguration();
     }
 
 	/**

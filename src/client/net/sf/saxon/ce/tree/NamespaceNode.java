@@ -1,6 +1,5 @@
 package client.net.sf.saxon.ce.tree;
 
-import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.event.Receiver;
 import client.net.sf.saxon.ce.event.ReceiverOptions;
 import client.net.sf.saxon.ce.om.*;
@@ -17,7 +16,6 @@ import client.net.sf.saxon.ce.tree.util.Navigator;
 import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.value.AtomicValue;
 import client.net.sf.saxon.ce.value.StringValue;
-import client.net.sf.saxon.ce.value.Value;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -129,17 +127,6 @@ public class NamespaceNode implements NodeInfo {
     }
 
     /**
-     * Get line number
-     *
-     * @return the line number of the node in its original source document; or
-     *         -1 if not available
-     */
-
-    public int getLineNumber() {
-        return element.getLineNumber();
-    }
-
-    /**
      * Determine the relative position of this node and another node, in document order.
      * The other node will always be in the same document.
      *
@@ -178,15 +165,6 @@ public class NamespaceNode implements NodeInfo {
 
     public String getStringValue() {
         return nsBinding.getURI();
-    }
-
-    /**
-     * Get the value of the item as a CharSequence. This is in some cases more efficient than
-     * the version of the method that returns a String.
-     */
-
-    public CharSequence getStringValueCS() {
-        return getStringValue();
     }
 
 
@@ -234,37 +212,6 @@ public class NamespaceNode implements NodeInfo {
 
     public String getDisplayName() {
         return getLocalPart();
-    }
-
-    /**
-     * Get the prefix of the name of the node. This is defined only for elements and attributes.
-     * If the node has no prefix, or for other kinds of node, return a zero-length string.
-     *
-     * @return The prefix of the name of the node.
-     */
-
-    public String getPrefix() {
-        return "";
-    }
-
-    /**
-     * Get the configuration
-     */
-
-    public Configuration getConfiguration() {
-        return element.getConfiguration();
-    }
-
-    /**
-     * Get the type annotation of this node, if any.
-     * Returns -1 for kinds of nodes that have no annotation, and for elements annotated as
-     * untyped, and attributes annotated as untypedAtomic.
-     *
-     * @return the type annotation of the node.
-     */
-
-    public int getTypeAnnotation() {
-        return StandardNames.XS_STRING;
     }
 
     /**
@@ -450,22 +397,7 @@ public class NamespaceNode implements NodeInfo {
      */
 
     public AtomicValue getTypedValue() {
-        return new StringValue(getStringValueCS());
-    }
-
-    /**
-     * Get the typed value. The result of this method will always be consistent with the method
-     * {@link client.net.sf.saxon.ce.om.Item#getTypedValue()}. However, this method is often more convenient and may be
-     * more efficient, especially in the common case where the value is expected to be a singleton.
-     *
-     * @return the typed value. If requireSingleton is set to true, the result will always be an
-     *         AtomicValue. In other cases it may be a Value representing a sequence whose items are atomic
-     *         values.
-     * @since 8.5
-     */
-
-    public Value atomize() throws XPathException {
-        return new StringValue(getStringValueCS());
+        return new StringValue(getStringValue());
     }
 
     /**

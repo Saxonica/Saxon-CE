@@ -76,9 +76,9 @@ public class GMonthDayValue extends GDateValue {
         if (requiredType == BuiltInAtomicType.ANY_ATOMIC || requiredType == BuiltInAtomicType.G_MONTH_DAY) {
             return this;
         } else if (requiredType == BuiltInAtomicType.UNTYPED_ATOMIC) {
-            return new UntypedAtomicValue(getStringValueCS());
+            return new UntypedAtomicValue(getStringValue());
         } else if (requiredType == BuiltInAtomicType.STRING) {
-            return new StringValue(getStringValueCS());
+            return new StringValue(getStringValue());
         } else {
             ValidationFailure err = new ValidationFailure("Cannot convert gMonthDay to " +
                     requiredType.getDisplayName());

@@ -60,11 +60,11 @@ public class NameTest extends NodeTest {
     /**
      * Test whether this node test is satisfied by a given node
      * @param nodeKind The type of node to be matched
-     * @param nameCode identifies the expanded name of the node to be matched
+     * @param qName identifies the expanded name of the node to be matched
      */
 
-    public boolean matches(int nodeKind, StructuredQName nameCode, int annotation) {
-        return nodeKind == this.nodeKind && nameCode.equals(qName);
+    public boolean matches(int nodeKind, StructuredQName qName) {
+        return nodeKind == this.nodeKind && qName.equals(qName);
     }
 
     /**

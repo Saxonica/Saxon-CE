@@ -60,7 +60,7 @@ public class StringifyRuleSet implements BuiltInRuleSet {
 	            // NOTE: I tried changing this to use the text node's copy() method, but
 	            // performance was worse
 	        case Type.ATTRIBUTE:
-	            context.getReceiver().characters(node.getStringValueCS());
+	            context.getReceiver().characters(node.getStringValue());
 	            return;
 	        case Type.COMMENT:
 	        case Type.PROCESSING_INSTRUCTION:

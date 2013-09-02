@@ -106,15 +106,6 @@ public class GenericAtomicComparer implements AtomicComparer {
     }
 
     /**
-     * Get the underlying string collator
-     * @return the string collator
-     */
-
-    public StringCollator getStringCollator() {
-        return collator;
-    }
-
-    /**
     * Compare two AtomicValue objects according to the rules for their data type. UntypedAtomic
     * values are compared as if they were strings; if different semantics are wanted, the conversion
     * must be done by the caller.
@@ -144,7 +135,7 @@ public class GenericAtomicComparer implements AtomicComparer {
 
         if (a instanceof StringValue && b instanceof StringValue) {
             if (collator instanceof CodepointCollator) {
-                return ((CodepointCollator)collator).compareCS(a.getStringValueCS(), b.getStringValueCS());
+                return ((CodepointCollator)collator).compareCS(a.getStringValue(), b.getStringValue());
             } else {
                 return collator.compareStrings(a.getStringValue(), b.getStringValue());
             }

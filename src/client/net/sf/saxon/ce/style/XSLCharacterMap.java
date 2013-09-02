@@ -64,9 +64,9 @@ public class XSLCharacterMap extends StyleElement {
 		for (int a=0; a<atts.getLength(); a++) {
 			StructuredQName qn = atts.getStructuredQName(a);
             String f = qn.getClarkName();
-			if (f.equals(StandardNames.NAME)) {
+			if (f.equals("name")) {
         		name = Whitespace.trim(atts.getValue(a));
-        	} else if (f.equals(StandardNames.USE_CHARACTER_MAPS)) {
+        	} else if (f.equals("use-character-maps")) {
         		use = atts.getValue(a);
         	} else {
         		checkUnknownAttribute(qn);

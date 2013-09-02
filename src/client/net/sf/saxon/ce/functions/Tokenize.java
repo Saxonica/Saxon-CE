@@ -35,14 +35,14 @@ public class Tokenize extends SystemFunction  {
         }
 
         sv = (AtomicValue)argument[1].evaluateItem(c);
-        CharSequence pattern = sv.getStringValueCS();
+        CharSequence pattern = sv.getStringValue();
 
         CharSequence flags;
         if (argument.length==2) {
             flags = "";
         } else {
             sv = (AtomicValue)argument[2].evaluateItem(c);
-            flags = sv.getStringValueCS();
+            flags = sv.getStringValue();
         }
 
         try {

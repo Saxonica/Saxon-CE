@@ -36,8 +36,7 @@ public class DocumentFn extends SystemFunction {
             // xsl:template, which has a different base URI (and in a simplified stylesheet, has no base URI)
             super.checkArguments(visitor);
             expressionBaseURI = visitor.getStaticContext().getBaseURI();
-            Optimizer opt = visitor.getConfiguration().getOptimizer();
-            argument[0] = ExpressionTool.unsorted(opt, argument[0], false);
+            argument[0] = ExpressionTool.unsorted(visitor.getConfiguration(), argument[0], false);
         }
     }
 

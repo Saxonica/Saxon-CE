@@ -38,16 +38,6 @@ public abstract class Instruction extends Expression implements TailCallReturner
     }
 
     /**
-     * Get the namecode of the instruction for use in diagnostics
-     * @return a code identifying the instruction: typically but not always
-     * the fingerprint of a name in the XSLT namespace
-    */
-
-    public int getInstructionNameCode() {
-        return -1;
-    }
-
-    /**
      * Get the item type of the items returned by evaluating this instruction
      * @return the static item type of the instruction
      * @param th the type hierarchy cache

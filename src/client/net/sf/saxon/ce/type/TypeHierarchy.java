@@ -2,8 +2,6 @@ package client.net.sf.saxon.ce.type;
 
 import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.expr.sort.SetUtils;
-import client.net.sf.saxon.ce.om.NamePool;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.pattern.AnyNodeTest;
 import client.net.sf.saxon.ce.pattern.DocumentNodeTest;
@@ -274,7 +272,7 @@ public class TypeHierarchy {
      */
 
      public boolean isIdCode(int typeCode) {
-        return (typeCode & NamePool.FP_MASK) == StandardNames.XS_ID;
+        return false;
      }
 
     /**

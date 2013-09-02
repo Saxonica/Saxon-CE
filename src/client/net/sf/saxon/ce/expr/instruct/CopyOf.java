@@ -63,14 +63,6 @@ public class CopyOf extends Instruction {
     }
 
     /**
-     * Get the name of this instruction, for diagnostics and tracing
-     */
-
-    public int getInstructionNameCode() {
-        return StandardNames.XSL_COPY_OF;
-    }
-
-    /**
      * An implementation of Expression must provide at least one of the methods evaluateItem(), iterate(), or process().
      * This method indicates which of these methods is provided. This implementation provides both iterate() and
      * process() methods natively.
@@ -181,25 +173,24 @@ public class CopyOf extends Instruction {
                     }
                     case Type.ATTRIBUTE:
                         try {
-                            StructuredQName qn = new StructuredQName(source.getPrefix(), source.getURI(), source.getLocalPart());
-                            context.getReceiver().attribute(qn, source.getStringValueCS());
+                            context.getReceiver().attribute(source.getNodeName(), source.getStringValue());
                         } catch (NoOpenStartTagException err) {
                             dynamicError(err.getMessage(), err.getErrorCodeLocalPart(), context);
                         }
                         break;
                     case Type.TEXT:
-                        out.characters(source.getStringValueCS());
+                        out.characters(source.getStringValue());
                         break;
 
                     case Type.PROCESSING_INSTRUCTION:
                         if (copyBaseURI) {
                             out.setSystemId(source.getBaseURI());
                         }
-                        out.processingInstruction(source.getDisplayName(), source.getStringValueCS());
+                        out.processingInstruction(source.getDisplayName(), source.getStringValue());
                         break;
 
                     case Type.COMMENT:
-                        out.comment(source.getStringValueCS());
+                        out.comment(source.getStringValue());
                         break;
 
                     case Type.NAMESPACE:

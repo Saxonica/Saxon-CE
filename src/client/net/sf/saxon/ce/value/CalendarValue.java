@@ -1,7 +1,6 @@
 package client.net.sf.saxon.ce.value;
 
 import client.net.sf.saxon.ce.expr.XPathContext;
-import client.net.sf.saxon.ce.expr.sort.ComparisonKey;
 import client.net.sf.saxon.ce.lib.StringCollator;
 import client.net.sf.saxon.ce.trans.NoDynamicContextException;
 import client.net.sf.saxon.ce.trans.XPathException;
@@ -196,16 +195,6 @@ public abstract class CalendarValue extends client.net.sf.saxon.ce.value.AtomicV
      */
 
     public abstract int compareTo(CalendarValue other, XPathContext context) throws NoDynamicContextException;
-
-    /**
-     * Get a comparison key for this value. Two values are equal if and only if they their comparison
-     * keys are equal
-     * @param context XPath dynamic evaluation context, used to obtain implicit timezone
-     * @return a comparison key
-     * @throws NoDynamicContextException if the implicit timezone is needed and is not available
-     */
-
-    public abstract ComparisonKey getComparisonKey(XPathContext context) throws NoDynamicContextException;
 
     /**
      * Add a string representation of the timezone, typically

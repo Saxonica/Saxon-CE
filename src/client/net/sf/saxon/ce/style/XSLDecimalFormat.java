@@ -3,7 +3,6 @@ import client.net.sf.saxon.ce.expr.Expression;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.om.AttributeCollection;
 import client.net.sf.saxon.ce.om.NamespaceException;
-import client.net.sf.saxon.ce.om.StandardNames;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.DecimalFormatManager;
 import client.net.sf.saxon.ce.trans.DecimalSymbols;
@@ -54,27 +53,27 @@ public class XSLDecimalFormat extends StyleElement {
         for (int a=0; a<atts.getLength(); a++) {
 			StructuredQName qn = atts.getStructuredQName(a);
             String f = qn.getClarkName();
-			if (f.equals(StandardNames.NAME)) {
+			if (f.equals("name")) {
         		name = Whitespace.trim(atts.getValue(a));
-        	} else if (f.equals(StandardNames.DECIMAL_SEPARATOR)) {
+        	} else if (f.equals("decimal-separator")) {
         		decimalSeparator = atts.getValue(a);
-        	} else if (f.equals(StandardNames.GROUPING_SEPARATOR)) {
+        	} else if (f.equals("grouping-separator")) {
         		groupingSeparator = atts.getValue(a);
-        	} else if (f.equals(StandardNames.INFINITY)) {
+        	} else if (f.equals("infinity")) {
         		infinity = atts.getValue(a);
-        	} else if (f.equals(StandardNames.MINUS_SIGN)) {
+        	} else if (f.equals("minus-sign")) {
         		minusSign = atts.getValue(a);
-        	} else if (f.equals(StandardNames.NAN)) {
+        	} else if (f.equals("NaN")) {
         		NaN = atts.getValue(a);
-        	} else if (f.equals(StandardNames.PERCENT)) {
+        	} else if (f.equals("percent")) {
         		percent = atts.getValue(a);
-        	} else if (f.equals(StandardNames.PER_MILLE)) {
+        	} else if (f.equals("per-mille")) {
         		perMille = atts.getValue(a);
-        	} else if (f.equals(StandardNames.ZERO_DIGIT)) {
+        	} else if (f.equals("zero-digit")) {
         		zeroDigit = atts.getValue(a);
-        	} else if (f.equals(StandardNames.DIGIT)) {
+        	} else if (f.equals("digit")) {
         		digit = atts.getValue(a);
-        	} else if (f.equals(StandardNames.PATTERN_SEPARATOR)) {
+        	} else if (f.equals("pattern-separator")) {
         		patternSeparator = atts.getValue(a);
         	} else {
         		checkUnknownAttribute(qn);

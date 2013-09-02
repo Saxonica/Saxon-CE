@@ -79,7 +79,7 @@ public class StringLength extends SystemFunction {
                 dynamicError("The context item for string-length() is not set", "XPDY0002", c);
                 return null;
             }
-            sv = StringValue.makeStringValue(contextItem.getStringValueCS());
+            sv = StringValue.makeStringValue(contextItem.getStringValue());
         } else {
             sv = (AtomicValue)argument[0].evaluateItem(c);
         }
@@ -90,7 +90,7 @@ public class StringLength extends SystemFunction {
         if (sv instanceof StringValue) {
             return IntegerValue.makeIntegerValue(((StringValue)sv).getStringLength());
         } else {
-            CharSequence s = sv.getStringValueCS();
+            CharSequence s = sv.getStringValue();
             return IntegerValue.makeIntegerValue(StringValue.getStringLength(s));
         }
     }
