@@ -7,7 +7,7 @@ import client.net.sf.saxon.ce.om.DocumentInfo;
 import client.net.sf.saxon.ce.om.NamespaceBinding;
 import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.pattern.NodeKindTest;
-import client.net.sf.saxon.ce.tree.iter.AxisIterator;
+import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 import client.net.sf.saxon.ce.type.Type;
 
 import com.google.gwt.dom.client.Document;
@@ -77,7 +77,7 @@ public class HTMLDocumentWrapper extends HTMLNodeWrapper implements DocumentInfo
         // need to determine whether HTML, XHTML or neither so as to control case of node names
         // and distinguish other XML/HTML behaviours - like SelectID
         try {
-            AxisIterator iter = this.iterateAxis(Axis.CHILD);
+            UnfailingIterator iter = this.iterateAxis(Axis.CHILD);
             while (true) {
                 NodeInfo n = (NodeInfo)iter.next();
                 if (n == null) {
@@ -176,7 +176,7 @@ public class HTMLDocumentWrapper extends HTMLNodeWrapper implements DocumentInfo
 
     public void setConfiguration(Configuration config) {
         this.config = config;
-        documentNumber = config.getDocumentNumberAllocator().allocateDocumentNumber();
+        documentNumber = config.allocateDocumentNumber();
     }
 
     /**
@@ -221,7 +221,7 @@ public class HTMLDocumentWrapper extends HTMLNodeWrapper implements DocumentInfo
                 return idIndex.get(id);
             } else {
                 idIndex = new HashMap();
-                AxisIterator iter = iterateAxis(Axis.DESCENDANT, NodeKindTest.ELEMENT);
+                UnfailingIterator iter = iterateAxis(Axis.DESCENDANT, NodeKindTest.ELEMENT);
                 boolean useNS = isNSok(node);
                 while (true) {
                     NodeInfo node = (NodeInfo)iter.next();

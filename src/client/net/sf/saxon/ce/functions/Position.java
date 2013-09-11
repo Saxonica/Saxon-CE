@@ -14,7 +14,7 @@ public class Position extends SystemFunction {
 
     public Expression typeCheck(ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
         if (contextItemType == null) {
-            typeError("The context for position() is undefined", "XPDY0002", null);
+            typeError("The context for position() is undefined", "XPDY0002");
         }
         return super.typeCheck(visitor, contextItemType);
     }
@@ -32,7 +32,8 @@ public class Position extends SystemFunction {
     */
 
     public Item evaluateItem(XPathContext c) throws XPathException {
-        return IntegerValue.makeIntegerValue(c.getContextPosition());
+
+        return new IntegerValue(c.getContextPosition());
     }
 
     /**

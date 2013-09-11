@@ -4,7 +4,6 @@ import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.SequenceExtent;
 
 /**
@@ -20,11 +19,10 @@ public class Reverse extends SystemFunction {
     /**
      * Determine the item type of the value returned by the function
      *
-     * @param th the type hierarchy cache
      */
 
-    public ItemType getItemType(TypeHierarchy th) {
-        return argument[0].getItemType(th);
+    public ItemType getItemType() {
+        return argument[0].getItemType();
     }
 
     public int computeSpecialProperties() {
@@ -44,12 +42,8 @@ public class Reverse extends SystemFunction {
 
     public SequenceIterator iterate(XPathContext context) throws XPathException {
         SequenceIterator forwards = argument[0].iterate(context);
-        return getReverseIterator(forwards);
-    }
-
-    public static SequenceIterator getReverseIterator(SequenceIterator forwards) throws XPathException {
-        SequenceExtent extent = new SequenceExtent(forwards);
-        return extent.reverseIterate();
+        SequenceExtent extent = SequenceExtent.makeReversed(forwards);
+        return extent.iterate();
     }
 
 }

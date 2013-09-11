@@ -168,8 +168,9 @@ public class ApplyTemplates extends Instruction {
 
         if (returnTailCall) {
             XPathContextMajor c2 = context.newContext();
+            final int evaluationMode = ExpressionTool.lazyEvaluationMode(select);
             return new ApplyTemplatesPackage(
-                    ExpressionTool.lazyEvaluate(select, context, 1),
+                    ExpressionTool.evaluate(select, evaluationMode, context),
                     thisMode, params, tunnels, c2, getSourceLocator());
         }
 
@@ -357,28 +358,6 @@ public class ApplyTemplates extends Instruction {
         return child instanceof WithParam;
     }
 
-    /**
-     * Replace one subexpression by a replacement subexpression
-     * @param original the original subexpression
-     * @param replacement the replacement subexpression
-     * @return true if the original subexpression is found
-     */
-
-    public boolean replaceSubExpression(Expression original, Expression replacement) {
-        boolean found = false;
-        if (select == original) {
-            select = replacement;
-            found = true;
-        }
-        if (WithParam.replaceXPathExpression(actualParams, original, replacement)) {
-            found = true;
-        }
-        if (WithParam.replaceXPathExpression(tunnelParams, original, replacement)) {
-            found = true;
-        }
-                return found;
-    }
-
 
     /**
      * Get the select expression
@@ -490,7 +469,7 @@ public class ApplyTemplates extends Instruction {
 
         public TailCall processLeavingTail() throws XPathException {
             return applyTemplates(
-                    Value.getIterator(selectedNodes),
+                    Value.asIterator(selectedNodes),
                     mode, params, tunnelParams, evaluationContext, sourceLocator);
         }
     }

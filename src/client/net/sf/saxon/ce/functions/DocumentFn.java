@@ -6,7 +6,6 @@ import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.expr.sort.DocumentOrderIterator;
 import client.net.sf.saxon.ce.expr.sort.GlobalOrderComparer;
 import client.net.sf.saxon.ce.om.*;
-import client.net.sf.saxon.ce.trans.Err;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.SourceLocator;
 import client.net.sf.saxon.ce.tree.util.URI;
@@ -174,10 +173,8 @@ public class DocumentFn extends SystemFunction {
                 fragmentId = href.substring(hash+1);
                 href = href.substring(0, hash);
                 if (!NameChecker.isValidNCName(fragmentId)) {
-                    XPathException de = new XPathException("The fragment identifier " + Err.wrap(fragmentId) + " is not a valid NCName");
-                    de.setErrorCode("XTRE1160");
-                    de.setXPathContext(c);
-                    throw de;
+                    // Don't report recoverable error XTRE1160
+                    fragmentId = null;
                 }
             }
         }
@@ -204,21 +201,15 @@ public class DocumentFn extends SystemFunction {
 
         if (!controller.checkUniqueOutputDestination(documentKey)) {
             pool.markUnavailable(documentKey);
-            XPathException err = new XPathException(
-                    "Cannot read a document that was written during the same transformation: " + documentKey);
-            err.setXPathContext(c);
-            err.setErrorCode("XTRE1500");
-            throw err;
+            throw new XPathException(
+                    "Cannot read a document that was written during the same transformation: " + documentKey, "XTRE1500");
         }
 
         try {
 
             if (pool.isMarkedUnavailable(documentKey)) {
-                XPathException err = new XPathException(
-                        "Document has been marked not available: " + documentKey);
-                err.setXPathContext(c);
-                err.setErrorCode("FODC0002");
-                throw err;
+                throw new XPathException(
+                        "Document has been marked not available: " + documentKey, "FODC0002");
             }
 
             DocumentInfo newdoc = config.buildDocument(documentKey.toString());
@@ -228,10 +219,10 @@ public class DocumentFn extends SystemFunction {
 
         } catch (XPathException err) {
             pool.markUnavailable(documentKey);
-            err.maybeSetLocation(locator);
-            String code = (err.getCause() instanceof URI.URISyntaxException) ? "FODC0005" : "FODC0002";
-            err.maybeSetErrorCode(code);
-            controller.recoverableError(err);
+//            err.maybeSetLocation(locator);
+//            String code = (err.getCause() instanceof URI.URISyntaxException) ? "FODC0005" : "FODC0002";
+//            err.maybeSetErrorCode(code);
+//            controller.recoverableError(err);
             return null;
         }
     }
@@ -259,7 +250,8 @@ public class DocumentFn extends SystemFunction {
      * Only "bare names" XPointers are recognized, that is, a fragment identifier
      * that matches an ID attribute value within the target document.
      * @param doc the document node
-     * @param fragmentId the fragment identifier (an ID value within the document)
+     * @param fragmentId the fragment identifier (an ID value within the document). This will already
+     *
      * @param context the XPath dynamic context
      * @return the element within the supplied document that matches the
      * given id value; or null if no such element is found.
@@ -273,17 +265,7 @@ public class DocumentFn extends SystemFunction {
         if (fragmentId==null) {
             return doc;
         }
-        if (!NameChecker.isValidNCName(fragmentId)) {
-            XPathException err = new XPathException("Invalid fragment identifier in URI");
-            err.setXPathContext(context);
-            err.setErrorCode("XTRE1160");
-            try {
-                context.getController().recoverableError(err);
-            } catch (XPathException dynamicError) {
-                throw err;
-            }
-            return doc;
-        }
+        // skip check that fragmentId is valid: this is a recoverable error
         return doc.selectID(fragmentId);
     }
 

@@ -1,4 +1,5 @@
 package client.net.sf.saxon.ce.expr.instruct;
+
 import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.om.ValueRepresentation;
 import client.net.sf.saxon.ce.trans.XPathException;
@@ -8,19 +9,21 @@ import java.util.List;
 import java.util.Arrays;
 
 /**
-* An instruction derived from a xsl:with-param element in the stylesheet. <br>
-*/
+ * An instruction derived from a xsl:with-param element in the stylesheet. <br>
+ */
 
 public class WithParam extends GeneralVariable {
 
     int parameterId;
     boolean typeChecked = false;
 
-    public WithParam() {}
+    public WithParam() {
+    }
 
     /**
      * Allocate a number which is essentially an alias for the parameter name,
      * unique within a stylesheet
+     *
      * @param id the parameter id
      */
 
@@ -31,6 +34,7 @@ public class WithParam extends GeneralVariable {
     /**
      * Say whether this parameter will have been typechecked by the caller to ensure it satisfies
      * the required type, in which case the callee need not do a dynamic type check
+     *
      * @param checked true if the caller has done static type checking against the required type
      */
 
@@ -41,6 +45,7 @@ public class WithParam extends GeneralVariable {
     /**
      * Get the parameter id, which is essentially an alias for the parameter name,
      * unique within a stylesheet
+     *
      * @return the parameter id
      */
 
@@ -55,7 +60,7 @@ public class WithParam extends GeneralVariable {
     }
 
     public static void simplify(WithParam[] params, ExpressionVisitor visitor) throws XPathException {
-         for (int i=0; i<params.length; i++) {
+        for (int i = 0; i < params.length; i++) {
             Expression select = params[i].getSelectExpression();
             if (select != null) {
                 params[i].setSelectExpression(visitor.simplify(select));
@@ -65,7 +70,7 @@ public class WithParam extends GeneralVariable {
 
 
     public static void typeCheck(WithParam[] params, ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
-         for (int i=0; i<params.length; i++) {
+        for (int i = 0; i < params.length; i++) {
             Expression select = params[i].getSelectExpression();
             if (select != null) {
                 params[i].setSelectExpression(visitor.typeCheck(select, contextItemType));
@@ -74,18 +79,18 @@ public class WithParam extends GeneralVariable {
     }
 
     public static void optimize(ExpressionVisitor visitor, WithParam[] params, ItemType contextItemType) throws XPathException {
-         for (int i=0; i<params.length; i++) {
-             visitor.optimize(params[i], contextItemType);
-         }
+        for (int i = 0; i < params.length; i++) {
+            visitor.optimize(params[i], contextItemType);
+        }
     }
 
-   /**
+    /**
      * Promote the expressions in a set of with-param elements. This is a convenience
      * method for use by containing instructions.
      */
 
     public static void promoteParams(Expression parent, WithParam[] params, PromotionOffer offer) throws XPathException {
-        for (int i=0; i<params.length; i++) {
+        for (int i = 0; i < params.length; i++) {
             Expression select = params[i].getSelectExpression();
             if (select != null) {
                 params[i].setSelectExpression(select.promote(offer, parent));
@@ -103,20 +108,6 @@ public class WithParam extends GeneralVariable {
         }
     }
 
-
-    /**
-     * Replace a subexpression
-     */
-
-    public static boolean replaceXPathExpression(WithParam[] params, Expression original, Expression replacement) {
-        boolean found = false;
-        for (int i=0; i<params.length; i++) {
-            boolean f = params[i].replaceSubExpression(original, replacement);
-            found |= f;
-        }
-        return found;
-    }
-
     /**
      * Evaluate the variable (method exists only to satisfy the interface)
      */
@@ -127,6 +118,7 @@ public class WithParam extends GeneralVariable {
 
     /**
      * Ask whether static type checking has been done
+     *
      * @return true if the caller has done static type checking against the type required by the callee
      */
 

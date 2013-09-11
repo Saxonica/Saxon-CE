@@ -1,5 +1,4 @@
 package client.net.sf.saxon.ce.value;
-import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.js.JSObjectType;
 import client.net.sf.saxon.ce.js.JSObjectValue;
 import client.net.sf.saxon.ce.om.*;
@@ -8,11 +7,10 @@ import client.net.sf.saxon.ce.pattern.NameTest;
 import client.net.sf.saxon.ce.pattern.NodeKindTest;
 import client.net.sf.saxon.ce.pattern.NodeTest;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.tree.iter.AxisIterator;
 import client.net.sf.saxon.ce.tree.iter.SingletonIterator;
+import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.Type;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
 
 /**
 * A value that is a sequence containing zero or one items. Used only for items that are not atomic values
@@ -34,43 +32,21 @@ public class SingletonItem extends Value implements GroundedValue{
         this.item = item;
     }
 
-    /**
-     * Return the value in the form of an Item
-     * @return the value in the form of an Item
-     */
-
-    public Item asItem() {
-        return item;
-    }
-
-    /**
-      * Process the instruction, without returning any tail calls
-      * @param context The dynamic context, giving access to the current node,
-      * the current variables, etc.
-      */
-
-    public void process(XPathContext context) throws XPathException {
-        if (item != null) {
-            context.getReceiver().append(item, NodeInfo.ALL_NAMESPACES);
-        }
-    }
-
 
     /**
      * Determine the data type of the items in the expression. This method determines the most
      * precise type that it can, because it is called when testing that the node conforms to a required
      * type.
      * @return the most precise possible type of the node.
-     * @param th the type hierarchy cache
      */
 
-    public ItemType getItemType(TypeHierarchy th) {
+    public ItemType getItemType() {
         if (item instanceof NodeInfo) {
             NodeInfo node = ((NodeInfo)item);
             switch (node.getNodeKind()) {
                 case Type.DOCUMENT:
                     // Need to know whether the document is well-formed and if so what the element type is
-                    AxisIterator iter = node.iterateAxis(Axis.CHILD);
+                    UnfailingIterator iter = node.iterateAxis(Axis.CHILD);
                     ItemType elementType = null;
                     while (true) {
                         NodeInfo n = (NodeInfo)iter.next();
@@ -86,7 +62,7 @@ public class SingletonItem extends Value implements GroundedValue{
                                 elementType = null;
                                 break;
                             }
-                            elementType = new SingletonItem(n).getItemType(th);
+                            elementType = new SingletonItem(n).getItemType();
                         }
                     }
                     if (elementType == null) {
@@ -122,7 +98,7 @@ public class SingletonItem extends Value implements GroundedValue{
         	
         } else {
             // it must be an atomic value, though we don't use this option
-            return ((AtomicValue)item).getTypeLabel();
+            return ((AtomicValue)item).getItemType();
         }
     }
 

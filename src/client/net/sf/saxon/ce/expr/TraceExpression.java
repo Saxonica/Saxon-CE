@@ -10,12 +10,10 @@ import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.NamespaceResolver;
 import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.om.StructuredQName;
-import client.net.sf.saxon.ce.trace.ExpressionPresenter;
 import client.net.sf.saxon.ce.trace.InstructionInfo;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.trans.update.PendingUpdateList;
 import client.net.sf.saxon.ce.type.ItemType;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
 import com.google.gwt.logging.client.LogConfiguration;
 
 import java.util.HashMap;
@@ -237,12 +235,11 @@ public class TraceExpression extends Instruction implements InstructionInfo {
     /**
      * Get the item type of the items returned by evaluating this instruction
      * @return the static item type of the instruction
-     * @param th the type hierarchy cache
      */
 
     /*@NotNull*/
-    public ItemType getItemType(TypeHierarchy th) {
-        return child.getItemType(th);
+    public ItemType getItemType() {
+        return child.getItemType();
     }
 
     /**
@@ -360,33 +357,8 @@ public class TraceExpression extends Instruction implements InstructionInfo {
         return new MonoIterator(child);
     }
 
-    /**
-      * Replace one subexpression by a replacement subexpression
-      * @param original the original subexpression
-      * @param replacement the replacement subexpression
-      * @return true if the original subexpression is found
-      */
-
-     public boolean replaceSubExpression(Expression original, Expression replacement) {
-         boolean found = false;
-         if (child == original) {
-             child = replacement;
-             found = true;
-         }
-         return found;
-     }
-
     public Expression getChildExpression() {
         return child;
-    }
-
-    /**
-     * Diagnostic print of expression structure. The abstract expression tree
-     * is written to the supplied output destination.
-     */
-
-    public void explain(ExpressionPresenter out) {
-        child.explain(out);
     }
 
     /**

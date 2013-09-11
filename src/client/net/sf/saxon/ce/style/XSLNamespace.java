@@ -4,8 +4,8 @@ import client.net.sf.saxon.ce.expr.StringLiteral;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.expr.instruct.NamespaceConstructor;
 import client.net.sf.saxon.ce.om.*;
-import client.net.sf.saxon.ce.tree.iter.AxisIterator;
 import client.net.sf.saxon.ce.trans.XPathException;
+import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.value.StringValue;
 
@@ -26,7 +26,7 @@ public class XSLNamespace extends XSLLeafNodeConstructor {
         select = typeCheck(select);
         int countChildren = 0;
         NodeInfo firstChild = null;
-        AxisIterator kids = iterateAxis(Axis.CHILD);
+        UnfailingIterator kids = iterateAxis(Axis.CHILD);
         while (true) {
             NodeInfo child = (NodeInfo)kids.next();
             if (child == null) {

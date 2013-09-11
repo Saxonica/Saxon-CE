@@ -34,16 +34,6 @@ public class NamePart extends SystemFunction {
     public static final int NODE_NAME = 6;
 
     /**
-    * Simplify and validate.
-     * @param visitor an expression visitor
-     */
-
-     public Expression simplify(ExpressionVisitor visitor) throws XPathException {
-        useContextItemAsDefault();
-        return simplifyArguments(visitor);
-    }
-
-    /**
      * Determine the special properties of this expression. The generate-id()
      * function is a special case: it is considered creative if its operand
      * is creative, so that generate-id(f()) is not taken out of a loop

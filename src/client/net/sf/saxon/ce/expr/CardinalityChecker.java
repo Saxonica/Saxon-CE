@@ -1,11 +1,9 @@
 package client.net.sf.saxon.ce.expr;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.SequenceIterator;
-import client.net.sf.saxon.ce.trans.Err;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
+import client.net.sf.saxon.ce.tree.iter.OneItemGoneIterator;
 import client.net.sf.saxon.ce.type.ItemType;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.Cardinality;
 
 /**
@@ -136,61 +134,44 @@ public final class CardinalityChecker extends UnaryExpression {
 
     public SequenceIterator iterate(XPathContext context) throws XPathException {
         SequenceIterator base = operand.iterate(context);
-
-        // If the base iterator knows how many items there are, then check it now rather than wasting time
-
-        if ((base.getProperties() & SequenceIterator.LAST_POSITION_FINDER) != 0) {
-            int count = ((LastPositionFinder)base).getLastPosition();
-            if (count == 0 && !Cardinality.allowsZero(requiredCardinality)) {
-                typeError("An empty sequence is not allowed as the " +
-                             role.getMessage(), role.getErrorCode(), context);
-            } else if (count == 1 && requiredCardinality == StaticProperty.EMPTY) {
-                typeError("The only value allowed for the " +
-                             role.getMessage() + " is an empty sequence", role.getErrorCode(), context);
-            } else if (count > 1 && !Cardinality.allowsMany(requiredCardinality)) {
-                typeError("A sequence of more than one item is not allowed as the " +
-                                role.getMessage() + depictSequenceStart(base.getAnother(), 2),
-                           role.getErrorCode(), context);
+        if (!Cardinality.allowsZero(requiredCardinality)) {
+            Item first = base.next();
+            if (first == null) {
+                typeError("An empty sequence is not allowed as the " + role.getMessage(), role.getErrorCode());
+            } else {
+                base = new OneItemGoneIterator(base);
             }
-            return base;
         }
-
-        // Otherwise return an iterator that does the checking on the fly
-
-        return new CardinalityCheckingIterator(base, requiredCardinality, role, getSourceLocator());
+        if (Cardinality.allowsMany(requiredCardinality)) {
+            return base;
+        } else {
+            ItemMappingFunction function = new SingletonCheckingFunction();
+            return new ItemMappingIterator(base, function);
+        }
 
     }
 
-    /**
-     * Show the first couple of items in a sequence in an error message
-     * @param seq iterator over the sequence
-     * @param max maximum number of items to be shown
-     * @return a message display of the contents of the sequence
-     */
+    public class SingletonCheckingFunction implements ItemMappingFunction, StatefulMappingFunction {
+        int count = 0;
 
-    public static String depictSequenceStart(SequenceIterator seq, int max) {
-        try {
-            FastStringBuffer sb = new FastStringBuffer(FastStringBuffer.SMALL);
-            int count = 0;
-            sb.append(" (");
-            while (true) {
-                Item next = seq.next();
-                if (next == null) {
-                    sb.append(") ");
-                    return sb.toString();
-                }
-                if (count++ > 0) {
-                    sb.append(", ");
-                }
-                if (count > max) {
-                    sb.append("...) ");
-                    return sb.toString();
-                }
-
-                sb.append(Err.depict(next));
+        public Item mapItem(Item item) throws XPathException {
+            if (++count > 1) {
+                typeError("A sequence of more than one item is not allowed as the " +
+                                role.getMessage(), role.getErrorCode());
+                return null;
+            } else {
+                return item;
             }
-        } catch (XPathException e) {
-            return "";
+        }
+
+        /**
+         * Return a clone of this MappingFunction, with the state reset to its state at the beginning
+         * of the underlying iteration
+         *
+         * @return a clone of this MappingFunction
+         */
+        public StatefulMappingFunction getAnother() {
+            return new SingletonCheckingFunction();
         }
     }
 
@@ -206,19 +187,19 @@ public final class CardinalityChecker extends UnaryExpression {
             if (nextItem == null) break;
             if (requiredCardinality == StaticProperty.EMPTY) {
                 typeError("An empty sequence is required as the " +
-                    role.getMessage(), role.getErrorCode(), context);
+                    role.getMessage(), role.getErrorCode());
                 return null;
             }
             if (item != null) {
                 typeError("A sequence of more than one item is not allowed as the " +
-                    role.getMessage() + depictSequenceStart(iter.getAnother(), 2), role.getErrorCode(), context);
+                    role.getMessage(), role.getErrorCode());
                 return null;
             }
             item = nextItem;
         }
         if (item == null && !Cardinality.allowsZero(requiredCardinality)) {
             typeError("An empty sequence is not allowed as the " +
-                    role.getMessage(), role.getErrorCode(), context);
+                    role.getMessage(), role.getErrorCode());
             return null;
         }
         return item;
@@ -228,11 +209,10 @@ public final class CardinalityChecker extends UnaryExpression {
     * Determine the data type of the items returned by the expression, if possible
     * @return a value such as Type.STRING, Type.BOOLEAN, Type.NUMBER, Type.NODE,
     * or Type.ITEM (meaning not known in advance)
-     * @param th the type hierarchy cache
      */
 
-	public ItemType getItemType(TypeHierarchy th) {
-	    return operand.getItemType(th);
+	public ItemType getItemType() {
+	    return operand.getItemType();
 	}
 
 	/**

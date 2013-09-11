@@ -91,20 +91,6 @@ public class FunctionLibraryList implements FunctionLibrary {
         return null;
     }
 
- 
-    /**
-     * Get the list of contained FunctionLibraries. This method allows the caller to modify
-     * the library list, for example by adding a new FunctionLibrary at a chosen position,
-     * by removing a library from the list, or by changing the order of libraries in the list.
-     * Note that such changes may violate rules in the
-     * language specifications, or assumptions made within the product.
-     * @return a list whose members are of class FunctionLibrary
-     */
-
-    public List<FunctionLibrary> getLibraryList() {
-        return libraryList;
-    }
-
 }
 // This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. 
 // If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.

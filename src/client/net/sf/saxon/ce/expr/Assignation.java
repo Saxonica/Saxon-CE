@@ -4,7 +4,6 @@ import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.om.ValueRepresentation;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
-import client.net.sf.saxon.ce.value.MemoClosure;
 import client.net.sf.saxon.ce.value.SequenceType;
 import client.net.sf.saxon.ce.value.Value;
 
@@ -88,12 +87,7 @@ public abstract class Assignation extends Expression implements Binding {
     */
 
     public ValueRepresentation evaluateVariable(XPathContext context) throws XPathException {
-        ValueRepresentation actual = context.evaluateLocalVariable(slotNumber);
-        if (actual instanceof MemoClosure && ((MemoClosure)actual).isFullyRead()) {
-            actual = ((MemoClosure)actual).materialize();
-            context.setLocalVariable(slotNumber, actual);
-        }
-        return actual;
+        return context.evaluateLocalVariable(slotNumber);
     }
 
     /**
@@ -155,15 +149,6 @@ public abstract class Assignation extends Expression implements Binding {
 
     public void setSlotNumber(int nr) {
         slotNumber = nr;
-    }
-
-    /**
-     * Get the number of slots required. Normally 1, except for a FOR expression with an AT clause, where it is 2.
-     * @return the number of slots required
-     */
-
-    public int getRequiredSlots() {
-        return 1;
     }
 
     /**
@@ -232,26 +217,6 @@ public abstract class Assignation extends Expression implements Binding {
     }
 
     /**
-     * Replace one subexpression by a replacement subexpression
-     * @param original the original subexpression
-     * @param replacement the replacement subexpression
-     * @return true if the original subexpression is found
-     */
-
-    public boolean replaceSubExpression(Expression original, Expression replacement) {
-        boolean found = false;
-        if (sequence == original) {
-            sequence = replacement;
-            found = true;
-        }
-        if (action == original) {
-            action = replacement;
-            found = true;
-        }
-        return found;
-    }
-
-    /**
      * Get the display name of the range variable, for diagnostics only
      * @return the lexical QName of the range variable
     */
@@ -281,14 +246,11 @@ public abstract class Assignation extends Expression implements Binding {
                                       Value constantValue, int properties,
                                       ExpressionVisitor visitor,
                                       Assignation currentExpression) {
-        List references = new ArrayList();
+        List<VariableReference> references = new ArrayList<VariableReference>();
         ExpressionTool.gatherVariableReferences(currentExpression.getAction(), this, references);
-        for (Iterator iter=references.iterator(); iter.hasNext();) {
-            VariableReference ref = (VariableReference)iter.next();
-            if (ref instanceof VariableReference) {
-                ((VariableReference)ref).refineVariableType(type, cardinality, constantValue, properties, visitor);
-                visitor.resetStaticProperties();
-            }
+        for (VariableReference ref : references) {
+            ref.refineVariableType(type, cardinality, constantValue, properties, visitor);
+            visitor.resetStaticProperties();
         }
     }
 

@@ -5,7 +5,6 @@ import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.pattern.NodeKindTest;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
 
 
 /**
@@ -44,10 +43,9 @@ public class RootExpression extends SingleNodeExpression {
      * Determine the data type of the items returned by this expression
      *
      * @return Type.NODE
-     * @param th the type hierarchy cache
      */
 
-    public ItemType getItemType(TypeHierarchy th) {
+    public ItemType getItemType() {
         return NodeKindTest.DOCUMENT;
     }
 
@@ -69,16 +67,16 @@ public class RootExpression extends SingleNodeExpression {
     public NodeInfo getNode(XPathContext context) throws XPathException {
         Item current = context.getContextItem();
         if (current==null) {
-            dynamicError("Finding root of tree: the context item is undefined", "XPDY0002", context);
+            dynamicError("Finding root of tree: the context item is undefined", "XPDY0002");
         }
         if (current instanceof NodeInfo) {
             DocumentInfo doc = ((NodeInfo)current).getDocumentRoot();
             if (doc==null) {
-                dynamicError("The root of the tree containing the context item is not a document node", "XPDY0050", context);
+                dynamicError("The root of the tree containing the context item is not a document node", "XPDY0050");
             }
             return doc;
         }
-        typeError("Finding root of tree: the context item is not a node", "XPTY0020", context);
+        typeError("Finding root of tree: the context item is not a node", "XPTY0020");
         // dummy return; we never get here
         return null;
     }

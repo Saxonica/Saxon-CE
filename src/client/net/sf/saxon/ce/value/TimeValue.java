@@ -3,7 +3,6 @@ package client.net.sf.saxon.ce.value;
 import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.functions.Component;
 import client.net.sf.saxon.ce.trans.Err;
-import client.net.sf.saxon.ce.trans.NoDynamicContextException;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
 import client.net.sf.saxon.ce.type.BuiltInAtomicType;
@@ -18,7 +17,7 @@ import java.math.BigDecimal;
  * A value of type xs:time
  */
 
-public final class TimeValue extends CalendarValue implements Comparable {
+public final class TimeValue extends CalendarValue implements Comparable<TimeValue> {
 
     private int hour;
     private int minute;
@@ -26,7 +25,6 @@ public final class TimeValue extends CalendarValue implements Comparable {
     private int microsecond;
 
     private TimeValue() {
-        typeLabel = BuiltInAtomicType.TIME;
     }
 
     /**
@@ -47,7 +45,6 @@ public final class TimeValue extends CalendarValue implements Comparable {
         this.second = second;
         this.microsecond = microsecond;
         setTimezoneInMinutes(tz);
-        typeLabel = BuiltInAtomicType.TIME;
     }
 
     /**
@@ -97,10 +94,8 @@ public final class TimeValue extends CalendarValue implements Comparable {
 
 
     private static ValidationFailure badTime(String msg, CharSequence value) {
-        ValidationFailure err = new ValidationFailure(
-                "Invalid time " + Err.wrap(value, Err.VALUE) + " (" + msg + ")");
-        err.setErrorCode("FORG0001");
-        return err;
+        return new ValidationFailure(
+                "Invalid time " + Err.wrap(value, Err.VALUE) + " (" + msg + ")", "FORG0001");
     }
 
     /**
@@ -110,7 +105,7 @@ public final class TimeValue extends CalendarValue implements Comparable {
      * and xs:untypedAtomic. For external objects, the result is AnyAtomicType.
      */
 
-    public BuiltInAtomicType getPrimitiveType() {
+    public BuiltInAtomicType getItemType() {
         return BuiltInAtomicType.TIME;
     }
 
@@ -170,10 +165,7 @@ public final class TimeValue extends CalendarValue implements Comparable {
         } else if (requiredType == BuiltInAtomicType.STRING) {
             return new StringValue(getStringValue());
         } else {
-            ValidationFailure err = new ValidationFailure("Cannot convert gYear to " +
-                    requiredType.getDisplayName());
-            err.setErrorCode("XPTY0004");
-            return err;
+            return new ValidationFailure("Cannot convert gYear to " + requiredType.getDisplayName(), "XPTY0004");
         }
     }
 
@@ -230,9 +222,7 @@ public final class TimeValue extends CalendarValue implements Comparable {
      */
 
     public AtomicValue copy() {
-        TimeValue v = new TimeValue(hour, minute, second, microsecond, getTimezoneInMinutes());
-        v.typeLabel = typeLabel;
-        return v;
+        return new TimeValue(hour, minute, second, microsecond, getTimezoneInMinutes());
     }
 
     /**
@@ -280,19 +270,23 @@ public final class TimeValue extends CalendarValue implements Comparable {
     public AtomicValue getComponent(int component) throws XPathException {
         switch (component) {
         case Component.HOURS:
-            return IntegerValue.makeIntegerValue(hour);
-        case Component.MINUTES:
-            return IntegerValue.makeIntegerValue(minute);
-        case Component.SECONDS:
+
+            return new IntegerValue(hour);
+            case Component.MINUTES:
+
+                return new IntegerValue(minute);
+            case Component.SECONDS:
             BigDecimal d = BigDecimal.valueOf(microsecond);
             d = d.divide(DecimalValue.BIG_DECIMAL_ONE_MILLION, 6, BigDecimal.ROUND_HALF_UP);
             d = d.add(BigDecimal.valueOf(second));
             return new DecimalValue(d);
         case Component.WHOLE_SECONDS: //(internal use only)
-            return IntegerValue.makeIntegerValue(second);
-        case Component.MICROSECONDS:
-            return IntegerValue.makeIntegerValue(microsecond);
-        case Component.TIMEZONE:
+
+            return new IntegerValue(second);
+            case Component.MICROSECONDS:
+
+                return new IntegerValue(microsecond);
+            case Component.TIMEZONE:
             if (hasTimezone()) {
                 return DayTimeDurationValue.fromMilliseconds(60000L * getTimezoneInMinutes());
             } else {
@@ -329,56 +323,30 @@ public final class TimeValue extends CalendarValue implements Comparable {
      *                            is declared as Object to satisfy the Comparable interface)
      */
 
-    public int compareTo(Object other) {
-        TimeValue otherTime = (TimeValue)other;
-        if (getTimezoneInMinutes() == otherTime.getTimezoneInMinutes()) {
-            if (hour != otherTime.hour) {
-                return IntegerValue.signum(hour - otherTime.hour);
-            } else if (minute != otherTime.minute) {
-                return IntegerValue.signum(minute - otherTime.minute);
-            } else if (second != otherTime.second) {
-                return IntegerValue.signum(second - otherTime.second);
-            } else if (microsecond != otherTime.microsecond) {
-                return IntegerValue.signum(microsecond - otherTime.microsecond);
-            } else {
-                return 0;
-            }
-        } else {
-            return toDateTime().compareTo(otherTime.toDateTime());
-        }
+    public int compareTo(TimeValue other) {
+        return toDateTime().compareTo(other.toDateTime());
     }
 
     /**
      * Compare the value to another dateTime value
      *
      * @param other The other dateTime value
-     * @param context the XPath dynamic evaluation context
+     * @param implicitTimezone
      * @return negative value if this one is the earler, 0 if they are chronologically equal,
      *         positive value if this one is the later. For this purpose, dateTime values with an unknown
      *         timezone are considered to be UTC values (the Comparable interface requires
      *         a total ordering).
-     * @throws ClassCastException if the other value is not a DateTimeValue (the parameter
+     * @throws ClassCastException if the other value is not a TimeValue (the parameter
      *                            is declared as Object to satisfy the Comparable interface)
-     * @throws NoDynamicContextException if the implicit timezone is required and is not available
-     * (because the function is called at compile time)
      */
 
-    public int compareTo(CalendarValue other, XPathContext context) throws NoDynamicContextException {
-        if (!(other instanceof TimeValue)) {
-            throw new ClassCastException("Time values are not comparable to " + other.getClass());
-        }
-        TimeValue otherTime = (TimeValue)other;
-        if (getTimezoneInMinutes() == otherTime.getTimezoneInMinutes()) {
-            // The values have the same time zone, or neither has a timezone
-            return compareTo(other);
-        } else {
-            return toDateTime().compareTo(otherTime.toDateTime(), context);
-        }
+    public int compareTo(CalendarValue other, int implicitTimezone) {
+        return toDateTime().compareTo(((TimeValue)other).toDateTime(), implicitTimezone);
     }
 
 
     public boolean equals(Object other) {
-        return other instanceof TimeValue && compareTo(other) == 0;
+        return other instanceof TimeValue && compareTo((TimeValue)other) == 0;
     }
 
     public int hashCode() {
@@ -396,16 +364,13 @@ public final class TimeValue extends CalendarValue implements Comparable {
      *          a subclass thereof
      */
 
-    public CalendarValue add(DurationValue duration) throws XPathException {
+    public TimeValue add(DurationValue duration) throws XPathException {
         if (duration instanceof DayTimeDurationValue) {
-            DateTimeValue dt = (DateTimeValue)toDateTime().add(duration);
+            DateTimeValue dt = toDateTime().add(duration);
             return new TimeValue(dt.getHour(), dt.getMinute(), dt.getSecond(),
                     dt.getMicrosecond(), getTimezoneInMinutes());
         } else {
-            XPathException err = new XPathException("Time+Duration arithmetic is supported only for xs:dayTimeDuration");
-            err.setErrorCode("XPTY0004");
-            err.setIsTypeError(true);
-            throw err;
+            return (TimeValue)super.add(duration); // throw type error
         }
     }
 
@@ -420,9 +385,7 @@ public final class TimeValue extends CalendarValue implements Comparable {
 
     public DayTimeDurationValue subtract(CalendarValue other, XPathContext context) throws XPathException {
         if (!(other instanceof TimeValue)) {
-            XPathException err = new XPathException("First operand of '-' is a time, but the second is not");
-            err.setIsTypeError(true);
-            throw err;
+            throw new XPathException("First operand of '-' is a time, but the second is not", "XPTY0004");
         }
         return super.subtract(other, context);
     }

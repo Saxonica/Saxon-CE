@@ -13,9 +13,8 @@ import client.net.sf.saxon.ce.type.ValidationFailure;
  * xs:string in the XPath type hierarchy. This enables type promotion from URI to String to happen
  * automatically in most cases where it is appropriate.</p>
  * <p/>
- * <p>This implementation of xs:anyURI allows any string to be contained in the value space. To check that
- * the URI is valid according to some set of syntax rules, the caller should invoke a {@link client.net.sf.saxon.ce.lib.StandardURIChecker}
- * before constructing the AnyURIValue.</p>
+ * <p>This implementation of xs:anyURI allows any string to be contained in the value space,
+ * reflecting the specification in XSD 1.1.</p>
  */
 
 public final class AnyURIValue extends StringValue {
@@ -32,10 +31,9 @@ public final class AnyURIValue extends StringValue {
 
     public AnyURIValue(CharSequence value) {
         this.value = (value == null ? "" : Whitespace.collapseWhitespace(value).toString());
-        typeLabel = BuiltInAtomicType.ANY_URI;
     }
 
-    public BuiltInAtomicType getPrimitiveType() {
+    public BuiltInAtomicType getItemType() {
         return BuiltInAtomicType.ANY_URI;
     }
 
@@ -53,10 +51,8 @@ public final class AnyURIValue extends StringValue {
         } else if (requiredType == BuiltInAtomicType.STRING) {
             return new StringValue(value);
         } else {
-            ValidationFailure err = new ValidationFailure("Cannot convert anyURI to " +
-                    requiredType.getDisplayName());
-            err.setErrorCode("XPTY0004");
-            return err;
+            return new ValidationFailure("Cannot convert anyURI to " +
+                    requiredType.getDisplayName(), "XPTY0004");
         }
     }
 

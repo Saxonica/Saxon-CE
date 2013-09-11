@@ -1,13 +1,8 @@
 package client.net.sf.saxon.ce.style;
-import client.net.sf.saxon.ce.om.StructuredQName;
-import com.google.gwt.logging.client.LogConfiguration;
-
 import client.net.sf.saxon.ce.LogController;
 import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.expr.instruct.ValueOf;
-import client.net.sf.saxon.ce.om.AttributeCollection;
-import client.net.sf.saxon.ce.value.Whitespace;
 import client.net.sf.saxon.ce.pattern.NodeKindTest;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.BuiltInAtomicType;
@@ -15,6 +10,7 @@ import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.Cardinality;
 import client.net.sf.saxon.ce.value.StringValue;
+import com.google.gwt.logging.client.LogConfiguration;
 
 
 /**
@@ -43,45 +39,13 @@ public final class XSLValueOf extends XSLLeafNodeConstructor {
     }
 
     public void prepareAttributes() throws XPathException {
-
-		String selectAtt = null;
-		String disableAtt = null;
-		String separatorAtt = null;
-
-		AttributeCollection atts = getAttributeList();
-
-		for (int a=0; a<atts.getLength(); a++) {
-			StructuredQName qn = atts.getStructuredQName(a);
-            String f = qn.getClarkName();
-			if (f.equals("disable-output-escaping")) {
-        		disableAtt = Whitespace.trim(atts.getValue(a));
-			} else if (f.equals("select")) {
-        		selectAtt = atts.getValue(a);
-			} else if (f.equals("separator")) {
-        		separatorAtt = atts.getValue(a);
-        	} else {
-        		checkUnknownAttribute(qn);
-        	}
-        }
-
-        if (selectAtt!=null) {
-            select = makeExpression(selectAtt);
-        }
-
-        if (separatorAtt != null) {
-            separator = makeAttributeValueTemplate(separatorAtt);
-        }
-
-        if (disableAtt != null) {
-	        if (disableAtt.equals("yes") || disableAtt.equals("no")) {
-	        	// do nothing
-		    } else {
-		            compileError("disable-output-escaping attribute must be either 'yes' or 'no'", "XTSE0020");
-		    }
-	    }
+        select = (Expression)checkAttribute("select", "e");
+        separator = (Expression)checkAttribute("separator", "a");
+        checkAttribute("disable-output-escaping", "b");
+        checkForUnknownAttributes();
         
         if (LogConfiguration.loggingIsEnabled() && LogController.traceIsEnabled()) {
-        	selectAttTrace = selectAtt;
+        	selectAttTrace = getAttributeValue("", "select");
         }
     }
 
@@ -102,16 +66,16 @@ public final class XSLValueOf extends XSLLeafNodeConstructor {
     }
 
     public Expression compile(Executable exec, Declaration decl) throws XPathException {
-        final TypeHierarchy th = getConfiguration().getTypeHierarchy();
+        final TypeHierarchy th = TypeHierarchy.getInstance();
         if (separator == null && select != null && xPath10ModeIsEnabled()) {
-            if (!select.getItemType(th).isAtomicType()) {
+            if (!select.getItemType().isAtomicType()) {
                 select = new Atomizer(select);
                 select = makeExpressionVisitor().simplify(select);
             }
             if (Cardinality.allowsMany(select.getCardinality())) {
                 select = new FirstItemExpression(select);
             }
-            if (!th.isSubType(select.getItemType(th), BuiltInAtomicType.STRING)) {
+            if (!th.isSubType(select.getItemType(), BuiltInAtomicType.STRING)) {
                 select = new AtomicSequenceConverter(select, BuiltInAtomicType.STRING);
             }
         } else {

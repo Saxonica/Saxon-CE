@@ -16,7 +16,6 @@ import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
 import client.net.sf.saxon.ce.type.BuiltInAtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.StringValue;
 import client.net.sf.saxon.ce.value.TextFragmentValue;
 import client.net.sf.saxon.ce.value.UntypedAtomicValue;
@@ -119,10 +118,9 @@ public class DocumentInstr extends ParentNodeConstructor {
 
     /**
      * Get the item type
-     * @param th The TypeHierarchy
      * @return the in
      */
-    public ItemType getItemType(TypeHierarchy th) {
+    public ItemType getItemType() {
         return NodeKindTest.DOCUMENT;
     }
 
@@ -183,7 +181,6 @@ public class DocumentInstr extends ParentNodeConstructor {
                 root = (DocumentInfo)builder.getCurrentRoot();
             } catch (XPathException e) {
                 e.maybeSetLocation(getSourceLocator());
-                e.maybeSetContext(context);
                 throw e;
             }
         }

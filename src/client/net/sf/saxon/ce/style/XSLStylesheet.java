@@ -1,16 +1,15 @@
 package client.net.sf.saxon.ce.style;
 
-import client.net.sf.saxon.ce.PreparedStylesheet;
 import client.net.sf.saxon.ce.expr.Expression;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
-import client.net.sf.saxon.ce.lib.Validation;
-import client.net.sf.saxon.ce.om.*;
+import client.net.sf.saxon.ce.om.Axis;
+import client.net.sf.saxon.ce.om.NodeInfo;
+import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.RuleManager;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.tree.iter.AxisIterator;
+import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 import client.net.sf.saxon.ce.type.Type;
-import client.net.sf.saxon.ce.value.Whitespace;
 
 /**
  * An xsl:stylesheet or xsl:transform element in the stylesheet. <br>
@@ -21,7 +20,7 @@ import client.net.sf.saxon.ce.value.Whitespace;
 
 public class XSLStylesheet extends StyleElement {
 
-    PreparedStylesheet exec;
+    Executable exec;
 
 
     // the PrincipalStylesheetModule object
@@ -32,10 +31,6 @@ public class XSLStylesheet extends StyleElement {
     public static final int ANNOTATION_PRESERVE = 2;
 
 
-
-    // default validation
-    private int defaultValidation = Validation.STRIP;
-
     // default mode (XSLT 3.0 only). Null means the unnamed mode is the default.
     private StructuredQName defaultMode = null;
 
@@ -44,13 +39,13 @@ public class XSLStylesheet extends StyleElement {
      * @return the owning PreparedStylesheet object. Exceptionally returns null during early construction.
      */
 
-    public PreparedStylesheet getPreparedStylesheet() {
-        return (principalStylesheetModule==null ? null : principalStylesheetModule.getPreparedStylesheet());
+    public Executable getPreparedStylesheet() {
+        return (principalStylesheetModule==null ? null : principalStylesheetModule.getExecutable());
     }
 
     public void setPrincipalStylesheetModule(PrincipalStylesheetModule module) {
         this.principalStylesheetModule = module;
-        this.exec = module.getPreparedStylesheet();
+        this.exec = module.getExecutable();
     }
 
     public PrincipalStylesheetModule getPrincipalStylesheetModule() {
@@ -61,7 +56,7 @@ public class XSLStylesheet extends StyleElement {
      * Get the run-time Executable object
      */
 
-    public PreparedStylesheet getExecutable() {
+    public Executable getExecutable() {
         return exec;
     }
 
@@ -93,58 +88,18 @@ public class XSLStylesheet extends StyleElement {
      */
 
     public void prepareAttributes() throws XPathException {
-
-        String inputTypeAnnotationsAtt = null;
-        AttributeCollection atts = getAttributeList();
-        for (int a = 0; a < atts.getLength(); a++) {
-
-            StructuredQName qn = atts.getStructuredQName(a);
-            String f = qn.getClarkName();
-            if (f.equals("version")) {
-                // already processed
-            } else if (f.equals("id")) {
-                //
-            } else if (f.equals("extension-element-prefixes")) {
-                //
-            } else if (f.equals("exclude-result-prefixes")) {
-                //
-            } else if (f.equals("default-validation")) {
-                String val = Whitespace.trim(atts.getValue(a));
-                defaultValidation = Validation.getCode(val);
-                if (defaultValidation == Validation.INVALID) {
-                    compileError("Invalid value for default-validation attribute. " +
-                            "Permitted values are (strict, lax, preserve, strip)", "XTSE0020");
-                } else if (defaultValidation != Validation.STRIP) {
-                    defaultValidation = Validation.STRIP;
-                    compileError("default-validation='" + val + "' requires a schema-aware processor",
-                            "XTSE1660");
-                }
-            } else if (f.equals("input-type-annotations")) {
-                inputTypeAnnotationsAtt = atts.getValue(a);
-            } else if (f.equals("default-mode")) {
-                String val = Whitespace.trim(atts.getValue(a));
-                if (!val.equals("#unnamed")) {
-                    try {
-                        defaultMode = makeQName(atts.getValue(a));
-                    } catch (NamespaceException err) {
-                        throw new XPathException(err.getMessage(), "XTST0030");
-                    }
-                }
-            } else {
-                checkUnknownAttribute(qn);
-            }
-        }
-        if (version == null) {
-            reportAbsence("version");
-        }
+        checkAttribute("version", "s1");
+        checkAttribute("id", "s");
+        checkAttribute("extension-element-prefixes", "s");
+        checkAttribute("exclude-result-prefixes", "s");
+        checkAttribute("default-validation", "v");
+        String inputTypeAnnotationsAtt = (String)checkAttribute("input-type-annotations", "w");
+        checkForUnknownAttributes();
 
         if (inputTypeAnnotationsAtt != null) {
             if (inputTypeAnnotationsAtt.equals("strip")) {
-                //setInputTypeAnnotations(ANNOTATION_STRIP);
             } else if (inputTypeAnnotationsAtt.equals("preserve")) {
-                //setInputTypeAnnotations(ANNOTATION_PRESERVE);
             } else if (inputTypeAnnotationsAtt.equals("unspecified")) {
-                //
             } else {
                 compileError("Invalid value for input-type-annotations attribute. " +
                              "Permitted values are (strip, preserve, unspecified)", "XTSE0020");
@@ -152,18 +107,6 @@ public class XSLStylesheet extends StyleElement {
         }
 
     }
-
-
-    /**
-     * Get the value of the default validation attribute
-     * @return the value of the default-validation attribute, as a constant such
-     * as {@link Validation#STRIP}
-     */
-
-    public int getDefaultValidation() {
-        return defaultValidation;
-    }
-
 
     /**
      * Get the value of the input-type-annotations attribute, for this module alone.
@@ -206,7 +149,7 @@ public class XSLStylesheet extends StyleElement {
             compileError(getDisplayName() + " must be the outermost element", "XTSE0010");
         }
 
-        AxisIterator kids = iterateAxis(Axis.CHILD);
+        UnfailingIterator kids = iterateAxis(Axis.CHILD);
         while(true) {
             NodeInfo curr = (NodeInfo)kids.next();
             if (curr == null) break;
@@ -242,7 +185,7 @@ public class XSLStylesheet extends StyleElement {
     public void processAllAttributes() throws XPathException {
         processDefaultCollationAttribute("");
         prepareAttributes();
-        AxisIterator iter = iterateAxis(Axis.CHILD);
+        UnfailingIterator iter = iterateAxis(Axis.CHILD);
         while (true) {
             NodeInfo node = (NodeInfo)iter.next();
             if (node == null) {

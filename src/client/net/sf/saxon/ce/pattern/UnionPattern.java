@@ -121,23 +121,6 @@ public class UnionPattern extends Pattern {
     }
 
     /**
-     * Replace a subexpression by a replacement subexpression
-     * @param original    the expression to be replaced
-     * @param replacement the new expression to be inserted in its place
-     * @return true if the replacement was carried out
-     */
-
-    public boolean replaceSubExpression(Expression original, Expression replacement) {
-        if (original == variableBinding) {
-            variableBinding = replacement;
-            return true;
-        } else {
-            return p1.replaceSubExpression(original, replacement) ||
-                p2.replaceSubExpression(original, replacement);
-        }
-    }
-
-    /**
      * Set the original text
      */
 

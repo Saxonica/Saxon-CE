@@ -1,13 +1,14 @@
 package client.net.sf.saxon.ce.expr.instruct;
 
 import client.net.sf.saxon.ce.Controller;
-import client.net.sf.saxon.ce.expr.*;
-import client.net.sf.saxon.ce.lib.NamespaceConstant;
+import client.net.sf.saxon.ce.expr.Container;
+import client.net.sf.saxon.ce.expr.ExpressionTool;
+import client.net.sf.saxon.ce.expr.XPathContext;
+import client.net.sf.saxon.ce.expr.XPathContextMajor;
 import client.net.sf.saxon.ce.om.ValueRepresentation;
+import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.SingletonIterator;
 import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
-import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.value.SingletonClosure;
 
 /**
 * A compiled global variable in a stylesheet or query. <br>
@@ -96,22 +97,15 @@ public class GlobalVariable extends GeneralVariable implements Container {
             throw new AssertionError("*** No select expression for global variable $" +
                     getVariableQName().getDisplayName() + "!!");
         } else {
-            try {
-                XPathContextMajor c2 = context.newCleanContext();
-                UnfailingIterator initialNode =
-                        SingletonIterator.makeIterator(c2.getController().getContextForGlobalVariables());
-                initialNode.next();
-                c2.setCurrentIterator(initialNode);
-                if (stackFrameMap != null) {
-                    c2.openStackFrame(stackFrameMap);
-                }
-                return ExpressionTool.evaluate(select, evaluationMode, c2, referenceCount);
-            } catch (XPathException e) {
-                if (!getVariableQName().getNamespaceURI().equals(NamespaceConstant.SAXON_GENERATED_GLOBAL)) {
-                    e.setIsGlobalError(true);
-                }
-                throw e;
+            XPathContextMajor c2 = context.newCleanContext();
+            UnfailingIterator initialNode =
+                    SingletonIterator.makeIterator(c2.getController().getContextForGlobalVariables());
+            initialNode.next();
+            c2.setCurrentIterator(initialNode);
+            if (stackFrameMap != null) {
+                c2.openStackFrame(stackFrameMap);
             }
+            return ExpressionTool.evaluate(select, evaluationMode, c2);
         }
     }
 
@@ -158,10 +152,6 @@ public class GlobalVariable extends GeneralVariable implements Container {
             b.setNotExecuting(this);
             if (err instanceof XPathException.Circularity) {
                 err.setErrorCode("XTDE0640");
-                err.setXPathContext(context);
-                // Detect it more quickly the next time (in a pattern, the error is recoverable)
-                SingletonClosure closure = new SingletonClosure(new ErrorExpression(err), context);
-                b.defineGlobalVariable(this, closure);
                 err.setLocator(getSourceLocator());
                 throw err;
             } else {

@@ -2,7 +2,6 @@ package client.net.sf.saxon.ce.value;
 import client.net.sf.saxon.ce.lib.StringCollator;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.*;
-import client.net.sf.saxon.ce.expr.XPathContext;
 
 import java.math.BigDecimal;
 
@@ -66,7 +65,7 @@ public abstract class NumericValue extends AtomicValue implements Comparable {
 
     public float getFloatValue() {
         try {
-            return ((FloatValue)convertPrimitive(BuiltInAtomicType.FLOAT, true).asAtomic()).getFloatValue();
+            return ((FloatValue)(convertPrimitive(BuiltInAtomicType.FLOAT, true).asAtomic())).getFloatValue();
         } catch (XPathException err) {
             return Float.NaN;
         }
@@ -80,19 +79,6 @@ public abstract class NumericValue extends AtomicValue implements Comparable {
 
     public BigDecimal getDecimalValue() throws XPathException {
         return ((DecimalValue)convertPrimitive(BuiltInAtomicType.DECIMAL, true).asAtomic()).getDecimalValue();
-    }
-
-
-
-
-    /**
-     * Test whether a value is an integer (an instance of a subtype of xs:integer)
-     * @param value the value being tested
-     * @return true if the value is an instance of xs:integer or a type derived therefrom
-     */
-
-    public static boolean isInteger(AtomicValue value) {
-        return (value instanceof IntegerValue);
     }
 
     /**
@@ -184,10 +170,10 @@ public abstract class NumericValue extends AtomicValue implements Comparable {
      * for all kinds of NumericValue returns the value itself.
      * @param ordered
      * @param collator
-     * @param context
+     * @param implicitTimezone
      */
 
-    public final Object getXPathComparable(boolean ordered, StringCollator collator, XPathContext context) {
+    public final Object getXPathComparable(boolean ordered, StringCollator collator, int implicitTimezone) {
         return this;
     }
 

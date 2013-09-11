@@ -4,30 +4,35 @@ import client.net.sf.saxon.ce.expr.Expression;
 import client.net.sf.saxon.ce.expr.Literal;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.expr.instruct.ResultDocument;
-import client.net.sf.saxon.ce.lib.Validation;
-import client.net.sf.saxon.ce.om.AttributeCollection;
 import client.net.sf.saxon.ce.om.Axis;
+import client.net.sf.saxon.ce.om.InscopeNamespaceResolver;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.value.EmptySequence;
-import client.net.sf.saxon.ce.value.Whitespace;
 
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
-* An xsl:result-document element in the stylesheet. <BR>
-* The xsl:result-document element takes an attribute href="filename". The filename will
-* often contain parameters, e.g. {position()} to ensure that a different file is produced
-* for each element instance. <BR>
-* There is a further attribute "name" which determines the format of the
-* output file, it identifies the name of an xsl:output element containing the output
-* format details.
-*/
+ * An xsl:result-document element in the stylesheet. <BR>
+ * The xsl:result-document element takes an attribute href="filename". The filename will
+ * often contain parameters, e.g. {position()} to ensure that a different file is produced
+ * for each element instance. <BR>
+ * There is a further attribute "name" which determines the format of the
+ * output file, it identifies the name of an xsl:output element containing the output
+ * format details.
+ */
 
 public class XSLResultDocument extends StyleElement {
 
-    private static final HashSet fans = new HashSet(25);    // formatting attribute names
+    //    When serialization is not being performed, either because the implementation does not support the
+    //    serialization option, or because the user is executing the transformation in a way that does not
+    //    invoke serialization, then the content of the xsl:output and xsl:character-map declarations has no effect.
+    //    Under these circumstances the processor may report any errors in an xsl:output or xsl:character-map
+    //    declaration, or in the serialization attributes of xsl:result-document, but is not required to do so.
+
+    private static final List<String> fans = new ArrayList<String>(25);    // formatting attribute names
 
     static {
         fans.add("method");
@@ -45,6 +50,7 @@ public class XSLResultDocument extends StyleElement {
         fans.add("escape-uri-attributes");
         fans.add("undeclare-prefixes");
         fans.add("normalization-form");
+        fans.add("use-character-maps");
     }
 
     private Expression href;
@@ -54,29 +60,32 @@ public class XSLResultDocument extends StyleElement {
 
 
     /**
-    * Determine whether this node is an instruction.
-    * @return true - it is an instruction
-    */
+     * Determine whether this node is an instruction.
+     *
+     * @return true - it is an instruction
+     */
 
     public boolean isInstruction() {
         return true;
     }
 
     /**
-    * Determine whether this type of element is allowed to contain a template-body
-    * @return true: yes, it may contain a template-body
-    */
+     * Determine whether this type of element is allowed to contain a template-body
+     *
+     * @return true: yes, it may contain a template-body
+     */
 
     public boolean mayContainSequenceConstructor() {
         return true;
     }
 
-   /**
+    /**
      * Determine the type of item returned by this instruction (only relevant if
      * it is an instruction). Default implementation returns Type.ITEM, indicating
      * that we don't know, it might be anything. Returns null in the case of an element
      * such as xsl:sort or xsl:variable that can appear in a sequence constructor but
      * contributes nothing to the result sequence.
+     *
      * @return the item type returned
      */
 
@@ -85,55 +94,15 @@ public class XSLResultDocument extends StyleElement {
     }
 
     public void prepareAttributes() throws XPathException {
-		AttributeCollection atts = getAttributeList();
-
-        String methodAtt = null;
-        String hrefAttribute = null;
-        String validationAtt = null;
-        String typeAtt = null;
-        String useCharacterMapsAtt = null;
-
-
-		for (int a=0; a<atts.getLength(); a++) {
-			StructuredQName qn = atts.getStructuredQName(a);
-            String f = qn.getClarkName();
-			if (f.equals("method")) {
-        		methodAtt = Whitespace.trim(atts.getValue(a));
-        	} else if (f.equals("href")) {
-        		hrefAttribute = Whitespace.trim(atts.getValue(a));
-            } else if (f.equals("validation")) {
-                validationAtt = Whitespace.trim(atts.getValue(a));
-            } else if (f.equals("type")) {
-                typeAtt = Whitespace.trim(atts.getValue(a));
-            } else if (f.equals("use-character-maps")) {
-                useCharacterMapsAtt = Whitespace.trim(atts.getValue(a));
-            } else if (fans.contains(f) || f.startsWith("{")) {
-                // this is a serialization attribute
-                String val = Whitespace.trim(atts.getValue(a));
-                Expression exp = makeAttributeValueTemplate(val);
-                //serializationAttributes.put(nc&0xfffff, exp);
-        	} else {
-        		checkUnknownAttribute(qn);
-        	}
+        for (String att : fans) {
+            checkAttribute(att, "s");
         }
-
-        if (hrefAttribute==null) {
-            //href = StringValue.EMPTY_STRING;
-        } else {
-            href = makeAttributeValueTemplate(hrefAttribute);
-        }
-
-        if (methodAtt!=null) {
-            methodExpression = makeAttributeValueTemplate(methodAtt);
-        }
-
-        if (validationAtt!=null && Validation.getCode(validationAtt) != Validation.STRIP) {
-            compileError("To perform validation, a schema-aware XSLT processor is needed", "XTSE1660");
-        }
-        if (typeAtt!=null) {
-            compileError("The @type attribute is available only with a schema-aware XSLT processor", "XTSE1660");
-        }
-
+        methodExpression = (Expression)checkAttribute("method", "a");
+        checkAttribute("validation", "v");
+        checkAttribute("type", "t");
+        checkAttribute("format", "q");
+        href = (Expression)checkAttribute("href", "a");
+        checkForUnknownAttributes();
     }
 
     public void validate(Declaration decl) throws XPathException {
@@ -143,14 +112,13 @@ public class XSLResultDocument extends StyleElement {
         href = typeCheck(href);
         methodExpression = typeCheck(methodExpression);
 
-
         getExecutable().setCreatesSecondaryResult(true);
 
     }
 
     public Expression compile(Executable exec, Declaration decl) throws XPathException {
 
-        ResultDocument inst = new ResultDocument(href, methodExpression, getBaseURI(), this);
+        ResultDocument inst = new ResultDocument(href, methodExpression, getBaseURI(), new InscopeNamespaceResolver(this));
 
         Expression b = compileSequenceConstructor(exec, decl, iterateAxis(Axis.CHILD));
         if (b == null) {

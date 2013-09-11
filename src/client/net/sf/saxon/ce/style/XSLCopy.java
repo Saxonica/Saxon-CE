@@ -2,14 +2,10 @@ package client.net.sf.saxon.ce.style;
 
 import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.expr.instruct.*;
-import client.net.sf.saxon.ce.lib.Validation;
-import client.net.sf.saxon.ce.om.AttributeCollection;
 import client.net.sf.saxon.ce.om.Axis;
-import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.pattern.NodeKindTest;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.value.SequenceType;
-import client.net.sf.saxon.ce.value.Whitespace;
 
 /**
 * Handler for xsl:copy elements in stylesheet. <br>
@@ -43,58 +39,18 @@ public class XSLCopy extends StyleElement {
 
     public void prepareAttributes() throws XPathException {
 
-		AttributeCollection atts = getAttributeList();
-		String copyNamespacesAtt = null;
-		String validationAtt = null;
-		String typeAtt = null;
-        String inheritAtt = null;
-
-        for (int a=0; a<atts.getLength(); a++) {
-			StructuredQName qn = atts.getStructuredQName(a);
-            String f = qn.getClarkName();
-			if (f.equals("use-attribute-sets")) {
-        		use = atts.getValue(a);
-            } else if (f.equals("copy-namespaces")) {
-                copyNamespacesAtt = Whitespace.trim(atts.getValue(a));
-            } else if (f.equals("type")) {
-                typeAtt = Whitespace.trim(atts.getValue(a));
-            } else if (f.equals("validation")) {
-                validationAtt = Whitespace.trim(atts.getValue(a));
-            } else if (f.equals("inherit-namespaces")) {
-                inheritAtt = Whitespace.trim(atts.getValue(a));
-        	} else {
-        		checkUnknownAttribute(qn);
-        	}
+        Boolean b = (Boolean)checkAttribute("copy-namespaces", "b");
+        if (b != null) {
+            copyNamespaces = b;
         }
-
-        if (copyNamespacesAtt == null) {
-            copyNamespaces = true;
-        } else {
-            if (copyNamespacesAtt.equals("yes")) {
-                copyNamespaces = true;
-            } else if (copyNamespacesAtt.equals("no")) {
-                copyNamespaces = false;
-            } else {
-                compileError("Value of copy-namespaces must be 'yes' or 'no'", "XTSE0020");
-            }
+        b = (Boolean)checkAttribute("inherit-namespaces", "b");
+        if (b != null) {
+            inheritNamespaces = b;
         }
-
-        if (validationAtt != null && Validation.getCode(validationAtt) != Validation.STRIP) {
-            compileError("To perform validation, a schema-aware XSLT processor is needed", "XTSE1660");
-        }
-        if (typeAtt!=null) {
-            compileError("The @type attribute is available only with a schema-aware XSLT processor", "XTSE1660");
-        }
-
-        if (inheritAtt != null) {
-            if (inheritAtt.equals("yes")) {
-                inheritNamespaces = true;
-            } else if (inheritAtt.equals("no")) {
-                inheritNamespaces = false;
-            } else {
-                compileError("The @inherit-namespaces attribute has permitted values (yes, no)", "XTSE0020");
-            }
-        }
+        checkAttribute("type", "t");
+        checkAttribute("validation", "v");
+        use = (String)checkAttribute("use-attribute-sets", "w");
+        checkForUnknownAttributes();
 
     }
 

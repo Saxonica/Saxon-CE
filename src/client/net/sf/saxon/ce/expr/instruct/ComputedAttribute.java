@@ -3,13 +3,15 @@ package client.net.sf.saxon.ce.expr.instruct;
 import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.functions.SystemFunction;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
-import client.net.sf.saxon.ce.lib.StandardURIChecker;
 import client.net.sf.saxon.ce.om.*;
 import client.net.sf.saxon.ce.pattern.NodeKindTest;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.type.*;
-import client.net.sf.saxon.ce.value.*;
+import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.ItemType;
+import client.net.sf.saxon.ce.type.TypeHierarchy;
+import client.net.sf.saxon.ce.value.SequenceType;
 import client.net.sf.saxon.ce.value.StringValue;
+import client.net.sf.saxon.ce.value.Whitespace;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -55,11 +57,10 @@ public final class ComputedAttribute extends AttributeCreator {
 
     /**
      * Get the static type of this expression
-     * @param th the type hierarchy cache
      * @return the static type of the item returned by this expression
      */
 
-    public ItemType getItemType(TypeHierarchy th) {
+    public ItemType getItemType() {
         return NodeKindTest.ATTRIBUTE;
     }
 
@@ -100,8 +101,8 @@ public final class ComputedAttribute extends AttributeCreator {
         RoleLocator role;
         //role.setSourceLocator(this);
 
-        TypeHierarchy th = visitor.getConfiguration().getTypeHierarchy();
-        if (!th.isSubType(attributeName.getItemType(th), BuiltInAtomicType.STRING)) {
+        TypeHierarchy th = TypeHierarchy.getInstance();
+        if (!th.isSubType(attributeName.getItemType(), BuiltInAtomicType.STRING)) {
             attributeName = SystemFunction.makeSystemFunction("string", new Expression[]{attributeName});
         }
 
@@ -154,32 +155,8 @@ public final class ComputedAttribute extends AttributeCreator {
         return list.iterator();
     }
 
+
     /**
-     * Replace one subexpression by a replacement subexpression
-     * @param original the original subexpression
-     * @param replacement the replacement subexpression
-     * @return true if the original subexpression is found
-     */
-
-    public boolean replaceSubExpression(Expression original, Expression replacement) {
-        boolean found = false;
-        if (select == original) {
-            select = replacement;
-            found = true;
-        }
-        if (attributeName == original) {
-            attributeName = replacement;
-            found = true;
-        }
-        if (namespace == original) {
-            namespace = replacement;
-            found = true;
-        }
-                return found;
-    }
-
-
-   /**
      * Offer promotion for subexpressions. The offer will be accepted if the subexpression
      * is not dependent on the factors (e.g. the context item) identified in the PromotionOffer.
      * By default the offer is not accepted - this is appropriate in the case of simple expressions
@@ -226,16 +203,16 @@ public final class ComputedAttribute extends AttributeCreator {
                 prefix = parts[0];
                 localName = parts[1];
             } catch (QNameException err) {
-                dynamicError("Invalid attribute name: " + rawName, "XTDE0850", context);
+                dynamicError("Invalid attribute name: " + rawName, "XTDE0850");
             }
             if (rawName.toString().equals("xmlns")) {
                 if (namespace==null) {
-                    dynamicError("Invalid attribute name: " + rawName, "XTDE0855", context);
+                    dynamicError("Invalid attribute name: " + rawName, "XTDE0855");
                 }
             }
             if (prefix.equals("xmlns")) {
                 if (namespace==null) {
-                    dynamicError("Invalid attribute name: " + rawName, "XTDE0860", context);
+                    dynamicError("Invalid attribute name: " + rawName, "XTDE0860");
                 } else {
                     // ignore the prefix "xmlns"
                     prefix = "";
@@ -243,7 +220,7 @@ public final class ComputedAttribute extends AttributeCreator {
             }
 
         } else {
-            typeError("Attribute name must be either a string or a QName", "XPTY0004", context);
+            typeError("Attribute name must be either a string or a QName", "XPTY0004");
         }
 
         if (namespace == null && uri == null) {
@@ -252,21 +229,14 @@ public final class ComputedAttribute extends AttributeCreator {
         	} else {
                 uri = nsContext.getURIForPrefix(prefix, false);
                 if (uri==null) {
-                    dynamicError("Undeclared prefix in attribute name: " + prefix, "XTDE0860", context);
+                    dynamicError("Undeclared prefix in attribute name: " + prefix, "XTDE0860");
                 }
         	}
 
         } else {
             if (uri == null) {
                 // generate a name using the supplied namespace URI
-                if (namespace instanceof StringLiteral) {
-                    uri = ((StringLiteral)namespace).getStringValue();
-                } else {
-                    uri = namespace.evaluateAsString(context).toString();
-                    if (!StandardURIChecker.getInstance().isValidURI(uri)) {
-                        dynamicError("The value of the namespace attribute must be a valid URI", "XTDE0865", context);
-                    }
-                }
+                uri = namespace.evaluateAsString(context).toString();
             }
             if (uri.length() == 0) {
                 // there is a special rule for this case in the XSLT specification;
@@ -291,7 +261,7 @@ public final class ComputedAttribute extends AttributeCreator {
         }
 
         if (uri.equals(NamespaceConstant.XMLNS)) {
-            dynamicError("Cannot create attribute in namespace " + uri, "XTDE0835", context);
+            dynamicError("Cannot create attribute in namespace " + uri, "XTDE0835");
         }
 
         return new StructuredQName(prefix, uri, localName);

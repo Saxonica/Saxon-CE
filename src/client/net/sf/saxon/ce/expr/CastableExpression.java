@@ -76,8 +76,8 @@ public final class CastableExpression extends UnaryExpression {
 //            return Literal.makeLiteral(BooleanValue.FALSE);
 //        }
 
-        final TypeHierarchy th = visitor.getConfiguration().getTypeHierarchy();
-        if (!CastExpression.isPossibleCast(operand.getItemType(th).getAtomizedItemType(), targetType)) {
+        final TypeHierarchy th = TypeHierarchy.getInstance();
+        if (!CastExpression.isPossibleCast(operand.getItemType().getAtomizedItemType(), targetType)) {
             return Literal.makeLiteral(BooleanValue.FALSE);
         }
 
@@ -115,10 +115,9 @@ public final class CastableExpression extends UnaryExpression {
 
     /**
      * Determine the data type of the result of the Castable expression
-     * @param th the type hierarchy cache
      */
 
-    public ItemType getItemType(TypeHierarchy th) {
+    public ItemType getItemType() {
         return BuiltInAtomicType.BOOLEAN;
     }
 

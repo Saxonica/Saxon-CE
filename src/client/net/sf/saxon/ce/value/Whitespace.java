@@ -2,6 +2,9 @@ package client.net.sf.saxon.ce.value;
 
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
 
+import java.util.ArrayList;
+import java.util.List;
+
 /**
  * This class provides helper methods and constants for handling whitespace
  */
@@ -239,6 +242,35 @@ public class Whitespace {
             return null;
         }
         return trimWhitespace(s).toString();
+    }
+
+    /**
+     * Tokenize a string on whitespace boundaries
+     * @param s the string to be tokenized
+     * @return a list of tokens
+     */
+
+    public static List<String> tokenize(CharSequence s) {
+        ArrayList<String> list = new ArrayList<String>(8);
+        FastStringBuffer fsb = new FastStringBuffer(FastStringBuffer.TINY);
+        boolean inTok = false;
+        for (int i=0; i<s.length(); i++) {
+            char c = s.charAt(i);
+            if (c <= 32 && C0WHITE[c]) {
+                if (inTok) {
+                    list.add(fsb.toString());
+                    fsb.setLength(0);
+                    inTok = false;
+                }
+            } else {
+                fsb.append(c);
+                inTok = true;
+            }
+        }
+        if (inTok) {
+            list.add(fsb.toString());
+        }
+        return list;
     }
 }
 // This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. 

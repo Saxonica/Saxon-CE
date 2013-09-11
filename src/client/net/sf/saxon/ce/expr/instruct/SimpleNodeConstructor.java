@@ -118,11 +118,11 @@ public abstract class SimpleNodeConstructor extends Instruction {
         localTypeCheck(visitor, contextItemType);
 
         if (select != null) {
-            final TypeHierarchy th = visitor.getConfiguration().getTypeHierarchy();
+            final TypeHierarchy th = TypeHierarchy.getInstance();
             select = visitor.typeCheck(select, contextItemType);
             if (select instanceof ValueOf) {
                 Expression valSelect = ((ValueOf)select).getContentExpression();
-                if (th.isSubType(valSelect.getItemType(th), BuiltInAtomicType.STRING) &&
+                if (th.isSubType(valSelect.getItemType(), BuiltInAtomicType.STRING) &&
                         !Cardinality.allowsMany(valSelect.getCardinality())) {
                     select = valSelect;
                 }
@@ -132,12 +132,12 @@ public abstract class SimpleNodeConstructor extends Instruction {
             if (select instanceof StringFn) {
                 StringFn fn = (StringFn)select;
                 Expression arg = fn.getArguments()[0];
-                if (arg.getItemType(th) == BuiltInAtomicType.UNTYPED_ATOMIC && !Cardinality.allowsMany(arg.getCardinality())) {
+                if (arg.getItemType() == BuiltInAtomicType.UNTYPED_ATOMIC && !Cardinality.allowsMany(arg.getCardinality())) {
                     select = arg;    
                 }
             } else if (select instanceof CastExpression && ((CastExpression)select).getTargetType() == BuiltInAtomicType.STRING) {
                 Expression arg = ((CastExpression)select).getBaseExpression();
-                if (arg.getItemType(th) == BuiltInAtomicType.UNTYPED_ATOMIC && !Cardinality.allowsMany(arg.getCardinality())) {
+                if (arg.getItemType() == BuiltInAtomicType.UNTYPED_ATOMIC && !Cardinality.allowsMany(arg.getCardinality())) {
                     select = arg;
                 }
             }
@@ -154,22 +154,6 @@ public abstract class SimpleNodeConstructor extends Instruction {
 
     public Iterator<Expression> iterateSubExpressions() {
         return monoIterator(select);
-    }
-
-    /**
-     * Replace one subexpression by a replacement subexpression
-     * @param original the original subexpression
-     * @param replacement the replacement subexpression
-     * @return true if the original subexpression is found
-     */
-
-    public boolean replaceSubExpression(Expression original, Expression replacement) {
-        boolean found = false;
-        if (select == original) {
-            select = replacement;
-            found = true;
-        }
-        return found;
     }
 
     /**
@@ -205,9 +189,9 @@ public abstract class SimpleNodeConstructor extends Instruction {
         }
         String content = contentItem.getStringValue();
         content = checkContent(content, context);
-        final TypeHierarchy th = context.getConfiguration().getTypeHierarchy();
+        final TypeHierarchy th = TypeHierarchy.getInstance();
         Orphan o = new Orphan();
-        o.setNodeKind(((NodeTest)getItemType(th)).getRequiredNodeKind());
+        o.setNodeKind(((NodeTest)getItemType()).getRequiredNodeKind());
         o.setStringValue(content);
         o.setNodeName(evaluateNameCode(context));
         return o; 

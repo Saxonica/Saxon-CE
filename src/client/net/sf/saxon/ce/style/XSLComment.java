@@ -3,8 +3,6 @@ import client.net.sf.saxon.ce.expr.Expression;
 import client.net.sf.saxon.ce.expr.StringLiteral;
 import client.net.sf.saxon.ce.expr.instruct.Comment;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
-import client.net.sf.saxon.ce.om.AttributeCollection;
-import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.value.StringValue;
 
@@ -15,23 +13,8 @@ import client.net.sf.saxon.ce.value.StringValue;
 public final class XSLComment extends XSLLeafNodeConstructor {
 
     public void prepareAttributes() throws XPathException {
-
-        String selectAtt = null;
-
-		AttributeCollection atts = getAttributeList();
-		for (int a=0; a<atts.getLength(); a++) {
-			StructuredQName qn = atts.getStructuredQName(a);
-            String f = qn.getClarkName();
-			if (f.equals("select")) {
-        		selectAtt = atts.getValue(a);
-        	} else {
-        		checkUnknownAttribute(qn);
-        	}
-        }
-
-        if (selectAtt!=null) {
-            select = makeExpression(selectAtt);
-        }
+        select = (Expression)checkAttribute("select", "e");
+        checkForUnknownAttributes();
     }
 
     public void validate(Declaration decl) throws XPathException {

@@ -1,8 +1,8 @@
 package client.net.sf.saxon.ce.value;
 
 import client.net.sf.saxon.ce.expr.XPathContext;
+import client.net.sf.saxon.ce.functions.FormatDate;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
 import client.net.sf.saxon.ce.type.BuiltInAtomicType;
 import client.net.sf.saxon.ce.type.ConversionResult;
 import client.net.sf.saxon.ce.type.ValidationFailure;
@@ -34,7 +34,6 @@ public class DateValue extends GDateValue implements Comparable {
         this.year = year;
         this.month = month;
         this.day = day;
-        typeLabel = BuiltInAtomicType.DATE;
     }
 
     /**
@@ -53,7 +52,6 @@ public class DateValue extends GDateValue implements Comparable {
         this.month = month;
         this.day = day;
         setTimezoneInMinutes(tz);
-        typeLabel = BuiltInAtomicType.DATE;
     }
 
     /**
@@ -65,7 +63,6 @@ public class DateValue extends GDateValue implements Comparable {
      */
     public DateValue(CharSequence s) throws XPathException {
         setLexicalValue(this, s).asAtomic();
-        typeLabel = BuiltInAtomicType.DATE;
     }
 
     /**
@@ -77,9 +74,7 @@ public class DateValue extends GDateValue implements Comparable {
      */
 
     public static ConversionResult makeDateValue(CharSequence in) {
-        DateValue d = new DateValue();
-        d.typeLabel = BuiltInAtomicType.DATE;
-        return setLexicalValue(d, in);
+        return setLexicalValue(new DateValue(), in);
     }
 
     /**
@@ -89,7 +84,7 @@ public class DateValue extends GDateValue implements Comparable {
      * and xs:untypedAtomic. For external objects, the result is AnyAtomicType.
      */
 
-    public BuiltInAtomicType getPrimitiveType() {
+    public BuiltInAtomicType getItemType() {
         return BuiltInAtomicType.DATE;
     }
 
@@ -103,12 +98,10 @@ public class DateValue extends GDateValue implements Comparable {
      */
 
     public static DateValue tomorrow(int year, int month, int day) {
-        if (DateValue.isValidDate(year, month, day + 1)) {
-            return new DateValue(year, month, (day + 1));
-        } else if (month < 12) {
-            return new DateValue(year, (month + 1),  1);
-        } else {
-            return new DateValue(year + 1, 1, 1);
+        try {
+            return new DateValue(year, month, day).add(DayTimeDurationValue.ONE_DAY);
+        } catch (XPathException e) {
+            throw new AssertionError(e);
         }
     }
 
@@ -122,16 +115,10 @@ public class DateValue extends GDateValue implements Comparable {
      */
 
     public static DateValue yesterday(int year, int month, int day) {
-        if (day > 1) {
-            return new DateValue(year, month, (day - 1));
-        } else if (month > 1) {
-            if (month == 3 && isLeapYear(year)) {
-                return new DateValue(year, 2, 29);
-            } else {
-                return new DateValue(year, (month - 1), daysPerMonth[month - 2]);
-            }
-        } else {
-            return new DateValue(year - 1, 12, 31);
+        try {
+            return new DateValue(year, month, day).add(DayTimeDurationValue.MINUS_ONE_DAY);
+        } catch (XPathException e) {
+            throw new AssertionError(e);
         }
     }
 
@@ -162,10 +149,8 @@ public class DateValue extends GDateValue implements Comparable {
         } else if (requiredType == BuiltInAtomicType.G_DAY) {
             return new GDayValue(day, getTimezoneInMinutes());
         } else {
-            ValidationFailure err = new ValidationFailure("Cannot convert date to " +
-                    requiredType.getDisplayName());
-            err.setErrorCode("XPTY0004");
-            return err;
+            return new ValidationFailure("Cannot convert date to " +
+                    requiredType.getDisplayName(), "XPTY0004");
         }
     }
 
@@ -176,27 +161,11 @@ public class DateValue extends GDateValue implements Comparable {
      */
 
     public CharSequence getPrimitiveStringValue() {
-
-        FastStringBuffer sb = new FastStringBuffer(FastStringBuffer.TINY);
-        int yr = year;
-        if (year <= 0) {
-            yr = -yr + 1;           // no year zero in lexical space for XSD 1.0
-            if (yr != 0) {
-                sb.append('-');
-            }
+        try {
+            return FormatDate.formatDate(this, "[Y0001]-[M01]-[D01][Z]", "en");
+        } catch (XPathException err) {
+            throw new AssertionError(err);
         }
-        appendString(sb, yr, (yr > 9999 ? (yr + "").length() : 4));
-        sb.append('-');
-        appendTwoDigits(sb, month);
-        sb.append('-');
-        appendTwoDigits(sb, day);
-
-        if (hasTimezone()) {
-            appendTimezone(sb);
-        }
-
-        return sb;
-
     }
 
     /**
@@ -215,23 +184,7 @@ public class DateValue extends GDateValue implements Comparable {
      */
 
     public AtomicValue copy() {
-        DateValue v = new DateValue(year, month, day, getTimezoneInMinutes());
-        v.typeLabel = typeLabel;
-        return v;
-    }
-
-    /**
-     * Return a new date with the same normalized value, but
-     * in a different timezone. This is called only for a DateValue that has an explicit timezone
-     *
-     * @param timezone the new timezone offset, in minutes
-     * @return the time in the new timezone. This will be a new TimeValue unless no change
-     *         was required to the original value
-     */
-
-    public CalendarValue adjustTimezone(int timezone) {
-        DateTimeValue dt = (DateTimeValue) toDateTime().adjustTimezone(timezone);
-        return new DateValue(dt.getYear(), dt.getMonth(), dt.getDay(), dt.getTimezoneInMinutes());
+        return new DateValue(year, month, day, getTimezoneInMinutes());
     }
 
     /**
@@ -244,7 +197,7 @@ public class DateValue extends GDateValue implements Comparable {
      *          a subclass thereof
      */
 
-    public CalendarValue add(DurationValue duration) throws XPathException {
+    public DateValue add(DurationValue duration) throws XPathException {
         if (duration instanceof DayTimeDurationValue) {
             long microseconds = ((DayTimeDurationValue) duration).getLengthInMicroseconds();
             boolean negative = (microseconds < 0);
@@ -276,10 +229,7 @@ public class DateValue extends GDateValue implements Comparable {
             }
             return new DateValue(y, (byte) m, (byte) d, getTimezoneInMinutes());
         } else {
-            XPathException err = new XPathException("Date arithmetic is not supported on xs:duration, only on its subtypes");
-            err.setIsTypeError(true);
-            err.setErrorCode("XPTY0004");
-            throw err;
+            return (DateValue)super.add(duration); // throw type error
         }
     }
 
@@ -294,10 +244,7 @@ public class DateValue extends GDateValue implements Comparable {
 
     public DayTimeDurationValue subtract(CalendarValue other, XPathContext context) throws XPathException {
         if (!(other instanceof DateValue)) {
-            XPathException err = new XPathException("First operand of '-' is a date, but the second is not");
-            err.setIsTypeError(true);
-            err.setErrorCode("XPTY0004");
-            throw err;
+            throw new XPathException("First operand of '-' is a date, but the second is not", "XPTY0004");
         }
         return super.subtract(other, context);
     }
@@ -316,7 +263,7 @@ public class DateValue extends GDateValue implements Comparable {
 
     public int compareTo(Object v2) {
         try {
-            return compareTo((DateValue) v2, null);
+            return compareTo((DateValue) v2);
         } catch (Exception err) {
             throw new ClassCastException("DateTime comparison requires access to implicit timezone");
         }

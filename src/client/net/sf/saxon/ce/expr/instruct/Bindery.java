@@ -125,11 +125,11 @@ public final class Bindery  {
     public static Value applyFunctionConversionRules(
             ValueRepresentation value, SequenceType requiredType, final XPathContext context)
             throws XPathException {
-        final TypeHierarchy th = context.getConfiguration().getTypeHierarchy();
+        final TypeHierarchy th = TypeHierarchy.getInstance();
         final ItemType requiredItemType = requiredType.getPrimaryType();
         ItemType suppliedItemType = (value instanceof NodeInfo
                 ? new NameTest(((NodeInfo)value))
-                : ((Value)value).getItemType(th));
+                : ((Value)value).getItemType());
 
         SequenceIterator iterator = Value.asIterator(value);
 
@@ -148,13 +148,8 @@ public final class Bindery  {
                 ItemMappingFunction converter = new ItemMappingFunction() {
                     public Item mapItem(Item item) throws XPathException {
                         if (item instanceof UntypedAtomicValue) {
-                            ConversionResult val = ((UntypedAtomicValue)item).convert(
-                                    (BuiltInAtomicType)requiredItemType, true);
-                            if (val instanceof ValidationFailure) {
-                                ValidationFailure vex = (ValidationFailure)val;
-                                throw vex.makeException();
-                            }
-                            return (AtomicValue)val;
+                            return ((UntypedAtomicValue)item).convert(
+                                    (BuiltInAtomicType)requiredItemType, true).asAtomic();
                         } else {
                             return item;
                         }
@@ -173,7 +168,7 @@ public final class Bindery  {
                                 BuiltInAtomicType.DOUBLE, true).asAtomic();
                         } else {
                             throw new XPathException(
-                                    "Cannot promote non-numeric value to xs:double", "XPTY0004", context);
+                                    "Cannot promote non-numeric value to xs:double", "XPTY0004");
                         }
                     }
                 };
@@ -183,13 +178,13 @@ public final class Bindery  {
                     public Item mapItem(Item item) throws XPathException {
                         if (item instanceof DoubleValue) {
                             throw new XPathException(
-                                    "Cannot promote xs:double value to xs:float", "XPTY0004", context);
+                                    "Cannot promote xs:double value to xs:float", "XPTY0004");
                         } else if (item instanceof NumericValue) {
                             return ((AtomicValue)item).convert(
                                 BuiltInAtomicType.FLOAT, true).asAtomic();
                         } else {
                             throw new XPathException(
-                                    "Cannot promote non-numeric value to xs:float", "XPTY0004", context);
+                                    "Cannot promote non-numeric value to xs:float", "XPTY0004");
                         }
                     }
                 };

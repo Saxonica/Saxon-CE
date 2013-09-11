@@ -4,24 +4,22 @@ import client.net.sf.saxon.ce.dom.HTMLDocumentWrapper;
 import client.net.sf.saxon.ce.dom.HTMLDocumentWrapper.DocType;
 import client.net.sf.saxon.ce.dom.XMLDOM;
 import client.net.sf.saxon.ce.event.PipelineConfiguration;
-import client.net.sf.saxon.ce.expr.EarlyEvaluationContext;
-import client.net.sf.saxon.ce.expr.XPathContext;
-import client.net.sf.saxon.ce.expr.number.Numberer_en;
 import client.net.sf.saxon.ce.expr.sort.CaseInsensitiveCollator;
 import client.net.sf.saxon.ce.expr.sort.CodepointCollator;
-import client.net.sf.saxon.ce.lib.*;
+import client.net.sf.saxon.ce.lib.ErrorListener;
+import client.net.sf.saxon.ce.lib.NamespaceConstant;
+import client.net.sf.saxon.ce.lib.StandardErrorListener;
+import client.net.sf.saxon.ce.lib.StringCollator;
 import client.net.sf.saxon.ce.om.DocumentInfo;
 import client.net.sf.saxon.ce.om.DocumentPool;
-import client.net.sf.saxon.ce.trans.CompilerInfo;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.tree.util.DocumentNumberAllocator;
 import client.net.sf.saxon.ce.tree.util.URI;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
-import client.net.sf.saxon.ce.value.Whitespace;
+import client.net.sf.saxon.ce.value.DateTimeValue;
 import com.google.gwt.dom.client.Document;
 import com.google.gwt.dom.client.Node;
 import com.google.gwt.user.client.Window;
 
+import java.util.Date;
 import java.util.logging.Logger;
 //import com.google.gwt.xml.client.Document;
 //import com.google.gwt.xml.client.XMLParser;
@@ -68,35 +66,23 @@ public class Configuration {
 
     private boolean timing = false;
     private boolean allowExternalFunctions = true;
-    private DocumentNumberAllocator documentNumberAllocator = new DocumentNumberAllocator();
     private DocumentPool globalDocumentPool = new DocumentPool();
-    private transient XPathContext conversionContext = null;
-    private transient TypeHierarchy typeHierarchy;
+    private int implicitTimezone = DateTimeValue.fromJavaDate(new Date()).getTimezoneInMinutes();
 
-    private ParseOptions defaultParseOptions = new ParseOptions();
-
-    private CompilerInfo defaultXsltCompilerInfo = new CompilerInfo();
     private DocumentPool sourceDocumentPool = new DocumentPool();
     private Logger logger = Logger.getLogger("Configuration");
 
+    private int nextDocumentNumber = 0;
 
     /**
-     * Constant indicating that the processor should take the recovery action
-     * when a recoverable error occurs, with no warning message.
+     * Allocate a unique document number
+     * @return a unique document number
      */
-    public static final int RECOVER_SILENTLY = 0;
-    /**
-     * Constant indicating that the processor should produce a warning
-     * when a recoverable error occurs, and should then take the recovery
-     * action and continue.
-     */
-    public static final int RECOVER_WITH_WARNINGS = 1;
-    /**
-     * Constant indicating that when a recoverable error occurs, the
-     * processor should not attempt to take the defined recovery action,
-     * but should terminate with an error.
-     */
-    public static final int DO_NOT_RECOVER = 2;
+
+    public synchronized int allocateDocumentNumber() {
+        return nextDocumentNumber++;
+    }
+
 
     /**
      * Constant indicating the XML Version 1.0
@@ -145,16 +131,13 @@ public class Configuration {
     }
 
     /**
-     * Get an XPathContext object with sufficient capability to perform comparisons and conversions
-     *
-     * @return a dynamic context for performing conversions
+     * Get the implicit timezone. This is fixed for the life of the Configuration. The current date/time
+     * may vary for each transformation, but will always be in this timezone.
+     * @return the implicit timezone as an offset in minutes
      */
 
-    public XPathContext getConversionContext() {
-        if (conversionContext == null) {
-            conversionContext = new EarlyEvaluationContext(this);
-        }
-        return conversionContext;
+    public int getImplicitTimezone() {
+        return implicitTimezone;
     }
 
     public static URI getLocation() {
@@ -184,34 +167,6 @@ public class Configuration {
         } else {
             return null;
         }
-    }
-
-    /**
-     * Load a Numberer class for a given language and check it is OK.
-     * This method is provided primarily for internal use.
-     *
-     * @param language the language for which a Numberer is required. May be null,
-     *                 indicating default language
-     * @param country  the country for which a Numberer is required. May be null,
-     *                 indicating default country
-     * @return a suitable numberer. If no specific numberer is available
-     *         for the language, the default numberer (normally English) is used.
-     */
-
-    public Numberer makeNumberer(String language, String country) {
-        return new Numberer_en();
-    }
-
-
-    /**
-     * Get the default options for XSLT compilation
-     *
-     * @return the default options for XSLT compilation. The CompilerInfo object will reflect any options
-     *         set using other methods available for this Configuration object
-     */
-
-    public CompilerInfo getDefaultXsltCompilerInfo() {
-        return defaultXsltCompilerInfo;
     }
 
     public ErrorListener getErrorListener() {
@@ -249,31 +204,6 @@ public class Configuration {
 
     public void setTiming(boolean timing) {
         this.timing = timing;
-    }
-
-    /**
-     * Determine whether a warning is to be output when running against a stylesheet labelled
-     * as version="1.0". The XSLT specification requires such a warning unless the user disables it.
-     *
-     * @return true if these messages are to be output.
-     * @since 8.4
-     */
-
-    public boolean isVersionWarning() {
-        return defaultXsltCompilerInfo.isVersionWarning();
-    }
-
-    /**
-     * Determine whether a warning is to be output when the version attribute of the stylesheet does
-     * not match the XSLT processor version. (In the case where the stylesheet version is "1.0",
-     * the XSLT specification requires such a warning unless the user disables it.)
-     *
-     * @param warn true if these warning messages are to be output.
-     * @since 8.4
-     */
-
-    public void setVersionWarning(boolean warn) {
-        defaultXsltCompilerInfo.setVersionWarning(warn);
     }
 
     /**
@@ -316,20 +246,6 @@ public class Configuration {
         this.allowExternalFunctions = allowExternalFunctions;
     }
 
-
-    /**
-     * Determine whether the XML parser for source documents will be asked to perform
-     * validation of source documents
-     *
-     * @return true if DTD validation is requested.
-     * @since 8.4
-     */
-
-    public boolean isValidation() {
-        return defaultParseOptions.getDTDValidationMode() == Validation.STRICT ||
-                defaultParseOptions.getDTDValidationMode() == Validation.LAX;
-    }
-
     /**
      * Get the document pool. This is used only for source documents, not for stylesheet modules.
      * <p/>
@@ -340,72 +256,6 @@ public class Configuration {
 
     public DocumentPool getDocumentPool() {
         return sourceDocumentPool;
-    }
-
-
-    /**
-     * Determine whether the XML parser for source documents will be asked to perform
-     * DTD validation of source documents
-     *
-     * @param validation true if DTD validation is to be requested.
-     * @since 8.4
-     */
-
-    public void setValidation(boolean validation) {
-        defaultParseOptions.setDTDValidationMode(validation ? Validation.STRICT : Validation.STRIP);
-    }
-
-    /**
-     * Get the TypeHierarchy: a cache holding type information
-     *
-     * @return the type hierarchy cache
-     */
-
-    public final TypeHierarchy getTypeHierarchy() {
-        if (typeHierarchy == null) {
-            typeHierarchy = new TypeHierarchy(this);
-        }
-        return typeHierarchy;
-    }
-
-    /**
-     * Get the document number allocator.
-     * <p/>
-     * The document number allocator is used to allocate a unique number to each document built under this
-     * configuration. The document number forms the basis of all tests for node identity; it is therefore essential
-     * that when two documents are accessed in the same XPath expression, they have distinct document numbers.
-     * Normally this is ensured by building them under the same Configuration. Using this method together with
-     * {@link #setDocumentNumberAllocator}, however, it is possible to have two different Configurations that share
-     * a single DocumentNumberAllocator
-     *
-     * @return the current DocumentNumberAllocator
-     * @since 9.0
-     */
-
-    public DocumentNumberAllocator getDocumentNumberAllocator() {
-        return documentNumberAllocator;
-    }
-
-    /**
-     * Set the document number allocator.
-     * <p/>
-     * The document number allocator is used to allocate a unique number to each document built under this
-     * configuration. The document number forms the basis of all tests for node identity; it is therefore essential
-     * that when two documents are accessed in the same XPath expression, they have distinct document numbers.
-     * Normally this is ensured by building them under the same Configuration. Using this method together with
-     * {@link #getDocumentNumberAllocator}, however, it is possible to have two different Configurations that share
-     * a single DocumentNumberAllocator</p>
-     * <p>This method is for advanced applications only. Misuse of the method can cause problems with node identity.
-     * The method should not be used except while initializing a Configuration, and it should be used only to
-     * arrange for two different configurations to share the same DocumentNumberAllocators. In this case they
-     * should also share the same NamePool.
-     *
-     * @param allocator the DocumentNumberAllocator to be used
-     * @since 9.0
-     */
-
-    public void setDocumentNumberAllocator(DocumentNumberAllocator allocator) {
-        documentNumberAllocator = allocator;
     }
 
     /**
@@ -420,31 +270,6 @@ public class Configuration {
     public DocumentPool getGlobalDocumentPool() {
         return globalDocumentPool;
     }
-
-    /**
-     * Set which kinds of whitespace-only text node should be stripped.
-     *
-     * @param kind the kind of whitespace-only text node that should be stripped when building
-     *             a source tree. One of {@link Whitespace#NONE} (none), {@link Whitespace#ALL} (all),
-     *             or {@link Whitespace#IGNORABLE} (element-content whitespace as defined in a DTD or schema)
-     */
-
-    public void setStripsWhiteSpace(int kind) {
-        defaultParseOptions.setStripSpace(kind);
-    }
-
-    /**
-     * Set which kinds of whitespace-only text node should be stripped.
-     *
-     * @return kind the kind of whitespace-only text node that should be stripped when building
-     *         a source tree. One of {@link client.net.sf.saxon.ce.value.Whitespace#NONE} (none), {@link Whitespace#ALL} (all),
-     *         or {@link Whitespace#IGNORABLE} (element-content whitespace as defined in a DTD or schema)
-     */
-
-    public int getStripsWhiteSpace() {
-        return defaultParseOptions.getStripSpace();
-    }
-
 
     /**
      * Make a PipelineConfiguration from the properties of this Configuration
@@ -530,10 +355,6 @@ public class Configuration {
     }-*/;
 
 }
-
-// This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. 
-// If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
-// This Source Code Form is “Incompatible With Secondary Licenses”, as defined by the Mozilla Public License, v. 2.0.
 
 // This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. 
 // If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.

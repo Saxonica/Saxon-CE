@@ -1,7 +1,5 @@
 package client.net.sf.saxon.ce.tree.util;
 
-import client.net.sf.saxon.ce.tree.linked.CharSlice;
-
 import java.util.Arrays;
 
 /**
@@ -54,18 +52,6 @@ public final class FastStringBuffer implements CharSequence {
     }
 
     /**
-     * Append the contents of a CharSlice to the buffer
-     * @param s the String to be appended
-     */
-
-    public void append(CharSlice s) {
-        int len = s.length();
-        ensureCapacity(len);
-        s.copyTo(array, used);
-        used += len;
-    }
-
-    /**
      * Append the contents of a FastStringBuffer to the buffer
      * @param s the FastStringBuffer to be appended
      */
@@ -100,9 +86,7 @@ public final class FastStringBuffer implements CharSequence {
         // creating objects and copying strings unnecessarily. So we do a dynamic dispatch.
         final int len = s.length();
         ensureCapacity(len);
-        if (s instanceof CharSlice) {
-            ((CharSlice)s).copyTo(array, used);
-        } else if (s instanceof String) {
+        if (s instanceof String) {
             ((String)s).getChars(0, len, array, used);
         } else if (s instanceof FastStringBuffer) {
             ((FastStringBuffer)s).getChars(0, len, array, used);
@@ -223,7 +207,7 @@ public final class FastStringBuffer implements CharSequence {
      *                                   or if <tt>start</tt> is greater than <tt>end</tt>
      */
     public CharSequence subSequence(int start, int end) {
-        return new CharSlice(array, start, end - start);
+        return new String(array, start, end - start);
     }
 
     /**

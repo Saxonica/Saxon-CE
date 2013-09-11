@@ -52,7 +52,6 @@ public class Matches extends SystemFunction {
         } catch (XPathException err) {
             XPathException de = new XPathException(err);
             de.maybeSetErrorCode("FORX0002");
-            de.setXPathContext(c);
             throw de;
         }
     }

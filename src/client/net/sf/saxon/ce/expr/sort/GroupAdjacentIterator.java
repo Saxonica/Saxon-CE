@@ -80,7 +80,6 @@ public class GroupAdjacentIterator implements GroupIterator {
                         " and " +
                         Type.displayTypeName(candidateKey) + ')');
                 err.setIsTypeError(true);
-                err.setXPathContext(runningContext);
                 throw err;
             }
         }
@@ -92,7 +91,7 @@ public class GroupAdjacentIterator implements GroupIterator {
         if (candidateKey.isNaN()) {
             return DistinctValues.class;
         } else {
-            return candidateKey.getXPathComparable(false, collator, baseContext);
+            return candidateKey.getXPathComparable(false, collator, baseContext.getImplicitTimezone());
         }
     }
 

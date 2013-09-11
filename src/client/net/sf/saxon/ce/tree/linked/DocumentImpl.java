@@ -5,14 +5,15 @@ import client.net.sf.saxon.ce.event.Builder;
 import client.net.sf.saxon.ce.event.Receiver;
 import client.net.sf.saxon.ce.om.*;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.tree.iter.AxisIterator;
-import client.net.sf.saxon.ce.tree.iter.NodeListIterator;
+import client.net.sf.saxon.ce.tree.iter.ListIterator;
+import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
 import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.value.Whitespace;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 
 /**
   * A node in the XML parse tree representing the Document itself (or equivalently, the root
@@ -32,7 +33,7 @@ public final class DocumentImpl extends ParentNodeImpl implements DocumentInfo {
     private HashMap<String, NodeInfo> idTable;
     private int documentNumber;
     private String baseURI;
-    private HashMap<StructuredQName, ArrayList<NodeImpl>> elementList;
+    private HashMap<StructuredQName, List<NodeImpl>> elementList;
     private HashMap<String, Object> userData;
     private Configuration config;
     private SystemIdMap systemIdMap = new SystemIdMap();
@@ -53,7 +54,7 @@ public final class DocumentImpl extends ParentNodeImpl implements DocumentInfo {
 
 	public void setConfiguration(Configuration config) {
 		this.config = config;
-		documentNumber = config.getDocumentNumberAllocator().allocateDocumentNumber();
+		documentNumber = config.allocateDocumentNumber();
 	}
 
     /**
@@ -259,11 +260,11 @@ public final class DocumentImpl extends ParentNodeImpl implements DocumentInfo {
      * @return an iterator over all the elements with this name
     */
 
-    AxisIterator getAllElements(StructuredQName name) {
+    UnfailingIterator getAllElements(StructuredQName name) {
         if (elementList==null) {
-            elementList = new HashMap<StructuredQName, ArrayList<NodeImpl>>(100);
+            elementList = new HashMap<StructuredQName, List<NodeImpl>>(100);
         }
-        ArrayList<NodeImpl> list = elementList.get(name);
+        List<NodeImpl> list = elementList.get(name);
         if (list==null) {
             list = new ArrayList<NodeImpl>(100);
             NodeImpl next = getNextInDocument(this);
@@ -276,7 +277,7 @@ public final class DocumentImpl extends ParentNodeImpl implements DocumentInfo {
             }
             elementList.put(name, list);
         }
-        return new NodeListIterator(list);
+        return new ListIterator(list);
     }
 
     /**

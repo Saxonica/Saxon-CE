@@ -1,12 +1,12 @@
 package client.net.sf.saxon.ce.expr.sort;
-import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.lib.StringCollator;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.NoDynamicContextException;
 import client.net.sf.saxon.ce.type.BuiltInAtomicType;
 import client.net.sf.saxon.ce.type.Type;
-import client.net.sf.saxon.ce.value.*;
+import client.net.sf.saxon.ce.value.AtomicValue;
 import client.net.sf.saxon.ce.value.StringValue;
+import client.net.sf.saxon.ce.value.UntypedAtomicValue;
 
 /**
  * An AtomicComparer used for comparing atomic values of arbitrary item types. It encapsulates
@@ -24,8 +24,7 @@ import client.net.sf.saxon.ce.value.StringValue;
 public class AtomicSortComparer implements AtomicComparer {
 
     private StringCollator collator;
-    private transient XPathContext context;
-    private BuiltInAtomicType itemType;
+    private int implicitTimezone;
 
     /**
      * Factory method to get an atomic comparer suitable for sorting or for grouping (operations in which
@@ -34,11 +33,11 @@ public class AtomicSortComparer implements AtomicComparer {
      * if the itemType excludes the possibility of comparing strings. If the method is called at compile
      * time, this should be a NamedCollation so that it can be cloned at run-time.
      * @param itemType the primitive item type of the values to be compared
-     * @param context Dynamic context (may be an EarlyEvaluationContext)
+     * @param implicitTimezone from the Dynamic context
      * @return a suitable AtomicComparer
      */
 
-    public static AtomicComparer makeSortComparer(StringCollator collator, BuiltInAtomicType itemType, XPathContext context) {
+    public static AtomicComparer makeSortComparer(StringCollator collator, BuiltInAtomicType itemType, int implicitTimezone) {
         if (itemType == BuiltInAtomicType.STRING ||
                 itemType == BuiltInAtomicType.UNTYPED_ATOMIC ||
                 itemType == BuiltInAtomicType.ANY_URI) {
@@ -47,50 +46,28 @@ public class AtomicSortComparer implements AtomicComparer {
             } else {
                 return new CollatingAtomicComparer(collator);
             }
-        } else if (itemType == BuiltInAtomicType.INTEGER || itemType == BuiltInAtomicType.DECIMAL) {
-                return DecimalSortComparer.getDecimalSortComparerInstance();
-        } else if (itemType == BuiltInAtomicType.DOUBLE || itemType == BuiltInAtomicType.FLOAT || itemType == BuiltInAtomicType.NUMERIC) {
-                return DoubleSortComparer.getInstance();
+        } else if (itemType == BuiltInAtomicType.INTEGER || itemType == BuiltInAtomicType.DECIMAL ||
+                    itemType == BuiltInAtomicType.DOUBLE || itemType == BuiltInAtomicType.FLOAT ||
+                    itemType == BuiltInAtomicType.NUMERIC) {
+                return ComparableAtomicValueComparer.getInstance();
         } else if (itemType == BuiltInAtomicType.DATE_TIME || itemType == BuiltInAtomicType.DATE || itemType == BuiltInAtomicType.TIME) {
-                return new CalendarValueComparer(context);
+                return new CalendarValueComparer(implicitTimezone);
         } else {
             // use the general-purpose comparer that handles all types
-            return new AtomicSortComparer(collator, itemType, context);
+            return new AtomicSortComparer(collator, itemType, implicitTimezone);
         }
 
     }
 
-    protected AtomicSortComparer(StringCollator collator, BuiltInAtomicType itemType, XPathContext context) {
+    protected AtomicSortComparer(StringCollator collator, BuiltInAtomicType itemType, int implicitTimezone) {
         this.collator = collator;
         if (collator == null) {
             this.collator = CodepointCollator.getInstance();
         }
-        this.context = context;
-        this.itemType = itemType;
+        this.implicitTimezone = implicitTimezone;
     }
 
     public StringCollator getCollator() {
-        return collator;
-    }
-
-    /**
-     * Supply the dynamic context in case this is needed for the comparison
-     *
-     * @param context the dynamic evaluation context
-     * @return either the original AtomicComparer, or a new AtomicComparer in which the context
-     *         is known. The original AtomicComparer is not modified
-     */
-
-    public AtomicComparer provideContext(XPathContext context) {
-        return new AtomicSortComparer(collator, itemType, context);
-    }
-
-    /**
-     * Get the underlying StringCollator
-     * @return the underlying collator
-     */
-
-    public StringCollator getStringCollator() {
         return collator;
     }
 
@@ -123,9 +100,9 @@ public class AtomicSortComparer implements AtomicComparer {
         // System.err.println("Comparing " + a.getClass() + "(" + a + ") with " + b.getClass() + "(" + b + ") using " + collator);
 
         if (a instanceof UntypedAtomicValue) {
-            return ((UntypedAtomicValue)a).compareTo(b, collator, context);
+            return ((UntypedAtomicValue)a).compareTo(b, collator);
         } else if (b instanceof UntypedAtomicValue) {
-            return -((UntypedAtomicValue)b).compareTo(a, collator, context);
+            return -((UntypedAtomicValue)b).compareTo(a, collator);
         } else if (a.isNaN()) {
             return (b.isNaN() ? 0 : -1);
         } else if (b.isNaN()) {
@@ -137,25 +114,15 @@ public class AtomicSortComparer implements AtomicComparer {
                 return collator.compareStrings(a.getStringValue(), b.getStringValue());
             }
         } else {
-            Comparable ac = (Comparable)a.getXPathComparable(true, collator, context);
-            Comparable bc = (Comparable)b.getXPathComparable(true, collator, context);
+            Comparable ac = (Comparable)a.getXPathComparable(true, collator, implicitTimezone);
+            Comparable bc = (Comparable)b.getXPathComparable(true, collator, implicitTimezone);
             if (ac == null || bc == null) {
-                return compareNonComparables(a, b);
+                throw new ClassCastException("Values are not comparable (" +
+                                Type.displayTypeName(a) + ", " + Type.displayTypeName(b) + ')');
             } else {
                 return ac.compareTo(bc);
             }
         }
-    }
-
-    /**
-     * Compare two values that are known to be non-comparable. In the base class this method
-     * throws a ClassCastException. In a subclass it is overridden to return
-     * {@link AtomicValue#INDETERMINATE_ORDERING}
-     */
-
-    protected int compareNonComparables(AtomicValue a, AtomicValue b) {
-        throw new ClassCastException("Values are not comparable (" +
-                        Type.displayTypeName(a) + ", " + Type.displayTypeName(b) + ')');
     }
 
     /**

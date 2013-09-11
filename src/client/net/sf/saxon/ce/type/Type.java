@@ -110,19 +110,16 @@ public abstract class Type  {
 
     /**
      * Get the ItemType of an Item
+     *
      * @param item the item whose type is required
-     * @param th the type hierarchy cache
      * @return the item type of the item
      */
 
-    public static ItemType getItemType(Item item, TypeHierarchy th) {
+    public static ItemType getItemType(Item item) {
         if (item instanceof AtomicValue) {
-            return ((AtomicValue)item).getItemType(th);
+            return ((AtomicValue)item).getItemType();
         } else if (item instanceof NodeInfo) {
             return NodeKindTest.makeNodeKindTest(((NodeInfo)item).getNodeKind());
-            // We could return a more precise type than this, for example one that includes
-            // a ContentTypeTest for the type annotation of the nodes. However, given the way in which
-            // this method is used, this wouldn't be very useful
         } else { //if (item instanceof FunctionItem) {
             return null;
         } 
@@ -156,27 +153,28 @@ public abstract class Type  {
                 default:        return "";
             }
         } else {
-            return ((AtomicValue)item).getItemType(null).toString();
+            return ((AtomicValue)item).getItemType().toString();
         }
     }
 
     /**
      * Get a type that is a common supertype of two given item types
      *
+     *
      * @param t1 the first item type
      * @param t2 the second item type
-     * @param th the type hierarchy cache
      * @return the item type that is a supertype of both
      *     the supplied item types
      */
 
-    public static ItemType getCommonSuperType(ItemType t1, ItemType t2, TypeHierarchy th) {
+    public static ItemType getCommonSuperType(ItemType t1, ItemType t2) {
         if (t1 instanceof EmptySequenceTest) {
             return t2;
         }
         if (t2 instanceof EmptySequenceTest) {
             return t1;
         }
+        TypeHierarchy th = TypeHierarchy.getInstance();
         int r = th.relationship(t1, t2);
         if (r == TypeHierarchy.SAME_TYPE) {
             return t1;
@@ -185,7 +183,7 @@ public abstract class Type  {
         } else if (r == TypeHierarchy.SUBSUMES) {
             return t1;
         } else {
-            return getCommonSuperType(t2.getSuperType(th), t1, th);
+            return getCommonSuperType(t2.getSuperType(th), t1);
             // eventually we will hit a type that is a supertype of t2. We reverse
             // the arguments so we go up each branch of the tree alternately.
             // If we hit the root of the tree, one of the earlier conditions will be satisfied,
@@ -206,6 +204,9 @@ public abstract class Type  {
      */
 
     public static boolean isComparable(BuiltInAtomicType t1, BuiltInAtomicType t2, boolean ordered) {
+        if (t1 == t2) {
+            return true;
+        }
         if (t1.equals(BuiltInAtomicType.ANY_ATOMIC) || t2.equals(BuiltInAtomicType.ANY_ATOMIC)) {
             return true; // meaning we don't actually know at this stage
         }

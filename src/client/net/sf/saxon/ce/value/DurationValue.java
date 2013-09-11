@@ -1,11 +1,10 @@
 package client.net.sf.saxon.ce.value;
 
-import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.functions.Component;
 import client.net.sf.saxon.ce.lib.StringCollator;
+import client.net.sf.saxon.ce.regex.ARegularExpression;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
-import client.net.sf.saxon.ce.tree.util.StringTokenizer;
 import client.net.sf.saxon.ce.type.BuiltInAtomicType;
 import client.net.sf.saxon.ce.type.ConversionResult;
 import client.net.sf.saxon.ce.type.ValidationFailure;
@@ -50,35 +49,7 @@ public class DurationValue extends AtomicValue {
      */
 
     public DurationValue(boolean positive, int years, int months, int days,
-                         int hours, int minutes, long seconds, int microseconds)
-    throws IllegalArgumentException {
-        this(positive, years, months, days, hours, minutes, seconds, microseconds, BuiltInAtomicType.DURATION);
-    }
-
-    /**
-     * Constructor for xs:duration taking the components of the duration, plus a user-specified
-     * type which must be a subtype of xs:duration. There is no requirement
-     * that the values are normalized, for example it is acceptable to specify months=18. The values of
-     * the individual components must all be non-negative.
-     *
-     * @param positive     true if the duration is positive, false if negative. For a negative duration
-     *                     the components are all supplied as positive integers (or zero).
-     * @param years        the number of years
-     * @param months       the number of months
-     * @param days         the number of days
-     * @param hours        the number of hours
-     * @param minutes      the number of minutes
-     * @param seconds      the number of seconds (long to allow copying)
-     * @param microseconds the number of microseconds
-     * @param type         the user-defined subtype of xs:duration. Note that this constructor cannot
-     *                     be used to create an instance of xs:dayTimeDuration or xs:yearMonthDuration.
-     * @throws IllegalArgumentException if the size of the duration exceeds implementation-defined
-     * limits: specifically, if the total number of months exceeds 2^31, or if the total number
-     * of seconds exceeds 2^63.
-     */
-
-    public DurationValue(boolean positive, int years, int months, int days,
-                         int hours, int minutes, long seconds, int microseconds, BuiltInAtomicType type) {
+                         int hours, int minutes, long seconds, int microseconds) {
         negative = !positive;
         if (years < 0 || months < 0 || days < 0 || hours < 0 || minutes < 0 || seconds < 0 || microseconds < 0) {
             throw new IllegalArgumentException("Negative component value");
@@ -96,7 +67,6 @@ public class DurationValue extends AtomicValue {
         this.seconds = m * 60 + seconds;
         this.microseconds = microseconds;
         normalizeZeroDuration();
-        typeLabel = type;
     }
 
     /**
@@ -119,147 +89,106 @@ public class DurationValue extends AtomicValue {
      */
 
     public static ConversionResult makeDuration(CharSequence s) {
-        return makeDuration(s, true, true);
+        return makeDuration(s, durationPattern1);
     }
 
-    protected static ConversionResult makeDuration(CharSequence s, boolean allowYM, boolean allowDT) {
-        int years = 0, months = 0, days = 0, hours = 0, minutes = 0, seconds = 0, microseconds = 0;
-        boolean negative = false;
-        StringTokenizer tok = new StringTokenizer(Whitespace.trimWhitespace(s).toString(), "-+.PYMDTHS", true);
-        int components = 0;
-        if (!tok.hasMoreElements()) {
-            return badDuration("empty string", s);
-        }
-        String part = (String)tok.nextElement();
-        if ("+".equals(part)) {
-            return badDuration("+ sign not allowed in a duration", s);
-        } else if ("-".equals(part)) {
-            negative = true;
-            part = (String)tok.nextElement();
-        }
-        if (!"P".equals(part)) {
-            return badDuration("missing 'P'", s);
-        }
-        int state = 0;
-        while (tok.hasMoreElements()) {
-            part = (String)tok.nextElement();
-            if ("T".equals(part)) {
-                state = 4;
-                if (!tok.hasMoreElements()) {
-                    return badDuration("T must be followed by time components", s);
-                }
-                part = (String)tok.nextElement();
-            }
-            int value = simpleInteger(part);
-            if (value < 0) {
-                if (part.length() > 8) {
-                    return badDuration("component invalid or too large", s);
-                } else {
-                    return badDuration("non-numeric component", s);
-                }
-            }
-            if (!tok.hasMoreElements()) {
-                return badDuration("missing unit letter at end", s);
-            }
-            char delim = ((String)tok.nextElement()).charAt(0);
-            switch (delim) {
-            case'Y':
-                if (state > 0) {
-                    return badDuration("Y is out of sequence", s);
-                }
-                if (!allowYM) {
-                    return badDuration("Year component is not allowed in dayTimeDuration", s);
-                }
-                years = value;
-                state = 1;
-                components++;
-                break;
-            case'M':
-                if (state == 4 || state == 5) {
-                    if (!allowDT) {
-                        return badDuration("Minute component is not allowed in yearMonthDuration", s);
-                    }
-                    minutes = value;
-                    state = 6;
-                    components++;
-                    break;
-                } else if (state == 0 || state == 1) {
-                    if (!allowYM) {
-                        return badDuration("Month component is not allowed in dayTimeDuration", s);
-                    }
-                    months = value;
-                    state = 2;
-                    components++;
-                    break;
-                } else {
-                    return badDuration("M is out of sequence", s);
-                }
-            case'D':
-                if (state > 2) {
-                    return badDuration("D is out of sequence", s);
-                }
-                if (!allowDT) {
-                    return badDuration("Day component is not allowed in yearMonthDuration", s);
-                }
-                days = value;
-                state = 3;
-                components++;
-                break;
-            case'H':
-                if (state != 4) {
-                    return badDuration("H is out of sequence", s);
-                }
-                if (!allowDT) {
-                    return badDuration("Hour component is not allowed in yearMonthDuration", s);
-                }
-                hours = value;
-                state = 5;
-                components++;
-                break;
-            case'.':
-                if (state < 4 || state > 6) {
-                    return badDuration("misplaced decimal point", s);
-                }
-                seconds = value;
-                state = 7;
-                break;
-            case'S':
-                if (state < 4 || state > 7) {
-                    return badDuration("S is out of sequence", s);
-                }
-                if (!allowDT) {
-                    return badDuration("Seconds component is not allowed in yearMonthDuration", s);
-                }
-                if (state == 7) {
-                    while (part.length() < 6) {
-                        part += "0";
-                    }
-                    if (part.length() > 6) {
-                        part = part.substring(0, 6);
-                    }
-                    value = simpleInteger(part);
-                    if (value < 0) {
-                        return badDuration("non-numeric fractional seconds", s);
-                    }
-                    microseconds = value;
-                } else {
-                    seconds = value;
-                }
-                state = 8;
-                components++;
-                break;
-            default:
-                return badDuration("misplaced " + delim, s);
-            }
-        }
 
-        if (components == 0) {
-            return badDuration("Duration specifies no components", s);
+    // From XSD 1.1 Part 2:
+    //    The expression -?P[0-9]+Y?([0-9]+M)?([0-9]+D)?(T([0-9]+H)?([0-9]+M)?([0-9]+(\.[0-9]+)?S)?)?
+    //      matches only strings in which the fields occur in the proper order.
+    //    The expression '.*[YMDHS].*' matches only strings in which at least one field occurs.
+    //    The expression '.*[^T]' matches only strings in which 'T' is not the final character.
+
+    private static ARegularExpression durationPattern1 =
+            ARegularExpression.make("-?P([0-9]+Y)?([0-9]+M)?([0-9]+D)?(T([0-9]+H)?([0-9]+M)?([0-9]+(\\.[0-9]+)?S)?)?");
+
+    private static ARegularExpression durationPattern2 =
+            ARegularExpression.make("[YMDHS]");
+
+    protected static ConversionResult makeDuration(CharSequence s, ARegularExpression constrainingPattern) {
+
+        s = Whitespace.trimWhitespace(s);
+        if (!constrainingPattern.matches(s)) {
+            badDuration("Incorrect format", s);
+        }
+        if (!durationPattern2.containsMatch(s)) {
+            badDuration("No components present", s);
+        }
+        if (s.charAt(s.length()-1) == 'T') {
+            badDuration("No component present after 'T'", s);
+        }
+        boolean negative = s.charAt(0) == '-';
+        boolean inTimePart = false;
+        int positionOfDot = -1;
+        int year = 0;
+        int month = 0;
+        int day = 0;
+        int hour = 0;
+        int minute = 0;
+        int second = 0;
+        int micro = 0;
+        int part = 0;
+        for (int i=0; i<s.length(); i++) {
+            char c = s.charAt(i);
+            switch (c) {
+                case 0:
+                case 1:
+                case 2:
+                case 3:
+                case 4:
+                case 5:
+                case 6:
+                case 7:
+                case 8:
+                case 9:
+                    part = part*10 + (c - '0');
+                    break;
+                case 'T':
+                    inTimePart = true;
+                    break;
+                case 'Y':
+                    year = part;
+                    part = 0;
+                    break;
+                case 'M':
+                    if (inTimePart) {
+                        minute = part;
+                    } else {
+                        month = part;
+                    }
+                    part = 0;
+                    break;
+                case 'D':
+                    day = part;
+                    part = 0;
+                    break;
+                case 'H':
+                    hour = part;
+                    part = 0;
+                    break;
+                case 'S':
+                    if (positionOfDot >= 0) {
+                        String fraction = (s.subSequence(positionOfDot+1, i).toString() + "000000").substring(0, 6);
+                        micro = Integer.parseInt(fraction);
+                    } else {
+                        second = part;
+                    }
+                    part = 0;
+                    break;
+                case '.':
+                    second = part;
+                    part = 0;
+                    positionOfDot = i;
+                    break;
+                default:
+                    // no action
+            }
+
         }
 
         try {
             return new DurationValue(
-                    !negative, years, months, days, hours, minutes, seconds, microseconds, BuiltInAtomicType.DURATION);
+                    !negative, year, month, day, hour, minute, second, micro);
         } catch (IllegalArgumentException err) {
             // catch values that exceed limits
             return new ValidationFailure(err.getMessage());
@@ -268,9 +197,7 @@ public class DurationValue extends AtomicValue {
 
 
     protected static ValidationFailure badDuration(String msg, CharSequence s) {
-        ValidationFailure err = new ValidationFailure("Invalid duration value '" + s + "' (" + msg + ')');
-        err.setErrorCode("FORG0001");
-        return err;
+        return new ValidationFailure("Invalid duration value '" + s + "' (" + msg + ')', "FORG0001");
     }
 
     /**
@@ -310,7 +237,7 @@ public class DurationValue extends AtomicValue {
      * and xs:untypedAtomic. For external objects, the result is AnyAtomicType.
      */
 
-    public BuiltInAtomicType getPrimitiveType() {
+    public BuiltInAtomicType getItemType() {
         return BuiltInAtomicType.DURATION;
     }
 
@@ -335,40 +262,18 @@ public class DurationValue extends AtomicValue {
         } else if (requiredType == BuiltInAtomicType.DAY_TIME_DURATION) {
             return new DayTimeDurationValue((negative ? -1 : +1), 0, 0, 0, seconds, microseconds);
         } else {
-            ValidationFailure err = new ValidationFailure("Cannot convert duration to " +
-                    requiredType.getDisplayName());
-            err.setErrorCode("XPTY0004");
-            return err;
+            return new ValidationFailure("Cannot convert duration to " +
+                    requiredType.getDisplayName(), "XPTY0004");
         }
     }
 
     /**
-     * Normalize the duration, so that months<12, hours<24, minutes<60, seconds<60.
-     * Since durations are now always normalized, this method has become a no-op, but is retained
-     * for backwards compatibility
-     * @deprecated since 9.0 - the method does nothing
-     *
-     * @return the duration unchanged
+     * Ask whether the duration is negative (less than zero)
+     * @return true if negative
      */
 
-    public DurationValue normalizeDuration() {
-        return this;
-    }
-
-    /**
-     * Return the signum of the value
-     *
-     * @return -1 if the duration is negative, zero if it is zero-length, +1 if it is positive
-     */
-
-    public int signum() {
-        if (negative) {
-            return -1;
-        }
-        if (months == 0 && seconds == 0L && microseconds == 0) {
-            return 0;
-        }
-        return +1;
+    public boolean isNegative() {
+        return negative;
     }
 
     /**
@@ -445,18 +350,6 @@ public class DurationValue extends AtomicValue {
     public int getMicroseconds() {
         return microseconds;
     }
-
-
-    /**
-     * Convert the value to a string, using the serialization rules.
-     * For atomic values this is the same as a cast; for sequence values
-     * it gives a space-separated list. This method is refined for AtomicValues
-     * so that it never throws an Exception.
-     */
-
-//    public String getStringValue() {
-//        return getStringValueCS().toString();
-//    }
 
     /**
      * Convert to string
@@ -543,43 +436,32 @@ public class DurationValue extends AtomicValue {
     }
 
     /**
-     * Convert to Java object (for passing to external functions)
-     */
-
-//    public Object convertAtomicToJava(Class target, XPathContext context) throws XPathException {
-//        if (target.isAssignableFrom(DurationValue.class)) {
-//            return this;
-//        } else if (target == Object.class) {
-//            return getStringValue();
-//        } else {
-//            Object o = super.convertSequenceToJava(target, context);
-//            if (o == null) {
-//                XPathException err = new XPathException("Conversion of xs:duration to " + target.getName() +
-//                        " is not supported");
-//                err.setXPathContext(context);
-//                err.setErrorCode(SaxonErrorCode.SXJE0003);
-//            }
-//            return o;
-//        }
-//    }
-
-    /**
      * Get a component of the normalized value
      */
 
     public AtomicValue getComponent(int component) throws XPathException {
         switch (component) {
         case Component.YEAR:
-            return IntegerValue.makeIntegerValue((negative ? -getYears() : getYears()));
-        case Component.MONTH:
-            return IntegerValue.makeIntegerValue((negative ? -getMonths() : getMonths()));
-        case Component.DAY:
-            return IntegerValue.makeIntegerValue((negative ? -getDays() : getDays()));
-        case Component.HOURS:
-            return IntegerValue.makeIntegerValue((negative ? -getHours() : getHours()));
-        case Component.MINUTES:
-            return IntegerValue.makeIntegerValue((negative ? -getMinutes() : getMinutes()));
-        case Component.SECONDS:
+            int value5 = (negative ? -getYears() : getYears());
+
+            return new IntegerValue(value5);
+            case Component.MONTH:
+                int value4 = (negative ? -getMonths() : getMonths());
+
+                return new IntegerValue(value4);
+            case Component.DAY:
+                int value3 = (negative ? -getDays() : getDays());
+
+                return new IntegerValue(value3);
+            case Component.HOURS:
+                int value2 = (negative ? -getHours() : getHours());
+
+                return new IntegerValue(value2);
+            case Component.MINUTES:
+                int value1 = (negative ? -getMinutes() : getMinutes());
+
+                return new IntegerValue(value1);
+            case Component.SECONDS:
             FastStringBuffer sb = new FastStringBuffer(FastStringBuffer.TINY);
             String ms = ("000000" + microseconds);
             ms = ms.substring(ms.length() - 6);
@@ -588,8 +470,10 @@ public class DurationValue extends AtomicValue {
         case Component.WHOLE_SECONDS:
             return new IntegerValue(new BigDecimal(negative ? -seconds : seconds));
         case Component.MICROSECONDS:
-            return IntegerValue.makeIntegerValue((negative ? -microseconds : microseconds));
-        default:
+            int value = (negative ? -microseconds : microseconds);
+
+            return new IntegerValue(value);
+            default:
             throw new IllegalArgumentException("Unknown component for duration: " + component);
         }
     }
@@ -607,12 +491,11 @@ public class DurationValue extends AtomicValue {
      *
      * @param ordered true if an ordered comparison is required. In this case the result is null if the
      *                type is unordered; in other cases the returned value will be a Comparable.
-     * @param collator collation used for comparing string values
-     * @param context the XPath dynamic evaluation context, used in cases where the comparison is context
-*                sensitive @return an Object whose equals() and hashCode() methods implement the XPath comparison semantics
+     * @param collator not used when comparing durations
+     * @param implicitTimezone not used when comparing durations
      */
 
-    public Object getXPathComparable(boolean ordered, StringCollator collator, XPathContext context) {
+    public Object getXPathComparable(boolean ordered, StringCollator collator, int implicitTimezone) {
         return (ordered ? null : this);
     }
 
@@ -645,27 +528,11 @@ public class DurationValue extends AtomicValue {
      *
      * @param other the duration to be added to this one
      * @return the sum of the two durations
+     * @throws XPathException if, for example the durations are not both yearMonthDurations or dayTimeDurations
      */
 
     public DurationValue add(DurationValue other) throws XPathException {
-        XPathException err = new XPathException("Only subtypes of xs:duration can be added");
-        err.setErrorCode("XPTY0004");
-        err.setIsTypeError(true);
-        throw err;
-    }
-
-    /**
-     * Subtract two durations
-     *
-     * @param other the duration to be subtracted from this one
-     * @return the difference of the two durations
-     */
-
-    public DurationValue subtract(DurationValue other) throws XPathException {
-        XPathException err = new XPathException("Only subtypes of xs:duration can be subtracted");
-        err.setErrorCode("XPTY0004");
-        err.setIsTypeError(true);
-        throw err;
+        throw new XPathException("Only subtypes of xs:duration can be added", "XPTY0004");
     }
 
     /**
@@ -675,7 +542,7 @@ public class DurationValue extends AtomicValue {
      */
 
     public DurationValue negate() {
-        return new DurationValue(negative, 0, months, 0, 0, 0, seconds, microseconds, typeLabel);
+        return new DurationValue(negative, 0, months, 0, 0, 0, seconds, microseconds);
     }
 
     /**
@@ -683,13 +550,11 @@ public class DurationValue extends AtomicValue {
      *
      * @param factor the number to multiply by
      * @return the result of the multiplication
+     * @throws XPathException for example if the type is wrong or overflow results
      */
 
     public DurationValue multiply(double factor) throws XPathException {
-        XPathException err = new XPathException("Only subtypes of xs:duration can be multiplied by a number");
-        err.setErrorCode("XPTY0004");
-        err.setIsTypeError(true);
-        throw err;
+        throw new XPathException("Only subtypes of xs:duration can be multiplied by a number", "XPTY0004");
     }
 
     /**
@@ -697,140 +562,12 @@ public class DurationValue extends AtomicValue {
      *
      * @param other the duration to divide by
      * @return the result of the division
+     * @throws XPathException for example if the type is wrong or overflow results
      */
 
     public DecimalValue divide(DurationValue other) throws XPathException {
-        XPathException err = new XPathException("Only subtypes of xs:duration can be divided by another duration");
-        err.setErrorCode("XPTY0004");
-        err.setIsTypeError(true);
-        throw err;
+        throw new XPathException("Only subtypes of xs:duration can be divided by another duration", "XPTY0004");
     }
-
-     /**
-     * Get a Comparable value that implements the XML Schema ordering comparison semantics for this value.
-     * This implementation handles the ordering rules for durations in XML Schema.
-     * It is overridden for the two subtypes DayTimeDuration and YearMonthDuration.
-     *
-     * @return a suitable Comparable
-     */
-
-     private Comparable getSchemaComparable() {
-        return getSchemaComparable(this);
-    }
-
-    /**
-     * Get a Comparable value that implements the XML Schema ordering comparison semantics for this value.
-     * This implementation handles the ordering rules for durations in XML Schema.
-     *
-     * @param value the duration for which a comparison key is required
-     * @return a suitable Comparable
-     */
-
-    public static Comparable getSchemaComparable(DurationValue value) {
-        int m = value.months;
-        double s = value.seconds + ((double)value.microseconds / 1000000);
-        if (value.negative) {
-            s = -s;
-            m = -m;
-        }
-        return new DurationComparable(m, s);
-    }
-
-    /**
-     * DurationValueOrderingKey is a Comparable value that acts as a surrogate for a Duration,
-     * having ordering rules that implement the XML Schema specification.
-     */
-
-    private static class DurationComparable implements Comparable {
-
-        private int months;
-        private double seconds;
-
-        public DurationComparable(int m, double s) {
-            months = m;
-            seconds = s;
-        }
-
-        /**
-         * Compare two durations according to the XML Schema rules.
-         *
-         * @param o the other duration
-         * @return -1 if this duration is smaller; 0 if they are equal; +1 if this duration is greater;
-         *         {@link AtomicValue#INDETERMINATE_ORDERING} if there is no defined order
-         */
-
-        public int compareTo(Object o) {
-            DurationComparable other;
-            if (o instanceof DurationComparable) {
-                other = (DurationComparable)o;
-            } else if (o instanceof YearMonthDurationValue) {
-                other = (DurationComparable)getSchemaComparable((YearMonthDurationValue)o);
-            } else if (o instanceof DayTimeDurationValue) {
-                other = (DurationComparable)getSchemaComparable((DayTimeDurationValue)o);
-            } else {
-                return INDETERMINATE_ORDERING;
-            }
-            if (months == other.months) {
-                return Double.compare(seconds, other.seconds);
-            } else if (seconds == other.seconds) {
-                return (months == other.months ? 0 : (months < other.months ? -1 : +1));
-            } else {
-                double oneDay = 24e0 * 60e0 * 60e0;
-                double min0 = monthsToDaysMinimum(months) * oneDay + seconds;
-                double max0 = monthsToDaysMaximum(months) * oneDay + seconds;
-                double min1 = monthsToDaysMinimum(other.months) * oneDay + other.seconds;
-                double max1 = monthsToDaysMaximum(other.months) * oneDay + other.seconds;
-                if (max0 < min1) {
-                    return -1;
-                } else if (min0 > max1) {
-                    return +1;
-                } else {
-                    return INDETERMINATE_ORDERING;
-                }
-            }
-        }
-
-        public boolean equals(Object o) {
-            return compareTo(o) == 0;
-        }
-
-        public int hashCode() {
-            return months ^ (int)seconds;
-        }
-
-        private int monthsToDaysMinimum(int months) {
-            if (months < 0) {
-                return -monthsToDaysMaximum(-months);
-            }
-            if (months < 12) {
-                int[] shortest = {0, 28, 59, 89, 120, 150, 181, 212, 242, 273, 303, 334};
-                return shortest[months];
-            } else {
-                int years = months / 12;
-                int remainingMonths = months % 12;
-                // the -1 is to allow for the fact that we might miss a leap day if we time the start badly
-                int yearDays = years * 365 + (years % 4) - (years % 100) + (years % 400) - 1;
-                return yearDays + monthsToDaysMinimum(remainingMonths);
-            }
-        }
-
-        private int monthsToDaysMaximum(int months) {
-            if (months < 0) {
-                return -monthsToDaysMinimum(-months);
-            }
-            if (months < 12) {
-                int[] longest = {0, 31, 62, 92, 123, 153, 184, 215, 245, 276, 306, 337};
-                return longest[months];
-            } else {
-                int years = months / 12;
-                int remainingMonths = months % 12;
-                // the +1 is to allow for the fact that we might miss a leap day if we time the start badly
-                int yearDays = years * 365 + (years % 4) - (years % 100) + (years % 400) + 1;
-                return yearDays + monthsToDaysMaximum(remainingMonths);
-            }
-        }
-    }
-
 }
 
 // This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. 

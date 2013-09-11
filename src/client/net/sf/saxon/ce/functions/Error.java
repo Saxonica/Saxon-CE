@@ -1,12 +1,11 @@
 package client.net.sf.saxon.ce.functions;
-import client.net.sf.saxon.ce.expr.*;
-import client.net.sf.saxon.ce.om.Item;
+import client.net.sf.saxon.ce.expr.Expression;
+import client.net.sf.saxon.ce.expr.ExpressionVisitor;
+import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
-import client.net.sf.saxon.ce.om.NodeInfo;
+import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
-import client.net.sf.saxon.ce.type.Type;
-import client.net.sf.saxon.ce.value.*;
+import client.net.sf.saxon.ce.value.QNameValue;
 
 /**
 * Implement XPath function fn:error()
@@ -32,14 +31,13 @@ public class Error extends SystemFunction {
     */
 
     public Item evaluateItem(XPathContext context) throws XPathException {
-        QualifiedNameValue qname = null;
+        QNameValue qname = null;
         if (argument.length > 0) {
-            qname = (QualifiedNameValue)argument[0].evaluateItem(context);
+            qname = (QNameValue)argument[0].evaluateItem(context);
         }
         if (qname == null) {
             qname = new QNameValue("err", NamespaceConstant.ERR,
-                    (argument.length == 1 ? "FOTY0004" : "FOER0000"),
-                    BuiltInAtomicType.QNAME);
+                    (argument.length == 1 ? "FOTY0004" : "FOER0000"));
         }
         String description;
         if (argument.length > 1) {
@@ -49,32 +47,10 @@ public class Error extends SystemFunction {
         }
         XPathException e = new XPathException(description);
         e.setErrorCodeQName(qname.toStructuredQName());
-        e.setXPathContext(context);
         e.setLocator(getSourceLocator());
-        if (argument.length > 2) {
-            Value errorObject = ((Value)SequenceExtent.makeSequenceExtent(argument[2].iterate(context))).reduce();
-            if (errorObject instanceof SingletonItem) {
-                Item root = ((SingletonItem)errorObject).getItem();
-                if ((root instanceof NodeInfo) && ((NodeInfo)root).getNodeKind() == Type.DOCUMENT) {
-//                    XPathEvaluator xpath = new XPathEvaluator();
-//                    XPathExpression exp = xpath.createExpression("/error/@module");
-//                    NodeInfo moduleAtt = (NodeInfo)exp.evaluateSingle((NodeInfo)root);
-//                    String module = (moduleAtt == null ? null : moduleAtt.getStringValue());
-//                    exp = xpath.createExpression("/error/@line");
-//                    NodeInfo lineAtt = (NodeInfo)exp.evaluateSingle((NodeInfo)root);
-//                    int line = (lineAtt == null ? -1 : Integer.parseInt(lineAtt.getStringValue()));
-//                    exp = xpath.createExpression("/error/@column");
-//                    NodeInfo columnAtt = (NodeInfo)exp.evaluateSingle((NodeInfo)root);
-//                    int column = (columnAtt == null ? -1 : Integer.parseInt(columnAtt.getStringValue()));
-//                    ExpressionLocation locator = new ExpressionLocation();
-//                    locator.setSystemId(module);
-//                    locator.setLineNumber(line);
-//                    locator.setColumnNumber(column);
-//                    e.setLocator(locator);
-                }
-            }
-            e.setErrorObject(errorObject);
-        }
+        //if (argument.length > 2) {
+            // The error object is ignored
+        //}
         throw e;
     }
 

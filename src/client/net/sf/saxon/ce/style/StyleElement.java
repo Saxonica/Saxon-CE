@@ -2,7 +2,6 @@ package client.net.sf.saxon.ce.style;
 
 import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.LogController;
-import client.net.sf.saxon.ce.PreparedStylesheet;
 import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.expr.instruct.*;
 import client.net.sf.saxon.ce.expr.parser.CodeInjector;
@@ -15,18 +14,20 @@ import client.net.sf.saxon.ce.trace.Location;
 import client.net.sf.saxon.ce.trace.XSLTTraceListener;
 import client.net.sf.saxon.ce.trans.Err;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.tree.iter.AxisIterator;
+import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 import client.net.sf.saxon.ce.tree.linked.ElementImpl;
-import client.net.sf.saxon.ce.tree.util.*;
+import client.net.sf.saxon.ce.tree.util.NamespaceIterator;
+import client.net.sf.saxon.ce.tree.util.Navigator;
+import client.net.sf.saxon.ce.tree.util.SourceLocator;
+import client.net.sf.saxon.ce.tree.util.URI;
 import client.net.sf.saxon.ce.type.*;
 import client.net.sf.saxon.ce.value.DecimalValue;
 import client.net.sf.saxon.ce.value.SequenceType;
 import client.net.sf.saxon.ce.value.Whitespace;
 import com.google.gwt.logging.client.LogConfiguration;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
+
 /**
  * Abstract superclass for all element nodes in the stylesheet.
  * <p>Note: this class implements Locator. The element retains information about its own location
@@ -140,7 +141,6 @@ public abstract class StyleElement extends ElementImpl
         extensionNamespaces = temp.extensionNamespaces;
         excludedNamespaces = temp.excludedNamespaces;
         version = temp.version;
-        staticContext = temp.staticContext;
         validationError = temp.validationError;
         reportingCircumstances = temp.reportingCircumstances;
         //lineNumber = temp.lineNumber;
@@ -197,9 +197,9 @@ public abstract class StyleElement extends ElementImpl
      */
 
     protected ItemType getCommonChildItemType() {
-        final TypeHierarchy th = getConfiguration().getTypeHierarchy();
+        final TypeHierarchy th = TypeHierarchy.getInstance();
         ItemType t = EmptySequenceTest.getInstance();
-        AxisIterator children = iterateAxis(Axis.CHILD);
+        UnfailingIterator children = iterateAxis(Axis.CHILD);
         while (true) {
             NodeInfo next = (NodeInfo)children.next();
             if (next == null) {
@@ -208,10 +208,10 @@ public abstract class StyleElement extends ElementImpl
             if (next instanceof StyleElement) {
                 ItemType ret = ((StyleElement)next).getReturnedItemType();
                 if (ret != null) {
-                    t = Type.getCommonSuperType(t, ret, th);
+                    t = Type.getCommonSuperType(t, ret);
                 }
             } else {
-                t = Type.getCommonSuperType(t, NodeKindTest.TEXT, th);
+                t = Type.getCommonSuperType(t, NodeKindTest.TEXT);
             }
             if (t == AnyItemType.getInstance()) {
                 return t;       // no point looking any further
@@ -267,17 +267,11 @@ public abstract class StyleElement extends ElementImpl
 
     public XSLStylesheet getContainingStylesheet() {
         if (containingStylesheet == null) {
-            if (this instanceof XSLStylesheet) {
-                containingStylesheet = (XSLStylesheet)this;
-            } else {
-                NodeInfo parent = getParent();
-                if (parent instanceof StyleElement) {
-                    containingStylesheet = ((StyleElement)parent).getContainingStylesheet();
-                } else {
-                    // this can happen when early errors are detected in a simplified stylesheet,
-                    return null;
-                }
+            NodeInfo node = this;
+            while (node != null && !(node instanceof XSLStylesheet)) {
+                node = node.getParent();
             }
+            containingStylesheet = (XSLStylesheet)node;
         }
         return containingStylesheet;
     }
@@ -300,7 +294,7 @@ public abstract class StyleElement extends ElementImpl
 
         StructuredQName qName;
         try {
-            qName = StructuredQName.fromLexicalQName(lexicalQName, false, this);
+            qName = StructuredQName.fromLexicalQName(lexicalQName, "", new InscopeNamespaceResolver(this));
         } catch (XPathException e) {
             e.setIsStaticError(true);
             String code = e.getErrorCodeLocalPart();
@@ -333,9 +327,9 @@ public abstract class StyleElement extends ElementImpl
         if (!(this instanceof LiteralResultElement)) {
             processDefaultCollationAttribute("");
         }
-        staticContext = new ExpressionContext(this);
+        getStaticContext();
         processAttributes();
-        AxisIterator kids = iterateAxis(Axis.CHILD);
+        UnfailingIterator kids = iterateAxis(Axis.CHILD);
         while (true) {
             NodeInfo child = (NodeInfo)kids.next();
             if (child == null) {
@@ -371,6 +365,69 @@ public abstract class StyleElement extends ElementImpl
             prepareAttributes();
         } catch (XPathException err) {
             compileError(err);
+        }
+    }
+
+    private Set<String> permittedAttributes = new HashSet<String>(8);
+
+    protected Object checkAttribute(String name, String flags) throws XPathException {
+        permittedAttributes.add(name);
+        String val = getAttributeList().getValue("", name);
+        if (val == null) {
+            if (flags.contains("1")) {
+                reportAbsence(getDisplayName() + "/" + name);
+            }
+        } else {
+            for (int i=0; i<flags.length(); i++) {
+                switch (flags.charAt(i)) {
+                    case 'a': // attribute value template
+                        return makeAttributeValueTemplate(val);
+                    case 'b': // boolean yes/no
+                        String yesNo = Whitespace.trim(val);
+                        if ("yes".equals(yesNo)) {
+                            return true;
+                        } else if ("no".equals(yesNo)) {
+                            return false;
+                        } else {
+                            compileError("The @" + name + " attribute must have the value 'yes' or 'no'", "XTSE0020");
+                        }
+                    case 'e': // expression
+                        return makeExpression(val);
+                    case 'p': // pattern
+                        return makePattern(val);
+                    case 'q': // QName
+                        try {
+                            return makeQName(val);
+                        } catch (NamespaceException e) {
+                            compileError(e.getMessage(), "XTSE0280");
+                        }
+                    case 's': // string
+                        return val;
+                    case 't': // type attribute
+                        compileError("The @type attribute is available only with a schema-aware XSLT processor", "XTSE1660");
+                    case 'v': // validation attribute
+                        if (!val.equals("strip")) {
+                            compileError("The @type attribute is available only with a schema-aware XSLT processor", "XTSE1660");
+                        }
+                        return null;
+                    case 'w': // whitespace-normalized string
+                        return Whitespace.collapseWhitespace(val).toString();
+                    case 'z': // sequence type
+                        return makeSequenceType(val);
+
+                }
+            }
+        }
+        return null;
+    }
+
+    protected void checkForUnknownAttributes() throws XPathException {
+        AttributeCollection atts = getAttributeList();
+        for (int a = 0; a < atts.getLength(); a++) {
+            StructuredQName qn = atts.getStructuredQName(a);
+            if (qn.getNamespaceURI().equals("") && !permittedAttributes.contains(qn.getLocalName())) {
+                checkUnknownAttribute(qn);
+            }
         }
     }
 
@@ -430,7 +487,7 @@ public abstract class StyleElement extends ElementImpl
 
     protected StyleElement getLastChildInstruction() {
         StyleElement last = null;
-        AxisIterator kids = iterateAxis(Axis.CHILD);
+        UnfailingIterator kids = iterateAxis(Axis.CHILD);
         while (true) {
             NodeInfo child = (NodeInfo)kids.next();
             if (child == null) {
@@ -454,7 +511,7 @@ public abstract class StyleElement extends ElementImpl
             throws XPathException {
         try {
             return ExpressionTool.make(expression,
-                    staticContext,
+                    getStaticContext(),
                     this, 0, Token.EOF,
                     this
             );
@@ -477,7 +534,7 @@ public abstract class StyleElement extends ElementImpl
     public Pattern makePattern(String pattern)
             throws XPathException {
         try {
-            return Pattern.make(pattern, staticContext, this);
+            return Pattern.make(pattern, getStaticContext(), this);
         } catch (XPathException err) {
             compileError(err);
             return new NodeTestPattern(AnyNodeTest.getInstance());
@@ -494,7 +551,7 @@ public abstract class StyleElement extends ElementImpl
     protected Expression makeAttributeValueTemplate(String expression)
             throws XPathException {
         try {
-            return AttributeValueTemplate.make(expression, this, staticContext);
+            return AttributeValueTemplate.make(expression, this, getStaticContext());
         } catch (XPathException err) {
             compileError(err);
             return new StringLiteral(expression);
@@ -511,11 +568,10 @@ public abstract class StyleElement extends ElementImpl
 
     public SequenceType makeSequenceType(String sequenceType)
             throws XPathException {
-        getStaticContext();
         try {
             ExpressionParser parser = new ExpressionParser();
             parser.setLanguage(ExpressionParser.XPATH);
-            return parser.parseSequenceType(sequenceType, staticContext);
+            return parser.parseSequenceType(sequenceType, getStaticContext());
         } catch (XPathException err) {
             compileError(err);
             // recovery path after reporting an error, e.g. undeclared namespace prefix
@@ -526,85 +582,72 @@ public abstract class StyleElement extends ElementImpl
     /**
      * Process the [xsl:]extension-element-prefixes attribute if there is one
      * @param ns the namespace URI of the attribute - either the XSLT namespace or "" for the null namespace
+     * @throws XPathException in the event of a bad prefix
      */
 
-    protected void processExtensionElementAttribute(String ns)
-            throws XPathException {
+    protected void processExtensionElementAttribute(String ns) throws XPathException {
         String ext = getAttributeValue(ns, "extension-element-prefixes");
         if (ext != null) {
-            // go round twice, once to count the values and next to add them to the array
-            int count = 0;
-            StringTokenizer st1 = new StringTokenizer(ext, " \t\n\r", false);
-            while (st1.hasMoreTokens()) {
-                st1.nextToken();
-                count++;
-            }
-            extensionNamespaces = new String[count];
-            count = 0;
-            StringTokenizer st2 = new StringTokenizer(ext, " \t\n\r", false);
-            while (st2.hasMoreTokens()) {
-                String s = st2.nextToken();
-                if ("#default".equals(s)) {
-                    s = "";
-                }
-                String uri = getURIForPrefix(s, true);
-                if (uri == null) {
-                    extensionNamespaces = null;
-                    compileError("Prefix " + s + " is undeclared", "XTSE1430");
-                }
-                extensionNamespaces[count++] = uri;
-            }
+            extensionNamespaces = processPrefixList(ext, false);
         }
     }
 
     /**
      * Process the [xsl:]exclude-result-prefixes attribute if there is one
      * @param ns the namespace URI of the attribute required, either the XSLT namespace or ""
+     * @throws XPathException in the event of a bad prefix
      */
 
-    protected void processExcludedNamespaces(String ns)
-            throws XPathException {
+    protected void processExcludedNamespaces(String ns) throws XPathException {
         String ext = getAttributeValue(ns, "exclude-result-prefixes");
         if (ext != null) {
-            if ("#all".equals(Whitespace.trim(ext))) {
-                Iterator<NamespaceBinding> codes = NamespaceIterator.iterateNamespaces(this);
-                List<String> excluded = new ArrayList();
-                while (codes.hasNext()) {
-                    excluded.add(codes.next().getURI());
-                }
-                excludedNamespaces = excluded.toArray(new String[excluded.size()]);
-            } else {
-                // go round twice, once to count the values and next to add them to the array
-                int count = 0;
-                StringTokenizer st1 = new StringTokenizer(ext, " \t\n\r", false);
-                while (st1.hasMoreTokens()) {
-                    st1.nextToken();
-                    count++;
-                }
-                excludedNamespaces = new String[count];
-                count = 0;
-                StringTokenizer st2 = new StringTokenizer(ext, " \t\n\r", false);
-                while (st2.hasMoreTokens()) {
-                    String s = st2.nextToken();
-                    if ("#default".equals(s)) {
-                        s = "";
-                    } else if ("#all".equals(s)) {
-                        compileError("In exclude-result-prefixes, cannot mix #all with other values", "XTSE0020");
-                    }
-                    String uri = getURIForPrefix(s, true);
-                    if (uri == null) {
-                        excludedNamespaces = null;
-                        compileError("Prefix " + s + " is undeclared", "XTSE1430");
-                    }
-                    excludedNamespaces[count++] = uri;
-                }
-            }
+            excludedNamespaces = processPrefixList(ext, true);
         }
     }
 
     /**
+     * Process a string containing a whitespace-separated sequence of namespace prefixes
+     * @param in  the input string
+     * @param allowAll true if the token #all is permitted
+     * @return the list of corresponding namespace URIs
+     * @throws XPathException if there is a bad prefix
+     */
+
+    private String[] processPrefixList(String in, boolean allowAll) throws XPathException {
+        NamespaceResolver resolver = new InscopeNamespaceResolver(this);
+        if (allowAll && "#all".equals(Whitespace.trim(in))) {
+            Iterator<NamespaceBinding> codes = NamespaceIterator.iterateNamespaces(this);
+            List<String> result = new ArrayList<String>();
+            while (codes.hasNext()) {
+                result.add(codes.next().getURI());
+            }
+            return result.toArray(new String[result.size()]);
+        } else {
+            List<String> tokens = Whitespace.tokenize(in);
+            int count = tokens.size();
+            String[] result = new String[count];
+            count = 0;
+            for (String s : tokens) {
+                if ("#default".equals(s)) {
+                    s = "";
+                } else if (allowAll && "#all".equals(s)) {
+                    compileError("In exclude-result-prefixes, cannot mix #all with other values", "XTSE0020");
+                }
+                String uri = resolver.getURIForPrefix(s, true);
+                if (uri == null) {
+                    compileError("Prefix " + s + " is undeclared", "XTSE1430");
+                }
+                result[count++] = uri;
+            }
+            return result;
+        }
+    }
+
+
+    /**
      * Process the [xsl:]version attribute if there is one
      * @param ns the namespace URI of the attribute required, either the XSLT namespace or ""
+     * @throws XPathException if the value is invalid
      */
 
     protected void processVersionAttribute(String ns) throws XPathException {
@@ -661,18 +704,14 @@ public abstract class StyleElement extends ElementImpl
     /**
      * Process the [xsl:]default-xpath-namespace attribute if there is one
      * @param ns the namespace of the attribute required, either the XSLT namespace or ""
+     * @throws XPathException if the value is invalid
      */
 
     protected void processDefaultCollationAttribute(String ns) throws XPathException {
         String v = getAttributeValue(ns, "default-collation");
         if (v != null) {
-            StringTokenizer st = new StringTokenizer(v, " \t\n\r", false);
-            while (st.hasMoreTokens()) {
-                String uri = st.nextToken();
-                if (uri.equals(NamespaceConstant.CODEPOINT_COLLATION_URI)) {
-                    defaultCollationName = uri;
-                    return;
-                } else if (uri.startsWith("http://saxon.sf.net/")) {
+            for (String uri : Whitespace.tokenize(v)) {
+                if (uri.equals(NamespaceConstant.CODEPOINT_COLLATION_URI) || uri.startsWith("http://saxon.sf.net/")) {
                     defaultCollationName = uri;
                     return;
                 } else {
@@ -687,11 +726,6 @@ public abstract class StyleElement extends ElementImpl
                     } catch (URI.URISyntaxException err) {
                         compileError("default collation '" + uri + "' is not a valid URI");
                         uri = NamespaceConstant.CODEPOINT_COLLATION_URI;
-                    }
-
-                    if (uri.startsWith("http://saxon.sf.net/")) {
-                        defaultCollationName = uri;
-                        return;
                     }
 
                     if (getConfiguration().getNamedCollation(uri) != null) {
@@ -712,16 +746,12 @@ public abstract class StyleElement extends ElementImpl
      */
 
     protected String getDefaultCollationName() {
-        StyleElement e = this;
-        while (true) {
-            if (e.defaultCollationName != null) {
-                return e.defaultCollationName;
+        NodeInfo e = this;
+        while (e instanceof StyleElement) {
+            if (((StyleElement)e).defaultCollationName != null) {
+                return ((StyleElement)e).defaultCollationName;
             }
-            NodeInfo p = e.getParent();
-            if (!(p instanceof StyleElement)) {
-                break;
-            }
-            e = (StyleElement)p;
+            e = e.getParent();
         }
         return NamespaceConstant.CODEPOINT_COLLATION_URI;
     }
@@ -731,16 +761,16 @@ public abstract class StyleElement extends ElementImpl
      * This checks this node only, not the ancestor nodes.
      * The implementation checks whether the prefix is included in the
      * [xsl:]extension-element-prefixes attribute.
-     * @param uriCode the namespace URI code being tested
+     * @param uri the namespace URI being tested
      * @return true if this namespace is defined on this element as an extension element namespace
      */
 
-    protected boolean definesExtensionElement(String uriCode) {
+    protected boolean definesExtensionElement(String uri) {
         if (extensionNamespaces == null) {
             return false;
         }
-        for (int i = 0; i < extensionNamespaces.length; i++) {
-            if (extensionNamespaces[i].equals(uriCode)) {
+        for (String extensionNamespace : extensionNamespaces) {
+            if (extensionNamespace.equals(uri)) {
                 return true;
             }
         }
@@ -750,34 +780,28 @@ public abstract class StyleElement extends ElementImpl
     /**
      * Check whether a namespace uri defines an extension element. This checks whether the
      * namespace is defined as an extension namespace on this or any ancestor node.
-     * @param uriCode the namespace URI code being tested
+     * @param uri the namespace URI being tested
      * @return true if the URI is an extension element namespace URI
      */
 
-    public boolean isExtensionNamespace(String uriCode) {
-        NodeInfo anc = this;
-        while (anc instanceof StyleElement) {
-            if (((StyleElement)anc).definesExtensionElement(uriCode)) {
-                return true;
-            }
-            anc = anc.getParent();
-        }
-        return false;
+    public boolean isExtensionNamespace(String uri) {
+        NodeInfo p = getParent();
+        return definesExtensionElement(uri) || (p instanceof StyleElement && ((StyleElement)p).isExtensionNamespace(uri));
     }
 
     /**
      * Check whether this node excludes a particular namespace from the result.
      * This method checks this node only, not the ancestor nodes.
-     * @param uriCode the code of the namespace URI being tested
+     * @param uri the namespace URI being tested
      * @return true if the namespace is excluded by virtue of an [xsl:]exclude-result-prefixes attribute
      */
 
-    protected boolean definesExcludedNamespace(String uriCode) {
+    protected boolean definesExcludedNamespace(String uri) {
         if (excludedNamespaces == null) {
             return false;
         }
-        for (int i = 0; i < excludedNamespaces.length; i++) {
-            if (excludedNamespaces[i].equals(uriCode)) {
+        for (String excludedNamespace : excludedNamespaces) {
+            if (excludedNamespace.equals(uri)) {
                 return true;
             }
         }
@@ -788,26 +812,17 @@ public abstract class StyleElement extends ElementImpl
      * Check whether a namespace uri defines an namespace excluded from the result.
      * This checks whether the namespace is defined as an excluded namespace on this
      * or any ancestor node.
-     * @param uriCode the code of the namespace URI being tested
+     * @param uri the namespace URI being tested
      * @return true if this namespace URI is a namespace excluded by virtue of exclude-result-prefixes
      *         on this element or on an ancestor element
      */
 
-    public boolean isExcludedNamespace(String uriCode) {
-        if (uriCode.equals(NamespaceConstant.XSLT) || uriCode.equals(NamespaceConstant.XML)) {
+    public boolean isExcludedNamespace(String uri) {
+        if (uri.equals(NamespaceConstant.XSLT) || uri.equals(NamespaceConstant.XML)) {
             return true;
         }
-        if (isExtensionNamespace(uriCode)) {
-            return true;
-        }
-        NodeInfo anc = this;
-        while (anc instanceof StyleElement) {
-            if (((StyleElement)anc).definesExcludedNamespace(uriCode)) {
-                return true;
-            }
-            anc = anc.getParent();
-        }
-        return false;
+        NodeInfo p = getParent();
+        return definesExcludedNamespace(uri) || (p instanceof StyleElement && ((StyleElement)p).isExcludedNamespace(uri));
     }
 
     /**
@@ -920,34 +935,17 @@ public abstract class StyleElement extends ElementImpl
 
     public void allocateSlots(Expression exp) {
         SlotManager slotManager = getContainingSlotManager();
-        if (slotManager == null) {
-            throw new AssertionError("Slot manager has not been allocated");
-            // previous code: ExpressionTool.allocateSlots(exp, 0, null);
-        } else {
-            int firstSlot = slotManager.getNumberOfVariables();
-            int highWater = ExpressionTool.allocateSlots(exp, firstSlot, slotManager);
-            if (highWater > firstSlot) {
-                slotManager.setNumberOfVariables(highWater);
-                // This algorithm is not very efficient because it never reuses
-                // a slot when a variable goes out of scope. But at least it is safe.
-                // Note that range variables within XPath expressions need to maintain
-                // a slot until the instruction they are part of finishes, e.g. in
-                // xsl:for-each.
-            }
+        int firstSlot = slotManager.getNumberOfVariables();
+        int highWater = ExpressionTool.allocateSlots(exp, firstSlot, slotManager);
+        if (highWater > firstSlot) {
+            slotManager.setNumberOfVariables(highWater);
+            // This algorithm is not very efficient because it never reuses
+            // a slot when a variable goes out of scope. But at least it is safe.
+            // Note that range variables within XPath expressions need to maintain
+            // a slot until the instruction they are part of finishes, e.g. in
+            // xsl:for-each.
         }
     }
-
-    /**
-     * Allocate slots to any variables used within a pattern. This is needed only for "free-standing"
-     * patterns such as template match or key match; other cases are handed by the containing PatternSponsor
-     * @param pattern the pattern whose slots are to be allocated
-     */
-
-//    private void allocateSlots(Pattern pattern) {
-//        if (pattern instanceof LocationPathPattern) {
-//            ((LocationPathPattern)pattern).allocateSlots((ExpressionContext)getStaticContext(), 0);
-//        }
-//    }
 
     /**
      * Allocate space for range variables within predicates in the match pattern. The xsl:template
@@ -1028,7 +1026,7 @@ public abstract class StyleElement extends ElementImpl
      */
 
     public void fixupReferences() throws XPathException {
-        AxisIterator kids = iterateAxis(Axis.CHILD);
+        UnfailingIterator kids = iterateAxis(Axis.CHILD);
         while (true) {
             NodeInfo child = (NodeInfo)kids.next();
             if (child == null) {
@@ -1080,7 +1078,7 @@ public abstract class StyleElement extends ElementImpl
                 compileError(validationError);
             } else if (reportingCircumstances == REPORT_UNLESS_FALLBACK_AVAILABLE) {
                 boolean hasFallback = false;
-                AxisIterator kids = iterateAxis(Axis.CHILD);
+                UnfailingIterator kids = iterateAxis(Axis.CHILD);
                 while (true) {
                     NodeInfo child = (NodeInfo)kids.next();
                     if (child == null) {
@@ -1115,7 +1113,7 @@ public abstract class StyleElement extends ElementImpl
 
     protected void validateChildren(Declaration decl) throws XPathException {
         boolean containsInstructions = mayContainSequenceConstructor();
-        AxisIterator kids = iterateAxis(Axis.CHILD);
+        UnfailingIterator kids = iterateAxis(Axis.CHILD);
         while (true) {
             NodeInfo child = (NodeInfo)kids.next();
             if (child == null) {
@@ -1149,7 +1147,7 @@ public abstract class StyleElement extends ElementImpl
      *         Exceptionally (with early errors in a simplified stylesheet module) return null.
      */
 
-    public PreparedStylesheet getPreparedStylesheet() {
+    public Executable getPreparedStylesheet() {
         XSLStylesheet xss = getContainingStylesheet();
         return (xss==null ? null : xss.getPreparedStylesheet());
     }
@@ -1170,7 +1168,7 @@ public abstract class StyleElement extends ElementImpl
      */
 
     protected void checkSortComesFirst(boolean sortRequired) throws XPathException {
-        AxisIterator kids = iterateAxis(Axis.CHILD);
+        UnfailingIterator kids = iterateAxis(Axis.CHILD);
         boolean sortFound = false;
         boolean nonSortFound = false;
         while (true) {
@@ -1269,7 +1267,7 @@ public abstract class StyleElement extends ElementImpl
             }
             if (node.getNodeKind() == Type.TEXT) {
                 // handle literal text nodes by generating an xsl:value-of instruction
-                AxisIterator lookahead = node.iterateAxis(Axis.FOLLOWING_SIBLING);
+                UnfailingIterator lookahead = node.iterateAxis(Axis.FOLLOWING_SIBLING);
                 NodeInfo sibling = (NodeInfo)lookahead.next();
                 if (!(sibling instanceof XSLParam || sibling instanceof XSLSort)) {
                     // The test for XSLParam and XSLSort is to eliminate whitespace nodes that have been retained
@@ -1353,11 +1351,10 @@ public abstract class StyleElement extends ElementImpl
     
 	/**
 	 * Create a trace instruction to wrap a real instruction
-	 *
      *
      * @param source the parent element
      * @param child  the compiled expression tree for the instruction to be traced
-* @return a wrapper instruction that performs the tracing (if activated at run-time)
+     * @return a wrapper instruction that performs the tracing (if activated at run-time)
 	 */
 
 	public static Expression makeTraceInstruction(StyleElement source, Expression child) {
@@ -1396,7 +1393,7 @@ public abstract class StyleElement extends ElementImpl
         // process any xsl:fallback children; if there are none,
         // generate code to report the original failure reason
         Expression fallback = null;
-        AxisIterator kids = instruction.iterateAxis(Axis.CHILD);
+        UnfailingIterator kids = instruction.iterateAxis(Axis.CHILD);
         while (true) {
             NodeInfo child = (NodeInfo)kids.next();
             if (child == null) {
@@ -1438,7 +1435,7 @@ public abstract class StyleElement extends ElementImpl
         // handle sort keys if any
 
         int numberOfSortKeys = 0;
-        AxisIterator kids = iterateAxis(Axis.CHILD);
+        UnfailingIterator kids = iterateAxis(Axis.CHILD);
         while (true) {
             Item child = kids.next();
             if (child == null) {
@@ -1490,9 +1487,7 @@ public abstract class StyleElement extends ElementImpl
             list = new ArrayList(4);
         }
         PrincipalStylesheetModule psm = getPrincipalStylesheetModule();
-        StringTokenizer st = new StringTokenizer(use, " \t\n\r", false);
-        while (st.hasMoreTokens()) {
-            String asetname = st.nextToken();
+        for (String asetname : Whitespace.tokenize(use)) {
             StructuredQName name;
             try {
                 name = makeQName(asetname);
@@ -1531,7 +1526,7 @@ public abstract class StyleElement extends ElementImpl
     protected WithParam[] getWithParamInstructions(Executable exec, Declaration decl, boolean tunnel, Expression caller)
             throws XPathException {
         int count = 0;
-        AxisIterator kids = iterateAxis(Axis.CHILD);
+        UnfailingIterator kids = iterateAxis(Axis.CHILD);
         while (true) {
             NodeInfo child = (NodeInfo)kids.next();
             if (child == null) {
@@ -1576,7 +1571,7 @@ public abstract class StyleElement extends ElementImpl
         if (error.getLocator() == null) {
         	error.setLocator(this);
         }
-        PreparedStylesheet pss = getPreparedStylesheet();
+        Executable pss = getPreparedStylesheet();
         if (pss == null) {
             // it is null before the stylesheet has been fully built
             throw error;
@@ -1646,26 +1641,6 @@ public abstract class StyleElement extends ElementImpl
     }
 
     /**
-     * Report a warning to the error listener
-     * @param error an exception containing the warning text
-     */
-
-    protected void issueWarning(XPathException error) {
-        error.maybeSetLocation(this);
-        issueWarning(error.getMessage(), error.getLocator());
-    }
-
-    /**
-     * Report a warning to the error listener
-     * @param message the warning message text
-     * @param locator the location of the problem in the source stylesheet
-     */
-
-    protected void issueWarning(String message, SourceLocator locator) {
-        getConfiguration().issueWarning(message);
-    }
-
-    /**
      * Test whether this is a top-level element
      * @return true if the element is a child of the xsl:stylesheet element
      */
@@ -1688,7 +1663,7 @@ public abstract class StyleElement extends ElementImpl
 
         // first search for a local variable declaration
         if (!isTopLevel()) {
-            AxisIterator preceding = curr.iterateAxis(Axis.PRECEDING_SIBLING);
+            UnfailingIterator preceding = curr.iterateAxis(Axis.PRECEDING_SIBLING);
             while (true) {
                 curr = (NodeInfo)preceding.next();
                 while (curr == null) {
@@ -1731,31 +1706,6 @@ public abstract class StyleElement extends ElementImpl
         return true;
     }
 
-
-    /**
-     * Get a list of all stylesheet functions, excluding any that are masked by one of higher precedence
-     * @return a list of all stylesheet functions. The members of the list are instances of class XSLFunction
-     */
-
-//    public List getAllStylesheetFunctions() {
-//        // The performance of this algorithm is appalling, but it's only used for diagnostic explain output
-//        List output = new ArrayList();
-//        XSLStylesheet root = getContainingStylesheet();
-//        PrincipalStylesheetModule principal = root.getPrincipalStylesheetModule();
-//        List toplevel = root.getTopLevel();
-//        for (int i = toplevel.size() - 1; i >= 0; i--) {
-//            Object child = toplevel.get(i);
-//            if (child instanceof XSLFunction) {
-//                StructuredQName name = ((XSLFunction)child).getObjectName();
-//                int arity = ((XSLFunction)child).getNumberOfArguments();
-//                if (principal.getFunction(name, arity) == child) {
-//                    output.add(child);
-//                }
-//            }
-//        }
-//        return output;
-//    }
-
     /**
      * Get a name identifying the object of the expression, for example a function name, template name,
      * variable name, key name, element name, etc. This is used only where the name is known statically.
@@ -1764,6 +1714,16 @@ public abstract class StyleElement extends ElementImpl
      */
 
     public StructuredQName getObjectName() {
+        if (objectName == null) {
+            try {
+                objectName = (StructuredQName)checkAttribute("name", "q");
+                if (objectName == null) {
+                    objectName = new StructuredQName("saxon", NamespaceConstant.SAXON, "unnamed-" + getLocalPart());
+                }
+            } catch (XPathException err) {
+                objectName = new StructuredQName("saxon", NamespaceConstant.SAXON, "unknown-" + getLocalPart());
+            }
+        }
         return objectName;
     }
 
@@ -1784,7 +1744,7 @@ public abstract class StyleElement extends ElementImpl
 
     public Iterator<String> getProperties() {
         List<String> list = new ArrayList<String>(10);
-        AxisIterator it = iterateAxis(Axis.ATTRIBUTE);
+        UnfailingIterator it = iterateAxis(Axis.ATTRIBUTE);
         while (true) {
             NodeInfo a = (NodeInfo)it.next();
             if (a == null) {

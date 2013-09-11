@@ -2,18 +2,22 @@ package client.net.sf.saxon.ce.tree.wrapper;
 
 import client.net.sf.saxon.ce.event.Receiver;
 import client.net.sf.saxon.ce.event.Stripper;
+import client.net.sf.saxon.ce.expr.ItemMappingFunction;
+import client.net.sf.saxon.ce.expr.UnfailingItemMappingIterator;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
 import client.net.sf.saxon.ce.om.*;
-import client.net.sf.saxon.ce.pattern.NodeTest;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.tree.iter.AxisIterator;
 import client.net.sf.saxon.ce.tree.iter.EmptyIterator;
+import client.net.sf.saxon.ce.tree.iter.ListIterator;
+import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 import client.net.sf.saxon.ce.tree.util.Navigator;
 import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.value.AtomicValue;
 import client.net.sf.saxon.ce.value.UntypedAtomicValue;
-import client.net.sf.saxon.ce.value.Value;
 import client.net.sf.saxon.ce.value.Whitespace;
+
+import java.util.ArrayList;
+import java.util.List;
 
 
 /**
@@ -27,7 +31,7 @@ import client.net.sf.saxon.ce.value.Whitespace;
  * is built.
 */
 
-public class SpaceStrippedNode extends AbstractVirtualNode implements WrappingFunction {
+public class SpaceStrippedNode extends AbstractVirtualNode {
 
     protected SpaceStrippedNode() {}
 
@@ -67,8 +71,8 @@ public class SpaceStrippedNode extends AbstractVirtualNode implements WrappingFu
      * @return            The new wrapper for the supplied node
      */
 
-    public VirtualNode makeWrapper(NodeInfo node, VirtualNode parent) {
-        SpaceStrippedNode wrapper = new SpaceStrippedNode(node, (SpaceStrippedNode)parent);
+    public SpaceStrippedNode makeWrapper(NodeInfo node, SpaceStrippedNode parent) {
+        SpaceStrippedNode wrapper = new SpaceStrippedNode(node, parent);
         wrapper.docWrapper = this.docWrapper;
         return wrapper;
     }
@@ -141,23 +145,35 @@ public class SpaceStrippedNode extends AbstractVirtualNode implements WrappingFu
     * @return a SequenceIterator that scans the nodes reached by the axis in turn.
     */
 
-    public AxisIterator iterateAxis(byte axisNumber) {
+    public UnfailingIterator iterateAxis(byte axisNumber) {
         switch (axisNumber) {
             case Axis.ATTRIBUTE:
             case Axis.NAMESPACE:
-                return new WrappingIterator(node.iterateAxis(axisNumber), this, this);
+                UnfailingIterator iter = iterateAxis(axisNumber);
+                List<NodeInfo> wrappedNodes = new ArrayList<NodeInfo>();
+                while (true) {
+                    NodeInfo att = (NodeInfo)iter.next();
+                    if (node == null) {
+                        break;
+                    }
+                    SpaceStrippedNode wrapper = new SpaceStrippedNode(att, this);
+                    wrapper.docWrapper = this.docWrapper;
+                    wrappedNodes.add(wrapper);
+                }
+                return new ListIterator(wrappedNodes);
+
             case Axis.CHILD:
-                return new StrippingIterator(node.iterateAxis(axisNumber), this);
+                return makeStrippingIterator(node.iterateAxis(axisNumber), this);
             case Axis.FOLLOWING_SIBLING:
             case Axis.PRECEDING_SIBLING:
                 SpaceStrippedNode parent = (SpaceStrippedNode)getParent();
                 if (parent == null) {
                     return EmptyIterator.getInstance();
                 } else {
-                    return new StrippingIterator(node.iterateAxis(axisNumber), parent);
+                    return makeStrippingIterator(node.iterateAxis(axisNumber), parent);
                 }
             default:
-                return new StrippingIterator(node.iterateAxis(axisNumber), null);
+                return makeStrippingIterator(node.iterateAxis(axisNumber), null);
         }
     }
 
@@ -173,76 +189,39 @@ public class SpaceStrippedNode extends AbstractVirtualNode implements WrappingFu
         node.copy(stripper, copyOptions);
     }
 
+    private UnfailingIterator makeStrippingIterator(UnfailingIterator base, SpaceStrippedNode parent) {
+        return new UnfailingItemMappingIterator(base, new StrippingMappingFunction((SpaceStrippedDocument)docWrapper, parent));
+    }
 
-    /**
-     * A StrippingIterator delivers wrappers for the nodes delivered
-     * by its underlying iterator. It is used when whitespace stripping
-     * may be needed, e.g. for the child axis. It examines all text nodes
-     * encountered to see if they need to be stripped, and if so, it
-     * skips them.
-     */
+    private static class StrippingMappingFunction implements ItemMappingFunction {
 
-    private final class StrippingIterator implements AxisIterator {
+        private SpaceStrippedDocument docWrapper;
+        private SpaceStrippedNode parent;
 
-        AxisIterator base;
-        SpaceStrippedNode parent;
-        NodeInfo currentVirtualNode;
-        int position;
-
-        /**
-         * Create a StrippingIterator
-         * @param base The underlying iterator
-         * @param parent If all the nodes to be wrapped have the same parent,
-         * it can be specified here. Otherwise specify null.
-         */
-
-        public StrippingIterator(AxisIterator base, SpaceStrippedNode parent) {
-            this.base = base;
+        public StrippingMappingFunction(SpaceStrippedDocument docWrapper, SpaceStrippedNode parent) {
+            this.docWrapper = docWrapper;
             this.parent = parent;
-            position = 0;
         }
 
-        /**
-         * Move to the next node, without returning it. Returns true if there is
-         * a next node, false if the end of the sequence has been reached. After
-         * calling this method, the current node may be retrieved using the
-         * current() function.
-         */
-
-        public boolean moveNext() {
-            return (next() != null);
-        }
-
-
-        public Item next() {
-            NodeInfo nextRealNode;
-            while (true) {
-                nextRealNode = (NodeInfo)base.next();
-                if (nextRealNode==null) {
-                    return null;
-                }
-                if (isPreserved(nextRealNode)) {
-                    break;
-                }
-                // otherwise skip this whitespace text node
+        public Item mapItem(Item item) {
+            if (isPreserved((NodeInfo)item)) {
+                return makeWrapper((NodeInfo)item, docWrapper, parent);
+            } else {
+                return null;
             }
-
-            currentVirtualNode = makeWrapper(nextRealNode,(SpaceStrippedDocument)docWrapper, parent);
-            position++;
-            return currentVirtualNode;
         }
 
-        private boolean isPreserved(NodeInfo nextRealNode) {
-            if (nextRealNode.getNodeKind() != Type.TEXT) {
+        private boolean isPreserved(NodeInfo realNode) {
+            if (realNode.getNodeKind() != Type.TEXT) {
                 return true;
             }
-            if (!Whitespace.isWhite(nextRealNode.getStringValue())) {
+            if (!Whitespace.isWhite(realNode.getStringValue())) {
                 return true;
             }
             NodeInfo actualParent =
-                    (parent==null ? nextRealNode.getParent() : parent.node);
+                    (parent==null ? realNode.getParent() : parent.node);
 
-            if (((SpaceStrippedDocument)docWrapper).containsPreserveSpace()) {
+            if (docWrapper.containsPreserveSpace()) {
                 NodeInfo p = actualParent;
                 // the document contains one or more xml:space="preserve" attributes, so we need to see
                 // if one of them is on an ancestor of this node
@@ -261,7 +240,7 @@ public class SpaceStrippedNode extends AbstractVirtualNode implements WrappingFu
 
             try {
                 StructuredQName parentName = new StructuredQName("", actualParent.getURI(), actualParent.getLocalPart());
-                byte preserve = ((SpaceStrippedDocument)docWrapper).getStripper().isSpacePreserving(parentName);
+                byte preserve = docWrapper.getStripper().isSpacePreserving(parentName);
                 return preserve == Stripper.ALWAYS_PRESERVE;
             } catch (XPathException e) {
                 // Ambiguity between strip-space and preserve-space. Because we're in an axis iterator,
@@ -269,69 +248,7 @@ public class SpaceStrippedNode extends AbstractVirtualNode implements WrappingFu
                 return true;
             }
         }
-
-        public Item current() {
-            return currentVirtualNode;
-        }
-
-        public int position() {
-            return position;
-        }
-
-        /**
-         * Return an iterator over an axis, starting at the current node.
-         *
-         * @param axis the axis to iterate over, using a constant such as
-         *             {@link Axis#CHILD}
-         * @param test a predicate to apply to the nodes before returning them.
-         * @throws NullPointerException if there is no current node
-         */
-
-        public AxisIterator iterateAxis(byte axis, NodeTest test) {
-            return currentVirtualNode.iterateAxis(axis, test);
-        }
-
-        /**
-         * Return the atomized value of the current node.
-         *
-         * @return the atomized value.
-         * @throws NullPointerException if there is no current node
-         */
-
-        public Value atomize() throws XPathException {
-            return currentVirtualNode.getTypedValue();
-        }
-
-        /**
-         * Return the string value of the current node.
-         *
-         * @return the string value, as an instance of CharSequence.
-         * @throws NullPointerException if there is no current node
-         */
-
-        public CharSequence getStringValue() {
-            return currentVirtualNode.getStringValue();
-        }
-
-        public SequenceIterator getAnother() {
-            return new StrippingIterator((AxisIterator)base.getAnother(), parent);
-        }
-
-        /**
-         * Get properties of this iterator, as a bit-significant integer.
-         *
-         * @return the properties of this iterator. This will be some combination of
-         *         properties such as {@link #GROUNDED}, {@link #LAST_POSITION_FINDER}. It is always
-         *         acceptable to return the value zero, indicating that there are no known special properties.
-         *         It is acceptable for the properties of the iterator to change depending on its state.
-         */
-
-        public int getProperties() {
-            return 0;
-        }
-
-    }  // end of class StrippingIterator
-
+    }
 
 
 }

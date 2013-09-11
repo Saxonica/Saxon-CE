@@ -1,18 +1,12 @@
 package client.net.sf.saxon.ce.expr;
 
 import client.net.sf.saxon.ce.functions.NumberFn;
-import client.net.sf.saxon.ce.functions.SystemFunction;
 import client.net.sf.saxon.ce.om.Item;
-import client.net.sf.saxon.ce.om.StructuredQName;
-import client.net.sf.saxon.ce.lib.NamespaceConstant;
 import client.net.sf.saxon.ce.pattern.EmptySequenceTest;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.BuiltInAtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.*;
-import client.net.sf.saxon.ce.expr.instruct.Choose;
-import client.net.sf.saxon.ce.Configuration;
 
 /**
  * Arithmetic Expression: an expression using one of the operators
@@ -41,73 +35,34 @@ public class ArithmeticExpression10 extends BinaryExpression {
 
     public Expression typeCheck(ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
 
-        final Configuration config = visitor.getConfiguration();
-        final TypeHierarchy th = config.getTypeHierarchy();
-
-        if (Literal.isEmptySequence(operand0)) {
-            return new Literal(DoubleValue.NaN);
+        Expression e2 = super.typeCheck(visitor, contextItemType);
+        if (e2 != this) {
+            return e2;
         }
-
-        if (Literal.isEmptySequence(operand1)) {
-            return new Literal(DoubleValue.NaN);
-        }
-
-        Expression oldOp0 = operand0;
-        Expression oldOp1 = operand1;
-
-        operand0 = visitor.typeCheck(operand0, contextItemType);
-        operand1 = visitor.typeCheck(operand1, contextItemType);
-
 
         SequenceType atomicType = SequenceType.OPTIONAL_ATOMIC;
 
         RoleLocator role0 = new RoleLocator(RoleLocator.BINARY_EXPR, Token.tokens[operator], 0);
-        //role0.setSourceLocator(this);
         operand0 = TypeChecker.staticTypeCheck(operand0, atomicType, true, role0, visitor);
 
         RoleLocator role1 = new RoleLocator(RoleLocator.BINARY_EXPR, Token.tokens[operator], 1);
-        //role1.setSourceLocator(this);
         operand1 = TypeChecker.staticTypeCheck(operand1, atomicType, true, role1, visitor);
 
-        final ItemType itemType0 = operand0.getItemType(th);
+        ItemType itemType0 = operand0.getItemType();
         if (itemType0 instanceof EmptySequenceTest) {
             return Literal.makeLiteral(DoubleValue.NaN);
         }
-        BuiltInAtomicType type0 = (BuiltInAtomicType) itemType0.getPrimitiveItemType();
 
-        final ItemType itemType1 = operand1.getItemType(th);
+        ItemType itemType1 = operand1.getItemType();
         if (itemType1 instanceof EmptySequenceTest) {
             return Literal.makeLiteral(DoubleValue.NaN);
         }
-        BuiltInAtomicType type1 = (BuiltInAtomicType)itemType1.getPrimitiveItemType();
 
-        // If both operands are integers, use integer arithmetic and convert the result to a double
-        if (th.isSubType(type0, BuiltInAtomicType.INTEGER) &&
-                th.isSubType(type1, BuiltInAtomicType.INTEGER) &&
-                (operator == Token.PLUS || operator == Token.MINUS || operator == Token.MULT)) {
-            ArithmeticExpression arith = new ArithmeticExpression(operand0, operator, operand1);
-            arith.simplified = true;
-            NumberFn n = (NumberFn)SystemFunction.makeSystemFunction("number", new Expression[]{arith});
-            return n.typeCheck(visitor, contextItemType);
-        }
+        operand0 = createConversionCode(operand0);
+        operand1 = createConversionCode(operand1);
 
-        operand0 = createConversionCode(operand0, config, type0);
-        type0 = (BuiltInAtomicType) operand0.getItemType(th).getPrimitiveItemType();
-
-        // System.err.println("First operand"); operand0.display(10);
-
-
-
-        operand1 = createConversionCode(operand1, config, type1);
-        type1 = (BuiltInAtomicType) operand1.getItemType(th).getPrimitiveItemType();
-
-        if (operand0 != oldOp0) {
-            adoptChildExpression(operand0);
-        }
-
-        if (operand1 != oldOp1) {
-            adoptChildExpression(operand1);
-        }
+        adoptChildExpression(operand0);
+        adoptChildExpression(operand1);
 
         if (operator == Token.NEGATE) {
             if (operand1 instanceof Literal) {
@@ -121,99 +76,24 @@ public class ArithmeticExpression10 extends BinaryExpression {
             return visitor.typeCheck(ne, contextItemType);
         }
 
-        try {
-            if ((operand0 instanceof Literal) && (operand1 instanceof Literal)) {
-                return Literal.makeLiteral(
-                        Value.asValue(evaluateItem(visitor.getStaticContext().makeEarlyEvaluationContext())));
-            }
-        } catch (XPathException err) {
-            // if early evaluation fails, suppress the error: the value might
-            // not be needed at run-time
-        }
         return this;
     }
 
 
-    private Expression createConversionCode(
-            Expression operand, final Configuration config, BuiltInAtomicType type) {
-        TypeHierarchy th = config.getTypeHierarchy();
-        if (Cardinality.allowsMany(operand.getCardinality())) {               
+    private Expression createConversionCode(Expression operand) {
+        if (Cardinality.allowsMany(operand.getCardinality())) {
             FirstItemExpression fie = new FirstItemExpression(operand);
             ExpressionTool.copyLocationInfo(this, fie);
             operand = fie;
         }
-
-        if (th.isSubType(type, BuiltInAtomicType.DOUBLE) ||
-                th.isSubType(type, BuiltInAtomicType.DATE) ||
-                th.isSubType(type, BuiltInAtomicType.TIME) ||
-                th.isSubType(type, BuiltInAtomicType.DATE_TIME) ||
-                th.isSubType(type, BuiltInAtomicType.DURATION)) {
-            return operand;
-        }
-        if (th.isSubType(type, BuiltInAtomicType.BOOLEAN) ||
-                th.isSubType(type, BuiltInAtomicType.STRING) ||
-                th.isSubType(type, BuiltInAtomicType.UNTYPED_ATOMIC) ||
-                th.isSubType(type, BuiltInAtomicType.FLOAT) ||
-                th.isSubType(type, BuiltInAtomicType.DECIMAL)) {
-            if (operand instanceof Literal) {
-                Value val = ((Literal)operand).getValue();
-                return new Literal(NumberFn.convert((AtomicValue)val));
-            } else {
-                return SystemFunction.makeSystemFunction("number", new Expression[]{operand});
-            }
-        }
-        // If we can't determine the primitive type at compile time, we generate a run-time typeswitch
-
-        LetExpression let = new LetExpression();
-        let.setRequiredType(SequenceType.OPTIONAL_ATOMIC);
-        let.setVariableQName(new StructuredQName("nn", NamespaceConstant.SAXON, "nn" + let.hashCode()));
-        let.setSequence(operand);
-
-        LocalVariableReference var = new LocalVariableReference(let);
-        Expression isDouble = new InstanceOfExpression(
-                var, SequenceType.makeSequenceType(BuiltInAtomicType.DOUBLE, StaticProperty.ALLOWS_ZERO_OR_ONE));
-
-        var = new LocalVariableReference(let);
-        Expression isDecimal = new InstanceOfExpression(
-                var, SequenceType.makeSequenceType(BuiltInAtomicType.DECIMAL, StaticProperty.ALLOWS_ZERO_OR_ONE));
-
-        var = new LocalVariableReference(let);
-        Expression isFloat = new InstanceOfExpression(
-                var, SequenceType.makeSequenceType(BuiltInAtomicType.FLOAT, StaticProperty.ALLOWS_ZERO_OR_ONE));
-
-        var = new LocalVariableReference(let);
-        Expression isString = new InstanceOfExpression(
-                var, SequenceType.makeSequenceType(BuiltInAtomicType.STRING, StaticProperty.ALLOWS_ZERO_OR_ONE));
-
-        var = new LocalVariableReference(let);
-        Expression isUntypedAtomic = new InstanceOfExpression(
-                var, SequenceType.makeSequenceType(BuiltInAtomicType.UNTYPED_ATOMIC, StaticProperty.ALLOWS_ZERO_OR_ONE));
-
-        var = new LocalVariableReference(let);
-        Expression isBoolean = new InstanceOfExpression(
-                var, SequenceType.makeSequenceType(BuiltInAtomicType.BOOLEAN, StaticProperty.ALLOWS_ZERO_OR_ONE));
-
-        Expression condition = new BooleanExpression(isDouble, Token.OR, isDecimal);
-        condition = new BooleanExpression(condition, Token.OR, isFloat);
-        condition = new BooleanExpression(condition, Token.OR, isString);
-        condition = new BooleanExpression(condition, Token.OR, isUntypedAtomic);
-        condition = new BooleanExpression(condition, Token.OR, isBoolean);
-
-        var = new LocalVariableReference(let);
-        NumberFn fn = (NumberFn)SystemFunction.makeSystemFunction("number", new Expression[]{var});
-
-        var = new LocalVariableReference(let);
-        var.setStaticType(SequenceType.SINGLE_ATOMIC, null, 0);
-        Expression action = Choose.makeConditional(condition, fn, var);
-        let.setAction(action);
-        return let;
+        return operand;
     }
 
     /**
      * Determine the data type of the expression, if this is known statically
      */
 
-    public ItemType getItemType(TypeHierarchy th) {
+    public ItemType getItemType() {
         return BuiltInAtomicType.ANY_ATOMIC;  // type is not known statically
     }
 
@@ -224,16 +104,29 @@ public class ArithmeticExpression10 extends BinaryExpression {
     public Item evaluateItem(XPathContext context) throws XPathException {
 
         AtomicValue v1 = (AtomicValue) operand0.evaluateItem(context);
-        if (v1 == null) {
-            return DoubleValue.NaN;
-        }
+        v1 = convertOperand(v1);
 
         AtomicValue v2 = (AtomicValue) operand1.evaluateItem(context);
-        if (v2 == null) {
-            return DoubleValue.NaN;
-        }
+        v2 = convertOperand(v2);
 
         return ArithmeticExpression.compute(v1, operator, v2, context);
+    }
+
+    private DoubleValue convertOperand(AtomicValue value) throws XPathException {
+        if (value == null) {
+            return DoubleValue.NaN;
+        }
+        if (value instanceof DoubleValue) {
+            return (DoubleValue)value;
+        }
+        BuiltInAtomicType type = value.getItemType();
+        if (type == BuiltInAtomicType.INTEGER || type == BuiltInAtomicType.UNTYPED_ATOMIC ||
+                type == BuiltInAtomicType.DECIMAL || type == BuiltInAtomicType.FLOAT ||
+                type == BuiltInAtomicType.BOOLEAN || type == BuiltInAtomicType.STRING) {
+            return NumberFn.convert(value);
+        } else {
+            throw new XPathException("Invalid operand type for arithmetic: " + type, "XPTY0004");
+        }
     }
 
 

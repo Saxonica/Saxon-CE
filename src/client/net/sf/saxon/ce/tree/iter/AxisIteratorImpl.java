@@ -2,9 +2,6 @@ package client.net.sf.saxon.ce.tree.iter;
 
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.NodeInfo;
-import client.net.sf.saxon.ce.pattern.NodeTest;
-import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.value.Value;
 
 /**
  * A SequenceIterator is used to iterate over a sequence. An AxisIterator
@@ -16,21 +13,10 @@ import client.net.sf.saxon.ce.value.Value;
  * that it provides is maintaining the current position.
  */
 
-public abstract class AxisIteratorImpl implements AxisIterator {
+public abstract class AxisIteratorImpl implements UnfailingIterator {
 
     protected int position = 0;
     protected NodeInfo current;
-
-    /**
-     * Move to the next node, without returning it. Returns true if there is
-     * a next node, false if the end of the sequence has been reached. After
-     * calling this method, the current node may be retrieved using the
-     * current() function.
-     */
-
-    public boolean moveNext() {
-        return (next() != null);
-    }
 
     /**
      * Get the current node in the sequence.
@@ -48,40 +34,6 @@ public abstract class AxisIteratorImpl implements AxisIterator {
 
     public final int position() {
         return position;
-    }
-
-    /**
-     * Return an iterator over an axis, starting at the current node.
-     *
-     * @param axis the axis to iterate over, using a constant such as
-     *             {@link client.net.sf.saxon.ce.om.Axis#CHILD}
-     * @param test a predicate to apply to the nodes before returning them.
-     */
-
-    public AxisIterator iterateAxis(byte axis, NodeTest test) {
-        return current.iterateAxis(axis, test);
-    }
-
-    /**
-     * Return the atomized value of the current node.
-     *
-     * @return the atomized value.
-     * @throws NullPointerException if there is no current node
-     */
-
-    public Value atomize() throws XPathException {
-        return current.getTypedValue();
-    }
-
-    /**
-     * Return the string value of the current node.
-     *
-     * @return the string value, as an instance of CharSequence.
-     * @throws NullPointerException if there is no current node
-     */
-
-    public CharSequence getStringValue() {
-        return current.getStringValue();
     }
 
     /**

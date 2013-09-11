@@ -121,28 +121,6 @@ public class ApplyImports extends Instruction {
         return list.iterator();
     }
 
-    /**
-     * Replace one subexpression by a replacement subexpression
-     * @param original the original subexpression
-     * @param replacement the replacement subexpression
-     * @return true if the original subexpression is found
-     */
-
-    public boolean replaceSubExpression(Expression original, Expression replacement) {
-        boolean found = false;
-        if (original instanceof WithParam) {
-            found = original.replaceSubExpression(((WithParam) original).getSelectExpression(), replacement);
-        } else {
-            if (WithParam.replaceXPathExpression(actualParams, original, replacement)) {
-                found = true;
-            }
-            if (WithParam.replaceXPathExpression(tunnelParams, original, replacement)) {
-                found = true;
-            }
-        }
-        return found;
-    }
-
 
     public TailCall processLeavingTail(XPathContext context) throws XPathException {
 
@@ -154,7 +132,7 @@ public class ApplyImports extends Instruction {
 
         Rule currentTemplateRule = context.getCurrentTemplateRule();
         if (currentTemplateRule==null) {
-            dynamicError("There is no current template rule", "XTDE0560", context);
+            dynamicError("There is no current template rule", "XTDE0560");
         }
 
         int min = currentTemplateRule.getMinImportPrecedence();
@@ -164,11 +142,11 @@ public class ApplyImports extends Instruction {
             mode = controller.getRuleManager().getUnnamedMode();
         }
         if (context.getCurrentIterator()==null) {
-            dynamicError("Cannot call xsl:apply-imports when there is no context item", "XTDE0565", context);
+            dynamicError("Cannot call xsl:apply-imports when there is no context item", "XTDE0565");
         }
         Item currentItem = context.getCurrentIterator().current();
         if (!(currentItem instanceof NodeInfo)) {
-            dynamicError("Cannot call xsl:apply-imports when context item is not a node", "XTDE0565", context);
+            dynamicError("Cannot call xsl:apply-imports when context item is not a node", "XTDE0565");
         }
         NodeInfo node = (NodeInfo)currentItem;
         Rule rule = controller.getRuleManager().getTemplateRule(node, mode, min, max, context);

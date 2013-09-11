@@ -5,7 +5,7 @@ import client.net.sf.saxon.ce.om.NamespaceBinding;
 import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.pattern.NodeTest;
-import client.net.sf.saxon.ce.tree.iter.AxisIterator;
+import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
 import client.net.sf.saxon.ce.tree.util.Navigator;
 import client.net.sf.saxon.ce.value.AtomicValue;
@@ -28,21 +28,6 @@ public abstract class AbstractVirtualNode implements VirtualNode {
 
     public NodeInfo getUnderlyingNode() {
         return node;
-    }
-
-    /**
-     * Get the node underlying this virtual node. If this is a VirtualNode the method
-     * will automatically drill down through several layers of wrapping.
-     *
-     * @return The underlying node.
-     */
-
-    public Object getRealNode() {
-        Object u = this;
-        do {
-            u = ((VirtualNode) u).getUnderlyingNode();
-        } while (u instanceof VirtualNode);
-        return u;
     }
 
     /**
@@ -213,7 +198,7 @@ public abstract class AbstractVirtualNode implements VirtualNode {
      * @return a SequenceIterator that scans the nodes reached by the axis in turn.
      */
 
-    public AxisIterator iterateAxis(byte axisNumber, NodeTest nodeTest) {
+    public UnfailingIterator iterateAxis(byte axisNumber, NodeTest nodeTest) {
         return new Navigator.AxisFilter(iterateAxis(axisNumber), nodeTest);
     }
 

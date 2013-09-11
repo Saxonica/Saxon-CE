@@ -50,14 +50,13 @@ public class Tokenize extends SystemFunction  {
 
             // check that it's not a pattern that matches ""
             if (re.matches("")) {
-                dynamicError("The regular expression in tokenize() must not be one that matches a zero-length string", "FORX0003", null);
+                dynamicError("The regular expression in tokenize() must not be one that matches a zero-length string", "FORX0003");
             }
 
             return re.tokenize(input);
 
         } catch (XPathException err) {
             err.setErrorCode("FORX0002");
-            err.setXPathContext(c);
             err.maybeSetLocation(this.getSourceLocator());
             throw err;
         }

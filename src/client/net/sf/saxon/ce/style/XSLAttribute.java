@@ -1,20 +1,16 @@
 package client.net.sf.saxon.ce.style;
-import com.google.gwt.logging.client.LogConfiguration;
-
 import client.net.sf.saxon.ce.LogController;
 import client.net.sf.saxon.ce.expr.Expression;
 import client.net.sf.saxon.ce.expr.StringLiteral;
 import client.net.sf.saxon.ce.expr.instruct.ComputedAttribute;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.expr.instruct.FixedAttribute;
-import client.net.sf.saxon.ce.lib.StandardURIChecker;
-import client.net.sf.saxon.ce.lib.Validation;
 import client.net.sf.saxon.ce.om.*;
-import client.net.sf.saxon.ce.trans.Err;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.tree.iter.AxisIterator;
+import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 import client.net.sf.saxon.ce.value.StringValue;
 import client.net.sf.saxon.ce.value.Whitespace;
+import com.google.gwt.logging.client.LogConfiguration;
 
 /**
 * xsl:attribute element in stylesheet. <br>
@@ -24,100 +20,56 @@ public class XSLAttribute extends XSLLeafNodeConstructor {
 
     private Expression attributeName;
     private Expression separator;
-    private Expression namespace = null;
+    private Expression namespace;
 
     public void prepareAttributes() throws XPathException {
 
-		AttributeCollection atts = getAttributeList();
+//		AttributeCollection atts = getAttributeList();
+//
+//		String nameAtt = null;
+//		String namespaceAtt = null;
+//        String selectAtt = null;
+//        String separatorAtt = null;
+//		String validationAtt = null;
+//		String typeAtt = null;
+//
+//		for (int a=0; a<atts.getLength(); a++) {
+//			StructuredQName qn = atts.getStructuredQName(a);
+//            String f = qn.getClarkName();
+//			if (f.equals("name")) {
+//        		nameAtt = Whitespace.trim(atts.getValue(a));
+//        	} else if (f.equals("namespace")) {
+//        		namespaceAtt = Whitespace.trim(atts.getValue(a));
+//        	} else if (f.equals("select")) {
+//        		selectAtt = atts.getValue(a);
+//        	} else if (f.equals("separator")) {
+//        		separatorAtt = atts.getValue(a);
+//        	} else if (f.equals("validation")) {
+//        		validationAtt = Whitespace.trim(atts.getValue(a));
+//        	} else if (f.equals("type")) {
+//        		typeAtt = Whitespace.trim(atts.getValue(a));
+//        	} else {
+//        		checkUnknownAttribute(qn);
+//        	}
+//        }
 
-		String nameAtt = null;
-		String namespaceAtt = null;
-        String selectAtt = null;
-        String separatorAtt = null;
-		String validationAtt = null;
-		String typeAtt = null;
-
-		for (int a=0; a<atts.getLength(); a++) {
-			StructuredQName qn = atts.getStructuredQName(a);
-            String f = qn.getClarkName();
-			if (f.equals("name")) {
-        		nameAtt = Whitespace.trim(atts.getValue(a));
-        	} else if (f.equals("namespace")) {
-        		namespaceAtt = Whitespace.trim(atts.getValue(a));
-        	} else if (f.equals("select")) {
-        		selectAtt = atts.getValue(a);
-        	} else if (f.equals("separator")) {
-        		separatorAtt = atts.getValue(a);
-        	} else if (f.equals("validation")) {
-        		validationAtt = Whitespace.trim(atts.getValue(a));
-        	} else if (f.equals("type")) {
-        		typeAtt = Whitespace.trim(atts.getValue(a));
-        	} else {
-        		checkUnknownAttribute(qn);
-        	}
-        }
-
-        if (nameAtt==null) {
-            reportAbsence("name");
-            return;
-        }
-        attributeName = makeAttributeValueTemplate(nameAtt);
-        if (attributeName instanceof StringLiteral) {
-            if (nameAtt.equals("xmlns")) {
-                if (namespace==null) {
-                    invalidAttributeName("Invalid attribute name: xmlns");
-                }
-            }
-            if (nameAtt.startsWith("xmlns:")) {
-                if (namespaceAtt == null) {
-                    invalidAttributeName("Invalid attribute name: " + Err.wrap(nameAtt));
-                } else {
-                    // ignore the prefix "xmlns"
-                    nameAtt = nameAtt.substring(6);
-                    attributeName = new StringLiteral(nameAtt);
-                }
-            }
-        }
+        attributeName = (Expression)checkAttribute("name", "a1");
+        namespace = (Expression)checkAttribute("namespace", "a");
+        select = (Expression)checkAttribute("select", "e");
+        separator = (Expression)checkAttribute("separator", "a");
+        checkAttribute("validation", "v");
+        checkAttribute("type", "t");
+        checkForUnknownAttributes();
 
 
-        if (namespaceAtt!=null) {
-            namespace = makeAttributeValueTemplate(namespaceAtt);
-            if (namespace instanceof StringLiteral) {
-                if (!StandardURIChecker.getInstance().isValidURI(((StringLiteral)namespace).getStringValue())) {
-                    compileError("The value of the namespace attribute must be a valid URI", "XTDE0865");
-                }
-            }
-        }
-
-        if (selectAtt!=null) {
-            select = makeExpression(selectAtt);
-        }
-
-        if (separatorAtt == null) {
-            if (selectAtt == null) {
+        if (separator == null) {
+            if (select == null) {
                 separator = new StringLiteral(StringValue.EMPTY_STRING);
             } else {
                 separator = new StringLiteral(StringValue.SINGLE_SPACE);
             }
-        } else {
-            separator = makeAttributeValueTemplate(separatorAtt);
         }
 
-        if (validationAtt!=null && Validation.getCode(validationAtt) != Validation.STRIP) {
-            compileError("To perform validation, a schema-aware XSLT processor is needed", "XTSE1660");
-        }
-
-        if (typeAtt!=null) {
-            compileError("The @type attribute is available only with a schema-aware XSLT processor", "XTSE1660");
-        }
-
-    }
-
-    private void invalidAttributeName(String message) throws XPathException {
-            compileError(message, "XTDE0850");
-            // prevent a duplicate error message...
-            attributeName = new StringLiteral("saxon-error-attribute");
-//        }
     }
 
     public void validate(Declaration decl) throws XPathException {
@@ -143,6 +95,7 @@ public class XSLAttribute extends XSLLeafNodeConstructor {
 
         // deal specially with the case where the attribute name is known statically
 
+        NamespaceResolver resolver = new InscopeNamespaceResolver(this);
         if (attributeName instanceof StringLiteral) {
             String qName = Whitespace.trim(((StringLiteral)attributeName).getStringValue());
             String[] parts;
@@ -156,7 +109,7 @@ public class XSLAttribute extends XSLLeafNodeConstructor {
             if (namespace==null) {
                 String nsuri = "";
                 if (!parts[0].equals("")) {
-                    nsuri = getURIForPrefix(parts[0], false);
+                    nsuri = resolver.getURIForPrefix(parts[0], false);
                     if (nsuri == null) {
                         undeclaredNamespaceError(parts[0], "XTSE0280");
                         return null;
@@ -177,7 +130,7 @@ public class XSLAttribute extends XSLLeafNodeConstructor {
                 } else if (parts[0].equals("")) {
                     // Need to choose an arbitrary prefix
                     // First see if the requested namespace is declared in the stylesheet
-                    AxisIterator iter = iterateAxis(Axis.NAMESPACE);
+                    UnfailingIterator iter = iterateAxis(Axis.NAMESPACE);
                     while (true) {
                         NodeInfo ns = (NodeInfo)iter.next();
                         if (ns == null) {
@@ -203,16 +156,9 @@ public class XSLAttribute extends XSLLeafNodeConstructor {
                 }
                 return inst;
             }
-        } else {
-            // if the namespace URI must be deduced at run-time from the attribute name
-            // prefix, we need to save the namespace context of the instruction
-
-            if (namespace==null) {
-                nsContext = this;
-            }
         }
 
-        ComputedAttribute inst = new ComputedAttribute( attributeName, namespace, nsContext);
+        ComputedAttribute inst = new ComputedAttribute( attributeName, namespace, resolver);
         compileContent(exec, decl, inst, separator);
         if (LogConfiguration.loggingIsEnabled() && LogController.traceIsEnabled()) {
         	inst.AddTraceProperty("name", attributeName);

@@ -4,12 +4,14 @@ import client.net.sf.saxon.ce.event.Stripper;
 import client.net.sf.saxon.ce.expr.Expression;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.expr.instruct.Template;
-import client.net.sf.saxon.ce.om.*;
+import client.net.sf.saxon.ce.om.InscopeNamespaceResolver;
+import client.net.sf.saxon.ce.om.NamespaceResolver;
+import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.pattern.*;
 import client.net.sf.saxon.ce.trans.StripSpaceRules;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.Type;
-import client.net.sf.saxon.ce.tree.util.StringTokenizer;
+import client.net.sf.saxon.ce.value.Whitespace;
 
 /**
 * An xsl:preserve-space or xsl:strip-space elements in stylesheet. <br>
@@ -17,7 +19,7 @@ import client.net.sf.saxon.ce.tree.util.StringTokenizer;
 
 public class XSLPreserveSpace extends StyleElement {
 
-    private String elements;
+    private String elements = "*";
 
     /**
      * Ask whether this node is a declaration, that is, a permitted child of xsl:stylesheet
@@ -31,22 +33,8 @@ public class XSLPreserveSpace extends StyleElement {
     }    
 
     public void prepareAttributes() throws XPathException {
-
-		AttributeCollection atts = getAttributeList();
-
-		for (int a=0; a<atts.getLength(); a++) {
-			StructuredQName qn = atts.getStructuredQName(a);
-            String f = qn.getClarkName();
-			if (f.equals("elements")) {
-        		elements = atts.getValue(a);
-        	} else {
-        		checkUnknownAttribute(qn);
-        	}
-        }
-        if (elements==null) {
-            reportAbsence("elements");
-            elements="*";   // for error recovery
-        }
+        elements = (String)checkAttribute("elements", "s1");
+        checkForUnknownAttributes();
     }
 
     public void validate(Declaration decl) throws XPathException {
@@ -62,9 +50,8 @@ public class XSLPreserveSpace extends StyleElement {
 
         // elements is a space-separated list of element names
 
-        StringTokenizer st = new StringTokenizer(elements, " \t\n\r", false);
-        while (st.hasMoreTokens()) {
-            String s = st.nextToken();
+        NamespaceResolver resolver = new InscopeNamespaceResolver(this);
+        for (String s : Whitespace.tokenize(elements)) {
             NodeTest nt;
             if (s.equals("*")) {
                 nt = NodeKindTest.ELEMENT;
@@ -75,7 +62,7 @@ public class XSLPreserveSpace extends StyleElement {
                     compileError("No prefix before ':*'");
                 }
                 String prefix = s.substring(0, s.length()-2);
-                String uri = getURIForPrefix(prefix, false);
+                String uri = resolver.getURIForPrefix(prefix, false);
                 nt = new NamespaceTest(Type.ELEMENT, uri);
                 stripperRules.addRule(nt, preserve, decl.getModule());
 
@@ -88,28 +75,14 @@ public class XSLPreserveSpace extends StyleElement {
                 stripperRules.addRule(nt, preserve, decl.getModule());
 
             } else {
-                String prefix;
-                String localName;
-                String uri;
+                StructuredQName qn;
                 try {
-                    String[] parts = NameChecker.getQNameParts(s);
-                    prefix = parts[0];
-                    if (parts[0].equals("")) {
-                        uri = getDefaultXPathNamespace();
-                    } else {
-                        uri = getURIForPrefix(prefix, false);
-                        if (uri == null) {
-                            undeclaredNamespaceError(prefix, "XTSE0280");
-                            return null;
-                        }
-                    }
-                    localName = parts[1];
-                } catch (QNameException err) {
+                    qn = StructuredQName.fromLexicalQName(s, getDefaultXPathNamespace(), resolver);
+                } catch (XPathException err) {
                     compileError("Element name " + s + " is not a valid QName", "XTSE0280");
                     return null;
                 }
-                StructuredQName nameCode = new StructuredQName("", uri, localName);
-                nt = new NameTest(Type.ELEMENT, nameCode);
+                nt = new NameTest(Type.ELEMENT, qn);
                 stripperRules.addRule(nt, preserve, decl.getModule());
             }
 

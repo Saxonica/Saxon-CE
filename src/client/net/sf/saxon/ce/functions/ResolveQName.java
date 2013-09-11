@@ -2,7 +2,6 @@ package client.net.sf.saxon.ce.functions;
 import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.om.*;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
 import client.net.sf.saxon.ce.value.AtomicValue;
 import client.net.sf.saxon.ce.value.QNameValue;
 
@@ -34,13 +33,13 @@ public class ResolveQName extends SystemFunction {
         StructuredQName qName;
 
         try {
-            qName= StructuredQName.fromLexicalQName(lexicalQName, true, resolver);
+            qName= StructuredQName.fromLexicalQName(lexicalQName, resolver.getURIForPrefix("", true), resolver);
         } catch (XPathException e) {
             e.maybeSetLocation(getSourceLocator());
             throw e;
         }
 
-        return new QNameValue(qName, BuiltInAtomicType.QNAME);
+        return new QNameValue(qName);
     }
 
 }

@@ -154,10 +154,7 @@ public class XPathContextMinor implements XPathContext {
 
     public final int getContextPosition() throws XPathException {
         if (currentIterator==null) {
-            XPathException e = new XPathException("The context position is currently undefined");
-            e.setXPathContext(this);
-            e.setErrorCode("FONC0001");
-            throw e;
+            throw new XPathException("The context position is currently undefined", "FONC0001");
         }
         return currentIterator.position();
     }
@@ -182,10 +179,7 @@ public class XPathContextMinor implements XPathContext {
 
     public final int getLast() throws XPathException {
         if (currentIterator == null) {
-            XPathException e = new XPathException("The context size is currently undefined");
-            e.setXPathContext(this);
-            e.setErrorCode("FONC0001");
-            throw e;
+            throw new XPathException("The context size is currently undefined", "FONC0001");
         }
         if (last.value >= 0) {
             return last.value;

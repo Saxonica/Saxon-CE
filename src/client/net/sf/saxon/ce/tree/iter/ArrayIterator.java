@@ -1,8 +1,10 @@
 package client.net.sf.saxon.ce.tree.iter;
 
 import client.net.sf.saxon.ce.expr.LastPositionFinder;
+import client.net.sf.saxon.ce.om.GroundedValue;
+import client.net.sf.saxon.ce.om.Item;
+import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.value.SequenceExtent;
-import client.net.sf.saxon.ce.om.*;
 
 /**
  * ArrayIterator is used to enumerate items held in an array.

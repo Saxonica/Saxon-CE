@@ -69,28 +69,28 @@ public final class ItemChecker extends UnaryExpression {
         operand = visitor.typeCheck(operand, contextItemType);
         // When typeCheck is called a second time, we might have more information...
 
-        final TypeHierarchy th = visitor.getConfiguration().getTypeHierarchy();
+        final TypeHierarchy th = TypeHierarchy.getInstance();
         int card = operand.getCardinality();
         if (card == StaticProperty.EMPTY) {
             //value is always empty, so no item checking needed
             return operand;
         }
-        ItemType supplied = operand.getItemType(th);
+        ItemType supplied = operand.getItemType();
         int relation = th.relationship(requiredItemType, supplied);
         if (relation == TypeHierarchy.SAME_TYPE || relation == TypeHierarchy.SUBSUMES) {
             return operand;
         } else if (relation == TypeHierarchy.DISJOINT) {
             if (Cardinality.allowsZero(card)) {
-                String message = role.composeErrorMessage(
-                        requiredItemType, operand.getItemType(th));
-                visitor.getStaticContext().issueWarning("The only value that can pass type-checking is an empty sequence. " +
-                        message, getSourceLocator());
+                //String message = role.composeErrorMessage(
+                //        requiredItemType, operand.getItemType());
+                //visitor.getStaticContext().issueWarning("The only value that can pass type-checking is an empty sequence. " +
+                //        message, getSourceLocator());
             } else if (requiredItemType.equals(BuiltInAtomicType.STRING) && th.isSubType(supplied, BuiltInAtomicType.ANY_URI)) {
                 // URI promotion will take care of this at run-time
                 return operand;
             } else {
-                String message = role.composeErrorMessage(requiredItemType, operand.getItemType(th));
-                typeError(message, role.getErrorCode(), null);
+                String message = role.composeErrorMessage(requiredItemType, operand.getItemType());
+                typeError(message, role.getErrorCode());
             }
         }
         return this;
@@ -167,25 +167,24 @@ public final class ItemChecker extends UnaryExpression {
                 message = "Supplied value of type " + Type.displayTypeName(item) +
                         " does not match the required type of " + role.getMessage();
             } else {
-                final TypeHierarchy th = context.getConfiguration().getTypeHierarchy();
-                message = role.composeErrorMessage(requiredItemType, Value.asValue(item).getItemType(th));
+                final TypeHierarchy th = TypeHierarchy.getInstance();
+                message = role.composeErrorMessage(requiredItemType, Value.asValue(item).getItemType());
             }
             String errorCode = role.getErrorCode();
             if ("XPDY0050".equals(errorCode)) {
                 // error in "treat as" assertion
-                dynamicError(message, errorCode, context);
+                dynamicError(message, errorCode);
             } else {
-                typeError(message, errorCode, context);
+                typeError(message, errorCode);
             }
         }
     }
 
     /**
      * Determine the data type of the items returned by the expression
-     * @param th the type hierarchy cache
      */
 
-	public ItemType getItemType(TypeHierarchy th) {
+	public ItemType getItemType() {
         return requiredItemType;
     }
 

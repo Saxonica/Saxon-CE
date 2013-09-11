@@ -6,7 +6,6 @@ import client.net.sf.saxon.ce.om.ValueRepresentation;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.AnyItemType;
 import client.net.sf.saxon.ce.type.ItemType;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.SequenceType;
 import client.net.sf.saxon.ce.value.Value;
 
@@ -55,10 +54,9 @@ public class SuppliedParameterReference extends Expression {
     * Determine the data type of the expression, if possible.
     * @return Type.ITEM, because we don't know the type of the supplied value
     * in advance.
-     * @param th the type hierarchy cache
      */
 
-    public ItemType getItemType(TypeHierarchy th) {
+    public ItemType getItemType() {
         if (type != null) {
             return type.getPrimaryType();
         } else {
@@ -119,7 +117,7 @@ public class SuppliedParameterReference extends Expression {
     */
 
     public SequenceIterator iterate(XPathContext context) throws XPathException {
-        return Value.getIterator(evaluateVariable(context));
+        return Value.asIterator(evaluateVariable(context));
     }
 
     /**

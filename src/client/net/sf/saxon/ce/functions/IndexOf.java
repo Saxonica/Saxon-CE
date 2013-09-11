@@ -1,8 +1,13 @@
 package client.net.sf.saxon.ce.functions;
+
+import client.net.sf.saxon.ce.expr.ItemMappingFunction;
+import client.net.sf.saxon.ce.expr.ItemMappingIterator;
+import client.net.sf.saxon.ce.expr.StatefulMappingFunction;
 import client.net.sf.saxon.ce.expr.XPathContext;
+import client.net.sf.saxon.ce.expr.sort.AtomicComparer;
+import client.net.sf.saxon.ce.expr.sort.GenericAtomicComparer;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.SequenceIterator;
-import client.net.sf.saxon.ce.expr.sort.GenericAtomicComparer;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.BuiltInAtomicType;
 import client.net.sf.saxon.ce.type.Type;
@@ -20,97 +25,52 @@ public class IndexOf extends CollatingFunction {
     public IndexOf newInstance() {
         return new IndexOf();
     }
+
     /**
-    * Evaluate the function to return an iteration of selected nodes.
+    * Evaluate the function to return an iteration of selected items.
     */
 
     public SequenceIterator iterate(XPathContext context) throws XPathException {
-        GenericAtomicComparer comparer = getAtomicComparer(2, context);
+        final GenericAtomicComparer comparer = getAtomicComparer(2, context);
         SequenceIterator seq = argument[0].iterate(context);
-        AtomicValue val = (AtomicValue)argument[1].evaluateItem(context);
-        return new IndexIterator(seq, val, comparer);
+        final AtomicValue val = (AtomicValue)argument[1].evaluateItem(context);
+        final BuiltInAtomicType searchType = val.getItemType();
+        return new ItemMappingIterator(seq,
+                new IndexOfMappingFunction(searchType, comparer, val));
     }
 
-    /**
-     * Iterator to return the index positions of selected items in a sequence
-     */
+    public static class IndexOfMappingFunction implements ItemMappingFunction, StatefulMappingFunction {
+        int index = 0;
+        private BuiltInAtomicType searchType;
+        private AtomicComparer comparer;
+        private AtomicValue val;
 
-    public static class IndexIterator implements SequenceIterator {
-
-        private SequenceIterator base;
-        private AtomicValue value;
-        private GenericAtomicComparer comparer;
-        private int index = 0;
-        private int position = 0;
-        private Item current = null;
-        private BuiltInAtomicType primitiveTypeRequired;
-
-        /**
-         * Get an iterator returning the index positions of selected items in a sequence
-         * @param base The sequence to be searched
-         * @param value The value being sought
-         * @param comparer Comparer used to determine whether values match
-         */
-
-        public IndexIterator(SequenceIterator base, AtomicValue value, GenericAtomicComparer comparer) {
-            this.base = base;
-            this.value = value;
+        public IndexOfMappingFunction(BuiltInAtomicType searchType, AtomicComparer comparer, AtomicValue val) {
+            this.searchType = searchType;
             this.comparer = comparer;
-            primitiveTypeRequired = value.getPrimitiveType();
+            this.val = val;
         }
 
-        public Item next() throws XPathException {
-            while (true) {
-                AtomicValue i = (AtomicValue)base.next();
-                if (i==null) break;
-                index++;
-                if (Type.isComparable(primitiveTypeRequired,
-                            i.getPrimitiveType(), false)) {
-                    try {
-                        if (comparer.comparesEqual(i, value)) {
-                            current = IntegerValue.makeIntegerValue(index);
-                            position++;
-                            return current;
-                        }
-                    } catch (ClassCastException err) {
-                        // non-comparable values are treated as not equal
-                        // Exception shouldn't happen but we catch it anyway
-                    }
-                }
+        public IntegerValue mapItem(Item item) throws XPathException {
+            index++;
+            if (Type.isComparable(searchType, ((AtomicValue) item).getItemType(), false) &&
+                    comparer.comparesEqual(((AtomicValue) item), val)) {
+                return new IntegerValue(index);
+            } else {
+                return null;
             }
-            current = null;
-            position = -1;
-            return null;
-        }
-
-        public Item current() {
-            return current;
-        }
-
-        public int position() {
-            return position;
-        }
-
-        public SequenceIterator getAnother() throws XPathException {
-            return new IndexIterator(base.getAnother(), value, comparer);
         }
 
         /**
-         * Get properties of this iterator, as a bit-significant integer.
+         * Return a clone of this MappingFunction, with the state reset to its state at the beginning
+         * of the underlying iteration
          *
-         * @return the properties of this iterator. This will be some combination of
-         *         properties such as {@link SequenceIterator#GROUNDED}, {@link SequenceIterator#LAST_POSITION_FINDER},
-         *         and {@link SequenceIterator#LOOKAHEAD}. It is always
-         *         acceptable to return the value zero, indicating that there are no known special properties.
-         *         It is acceptable for the properties of the iterator to change depending on its state.
+         * @return a clone of this MappingFunction
          */
-
-        public int getProperties() {
-            return 0;
+        public StatefulMappingFunction getAnother() {
+            return new IndexOfMappingFunction(searchType, comparer, val);
         }
     }
-
-
 
 }
 

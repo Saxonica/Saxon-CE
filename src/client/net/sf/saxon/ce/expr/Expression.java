@@ -6,15 +6,12 @@ import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.om.StructuredQName;
-import client.net.sf.saxon.ce.trace.ExpressionPresenter;
-import client.net.sf.saxon.ce.trace.Location;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.trans.update.PendingUpdateList;
 import client.net.sf.saxon.ce.tree.iter.SingletonIterator;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
 import client.net.sf.saxon.ce.tree.util.SourceLocator;
 import client.net.sf.saxon.ce.type.ItemType;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.Cardinality;
 import client.net.sf.saxon.ce.value.SequenceType;
 import client.net.sf.saxon.ce.value.StringValue;
@@ -256,10 +253,9 @@ public abstract class Expression {
 	 *
 	 * @return a value such as Type.STRING, Type.BOOLEAN, Type.NUMBER,
 	 *     Type.NODE, or Type.ITEM (meaning not known at compile time)
-     * @param th the type hierarchy cache
      */
 
-    public abstract ItemType getItemType(TypeHierarchy th);
+    public abstract ItemType getItemType();
 
     /**
      * Determine which aspects of the context the expression depends on. The result is
@@ -400,9 +396,6 @@ public abstract class Expression {
 
     public CharSequence evaluateAsString(XPathContext context) throws XPathException {
         Item o = evaluateItem(context);
-//        if (o instanceof AtomicValue && !((AtomicValue)o).hasBuiltInType()) {
-//            o = ((AtomicValue) o).getPrimitiveValue();
-//        }
         StringValue value = (StringValue) o;  // the ClassCastException is deliberate
         if (value == null) return "";
         return value.getStringValue();
@@ -437,7 +430,6 @@ public abstract class Expression {
                 }
             } catch (XPathException e) {
                 e.maybeSetLocation(this.getSourceLocator());
-                e.maybeSetContext(context);
                 throw e;
             }
 
@@ -697,18 +689,6 @@ public abstract class Expression {
     }
 
     /**
-      * Replace one subexpression by a replacement subexpression
-      * @param original the original subexpression
-      * @param replacement the replacement subexpression
-      * @return true if the original subexpression is found
-      */
-
-    public boolean replaceSubExpression(Expression original, Expression replacement) {
-        // overridden in subclasses
-        throw new IllegalArgumentException("Invalid replacement");
-    }
-
-    /**
      * Mark tail-recursive calls on stylesheet functions. For most expressions, this does nothing.
      * @param qName the name of the function
      * @param arity the arity (number of parameters) of the function
@@ -722,136 +702,44 @@ public abstract class Expression {
     }
 
     /**
-     * Get the local variables (identified by their slot numbers) on which this expression depends.
-     * Should only be called if the caller has established that there is a dependency on local variables.
-     * @return an array of integers giving the slot numbers of the local variables referenced in this
-     * expression.
-     */
-
-    public final synchronized int[] getSlotsUsed() {
-        // synchronized because it's calculated lazily at run-time the first time it's needed
-        if (slotsUsed != null) {
-            return slotsUsed;
-        }
-        HashSet<Integer> slots = new HashSet<Integer>(10);
-        gatherSlotsUsed(this, slots);
-        slotsUsed = new int[slots.size()];
-        int i=0;
-        Iterator<Integer> iter = slots.iterator();
-        while (iter.hasNext()) {
-            slotsUsed[i++] = iter.next();
-        }
-        Arrays.sort(slotsUsed);
-        return slotsUsed;
-    }
-
-    private static void gatherSlotsUsed(Expression exp, HashSet<Integer> slots) {
-        if (exp instanceof VariableReference) {
-            Binding binding = ((VariableReference)exp).getBinding();
-            if (!binding.isGlobal()) {
-                int slot = binding.getLocalSlotNumber();
-                if (slot != -1) {
-                    if (!slots.contains(slot)) {
-                        slots.add(slot);
-                    }
-                }
-            }
-        } else {
-            Iterator iter = exp.iterateSubExpressions();
-            while (iter.hasNext()) {
-                Expression sub = (Expression)iter.next();
-                gatherSlotsUsed(sub, slots);
-            }
-        }
-    }
-
-    /**
      * Method used in subclasses to signal a dynamic error
      * @param message the error message
      * @param code the error code
-     * @param context the XPath dynamic context
      */
 
-    protected void dynamicError(String message, String code, XPathContext context) throws XPathException {
-//        XPathException err = new XPathException(message, getSourceLocator());
-//        err.setXPathContext(context);
-//        err.setErrorCode(code);
-//        throw err;
-    	XPathException err;
+    protected void dynamicError(String message, String code) throws XPathException {
         if (LogConfiguration.loggingIsEnabled()){
-        	err = new XPathException(message, getSourceLocator());
+        	throw new XPathException(message, code, getSourceLocator());
         } else {
-        	err = new XPathException("", getSourceLocator());
+        	throw new XPathException("", code, getSourceLocator());
         }
-        err = new XPathException(message, getSourceLocator());
-        err.setXPathContext(context);
-        err.setErrorCode(code);
-        throw err;
     }
 
     /**
      * Method used in subclasses to signal a runtime type error
      * @param message the error message
      * @param errorCode the error code
-     * @param context the XPath dynamic context
      */
 
-    protected void typeError(String message, String errorCode, XPathContext context) throws XPathException {
+    protected void typeError(String message, String errorCode) throws XPathException {
         // can't compile out error messages here for production variant
-        typeError(null, message, errorCode, context);
+        typeError(null, message, errorCode);
     }
     
-    protected void typeError(ExpressionVisitor visitor, String message, String errorCode, XPathContext context) throws XPathException {       
+    protected void typeError(ExpressionVisitor visitor, String message, String errorCode) throws XPathException {
         XPathException e;
         // can't compile out error messages here for production variant       	
         if (visitor != null){
     		String path="at " + visitor.getLocation() + ": ";
-        	e = new XPathException(path + message, getSourceLocator());
+        	e = new XPathException(path + message, errorCode, getSourceLocator());
         } else {
-        	e = new XPathException(message, getSourceLocator());
+        	e = new XPathException(message, errorCode, getSourceLocator());
         }
         e.setIsTypeError(true);
-        e.setErrorCode(errorCode);
-        e.setXPathContext(context);
-        e.setLocator(getSourceLocator());
         throw e;
     }
-    
-    public StructuredQName getConstructType() {
-        return Location.XPATH_EXPRESSION;
-    }
 
-    /**
-     * Determine whether the expression can be evaluated without reference to the part of the context
-     * document outside the subtree rooted at the context node.
-     * @return true if the expression has no dependencies on the context node, or if the only dependencies
-     * on the context node are downward selections using the self, child, descendant, attribute, and namespace
-     * axes.
-     */
-
-    public boolean isSubtreeExpression() {
-        if (ExpressionTool.dependsOnFocus(this)) {
-            if ((getIntrinsicDependencies() & StaticProperty.DEPENDS_ON_FOCUS) != 0) {
-                return false;
-            } else {
-                Iterator sub = iterateSubExpressions();
-                while (sub.hasNext()) {
-                    Expression s = (Expression)sub.next();
-                    if (!s.isSubtreeExpression()) {
-                        return false;
-                    }
-                }
-                return true;
-            }
-        } else {
-            return true;
-        }
-    }
-
-	public void evaluatePendingUpdates(XPathContext context, PendingUpdateList pul) throws XPathException {		
-	}
-
-	public void explain(ExpressionPresenter out) {	
+    public void evaluatePendingUpdates(XPathContext context, PendingUpdateList pul) throws XPathException {
 	}
 
 }

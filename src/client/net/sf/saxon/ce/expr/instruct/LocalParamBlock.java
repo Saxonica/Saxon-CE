@@ -4,7 +4,6 @@ import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.pattern.EmptySequenceTest;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -52,34 +51,13 @@ public class LocalParamBlock extends Instruction {
         return Arrays.asList((Expression[])children).iterator();
     }
 
-    /**
-     * Replace one subexpression by a replacement subexpression
-     * @param original the original subexpression
-     * @param replacement the replacement subexpression
-     * @return true if the original subexpression is found
-     */
-
-    public boolean replaceSubExpression(Expression original, Expression replacement) {
-        boolean found = false;
-        if (replacement instanceof LocalParam) {
-            for (int c=0; c<children.length; c++) {
-                if (children[c] == original) {
-                    children[c] = (LocalParam)replacement;
-                    found = true;
-                }
-            }
-        }
-        return found;
-    }
-
 
     /**
      * Determine the data type of the items returned by this expression
      * @return the data type
-     * @param th the type hierarchy cache
      */
 
-    public final ItemType getItemType(TypeHierarchy th) {
+    public final ItemType getItemType() {
         return EmptySequenceTest.getInstance();
     }
 
@@ -148,7 +126,6 @@ public class LocalParamBlock extends Instruction {
                 context.setLocalVariable(param.getSlotNumber(), param.getSelectValue(context));
             } catch (XPathException e) {
                 e.maybeSetLocation(children[i].getSourceLocator());
-                e.maybeSetContext(context);
                 throw e;
             }
         }

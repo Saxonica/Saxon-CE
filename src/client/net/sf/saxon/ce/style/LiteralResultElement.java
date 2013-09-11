@@ -1,20 +1,17 @@
 package client.net.sf.saxon.ce.style;
 
 import client.net.sf.saxon.ce.LogController;
-import client.net.sf.saxon.ce.PreparedStylesheet;
 import client.net.sf.saxon.ce.expr.Expression;
 import client.net.sf.saxon.ce.expr.Literal;
 import client.net.sf.saxon.ce.expr.TraceExpression;
 import client.net.sf.saxon.ce.expr.instruct.*;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
-import client.net.sf.saxon.ce.lib.Validation;
 import client.net.sf.saxon.ce.om.*;
 import client.net.sf.saxon.ce.trace.Location;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.linked.DocumentImpl;
 import client.net.sf.saxon.ce.tree.linked.LinkedTreeBuilder;
 import client.net.sf.saxon.ce.tree.util.NamespaceIterator;
-import client.net.sf.saxon.ce.tree.util.Navigator;
 import com.google.gwt.logging.client.LogConfiguration;
 
 import java.util.ArrayList;
@@ -168,7 +165,8 @@ public class LiteralResultElement extends StyleElement {
             }
 
             // Spec bug 5857: if there is no other binding for the default namespace, add an undeclaration
-            String defaultNamespace = getURIForPrefix("", true);
+            NamespaceResolver resolver = new InscopeNamespaceResolver(this);
+            String defaultNamespace = resolver.getURIForPrefix("", true);
             if (defaultNamespace.isEmpty()) {
                 namespaceCodes.add(NamespaceBinding.DEFAULT_UNDECLARATION);
             }
@@ -200,18 +198,18 @@ public class LiteralResultElement extends StyleElement {
             }
             // deal with special attributes
 
-            String useAttSets = Navigator.getAttributeValue(this, NamespaceConstant.XSLT, "use-attribute-sets");
+            String useAttSets = getAttributeValue(NamespaceConstant.XSLT, "use-attribute-sets");
             if (useAttSets != null) {
                 attributeSets = getAttributeSets(useAttSets, null);
             }
 
-            String type = Navigator.getAttributeValue(this, NamespaceConstant.XSLT, "type");
+            String type = getAttributeValue(NamespaceConstant.XSLT, "type");
             if (type != null) {
                 compileError("The xsl:type attribute is available only with a schema-aware XSLT processor", "XTSE1660");
             }
 
-            String validate = Navigator.getAttributeValue(this, NamespaceConstant.XSLT, "validation");
-            if (validate != null && Validation.getCode(validate)!= Validation.STRIP) {
+            String validate = getAttributeValue(NamespaceConstant.XSLT, "validation");
+            if (validate != null && !validate.equals("strip")) {
                 compileError("To perform validation, a schema-aware XSLT processor is needed", "XTSE1660");
             }
 
@@ -291,7 +289,7 @@ public class LiteralResultElement extends StyleElement {
                 Expression exp = att;
                 if (LogConfiguration.loggingIsEnabled() && LogController.traceIsEnabled()) {
                     TraceExpression trace = new TraceExpression(exp);
-                    trace.setNamespaceResolver(this);
+                    trace.setNamespaceResolver(new InscopeNamespaceResolver(this));
                     trace.setConstructType(Location.LITERAL_RESULT_ATTRIBUTE);
                     trace.setSourceLocator(this);
                     trace.setObjectName(attributeNames[i]);
@@ -327,17 +325,17 @@ public class LiteralResultElement extends StyleElement {
     /**
      * Make a top-level literal result element into a stylesheet. This implements
      * the "Simplified Stylesheet" facility.
-     * @param pss the PreparedStylesheet (the compiled stylesheet as provided)
+     * @param exec the PreparedStylesheet (the compiled stylesheet as provided)
      * @return the reconstructed stylesheet with an xsl:stylesheet and xsl:template element added
     */
 
-    public DocumentImpl makeStylesheet(PreparedStylesheet pss)
+    public DocumentImpl makeStylesheet(Executable exec)
             throws XPathException {
 
         // the implementation grafts the LRE node onto a containing xsl:template and
         // xsl:stylesheet
 
-		StyleNodeFactory nodeFactory = pss.getStyleNodeFactory();
+		StyleNodeFactory nodeFactory = new StyleNodeFactory(exec.getConfiguration());
         String xslPrefix = getPrefixForURI(NamespaceConstant.XSLT);
         if (xslPrefix==null) {
             String message;
@@ -354,7 +352,7 @@ public class LiteralResultElement extends StyleElement {
             err.setLocator(this);
             err.setErrorCode("XTSE0150");
             err.setIsStaticError(true);
-            pss.reportError(err);
+            exec.reportError(err);
             throw err;
 
         }
@@ -362,20 +360,19 @@ public class LiteralResultElement extends StyleElement {
         // check there is an xsl:version attribute (it's mandatory), and copy
         // it to the new xsl:stylesheet element
 
-        String version = Navigator.getAttributeValue(this, NamespaceConstant.XSLT, "version");
+        String version = getAttributeValue(NamespaceConstant.XSLT, "version");
         if (version==null) {
             XPathException err = new XPathException("Simplified stylesheet: xsl:version attribute is missing");
             err.setErrorCode("XTSE0150");
             err.setIsStaticError(true);
             err.setLocator(this);
-            pss.reportError(err);
+            exec.reportError(err);
             throw err;
         }
 
         try {
-            DocumentImpl oldRoot = (DocumentImpl)getDocumentRoot();
             LinkedTreeBuilder builder = new LinkedTreeBuilder();
-            builder.setPipelineConfiguration(pss.getConfiguration().makePipelineConfiguration());
+            builder.setPipelineConfiguration(exec.getConfiguration().makePipelineConfiguration());
             builder.setNodeFactory(nodeFactory);
             builder.setSystemId(this.getSystemId());
 

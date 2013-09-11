@@ -24,18 +24,6 @@ public interface VirtualNode extends NodeInfo {
 
     public Object getUnderlyingNode();
 
-    /**
-     * Get the node underlying this virtual node. If this is a VirtualNode the method
-     * will automatically drill down through several layers of wrapping.
-     * <p>
-     * In some cases a single VirtualNode may represent an XPath text node that maps to a sequence
-     * of adjacent nodes (for example text nodes and CDATA nodes) in the underlying tree. In this case
-     * the first node in this sequence is returned.
-     * @return The underlying node.
-     */
-
-    public Object getRealNode();
-
 }
 
 

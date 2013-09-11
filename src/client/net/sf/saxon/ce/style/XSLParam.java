@@ -5,9 +5,9 @@ import client.net.sf.saxon.ce.expr.SuppliedParameterReference;
 import client.net.sf.saxon.ce.expr.TypeChecker;
 import client.net.sf.saxon.ce.expr.instruct.*;
 import client.net.sf.saxon.ce.om.Axis;
-import client.net.sf.saxon.ce.tree.iter.AxisIterator;
 import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.trans.XPathException;
+import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 import client.net.sf.saxon.ce.value.SequenceType;
 import client.net.sf.saxon.ce.value.Whitespace;
 
@@ -44,7 +44,7 @@ public class XSLParam extends XSLVariableDeclaration {
         }
 
         if (!global) {
-            AxisIterator preceding = iterateAxis(Axis.PRECEDING_SIBLING);
+            UnfailingIterator preceding = iterateAxis(Axis.PRECEDING_SIBLING);
             while (true) {
                 NodeInfo node = (NodeInfo)preceding.next();
                 if (node == null) {

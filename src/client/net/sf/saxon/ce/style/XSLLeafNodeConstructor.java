@@ -1,16 +1,16 @@
 package client.net.sf.saxon.ce.style;
 
 import client.net.sf.saxon.ce.expr.*;
-import client.net.sf.saxon.ce.functions.SystemFunction;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.expr.instruct.SimpleNodeConstructor;
-import client.net.sf.saxon.ce.om.*;
-import client.net.sf.saxon.ce.tree.iter.AxisIterator;
+import client.net.sf.saxon.ce.functions.SystemFunction;
+import client.net.sf.saxon.ce.om.Axis;
+import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.trans.XPathException;
+import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 import client.net.sf.saxon.ce.type.BuiltInAtomicType;
 import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.value.StringValue;
-import client.net.sf.saxon.ce.value.Whitespace;
 
 /**
  * Common superclass for XSLT elements whose content template produces a text
@@ -19,49 +19,21 @@ import client.net.sf.saxon.ce.value.Whitespace;
 
 public abstract class XSLLeafNodeConstructor extends StyleElement {
 
-    //protected String stringValue = null;
     protected Expression select = null;
 
     /**
      * Method for use by subclasses (processing-instruction and namespace) that take
      * a name and a select attribute
      * @return the expression defining the name attribute
-     * @throws XPathException
+     * @throws XPathException if attributes are invalid
      */
 
     protected Expression prepareAttributesNameAndSelect() throws XPathException {
-
-        Expression name = null;
-        String nameAtt = null;
-        String selectAtt = null;
-
-		AttributeCollection atts = getAttributeList();
-
-		for (int a=0; a<atts.getLength(); a++) {
-			StructuredQName qn = atts.getStructuredQName(a);
-            String f = qn.getClarkName();
-			if (f.equals("name")) {
-        		nameAtt = Whitespace.trim(atts.getValue(a));
-       	    } else if (f.equals("select")) {
-        		selectAtt = Whitespace.trim(atts.getValue(a));
-        	} else {
-        		checkUnknownAttribute(qn);
-        	}
-        }
-
-        if (nameAtt==null) {
-            reportAbsence("name");
-        } else {
-            name = makeAttributeValueTemplate(nameAtt);
-        }
-
-        if (selectAtt!=null) {
-            select = makeExpression(selectAtt);
-        }
-
+        Expression name = (Expression)checkAttribute("name", "a1");
+        select = (Expression)checkAttribute("select", "e");
+        checkForUnknownAttributes();
         return name;
     }
-    
 
     /**
      * Determine whether this node is an instruction.
@@ -88,7 +60,7 @@ public abstract class XSLLeafNodeConstructor extends StyleElement {
             String errorCode = getErrorCodeForSelectPlusContent();
             compileError("An " + getDisplayName() + " element with a select attribute must be empty", errorCode);
         }
-        AxisIterator kids = iterateAxis(Axis.CHILD);
+        UnfailingIterator kids = iterateAxis(Axis.CHILD);
         NodeInfo first = (NodeInfo)kids.next();
         if (select == null) {
             if (first == null) {

@@ -114,8 +114,8 @@ public class PatternMaker {
         } else if (expression instanceof IXSLFunction) {
         	result = new JSObjectPattern(expression, config);
         } else {
-            TypeHierarchy th = config.getTypeHierarchy();
-            ItemType type = expression.getItemType(th);
+            TypeHierarchy th = TypeHierarchy.getInstance();
+            ItemType type = expression.getItemType();
             if (((expression.getDependencies() & StaticProperty.DEPENDS_ON_NON_DOCUMENT_FOCUS) == 0) &&
                     (type instanceof NodeTest || expression instanceof VariableReference)) {
                 result = new NodeSetPattern(expression, config);

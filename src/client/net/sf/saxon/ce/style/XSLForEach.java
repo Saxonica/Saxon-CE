@@ -5,9 +5,7 @@ import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.expr.instruct.ForEach;
 import client.net.sf.saxon.ce.expr.sort.SortExpression;
 import client.net.sf.saxon.ce.expr.sort.SortKeyDefinition;
-import client.net.sf.saxon.ce.om.AttributeCollection;
 import client.net.sf.saxon.ce.om.Axis;
-import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.value.Cardinality;
@@ -21,7 +19,6 @@ public class XSLForEach extends StyleElement {
 
     private Expression select = null;
     private boolean containsTailCall = false;
-    private int threads = 0;
 
     /**
     * Determine whether this node is an instruction.
@@ -70,27 +67,8 @@ public class XSLForEach extends StyleElement {
     }
 
     public void prepareAttributes() throws XPathException {
-
-		AttributeCollection atts = getAttributeList();
-
-		String selectAtt = null;
-
-		for (int a=0; a<atts.getLength(); a++) {
-			StructuredQName qn = atts.getStructuredQName(a);
-            String f = qn.getClarkName();
-			if (f.equals("select")) {
-        		selectAtt = atts.getValue(a);
-            } else {
-        		checkUnknownAttribute(qn);
-        	}
-        }
-
-        if (selectAtt==null) {
-            reportAbsence("select");
-        } else {
-            select = makeExpression(selectAtt);
-        }
-
+        select = (Expression)checkAttribute("select", "e1");
+        checkForUnknownAttributes();
     }
 
     public void validate(Declaration decl) throws XPathException {

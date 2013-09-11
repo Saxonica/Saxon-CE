@@ -62,16 +62,15 @@ public final class UntypedAtomicConverter extends UnaryExpression {
     /**
      * Determine the data type of the items returned by the expression
      *
-     * @param th the type hierarchy cache
      */
 
-    public ItemType getItemType(TypeHierarchy th) {
-        ItemType it = operand.getItemType(th);
+    public ItemType getItemType() {
+        ItemType it = operand.getItemType();
         singleton = it.isAtomicType() && !Cardinality.allowsMany(operand.getCardinality());
         if (allConverted) {
             return requiredItemType;
         } else {
-            return Type.getCommonSuperType(requiredItemType, operand.getItemType(th), th);
+            return Type.getCommonSuperType(requiredItemType, operand.getItemType());
         }
     }
 
@@ -89,16 +88,16 @@ public final class UntypedAtomicConverter extends UnaryExpression {
 
     public Expression typeCheck(ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
         if (allConverted && requiredItemType == BuiltInAtomicType.QNAME) {
-            typeError("Cannot convert untypedAtomic values to QNames", "XPTY0004", null);
+            typeError("Cannot convert untypedAtomic values to QNames", "XPTY0004");
         }
         operand = visitor.typeCheck(operand, contextItemType);
         if (operand instanceof Literal) {
             return Literal.makeLiteral(
                     ((Value)SequenceExtent.makeSequenceExtent(
-                            iterate(visitor.getStaticContext().makeEarlyEvaluationContext()))).reduce());
+                            iterate(visitor.getStaticContext().makeEarlyEvaluationContext()))));
         }
-        final TypeHierarchy th = visitor.getConfiguration().getTypeHierarchy();
-        ItemType type = operand.getItemType(th);
+        final TypeHierarchy th = TypeHierarchy.getInstance();
+        ItemType type = operand.getItemType();
         if (type instanceof NodeTest) {
             return this;
         }
@@ -109,7 +108,7 @@ public final class UntypedAtomicConverter extends UnaryExpression {
         if (operand instanceof Atomizer &&
                 type.equals(BuiltInAtomicType.UNTYPED_ATOMIC) &&
                 requiredItemType == BuiltInAtomicType.STRING &&
-                ((Atomizer)operand).getBaseExpression().getItemType(th) instanceof NodeTest) {
+                ((Atomizer)operand).getBaseExpression().getItemType() instanceof NodeTest) {
             Expression nodeExp = ((Atomizer)operand).getBaseExpression();
             if (nodeExp.getCardinality() != StaticProperty.EXACTLY_ONE) {
                 // TODO: Saxon 9.2 as issued was converting to a call to string() when the
@@ -156,7 +155,7 @@ public final class UntypedAtomicConverter extends UnaryExpression {
      */
 
     public Expression optimize(ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
-        final TypeHierarchy th = visitor.getConfiguration().getTypeHierarchy();
+        final TypeHierarchy th = TypeHierarchy.getInstance();
         Expression e2 = super.optimize(visitor, contextItemType);
         if (e2 != this) {
             return e2;
@@ -167,7 +166,7 @@ public final class UntypedAtomicConverter extends UnaryExpression {
             ItemType it = ((CastExpression)operand).getTargetType();
             if (th.isSubType(it, BuiltInAtomicType.UNTYPED_ATOMIC)) {
                 Expression e = ((CastExpression)operand).getBaseExpression();
-                ItemType et = e.getItemType(th);
+                ItemType et = e.getItemType();
                 if (et instanceof BuiltInAtomicType && th.isSubType(et, requiredItemType)) {
                     return e;
                 }

@@ -16,6 +16,14 @@ public class ARegularExpression implements RegularExpression {
     String rawFlags;
     REProgram regex;
 
+    public static ARegularExpression make(String pattern) {
+        try {
+            return new ARegularExpression(pattern, "", "XP20", null);
+        } catch (XPathException e) {
+            throw new IllegalArgumentException(e);
+        }
+    }
+
     public ARegularExpression(CharSequence pattern, String flags, String hostLanguage, List<String> warnings) throws XPathException {
         rawFlags = flags;
         REFlags reFlags;

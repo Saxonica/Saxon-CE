@@ -136,16 +136,6 @@ public class HTMLNodeWrapper implements NodeInfo, VirtualNode, SiblingCountingNo
     }
 
     /**
-     * Get the node underlying this virtual node. If this is a VirtualNode the method
-     * will automatically drill down through several layers of wrapping.
-     * @return The underlying node.
-     */
-
-    public Object getRealNode() {
-        return getUnderlyingNode();
-    }
-
-    /**
     * Return the type of node.
     * @return one of the values Node.ELEMENT, Node.TEXT, Node.ATTRIBUTE, etc.
     */
@@ -180,11 +170,21 @@ public class HTMLNodeWrapper implements NodeInfo, VirtualNode, SiblingCountingNo
             return false;
         }
         HTMLNodeWrapper ow = (HTMLNodeWrapper)other;
-        return getNodeKind()==ow.getNodeKind() &&
-            getLocalPart().equals(ow.getLocalPart()) &&  // redundant, but gives a quick exit
-            getURI().equals(ow.getURI()) &&
-            getSiblingPosition()==ow.getSiblingPosition() &&
-            getParent().isSameNodeInfo(ow.getParent());
+        switch (getNodeKind()) {
+            case Type.ELEMENT:
+                return
+                    ow.getNodeKind() == Type.ELEMENT &&
+                    getLocalPart().equals(ow.getLocalPart()) &&  // redundant, but gives a quick exit
+                    getURI().equals(ow.getURI()) &&
+                    getSiblingPosition()==ow.getSiblingPosition() &&
+                    getParent().isSameNodeInfo(ow.getParent());
+            default:
+                return
+                    ow.getNodeKind() == getNodeKind() &&
+                    getStringValue().equals(ow.getStringValue()) &&
+                    getSiblingPosition()==ow.getSiblingPosition() &&
+                    getParent().isSameNodeInfo(ow.getParent());
+        }
     }
 
     /**
@@ -483,7 +483,7 @@ public class HTMLNodeWrapper implements NodeInfo, VirtualNode, SiblingCountingNo
             // for an attribute, no prefix means no namespace
             uri = "";
         } else {
-            AxisIterator nsiter = element.iterateAxis(Axis.NAMESPACE);
+            UnfailingIterator nsiter = element.iterateAxis(Axis.NAMESPACE);
             while (true) {
                 NodeInfo ns = (NodeInfo)nsiter.next();
                 if (ns == null) {
@@ -622,7 +622,7 @@ public class HTMLNodeWrapper implements NodeInfo, VirtualNode, SiblingCountingNo
                 case Type.ATTRIBUTE:
                     ix = 0;
                     StructuredQName fp = getNodeName();
-                    AxisIterator iter = parent.iterateAxis(Axis.ATTRIBUTE);
+                    UnfailingIterator iter = parent.iterateAxis(Axis.ATTRIBUTE);
                     while (true) {
                         NodeInfo n = (NodeInfo)iter.next();
                         if (n==null || n.getNodeName().equals(fp)) {
@@ -658,26 +658,26 @@ public class HTMLNodeWrapper implements NodeInfo, VirtualNode, SiblingCountingNo
     * @return a SequenceIterator that scans the nodes reached by the axis in turn.
     */
 
-    public AxisIterator iterateAxis(byte axisNumber) {
+    public UnfailingIterator iterateAxis(byte axisNumber) {
         switch (axisNumber) {
             case Axis.ANCESTOR:
                 if (nodeKind==Type.DOCUMENT) {
                     return EmptyIterator.getInstance();
                 }
-                return new Navigator.AncestorEnumeration(this, false);
+                return Navigator.getAncestorIterator(this, AnyNodeTest.getInstance(), false);
 
             case Axis.ANCESTOR_OR_SELF:
                 if (nodeKind==Type.DOCUMENT) {
-                    return SingleNodeIterator.makeIterator(this);
+                    return SingletonIterator.makeIterator(this);
                 }
-                return new Navigator.AncestorEnumeration(this, true);
+                return Navigator.getAncestorIterator(this, AnyNodeTest.getInstance(), true);
 
             case Axis.ATTRIBUTE:
                 if (nodeKind!=Type.ELEMENT) {
                     return EmptyIterator.getInstance();
                 }
                 HTMLAttributeNode[] nodes = getAltAttributes();
-                return new NodeArrayIterator(nodes);
+                return new ArrayIterator(nodes);
 
             case Axis.CHILD:
                 if (hasChildNodes()) {
@@ -718,7 +718,7 @@ public class HTMLNodeWrapper implements NodeInfo, VirtualNode, SiblingCountingNo
 
             case Axis.PARENT:
                  getParent();
-                 return SingleNodeIterator.makeIterator(parent);
+                 return SingletonIterator.makeIterator(parent);
 
             case Axis.PRECEDING:
                  return new Navigator.PrecedingEnumeration(this, false);
@@ -735,7 +735,7 @@ public class HTMLNodeWrapper implements NodeInfo, VirtualNode, SiblingCountingNo
                  }
 
             case Axis.SELF:
-                 return SingleNodeIterator.makeIterator(this);
+                 return SingletonIterator.makeIterator(this);
 
             case Axis.PRECEDING_OR_ANCESTOR:
                  return new Navigator.PrecedingEnumeration(this, true);
@@ -752,7 +752,7 @@ public class HTMLNodeWrapper implements NodeInfo, VirtualNode, SiblingCountingNo
     * @return a SequenceIterator that scans the nodes reached by the axis in turn.
     */
 
-    public AxisIterator iterateAxis(byte axisNumber, NodeTest nodeTest) {
+    public UnfailingIterator iterateAxis(byte axisNumber, NodeTest nodeTest) {
         if (axisNumber == Axis.CHILD && nodeTest.getRequiredNodeKind() == Type.ELEMENT) {
             // common case: avoid creating wrappers for the text nodes
             if (hasChildNodes()) {
@@ -789,12 +789,12 @@ public class HTMLNodeWrapper implements NodeInfo, VirtualNode, SiblingCountingNo
                 //HTML only (not XHTML) - so don't use prefix / namespace
                 if (value == null || value.length()==0) {
                 	if (getAttributeNames().contains(name)) {
-                		return SingleNodeIterator.makeIterator(new HTMLAttributeNode(this, name, "", "", ""));
+                		return SingletonIterator.makeIterator(new HTMLAttributeNode(this, name, "", "", ""));
                 	} else {
                 		return EmptyIterator.getInstance();
                 	}
                 } else {
-                    return SingleNodeIterator.makeIterator(new HTMLAttributeNode(this, name, "", "", value));
+                    return SingletonIterator.makeIterator(new HTMLAttributeNode(this, name, "", "", value));
                 }
             } else {
                 return EmptyIterator.getInstance();

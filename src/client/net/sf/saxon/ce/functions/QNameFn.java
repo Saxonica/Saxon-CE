@@ -7,7 +7,6 @@ import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.NameChecker;
 import client.net.sf.saxon.ce.om.QNameException;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
 import client.net.sf.saxon.ce.value.AtomicValue;
 import client.net.sf.saxon.ce.value.QNameValue;
 
@@ -48,9 +47,9 @@ public class QNameFn extends SystemFunction {
                 throw err;
             }
             return Literal.makeLiteral(
-                    new QNameValue(parts[0], uri, parts[1], BuiltInAtomicType.QNAME, true));
+                    new QNameValue(parts[0], uri, parts[1], true));
         } catch (QNameException e) {
-            dynamicError(e.getMessage(), "FOCA0002", null);
+            dynamicError(e.getMessage(), "FOCA0002");
             return null;
         } catch (XPathException err) {
             err.maybeSetLocation(getSourceLocator());
@@ -81,9 +80,9 @@ public class QNameFn extends SystemFunction {
                 err.setErrorCode("FORG0001");
                 throw err;
             }
-            return new QNameValue(parts[0], uri, parts[1], BuiltInAtomicType.QNAME, true);
+            return new QNameValue(parts[0], uri, parts[1], true);
         } catch (QNameException e) {
-            dynamicError(e.getMessage(), "FOCA0002", context);
+            dynamicError(e.getMessage(), "FOCA0002");
             return null;
         } catch (XPathException err) {
             err.maybeSetLocation(getSourceLocator());

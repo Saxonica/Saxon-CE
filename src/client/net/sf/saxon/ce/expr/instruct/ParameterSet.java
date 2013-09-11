@@ -1,7 +1,5 @@
 package client.net.sf.saxon.ce.expr.instruct;
 import client.net.sf.saxon.ce.om.ValueRepresentation;
-import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.value.Closure;
 
 /**
  * A ParameterSet is a set of parameters supplied when calling a template.
@@ -116,18 +114,6 @@ public class ParameterSet {
 
     public void clear() {
         used = 0;
-    }
-
-    /**
-     * If any values are non-memo closures, expand them
-     */
-
-    public void materializeValues() throws XPathException {
-        for (int i=0; i<used; i++) {
-            if (values[i] instanceof Closure) {
-                values[i] = ((Closure)values[i]).reduce();
-            }
-        }
     }
 
     public static final int NOT_SUPPLIED = 0;

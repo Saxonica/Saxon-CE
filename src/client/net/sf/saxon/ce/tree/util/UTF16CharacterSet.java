@@ -4,25 +4,14 @@ package client.net.sf.saxon.ce.tree.util;
  * A class to hold some static constants and methods associated with processing UTF16 and surrogate pairs
  */
 
-public class UTF16CharacterSet {
+public abstract class UTF16CharacterSet {
 
-    private static UTF16CharacterSet theInstance = new UTF16CharacterSet();
 
     /**
      * Private constructor to force the singular instance to be used
      */
 
     private UTF16CharacterSet() {}
-
-    /**
-     * Get the singular instance of this class
-     * @return the singular instance of this classthe singular instance of this class
-     */
-
-    public static UTF16CharacterSet getInstance() {
-        return theInstance;
-    }
-
 
     public static final int NONBMP_MIN = 0x10000;
     public static final int NONBMP_MAX = 0x10FFFF;
@@ -92,24 +81,6 @@ public class UTF16CharacterSet {
         return (SURROGATE2_MIN <= ch && ch <= SURROGATE2_MAX);
     }
 
-    /**
-     * Test whether a CharSequence contains any surrogates (i.e. any non-BMP characters
-     * @param s the string to be tested
-     */
-
-    public static boolean containsSurrogates(CharSequence s) {
-        for (int i=0; i<s.length(); i++) {
-            if (isSurrogate(s.charAt(i))) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-//    public static void main(String[] args) {
-//        System.err.println(Integer.toHexString(highSurrogate(0x1018a)));
-//        System.err.println(Integer.toHexString(lowSurrogate(0x1018a)));
-//    }
 }
 
 // This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. 

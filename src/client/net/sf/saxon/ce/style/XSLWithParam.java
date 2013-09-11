@@ -3,9 +3,9 @@ import client.net.sf.saxon.ce.expr.Expression;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.expr.instruct.WithParam;
 import client.net.sf.saxon.ce.om.Axis;
-import client.net.sf.saxon.ce.tree.iter.AxisIterator;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.trans.XPathException;
+import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 
 /**
 * An xsl:with-param element in the stylesheet. <br>
@@ -27,7 +27,7 @@ public class XSLWithParam extends XSLGeneralVariable {
 
         // Check for duplicate parameter names
 
-        AxisIterator iter = iterateAxis(Axis.PRECEDING_SIBLING);
+        UnfailingIterator iter = iterateAxis(Axis.PRECEDING_SIBLING);
         while (true) {
             Item prev = iter.next();
             if (prev == null) {

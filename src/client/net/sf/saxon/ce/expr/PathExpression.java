@@ -183,7 +183,7 @@ public final class PathExpression extends SlashExpression implements ContextMapp
 
         Expression underlyingStep = step;
         while (underlyingStep instanceof FilterExpression) {
-            if (((FilterExpression)underlyingStep).isPositional(env.getConfiguration().getTypeHierarchy())) {
+            if (((FilterExpression)underlyingStep).isPositional(TypeHierarchy.getInstance())) {
                 return null;
             }
             underlyingStep = ((FilterExpression)underlyingStep).getControllingExpression();
@@ -251,13 +251,13 @@ public final class PathExpression extends SlashExpression implements ContextMapp
 
     public Expression typeCheck(ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
 
-        final TypeHierarchy th = visitor.getConfiguration().getTypeHierarchy();
+        final TypeHierarchy th = TypeHierarchy.getInstance();
         if (state >= 2) {
             // we've already done the main analysis, and we don't want to do it again because
             // decisions on sorting get upset. But we have new information, namely the contextItemType,
             // so we use that to check that it's a node
             setStartExpression(visitor.typeCheck(start, contextItemType));
-            setStepExpression(visitor.typeCheck(step, start.getItemType(th)));
+            setStepExpression(visitor.typeCheck(step, start.getItemType()));
             return this;
         }
         state = 2;
@@ -274,7 +274,7 @@ public final class PathExpression extends SlashExpression implements ContextMapp
 
         // Now check the second operand
 
-        setStepExpression(visitor.typeCheck(step, start.getItemType(th)));
+        setStepExpression(visitor.typeCheck(step, start.getItemType()));
 
         // If start expression has been reduced to ".", return the step expression
 
@@ -317,13 +317,13 @@ public final class PathExpression extends SlashExpression implements ContextMapp
         // Mainly for benchmarks, but one sees following-sibling::p/preceding-sibling::h2. We could define an expression as
         // explosive if it contains two adjacent steps with opposite directions (except where both are singletons).
 
-        final TypeHierarchy th = visitor.getConfiguration().getTypeHierarchy();
+        final TypeHierarchy th = TypeHierarchy.getInstance();
         if (state >= 3) {
             // we've already done the main analysis, and we don't want to do it again because
             // decisions on sorting get upset. But we have new information, namely the contextItemType,
             // so we use that to check that it's a node
             setStartExpression(visitor.optimize(start, contextItemType));
-            setStepExpression(step.optimize(visitor, start.getItemType(th)));
+            setStepExpression(step.optimize(visitor, start.getItemType()));
             return this;
         }
         state = 3;
@@ -339,7 +339,7 @@ public final class PathExpression extends SlashExpression implements ContextMapp
         }
 
         setStartExpression(visitor.optimize(start, contextItemType));
-        setStepExpression(step.optimize(visitor, start.getItemType(th)));
+        setStepExpression(step.optimize(visitor, start.getItemType()));
 
         if (Literal.isEmptySequence(start) || Literal.isEmptySequence(step)) {
             return new Literal(EmptySequence.getInstance());
@@ -539,7 +539,7 @@ public final class PathExpression extends SlashExpression implements ContextMapp
 
     public boolean isAbsolute(TypeHierarchy th) {
         Expression first = getFirstStep();
-        if (th.isSubType(first.getItemType(th), NodeKindTest.DOCUMENT)) {
+        if (th.isSubType(first.getItemType(), NodeKindTest.DOCUMENT)) {
             return true;
         }
         // This second test allows keys to be built. See XMark q9.

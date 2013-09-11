@@ -70,9 +70,9 @@ public final class Atomizer extends UnaryExpression  {
     public Expression typeCheck(ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
         operand = visitor.typeCheck(operand, contextItemType);
         // If the configuration allows typed data, check whether the content type of these particular nodes is untyped
-        final TypeHierarchy th = visitor.getConfiguration().getTypeHierarchy();
+        final TypeHierarchy th = TypeHierarchy.getInstance();
         visitor.resetStaticProperties();
-        ItemType operandType = operand.getItemType(th);
+        ItemType operandType = operand.getItemType();
         if (th.isSubType(operandType, BuiltInAtomicType.ANY_ATOMIC)) {
             return operand;
         }
@@ -101,8 +101,8 @@ public final class Atomizer extends UnaryExpression  {
     public Expression optimize(ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
         Expression exp = super.optimize(visitor, contextItemType);
         if (exp == this) {
-            final TypeHierarchy th = visitor.getConfiguration().getTypeHierarchy();
-            if (th.isSubType(operand.getItemType(th), BuiltInAtomicType.ANY_ATOMIC)) {
+            final TypeHierarchy th = TypeHierarchy.getInstance();
+            if (th.isSubType(operand.getItemType(), BuiltInAtomicType.ANY_ATOMIC)) {
                 return operand;
             }
             if (operand instanceof ValueOf) {
@@ -158,23 +158,22 @@ public final class Atomizer extends UnaryExpression  {
     * Determine the data type of the items returned by the expression, if possible
     * @return a value such as Type.STRING, Type.BOOLEAN, Type.NUMBER. For this class, the
      * result is always an atomic type, but it might be more specific.
-     * @param th the type hierarchy cache
      */
 
-	public ItemType getItemType(TypeHierarchy th) {
-        return getAtomizedItemType(operand, true, th);
+	public ItemType getItemType() {
+        return getAtomizedItemType(operand, true);
     }
 
     /**
      * Compute the type that will result from atomizing the result of a given expression
+     *
      * @param operand the given expression
      * @param alwaysUntyped true if it is known that nodes will always be untyped
-     * @param th the type hierarchy cache
      * @return the item type of the result of evaluating the operand expression, after atomization
      */
 
-    public static ItemType getAtomizedItemType(Expression operand, boolean alwaysUntyped, TypeHierarchy th) {
-        ItemType in = operand.getItemType(th);
+    public static ItemType getAtomizedItemType(Expression operand, boolean alwaysUntyped) {
+        ItemType in = operand.getItemType();
         if (in.isAtomicType()) {
             return in;
         }

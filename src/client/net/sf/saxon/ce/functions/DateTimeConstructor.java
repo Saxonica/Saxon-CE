@@ -29,7 +29,6 @@ public class DateTimeConstructor extends SystemFunction {
             return DateTimeValue.makeDateTimeValue((DateValue)arg0, (TimeValue)arg1);
         } catch (XPathException e) {
             e.maybeSetLocation(getSourceLocator());
-            e.maybeSetContext(context);
             throw e;
         }
     }

@@ -9,7 +9,6 @@ import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.pattern.NodeKindTest;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
 
 /**
  * An instruction derived from an xsl:attribute element in stylesheet, or from
@@ -54,7 +53,7 @@ public final class FixedAttribute extends AttributeCreator {
         //
     }
 
-    public ItemType getItemType(TypeHierarchy th) {
+    public ItemType getItemType() {
         return NodeKindTest.ATTRIBUTE;
     }
 

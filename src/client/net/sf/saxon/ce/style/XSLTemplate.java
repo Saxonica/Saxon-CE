@@ -6,34 +6,35 @@ import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.expr.instruct.SlotManager;
 import client.net.sf.saxon.ce.expr.instruct.Template;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
-import client.net.sf.saxon.ce.om.*;
-import client.net.sf.saxon.ce.pattern.EmptySequenceTest;
+import client.net.sf.saxon.ce.om.Axis;
+import client.net.sf.saxon.ce.om.NamespaceException;
+import client.net.sf.saxon.ce.om.NodeInfo;
+import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.pattern.Pattern;
 import client.net.sf.saxon.ce.trans.Mode;
 import client.net.sf.saxon.ce.trans.RuleManager;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.tree.iter.AxisIterator;
-import client.net.sf.saxon.ce.tree.util.StringTokenizer;
+import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.value.DecimalValue;
 import client.net.sf.saxon.ce.value.SequenceType;
 import client.net.sf.saxon.ce.value.Whitespace;
 import com.google.gwt.logging.client.LogConfiguration;
+
+import java.util.List;
+
 /**
 * An xsl:template element in the style sheet.
 */
 
 public final class XSLTemplate extends StyleElement implements StylesheetProcedure {
 
-    private String matchAtt = null;
-    private String modeAtt = null;
-    private String nameAtt = null;
     private String priorityAtt = null;
-    private String asAtt = null;
 
+    private boolean prepared = false;
+    private StructuredQName templateName;
     private StructuredQName[] modeNames;
-    private String diagnosticId;
     private Pattern match;
     private boolean prioritySpecified;
     private double priority;
@@ -80,26 +81,19 @@ public final class XSLTemplate extends StyleElement implements StylesheetProcedu
      * Return the name of this template. Note that this may
      * be called before prepareAttributes has been called.
      * @return the name of the template as a Structured QName.
+     * Returns null for an unnamed template (unlike getObjectName(),
+     * which returns an invented name)
     */
 
     public StructuredQName getTemplateName() {
-
-    	//We use null to mean "not yet evaluated"
-
-        try {
-        	if (getObjectName()==null) {
-        		// allow for forwards references
-        		String nameAtt = getAttributeValue("", "name");
-        		if (nameAtt != null) {
-        			setObjectName(makeQName(nameAtt));
-                }
+        if (templateName == null && !prepared) {
+            try {
+                prepareAttributes();
+            } catch (XPathException err) {
+                //
             }
-            return getObjectName();
-        } catch (NamespaceException err) {
-            return null;          // the errors will be picked up later
-        } catch (XPathException err) {
-            return null;
         }
+        return templateName;
     }
 
     /**
@@ -117,62 +111,46 @@ public final class XSLTemplate extends StyleElement implements StylesheetProcedu
 
     
     public void prepareAttributes() throws XPathException {
+        if (prepared) {
+            return;
+        }
+        prepared = true;
+        templateName = (StructuredQName)checkAttribute("name", "q");
+        if (templateName != null) {
+            setObjectName(templateName);
+        }
+        String modeAtt = (String)checkAttribute("mode", "s");
+        match = (Pattern)checkAttribute("match", "p");
+        priorityAtt = (String)checkAttribute("priority", "w");
+        requiredType = (SequenceType)checkAttribute("as", "z");
+        checkForUnknownAttributes();
 
-		AttributeCollection atts = getAttributeList();
+        String a = getAttributeValue(NamespaceConstant.IXSL, "prevent-default");
+        ixslPreventDefault = "yes".equals(a);
+        ixslEventProperty = getAttributeValue(NamespaceConstant.IXSL, "event-property");
 
-		for (int a=0; a<atts.getLength(); a++) {
-            StructuredQName qn = atts.getStructuredQName(a);
-            String f = qn.getClarkName();
-			if (f.equals("mode")) {
-        		modeAtt = Whitespace.trim(atts.getValue(a));
-			} else if (f.equals("name")) {
-        		nameAtt = Whitespace.trim(atts.getValue(a));
-			} else if (f.equals("match")) {
-        		matchAtt = atts.getValue(a);
-			} else if (f.equals("priority")) {
-        		priorityAtt = Whitespace.trim(atts.getValue(a));
-        	} else if (f.equals("as")) {
-        		asAtt = atts.getValue(a);
-        	} else if (f.equals("{" + NamespaceConstant.IXSL + "}" + "prevent-default")) {
-        		ixslPreventDefault = atts.getValue(a).equals("yes");
-        	} else if (f.equals("{" + NamespaceConstant.IXSL + "}" + "event-property")) {
-        		ixslEventProperty = atts.getValue(a);
-        	} else {
-        		checkUnknownAttribute(qn);
-        	}
+        if (match == null) {
+            if (templateName == null) {
+                compileError("A template must have a name or match pattern (or both)", "XTSE0500");
+            }
+            if (modeAtt != null || priorityAtt != null) {
+                compileError("A template with no match pattern must have no mode or priority", "XTSE0500");
+            }
         }
         try {
-            if (modeAtt==null) {
-                // XSLT 3.0 allows the default mode to be specified at stylesheet module level
-                StructuredQName defaultMode = getContainingStylesheet().getDefaultMode();
-                if (defaultMode == null) {
-                    defaultMode = Mode.UNNAMED_MODE_NAME;
-                }
-                modeNames = new StructuredQName[1];
-                modeNames[0] = defaultMode;
-            } else {
-                if (matchAtt==null) {
-                    compileError("The mode attribute must be absent if the match attribute is absent", "XTSE0500");
-                }
+            if (modeAtt!=null) {
                 // mode is a space-separated list of mode names, or "#default", or "#all"
 
+                List<String> tokens = Whitespace.tokenize(modeAtt);
                 int count = 0;
-                boolean allModes = false;
-                StringTokenizer st = new StringTokenizer(modeAtt, " \t\n\r", false);
-                while (st.hasMoreTokens()) {
-                    st.nextToken();
-                    count++;
-                }
-
-                if (count==0) {
+                if (tokens.size()==0) {
                     compileError("The mode attribute must not be empty", "XTSE0550");
                 }
 
-                modeNames = new StructuredQName[count];
+                modeNames = new StructuredQName[tokens.size()];
                 count = 0;
-                st = new StringTokenizer(modeAtt, " \t\n\r", false);
-                while (st.hasMoreTokens()) {
-                    String s = st.nextToken();
+                boolean allModes = false;
+                for (String s : tokens) {
                     StructuredQName mname;
                     if ("#default".equals(s)) {
                         mname = getContainingStylesheet().getDefaultMode();
@@ -195,6 +173,8 @@ public final class XSLTemplate extends StyleElement implements StylesheetProcedu
                 if (allModes && (count>1)) {
                     compileError("mode='#all' cannot be combined with other modes", "XTSE0550");
                 }
+            } else {
+                modeNames = new StructuredQName[]{Mode.UNNAMED_MODE_NAME};
             }
         } catch (NamespaceException err) {
             compileError(err.getMessage(), "XTSE0280");
@@ -207,25 +187,8 @@ public final class XSLTemplate extends StyleElement implements StylesheetProcedu
             compileError(err);
         }
 
-        try{
-            if (nameAtt!=null) {
-                StructuredQName qName = makeQName(nameAtt);
-                setObjectName(qName);
-                diagnosticId = nameAtt;
-            }
-        } catch (NamespaceException err) {
-            compileError(err.getMessage(), "XTSE0280");
-        } catch (XPathException err) {
-            err.maybeSetErrorCode("XTSE0280");
-            err.setIsStaticError(true);
-            compileError(err);
-        }
-
         prioritySpecified = (priorityAtt != null);
         if (prioritySpecified) {
-            if (matchAtt==null) {
-                compileError("The priority attribute must be absent if the match attribute is absent", "XTSE0500");
-            }
             try {
                 // it's got to be a valid decimal, but we want it as a double, so parse it twice
                 if (!DecimalValue.castableAsDecimal(priorityAtt)) {
@@ -234,25 +197,8 @@ public final class XSLTemplate extends StyleElement implements StylesheetProcedu
                 priority = Double.parseDouble(priorityAtt);
             } catch (NumberFormatException err) {
                 // shouldn't happen
-                compileError("Invalid numeric value for priority (" + priority + ')', "XTSE0530");
+                priority = -1e0;
             }
-        }
-
-        if (matchAtt != null) {
-            match = makePattern(matchAtt);
-            if (diagnosticId == null) {
-                diagnosticId = "match=\"" + matchAtt + '\"';
-                if (modeAtt != null) {
-                    diagnosticId += " mode=\"" + modeAtt + '\"';
-                }
-            }
-        }
-
-        if (match==null && nameAtt==null)
-            compileError("xsl:template must have a name or match attribute (or both)", "XTSE0500");
-
-        if (asAtt != null) {
-            requiredType = makeSequenceType(asAtt);
         }
 	}
 
@@ -260,16 +206,10 @@ public final class XSLTemplate extends StyleElement implements StylesheetProcedu
         stackFrameMap = new SlotManager();
         checkTopLevel(null);
 
-        // the check for duplicates is now done in the buildIndexes() method of XSLStylesheet
-        if (match != null) {
-            match = typeCheck("match", match);
-            if (match.getNodeTest() instanceof EmptySequenceTest) {
-                getConfiguration().issueWarning("Match pattern cannot match any nodes");
-            }
-        }
+        match = typeCheck("match", match);
 
         // See if there are any required parameters.
-        AxisIterator kids = iterateAxis(Axis.CHILD);
+        UnfailingIterator kids = iterateAxis(Axis.CHILD);
         while(true) {
             NodeInfo param = (NodeInfo)kids.next();
             if (param == null) {
@@ -331,7 +271,7 @@ public final class XSLTemplate extends StyleElement implements StylesheetProcedu
         try {
             if (requiredType != null) {
                 RoleLocator role =
-                        new RoleLocator(RoleLocator.TEMPLATE_RESULT, diagnosticId, 0);
+                        new RoleLocator(RoleLocator.TEMPLATE_RESULT, getDiagnosticId(), 0);
                 //role.setSourceLocator(new ExpressionLocation(this));
                 role.setErrorCode("XTTE0505");
                 exp = TypeChecker.staticTypeCheck(exp, requiredType, false, role, makeExpressionVisitor());
@@ -346,13 +286,26 @@ public final class XSLTemplate extends StyleElement implements StylesheetProcedu
         if (LogConfiguration.loggingIsEnabled() && LogController.traceIsEnabled()) {
         	exp = makeTraceInstruction(this, exp);
         	if (exp instanceof TraceExpression) {
-                ((TraceExpression)exp).setProperty("match", matchAtt);
-                ((TraceExpression)exp).setProperty("mode", modeAtt);
+                ((TraceExpression)exp).setProperty("match", match.toString());
+                ((TraceExpression)exp).setProperty("mode", getAttributeValue("", "mode"));
         	}
         	compiledTemplate.setBody(exp);
         }
 
         return null;
+    }
+
+    /**
+     * Returns a string that identifies the template for diagnostics
+     * @return an identifying string
+     */
+
+    public String getDiagnosticId() {
+        if (templateName != null) {
+            return templateName.getDisplayName();
+        } else {
+            return match.toString();
+        }
     }
 
     /**
@@ -367,15 +320,14 @@ public final class XSLTemplate extends StyleElement implements StylesheetProcedu
             StylesheetModule module = declaration.getModule();
             int slots = match.allocateSlots(getStaticContext(), getSlotManager(), 0);
             RuleManager mgr = getPreparedStylesheet().getRuleManager();
-            for (int i=0; i<modeNames.length; i++) {
-                StructuredQName nc = modeNames[i];
+            for (StructuredQName nc : modeNames) {
                 Mode mode = mgr.getMode(nc, true);
                 if (prioritySpecified) {
                     mgr.setTemplateRule(match, compiledTemplate, mode,
-                    		module, priority, ixslPreventDefault, ixslEventProperty);
+                            module, priority, ixslPreventDefault, ixslEventProperty);
                 } else {
                     mgr.setTemplateRule(match, compiledTemplate, mode,
-                    		module, Double.NaN, ixslPreventDefault, ixslEventProperty);
+                            module, Double.NaN, ixslPreventDefault, ixslEventProperty);
                 }
                 mode.allocatePatternSlots(slots);
             }

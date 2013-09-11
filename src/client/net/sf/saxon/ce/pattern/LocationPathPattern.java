@@ -182,7 +182,7 @@ public final class LocationPathPattern extends Pattern {
 
         // analyze each component of the pattern
         StaticContext env = visitor.getStaticContext();
-        final TypeHierarchy th = visitor.getConfiguration().getTypeHierarchy();
+        final TypeHierarchy th = TypeHierarchy.getInstance();
         if (upperPattern != null) {
             upperPattern = upperPattern.analyze(visitor, contextItemType);
             if (upwardsAxis == Axis.PARENT) {
@@ -196,7 +196,7 @@ public final class LocationPathPattern extends Pattern {
                 step.setSourceLocator(this);
                 step.setContainer(this);
                 Expression exp = visitor.typeCheck(step, upperPattern.getNodeTest());
-                refinedNodeTest = (NodeTest) exp.getItemType(th);
+                refinedNodeTest = (NodeTest) exp.getItemType();
             }
         }
 
@@ -308,32 +308,6 @@ public final class LocationPathPattern extends Pattern {
             }
         }
         return list.iterator();
-    }
-
-    /**
-     * Replace one subexpression by a replacement subexpression
-     *
-     * @param original    the original subexpression
-     * @param replacement the replacement subexpression
-     * @return true if the original subexpression is found
-     */
-
-    public boolean replaceSubExpression(Expression original, Expression replacement) {
-        boolean found = false;
-        for (int i = 0; i < filters.length; i++) {
-            if (filters[i] == original) {
-                filters[i] = replacement;
-                found = true;
-            }
-        }
-        if (upperPattern != null) {
-            found |= upperPattern.replaceSubExpression(original, replacement);
-        }
-        if (variableBinding == original) {
-            variableBinding = replacement;
-            found = true;
-        }
-        return found;
     }
 
     /**
@@ -467,45 +441,21 @@ public final class LocationPathPattern extends Pattern {
             return false;
         }
         if (upperPattern != null) {
-            switch (upwardsAxis) {
-                case Axis.PARENT: {
-                    NodeInfo par = node.getParent();
-                    if (par == null) {
-                        return false;
-                    }
-                    if (!upperPattern.internalMatches(par, anchor, context)) {
-                        return false;
-                    }
+            NodeInfo anc = node;
+            if (upwardsAxis == Axis.PARENT || upwardsAxis == Axis.ANCESTOR) {
+                anc = node.getParent();
+            }
+            while (true) {
+                if (anc == null) {
+                    return false;
+                }
+                if (upperPattern.internalMatches(anc, anchor, context)) {
                     break;
                 }
-                case Axis.ANCESTOR: {
-                    NodeInfo anc = node.getParent();
-                    while (true) {
-                        if (anc == null) {
-                            return false;
-                        }
-                        if (upperPattern.internalMatches(anc, anchor, context)) {
-                            break;
-                        }
-                        anc = anc.getParent();
-                    }
-                    break;
+                if (upwardsAxis == Axis.PARENT) {
+                    return false;
                 }
-                case Axis.ANCESTOR_OR_SELF: {
-                    NodeInfo anc = node;
-                    while (true) {
-                        if (anc == null) {
-                            return false;
-                        }
-                        if (upperPattern.internalMatches(anc, anchor, context)) {
-                            break;
-                        }
-                        anc = anc.getParent();
-                    }
-                    break;
-                }
-                default:
-                    throw new XPathException("Unsupported axis " + Axis.axisName[upwardsAxis] + " in pattern");
+                anc = anc.getParent();
             }
         }
 
@@ -543,11 +493,10 @@ public final class LocationPathPattern extends Pattern {
                         }
                     }
                 } catch (XPathException e) {
-                    XPathException err = new XPathException("An error occurred matching pattern {" + toString() + "}: ", e);
-                    err.setXPathContext(c2);
-                    err.setErrorCodeQName(e.getErrorCodeQName());
-                    err.setLocator(this);
-                    c2.getController().recoverableError(err);
+//                    XPathException err = new XPathException("An error occurred matching pattern {" + toString() + "}: ", e);
+//                    err.setErrorCodeQName(e.getErrorCodeQName());
+//                    err.setLocator(this);
+//                    c2.getController().recoverableError(err);
                     return false;
                 }
             }
@@ -560,9 +509,9 @@ public final class LocationPathPattern extends Pattern {
             c2.setCurrentIterator(iter);
             // it's a non-positional filter, so we can handle each node separately
 
-            for (int i = 0; i < filters.length; i++) {
+            for (Expression filter : filters) {
                 try {
-                    if (!filters[i].effectiveBooleanValue(c2)) {
+                    if (!filter.effectiveBooleanValue(c2)) {
                         return false;
                     }
                 } catch (XPathException e) {
@@ -570,11 +519,7 @@ public final class LocationPathPattern extends Pattern {
                         // Treat circularity error as fatal (test error213)
                         throw e;
                     }
-                    XPathException err = new XPathException("An error occurred matching pattern {" + toString() + "}: ", e);
-                    err.setXPathContext(c2);
-                    err.setErrorCodeQName(e.getErrorCodeQName());
-                    err.setLocator(this);
-                    c2.getController().recoverableError(err);
+                    // errors in patterns are recoverable
                     return false;
                 }
             }
@@ -615,7 +560,7 @@ public final class LocationPathPattern extends Pattern {
 
     public boolean isPositional(TypeHierarchy th) {
         for (int i = 0; i < filters.length; i++) {
-            ItemType type = filters[i].getItemType(th);
+            ItemType type = filters[i].getItemType();
             if (type == BuiltInAtomicType.DOUBLE || type == BuiltInAtomicType.DECIMAL ||
                     type == BuiltInAtomicType.INTEGER || type == BuiltInAtomicType.FLOAT || type == BuiltInAtomicType.ANY_ATOMIC) {
                 return true;

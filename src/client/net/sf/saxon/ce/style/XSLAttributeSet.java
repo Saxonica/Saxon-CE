@@ -2,13 +2,16 @@ package client.net.sf.saxon.ce.style;
 import client.net.sf.saxon.ce.expr.Expression;
 import client.net.sf.saxon.ce.expr.ExpressionVisitor;
 import client.net.sf.saxon.ce.expr.Literal;
-import client.net.sf.saxon.ce.expr.instruct.*;
-import client.net.sf.saxon.ce.om.*;
-import client.net.sf.saxon.ce.tree.iter.AxisIterator;
-import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.type.AnyItemType;
-import client.net.sf.saxon.ce.value.Whitespace;
+import client.net.sf.saxon.ce.expr.instruct.AttributeSet;
+import client.net.sf.saxon.ce.expr.instruct.Executable;
+import client.net.sf.saxon.ce.expr.instruct.SlotManager;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
+import client.net.sf.saxon.ce.om.Axis;
+import client.net.sf.saxon.ce.om.Item;
+import client.net.sf.saxon.ce.om.StructuredQName;
+import client.net.sf.saxon.ce.trans.XPathException;
+import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
+import client.net.sf.saxon.ce.type.AnyItemType;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -20,7 +23,7 @@ import java.util.List;
 
 public class XSLAttributeSet extends StyleElement implements StylesheetProcedure {
 
-    private String nameAtt;
+    //private String nameAtt;
                 // the name of the attribute set as written
 
     private String useAtt;
@@ -81,37 +84,37 @@ public class XSLAttributeSet extends StyleElement implements StylesheetProcedure
     }
 
     public void prepareAttributes() throws XPathException {
-		useAtt = null;
+//		useAtt = null;
+//
+//		AttributeCollection atts = getAttributeList();
+//
+//		for (int a=0; a<atts.getLength(); a++) {
+//			StructuredQName qn = atts.getStructuredQName(a);
+//            String f = qn.getClarkName();
+//			if (f.equals("name")) {
+//        		nameAtt = Whitespace.trim(atts.getValue(a));
+//        	} else if (f.equals("use-attribute-sets")) {
+//        		useAtt = atts.getValue(a);
+//        	} else {
+//        		checkUnknownAttribute(qn);
+//        	}
+//        }
 
-		AttributeCollection atts = getAttributeList();
+        setObjectName((StructuredQName)checkAttribute("name", "q1"));
+        useAtt = (String)checkAttribute("use-attribute-sets", "w");
+        checkForUnknownAttributes();
 
-		for (int a=0; a<atts.getLength(); a++) {
-			StructuredQName qn = atts.getStructuredQName(a);
-            String f = qn.getClarkName();
-			if (f.equals("name")) {
-        		nameAtt = Whitespace.trim(atts.getValue(a));
-        	} else if (f.equals("use-attribute-sets")) {
-        		useAtt = atts.getValue(a);
-        	} else {
-        		checkUnknownAttribute(qn);
-        	}
-        }
 
-        if (nameAtt==null) {
-            reportAbsence("name");
-            setObjectName(new StructuredQName("", "", "attribute-set-error-name"));
-            return;
-        }
-
-        try {
-            setObjectName(makeQName(nameAtt));
-        } catch (NamespaceException err) {
-            compileError(err.getMessage(), "XTSE0280");
-            setObjectName(new StructuredQName("", "", "attribute-set-error-name"));
-        } catch (XPathException err) {
-            compileError(err.getMessage(), err.getErrorCodeQName());
-            setObjectName(new StructuredQName("", "", "attribute-set-error-name"));
-        }
+//
+//        try {
+//            setObjectName(makeQName(nameAtt));
+//        } catch (NamespaceException err) {
+//            compileError(err.getMessage(), "XTSE0280");
+//            setObjectName(new StructuredQName("", "", "attribute-set-error-name"));
+//        } catch (XPathException err) {
+//            compileError(err.getMessage(), err.getErrorCodeQName());
+//            setObjectName(new StructuredQName("", "", "attribute-set-error-name"));
+//        }
 
     }
 
@@ -144,7 +147,7 @@ public class XSLAttributeSet extends StyleElement implements StylesheetProcedure
 
         stackFrameMap = new SlotManager();
 
-        AxisIterator kids = iterateAxis(Axis.CHILD);
+        UnfailingIterator kids = iterateAxis(Axis.CHILD);
         while (true) {
             Item child = kids.next();
             if (child == null) {

@@ -16,16 +16,6 @@ public class Root extends SystemFunction {
     }
 
     /**
-    * Simplify and validate.
-     * @param visitor an expression visitor
-     */
-
-     public Expression simplify(ExpressionVisitor visitor) throws XPathException {
-        useContextItemAsDefault();
-        return simplifyArguments(visitor);
-    }
-
-    /**
     * Get the static properties of this expression (other than its type). The result is
     * bit-significant. These properties are used for optimizations. In general, if
     * property bit is set, it is true, but if it is unset, the value is unknown.

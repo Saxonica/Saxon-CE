@@ -2,7 +2,6 @@ package client.net.sf.saxon.ce.value;
 
 import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.lib.StringCollator;
-import client.net.sf.saxon.ce.trans.NoDynamicContextException;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
 import com.google.gwt.regexp.shared.MatchResult;
@@ -12,10 +11,10 @@ import java.math.BigDecimal;
 
 
 /**
-* Abstract superclass for Date, Time, and DateTime.
-*/
+ * Abstract superclass for Date, Time, and DateTime.
+ */
 
-public abstract class CalendarValue extends client.net.sf.saxon.ce.value.AtomicValue {
+public abstract class CalendarValue extends AtomicValue {
 
     // This is a reimplementation that makes no use of the Java Calendar/Date types except for computations.
 
@@ -25,6 +24,7 @@ public abstract class CalendarValue extends client.net.sf.saxon.ce.value.AtomicV
 
     /**
      * Determine whether this value includes a timezone
+     *
      * @return true if there is a timezone in the value, false if not
      */
 
@@ -35,9 +35,10 @@ public abstract class CalendarValue extends client.net.sf.saxon.ce.value.AtomicV
     /**
      * Modify the timezone value held in this object. This must be done only while the value is being
      * constructed.
+     *
      * @param minutes The timezone offset from GMT in minutes, positive or negative; or the special
-     * value NO_TIMEZONE indicating that the value is not in a timezone (this is the default if this
-     * method is not called)
+     *                value NO_TIMEZONE indicating that the value is not in a timezone (this is the default if this
+     *                method is not called)
      */
 
     public final void setTimezoneInMinutes(int minutes) {
@@ -47,15 +48,17 @@ public abstract class CalendarValue extends client.net.sf.saxon.ce.value.AtomicV
     /**
      * Convert the value to a DateTime, retaining all the components that are actually present, and
      * substituting conventional values for components that are missing
+     *
      * @return the equivalent DateTimeValue
      */
 
     public abstract DateTimeValue toDateTime();
 
-   /**
+    /**
      * Get the timezone value held in this object.
+     *
      * @return The timezone offset from GMT in minutes, positive or negative; or the special
-     * value NO_TIMEZONE indicating that the value is not in a timezone
+     *         value NO_TIMEZONE indicating that the value is not in a timezone
      */
 
     public final int getTimezoneInMinutes() {
@@ -66,7 +69,7 @@ public abstract class CalendarValue extends client.net.sf.saxon.ce.value.AtomicV
             RegExp.compile("[-+]([0-9][0-9]):([0-9][0-9])");
 
     public static int parseTimezone(String zone) {
-        if (zone==null || zone.isEmpty()) {
+        if (zone == null || zone.isEmpty()) {
             return NO_TIMEZONE;
         } else if (zone.equals("Z")) {
             return 0;
@@ -80,7 +83,7 @@ public abstract class CalendarValue extends client.net.sf.saxon.ce.value.AtomicV
             if (h > 14 || (h == 14 && m > 0)) {
                 return BAD_TIMEZONE;
             }
-            int tz = h*60 + m;
+            int tz = h * 60 + m;
             if (zone.charAt(0) == '-') {
                 tz = -tz;
             }
@@ -89,31 +92,28 @@ public abstract class CalendarValue extends client.net.sf.saxon.ce.value.AtomicV
     }
 
     /**
-     * Convert the value to a string
-     */
-
-//    public final String getStringValue() {
-//        return getStringValueCS().toString();
-//    }
-
-
-    /**
      * Add a duration to this date/time value
+     *
      * @param duration the duration to be added (which might be negative)
      * @return a new date/time value representing the result of adding the duration. The original
-     * object is not modified.
-     * @throws XPathException
+     *         object is not modified.
+     * @throws XPathException in the event of a dynamic error
      */
 
-    public abstract CalendarValue add(DurationValue duration) throws XPathException;
+    public CalendarValue add(DurationValue duration) throws XPathException {
+        throw new XPathException("Cannot add an " + duration.getItemType().getDisplayName() +
+                " to an " + getItemType().getDisplayName(), "XPTY0004");
+    }
 
     /**
      * Determine the difference between two points in time, as a duration
-     * @param other the other point in time
+     *
+     * @param other   the other point in time
      * @param context the dynamic context, used to obtain timezone information. May be set to null
-     * only if both values contain an explicit timezone, or if neither does so.
+     *                only if both values contain an explicit timezone, or if neither does so.
      * @return the duration as an xs:dayTimeDuration
-     * @throws client.net.sf.saxon.ce.trans.XPathException for example if one value is a date and the other is a time
+     * @throws client.net.sf.saxon.ce.trans.XPathException
+     *          for example if one value is a date and the other is a time
      */
 
     public DayTimeDurationValue subtract(CalendarValue other, XPathContext context) throws XPathException {
@@ -141,6 +141,7 @@ public abstract class CalendarValue extends client.net.sf.saxon.ce.value.AtomicV
     /**
      * Return a date, time, or dateTime with the same localized value, but
      * without the timezone component
+     *
      * @return the result of removing the timezone
      */
 
@@ -153,13 +154,13 @@ public abstract class CalendarValue extends client.net.sf.saxon.ce.value.AtomicV
     /**
      * Return a new date, time, or dateTime with the same normalized value, but
      * in a different timezone
+     *
      * @param tz the new timezone offset from UTC, in minutes
      * @return the date/time in the new timezone
      */
 
     public abstract CalendarValue adjustTimezone(int tz);
 
-   
     /**
      * Get an object value that implements the XPath equality and ordering comparison semantics for this value.
      * If the ordered parameter is set to true, the result will be a Comparable and will support a compareTo()
@@ -170,85 +171,78 @@ public abstract class CalendarValue extends client.net.sf.saxon.ce.value.AtomicV
      * semantics are context-sensitive, for example where they depend on the implicit timezone or the default
      * collation.
      *
-     * @param ordered true if an ordered comparison is required. In this case the result is null if the
-     *                type is unordered; in other cases the returned value will be a Comparable.
-     * @param collator collation used for strings
-     * @param context the XPath dynamic evaluation context, used in cases where the comparison is context
-*                sensitive @return an Object whose equals() and hashCode() methods implement the XPath comparison semantics
+     * @param ordered          true if an ordered comparison is required. In this case the result is null if the
+     *                         type is unordered; in other cases the returned value will be a Comparable.
+     * @param collator         collation used for strings
+     * @param implicitTimezone the implicit timezone, needed when comparing date/time values
+     * @return an Object whose equals() and hashCode() methods implement the XPath comparison semantics
      */
 
-    public Object getXPathComparable(boolean ordered, StringCollator collator, XPathContext context) throws NoDynamicContextException {
+    public Object getXPathComparable(boolean ordered, StringCollator collator, int implicitTimezone) {
         if (ordered && !(this instanceof Comparable)) {
             return null;
         }
-        return (hasTimezone() ? this : adjustTimezone(context.getImplicitTimezone()));
+        return (hasTimezone() ? this : adjustTimezone(implicitTimezone));
     }
 
     /**
      * Compare this value to another value of the same type, using the supplied Configuration
      * to get the implicit timezone if required.
-     * @param other the other value to be compared
-     * @param context the XPath dynamic evaluation context
+     *
+     * @param other            the other value to be compared
+     * @param implicitTimezone from the dynamic context
      * @return the comparison result
-     * @throws NoDynamicContextException if the supplied context is an early evaluation context and the
-     * result depends on the implicit timezone, which is not available at compile time
      */
 
-    public abstract int compareTo(CalendarValue other, XPathContext context) throws NoDynamicContextException;
+    public abstract int compareTo(CalendarValue other, int implicitTimezone);
 
     /**
      * Add a string representation of the timezone, typically
      * formatted as "Z" or "+03:00" or "-10:00", to a supplied
      * string buffer
+     *
      * @param sb The StringBuffer that will be updated with the resulting string
-     * representation
+     *           representation
      */
 
     public final void appendTimezone(FastStringBuffer sb) {
         if (hasTimezone()) {
-            appendTimezone(getTimezoneInMinutes(), sb);
-        }
-    }
-
-    /**
-     * Format a timezone and append it to a buffer
-     * @param tz the timezone
-     * @param sb the buffer
-     */
-
-    public static void appendTimezone(int tz, FastStringBuffer sb) {
-        if (tz == 0) {
-            sb.append("Z");
-        } else {
-            sb.append(tz > 0 ? "+" : "-");
-            tz = Math.abs(tz);
-            appendTwoDigits(sb, tz/60);
-            sb.append(':');
-            appendTwoDigits(sb, tz%60);
+            int tz = getTimezoneInMinutes();
+            if (tz == 0) {
+                sb.append("Z");
+            } else {
+                sb.append(tz > 0 ? "+" : "-");
+                tz = Math.abs(tz);
+                appendTwoDigits(sb, tz / 60);
+                sb.append(':');
+                appendTwoDigits(sb, tz % 60);
+            }
         }
     }
 
     /**
      * Append an integer, formatted with leading zeros to a fixed size, to a string buffer
-     * @param sb the string buffer
+     *
+     * @param sb    the string buffer
      * @param value the integer to be formatted
-     * @param size the number of digits required (max 9)
+     * @param size  the number of digits required (max 9)
      */
 
     static void appendString(FastStringBuffer sb, int value, int size) {
-        String s = "000000000"+value;
-        sb.append( s.substring(s.length()-size) );
+        String s = "000000000" + value;
+        sb.append(s.substring(s.length() - size));
     }
 
-/**
+    /**
      * Append an integer, formatted as two digits, to a string buffer
-     * @param sb the string buffer
+     *
+     * @param sb    the string buffer
      * @param value the integer to be formatted (must be in the range 0..99
      */
 
     static void appendTwoDigits(FastStringBuffer sb, int value) {
-        sb.append((char)(value/10 + '0'));
-        sb.append((char)(value%10 + '0'));
+        sb.append((char) (value / 10 + '0'));
+        sb.append((char) (value % 10 + '0'));
     }
 }
 

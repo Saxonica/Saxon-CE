@@ -54,7 +54,7 @@ public final class ValueOf extends SimpleNodeConstructor {
         return isNumberingInstruction;
     }
 
-    public ItemType getItemType(TypeHierarchy th) {
+    public ItemType getItemType() {
         return NodeKindTest.TEXT;
     }
 

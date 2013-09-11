@@ -111,23 +111,6 @@ public abstract class ParentNodeConstructor extends Instruction {
         return monoIterator(content);
     }
 
-    /**
-     * Replace one subexpression by a replacement subexpression
-     * @param original the original subexpression
-     * @param replacement the replacement subexpression
-     * @return true if the original subexpression is found
-     */
-
-    public boolean replaceSubExpression(Expression original, Expression replacement) {
-        boolean found = false;
-        if (content == original) {
-            content = replacement;
-            found = true;
-        }
-        return found;
-    }
-
-
 
     /**
      * Determine whether this instruction creates new nodes.

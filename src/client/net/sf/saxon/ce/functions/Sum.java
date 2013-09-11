@@ -11,7 +11,6 @@ import client.net.sf.saxon.ce.tree.util.SourceLocator;
 import client.net.sf.saxon.ce.type.BuiltInAtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.Type;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.*;
 
 
@@ -25,16 +24,16 @@ public class Sum extends Aggregate {
         return new Sum();
     }
 
-    public ItemType getItemType(TypeHierarchy th) {
-        ItemType base = Atomizer.getAtomizedItemType(argument[0], false, th);
+    public ItemType getItemType() {
+        ItemType base = Atomizer.getAtomizedItemType(argument[0], false);
         if (base.equals(BuiltInAtomicType.UNTYPED_ATOMIC)) {
             base = BuiltInAtomicType.DOUBLE;
         }
         if (Cardinality.allowsZero(argument[0].getCardinality())) {
             if (argument.length == 1) {
-                return Type.getCommonSuperType(base, BuiltInAtomicType.INTEGER, th);
+                return Type.getCommonSuperType(base, BuiltInAtomicType.INTEGER);
             } else {
-                return Type.getCommonSuperType(base, argument[1].getItemType(th), th);
+                return Type.getCommonSuperType(base, argument[1].getItemType());
             }
         } else {
             return base;
@@ -93,11 +92,7 @@ public class Sum extends Aggregate {
                 if (next instanceof UntypedAtomicValue) {
                     next = next.convert(BuiltInAtomicType.DOUBLE, true).asAtomic();
                 } else if (!(next instanceof NumericValue)) {
-                    XPathException err = new XPathException("Input to sum() contains a mix of numeric and non-numeric values");
-                    err.setXPathContext(context);
-                    err.setErrorCode("FORG0006");
-                    err.setLocator(location);
-                    throw err;
+                    throw new XPathException("Input to sum() contains a mix of numeric and non-numeric values", "FORG0006", location);
                 }
                 sum = ArithmeticExpression.compute(sum, Token.PLUS, next, context);
                 if (sum.isNaN() && sum instanceof DoubleValue) {
@@ -107,11 +102,7 @@ public class Sum extends Aggregate {
             }
         } else if (sum instanceof DurationValue) {
             if (!((sum instanceof DayTimeDurationValue) || (sum instanceof YearMonthDurationValue))) {
-                XPathException err = new XPathException("Input to sum() contains a duration that is neither a dayTimeDuration nor a yearMonthDuration");
-                err.setXPathContext(context);
-                err.setErrorCode("FORG0006");
-                err.setLocator(location);
-                throw err;
+                throw new XPathException("Input to sum() contains a duration that is neither a dayTimeDuration nor a yearMonthDuration", "FORG0006", location);
             }
             while (true) {
                 AtomicValue next = (AtomicValue)iter.next();
@@ -119,23 +110,15 @@ public class Sum extends Aggregate {
                     return sum;
                 }
                 if (!(next instanceof DurationValue)) {
-                    XPathException err = new XPathException("Input to sum() contains a mix of duration and non-duration values");
-                    err.setXPathContext(context);
-                    err.setErrorCode("FORG0006");
-                    err.setLocator(location);
-                    throw err;
+                    throw new XPathException("Input to sum() contains a mix of duration and non-duration values", "FORG0006", location);
                 }
                 sum = ((DurationValue)sum).add((DurationValue)next);
             }
         } else {
-            XPathException err = new XPathException(
+            throw new XPathException(
                     "Input to sum() contains a value of type " +
-                            sum.getPrimitiveType().getDisplayName() +
-                            " which is neither numeric, nor a duration");
-            err.setXPathContext(context);
-            err.setErrorCode("FORG0006");
-            err.setLocator(location);
-            throw err;
+                            sum.getItemType().getDisplayName() +
+                            " which is neither numeric, nor a duration", "FORG0006", location);
         }
     }
 

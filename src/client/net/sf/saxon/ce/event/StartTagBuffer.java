@@ -35,7 +35,7 @@ public class StartTagBuffer extends ProxyReceiver {
 
     public void setPipelineConfiguration(PipelineConfiguration pipe) {
         super.setPipelineConfiguration(pipe);
-        bufferedAttributes = new AttributeCollection(pipe.getConfiguration());
+        bufferedAttributes = new AttributeCollection();
     }
 
     /**

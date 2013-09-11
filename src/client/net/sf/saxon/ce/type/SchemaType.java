@@ -23,49 +23,13 @@ public interface SchemaType {
     String getDisplayName();
 
     /**
-     * Test whether this SchemaType is an atomic type
-     * @return true if this SchemaType is an atomic type
-     */
-
-    boolean isAtomicType();
-
-    /**
      * Returns the base type that this type inherits from. This method can be used to get the
      * base type of a type that is known to be valid.
      * If this type is a Simpletype that is a built in primitive type then null is returned.
      * @return the base type, or null if this is xs:anyType (the root of the type hierarchy)
-     * @throws IllegalStateException if this type is not valid.
     */
 
     SchemaType getBaseType();
-
-    /**
-     * Test whether this is the same type as another type. They are considered to be the same type
-     * if they are derived from the same type definition in the original XML representation (which
-     * can happen when there are multiple includes of the same file)
-     * @param other the other type
-     * @return true if this is the same type as other
-     */
-
-    boolean isSameType(SchemaType other);
-
-    /**
-     * Ask whether this type is an ID type. This is defined to be any simple type
-     * who typed value may contain atomic values of type xs:ID: that is, it includes types derived
-     * from ID by restriction, list, or union. Note that for a node to be treated
-     * as an ID in XSD 1.0, its typed value must be a *single* atomic value of type ID; the type of the
-     * node, however, can still allow a list. But in XSD 1.1, a list of IDs is permitted
-     */
-
-    public boolean isIdType();
-
-    /**
-     * Ask whether this type is an IDREF or IDREFS type. This is defined to be any simple type
-     * who typed value may contain atomic values of type xs:IDREF: that is, it includes types derived
-     * from IDREF or IDREFS by restriction, list, or union
-     */
-
-    public boolean isIdRefType();
 
 }
 

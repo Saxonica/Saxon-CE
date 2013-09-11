@@ -6,7 +6,6 @@ import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.pattern.EmptySequenceTest;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.IntegerValue;
 
 import com.google.gwt.logging.client.LogConfiguration;
@@ -83,12 +82,11 @@ public class ScheduleExecution extends Instruction  {
 
     /**
      * Get the item type of the items returned by evaluating this instruction
-     * @param th the type hierarchy cache
      * @return the static item type of the instruction. This is empty: the set-attribute instruction
      *         returns nothing.
      */
 
-    public ItemType getItemType(TypeHierarchy th) {
+    public ItemType getItemType() {
         return EmptySequenceTest.getInstance();
     }
 
@@ -103,22 +101,6 @@ public class ScheduleExecution extends Instruction  {
         return Arrays.asList(call, wait).iterator();
     }
 
-    /**
-     * Replace one subexpression by a replacement subexpression
-     * @param original    the original subexpression
-     * @param replacement the replacement subexpression
-     * @return true if the original subexpression is found
-     */
-
-    public boolean replaceSubExpression(Expression original, Expression replacement) {
-        boolean found = false;
-        if (wait == original) {
-            wait = replacement;
-            found = true;
-        }
-        return found;
-    }
-    
 
     public TailCall processLeavingTail(final XPathContext context) throws XPathException {
         IntegerValue time = (IntegerValue)wait.evaluateItem(context);
@@ -150,7 +132,7 @@ public class ScheduleExecution extends Instruction  {
             }
         };
         //Window.setTitle("Timer started " + serial + " (time " + time + "ms)");
-        t.schedule(time.getIntValue());
+        t.schedule(time.intValue());
         return null;
     }
 

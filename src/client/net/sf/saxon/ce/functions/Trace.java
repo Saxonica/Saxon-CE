@@ -4,7 +4,6 @@ import java.util.logging.Logger;
 
 import com.google.gwt.logging.client.LogConfiguration;
 
-import client.net.sf.saxon.ce.Controller;
 import client.net.sf.saxon.ce.LogController;
 import client.net.sf.saxon.ce.expr.Expression;
 import client.net.sf.saxon.ce.expr.ExpressionTool;
@@ -111,7 +110,7 @@ public class Trace extends SystemFunction {
         if (LogConfiguration.loggingIsEnabled() && LogController.traceIsEnabled()) {
             String label = argument[1].evaluateAsString(context).toString();
             int evalMode = ExpressionTool.eagerEvaluationMode(argument[0]); // eagerEvaluate not implemented in CE
-            Value value = Value.asValue(ExpressionTool.evaluate(argument[0], evalMode, context, 10));
+            Value value = Value.asValue(ExpressionTool.evaluate(argument[0], evalMode, context));
             notifyListener(label, value, context);
             return value.iterate();
         } else {

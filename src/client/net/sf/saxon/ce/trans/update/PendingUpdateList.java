@@ -65,13 +65,7 @@ public class PendingUpdateList {
                 action.apply(context);
             }
         }
-        state = "remove-attribute";
-        for (int i=0; i<list.size(); i++) {
-            PendingUpdateAction action = list.get(i);
-            if (action instanceof RemoveAttributeAction) {
-                action.apply(context);
-            }
-        }
+
         // empty list in case of further scheduled actions
         list = new ArrayList<PendingUpdateAction>();
     	} catch(Exception e) {

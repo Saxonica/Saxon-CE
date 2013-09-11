@@ -33,10 +33,7 @@ public class CodepointsToString extends SystemFunction {
             }
             long next = nextInt.intValue();
             if (next < 0 || next > Integer.MAX_VALUE || !NameChecker.isValidChar((int)next)) {
-                XPathException e = new XPathException("Invalid XML character [x " + Integer.toHexString((int)next) + ']');
-                e.setErrorCode("FOCH0001");
-                e.setXPathContext(c);
-                throw e;
+                throw new XPathException("Invalid XML character [x " + Integer.toHexString((int)next) + ']', "FOCH0001");
             }
             if (next<65536) {
                 sb.append((char)next);

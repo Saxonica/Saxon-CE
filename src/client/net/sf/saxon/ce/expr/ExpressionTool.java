@@ -27,15 +27,10 @@ public class ExpressionTool {
     public static final int UNDECIDED = -1;
     public static final int NO_EVALUATION_NEEDED = 0;
     public static final int EVALUATE_VARIABLE = 1;
-    public static final int MAKE_CLOSURE = 3;
-    public static final int MAKE_MEMO_CLOSURE = 4;
     public static final int RETURN_EMPTY_SEQUENCE = 5;
-    public static final int EVALUATE_AND_MATERIALIZE_VARIABLE = 6;
     public static final int CALL_EVALUATE_ITEM = 7;
     public static final int ITERATE_AND_MATERIALIZE = 8;
     public static final int PROCESS = 9;
-    public static final int MAKE_INDEXED_VARIABLE = 12;
-    public static final int MAKE_SINGLETON_CLOSURE = 13;
     public static final int EVALUATE_SUPPLIED_PARAMETER = 14;
 
     private ExpressionTool() {}
@@ -140,13 +135,9 @@ public class ExpressionTool {
             return CALL_EVALUATE_ITEM;
                 // evaluateItem() on an error expression throws the latent exception
 
-        } else if (!Cardinality.allowsMany(exp.getCardinality())) {
-            // singleton expressions are always evaluated eagerly
+        } else {
             return eagerEvaluationMode(exp);
 
-        } else {
-            // create a Closure, a wrapper for the expression and its context
-            return MAKE_CLOSURE;
         }
     }
 
@@ -160,11 +151,11 @@ public class ExpressionTool {
      */
 
     public static int eagerEvaluationMode(Expression exp) {
-        if (exp instanceof Literal && !(((Literal)exp).getValue() instanceof Closure)) {
+        if (exp instanceof Literal) {
             return NO_EVALUATION_NEEDED;
         }
         if (exp instanceof VariableReference) {
-            return EVALUATE_AND_MATERIALIZE_VARIABLE;
+            return EVALUATE_VARIABLE;
         }
         int m = exp.getImplementationMethod();
         if ((m & Expression.EVALUATE_METHOD) != 0) {
@@ -180,17 +171,13 @@ public class ExpressionTool {
     /**
      * Do lazy evaluation of an expression. This will return a value, which may optionally
      * be a SequenceIntent, which is a wrapper around an iterator over the value of the expression.
+     *
      * @param exp the expression to be evaluated
      * @param evaluationMode the evaluation mode for this expression
      * @param context the run-time evaluation context for the expression. If
      *     the expression is not evaluated immediately, then parts of the
      *     context on which the expression depends need to be saved as part of
      *      the Closure
-     * @param ref an indication of how the value will be used. The value 1 indicates that the value
-     *     is only expected to be used once, so that there is no need to keep it in memory. A small value >1
-     *     indicates multiple references, so the value will be saved when first evaluated. The special value
-     *     FILTERED indicates a reference within a loop of the form $x[predicate], indicating that the value
-     *     should be saved in a way that permits indexing.
      * @exception XPathException if any error occurs in evaluating the
      *     expression
      * @return a value: either the actual value obtained by evaluating the
@@ -198,7 +185,7 @@ public class ExpressionTool {
      *     evaluate it later
      */
 
-    public static ValueRepresentation evaluate(Expression exp, int evaluationMode, XPathContext context, int ref)
+    public static ValueRepresentation evaluate(Expression exp, int evaluationMode, XPathContext context)
     throws XPathException {
         switch (evaluationMode) {
 
@@ -211,26 +198,8 @@ public class ExpressionTool {
             case EVALUATE_SUPPLIED_PARAMETER:
                 return ((SuppliedParameterReference)exp).evaluateVariable(context);
 
-            case MAKE_CLOSURE:
-                return Closure.make(exp, context, ref);
-                //return new SequenceExtent(exp.iterate(context));
-
-            case MAKE_MEMO_CLOSURE:
-                return Closure.make(exp, context, (ref==1 ? 10 : ref));
-
-            case MAKE_SINGLETON_CLOSURE:
-                return new SingletonClosure(exp, context);
-
             case RETURN_EMPTY_SEQUENCE:
                 return EmptySequence.getInstance();
-
-            case EVALUATE_AND_MATERIALIZE_VARIABLE:
-                ValueRepresentation v = ((VariableReference)exp).evaluateVariable(context);
-                if (v instanceof Closure) {
-                    return SequenceExtent.makeSequenceExtent(((Closure)v).iterate());
-                } else {
-                    return v;
-                }
 
             case CALL_EVALUATE_ITEM:
                 Item item = exp.evaluateItem(context);
@@ -265,31 +234,6 @@ public class ExpressionTool {
     }
 
     /**
-     * Do lazy evaluation of an expression. This will return a value, which may optionally
-     * be a SequenceIntent, which is a wrapper around an iterator over the value of the expression.
-     * @param exp the expression to be evaluated
-     * @param context the run-time evaluation context for the expression. If
-     *     the expression is not evaluated immediately, then parts of the
-     *     context on which the expression depends need to be saved as part of
-     *      the Closure
-     * @param ref an indication of how the value will be used. The value 1 indicates that the value
-     *     is only expected to be used once, so that there is no need to keep it in memory. A small value >1
-     *     indicates multiple references, so the value will be saved when first evaluated. The special value
-     *     FILTERED indicates a reference within a loop of the form $x[predicate], indicating that the value
-     *     should be saved in a way that permits indexing.
-     * @return a value: either the actual value obtained by evaluating the
-     *     expression, or a Closure containing all the information needed to
-     *     evaluate it later
-     * @throws XPathException if any error occurs in evaluating the
-     *     expression
-     */
-
-    public static ValueRepresentation lazyEvaluate(Expression exp, XPathContext context, int ref) throws XPathException {
-        final int evaluationMode = lazyEvaluationMode(exp);
-        return evaluate(exp, evaluationMode, context, ref);
-    }
-
-    /**
      * Scan an expression to find and mark any recursive tail function calls
      * @param exp the expression to be analyzed
      * @param qName the name of the containing function
@@ -316,8 +260,7 @@ public class ExpressionTool {
     public static int allocateSlots(Expression exp, int nextFree, SlotManager frame) {
         if (exp instanceof Assignation) {
             ((Assignation)exp).setSlotNumber(nextFree);
-            int count = ((Assignation)exp).getRequiredSlots();
-            nextFree += count;
+            nextFree++;
             if (frame != null) {
                 frame.allocateSlotNumber(((Assignation)exp).getVariableQName());
             }
@@ -336,10 +279,8 @@ public class ExpressionTool {
                 // references are counted during the typeCheck phase, so this can happen if typeCheck() fails to
                 // visit some branch of the expression tree.
                 Assignation decl = (Assignation)binding;
-                String msg = "*** Internal Saxon error: local variable encountered whose binding has been deleted";
-                System.err.println(msg);
-                System.err.println("Variable name: " + decl.getVariableName());
-                System.err.println(decl.toString());
+                String msg = "*** Internal Saxon error: local variable " + decl.getVariableName() +
+                        " encountered whose binding has been deleted";
                 throw new IllegalStateException(msg);
             }
 
@@ -378,8 +319,7 @@ public class ExpressionTool {
             } else if (first instanceof StringValue) {   // includes anyURI value
                 return (!((StringValue)first).isZeroLength());
             } else if (first instanceof NumericValue) {
-                final NumericValue n = (NumericValue)first;
-                return (n.compareTo(0) != 0) && !n.isNaN();
+                return ((NumericValue)first).effectiveBooleanValue();
              } else {
                 ebvError("a sequence starting with an atomic value other than a boolean, number, string, or URI");
                 return false;
@@ -496,10 +436,10 @@ public class ExpressionTool {
      * @param list a list to be populated with the references to this variable
      */
 
-    public static void gatherVariableReferences(Expression exp, Binding binding, List list) {
+    public static void gatherVariableReferences(Expression exp, Binding binding, List<VariableReference> list) {
         if (exp instanceof VariableReference &&
                 ((VariableReference)exp).getBinding() == binding) {
-            list.add(exp);
+            list.add((VariableReference)exp);
         } else {
             for (Iterator iter = exp.iterateSubExpressions(); iter.hasNext(); ) {
                 gatherVariableReferences((Expression)iter.next(), binding, list);

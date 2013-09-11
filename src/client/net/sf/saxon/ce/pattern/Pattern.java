@@ -6,10 +6,7 @@ import client.net.sf.saxon.ce.expr.instruct.SlotManager;
 import client.net.sf.saxon.ce.om.*;
 import client.net.sf.saxon.ce.style.StyleElement;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.tree.iter.AxisIterator;
-import client.net.sf.saxon.ce.tree.iter.EmptyIterator;
-import client.net.sf.saxon.ce.tree.iter.PrependIterator;
-import client.net.sf.saxon.ce.tree.iter.SingletonIterator;
+import client.net.sf.saxon.ce.tree.iter.*;
 import client.net.sf.saxon.ce.tree.util.SourceLocator;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.Type;
@@ -261,7 +258,7 @@ public abstract class Pattern implements Container, SourceLocator {
                     return EmptyIterator.getInstance();
                 }
             case Type.ATTRIBUTE: {
-                AxisIterator allElements = doc.iterateAxis(Axis.DESCENDANT, NodeKindTest.ELEMENT);
+                UnfailingIterator allElements = doc.iterateAxis(Axis.DESCENDANT, NodeKindTest.ELEMENT);
                 MappingFunction atts = new MappingFunction() {
                     public SequenceIterator map(Item item) {
                         return ((NodeInfo)item).iterateAxis(Axis.ATTRIBUTE);
@@ -283,7 +280,7 @@ public abstract class Pattern implements Container, SourceLocator {
             case Type.COMMENT:
             case Type.TEXT:
             case Type.PROCESSING_INSTRUCTION: {
-                AxisIterator allChildren = doc.iterateAxis(Axis.DESCENDANT, NodeKindTest.makeNodeKindTest(kind));
+                UnfailingIterator allChildren = doc.iterateAxis(Axis.DESCENDANT, NodeKindTest.makeNodeKindTest(kind));
                 ItemMappingFunction test = new ItemMappingFunction() {
                     public Item mapItem(Item item) throws XPathException {
                         if ((matches((NodeInfo)item, context))) {
@@ -296,7 +293,7 @@ public abstract class Pattern implements Container, SourceLocator {
                 return new ItemMappingIterator(allChildren, test);
             }
             case Type.NODE: {
-                AxisIterator allChildren = doc.iterateAxis(Axis.DESCENDANT);
+                UnfailingIterator allChildren = doc.iterateAxis(Axis.DESCENDANT);
                 MappingFunction attsOrSelf = new MappingFunction() {
                     public SequenceIterator map(Item item) {
                         return new PrependIterator((NodeInfo)item, ((NodeInfo)item).iterateAxis(Axis.ATTRIBUTE));
@@ -376,16 +373,6 @@ public abstract class Pattern implements Container, SourceLocator {
         }
     }
 
-    /**
-     * Replace a subexpression by a replacement subexpression
-     * @param original  the expression to be replaced
-     * @param replacement  the new expression to be inserted in its place
-     * @return  true if the replacement was carried out
-     */
-
-    public boolean replaceSubExpression(Expression original, Expression replacement) {
-        throw new IllegalArgumentException("Invalid replacement");
-    }
 }
 
 // This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. 

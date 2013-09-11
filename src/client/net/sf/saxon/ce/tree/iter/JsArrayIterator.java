@@ -38,19 +38,6 @@ public class JsArrayIterator
         this.config = config;
     }
 
-   /**
-     * Create a JsArrayIterator over the leading part of a given List
-     * @param list the list: all objects in the list must be instances of {@link Item}
-     * @param length the number of items to be included
-     */
-
-    public JsArrayIterator(JsArray list, int length, Configuration config) {
-        index = 0;
-        this.list = list;
-        this.length = length;
-        this.config = config;
-    }
-
     public Item next() {
         if (index >= length) {
             current = null;

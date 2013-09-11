@@ -3,13 +3,13 @@ import client.net.sf.saxon.ce.expr.Expression;
 import client.net.sf.saxon.ce.expr.Literal;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.expr.instruct.ValueOf;
-import client.net.sf.saxon.ce.om.*;
-import client.net.sf.saxon.ce.tree.iter.AxisIterator;
+import client.net.sf.saxon.ce.om.Axis;
+import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.pattern.NodeKindTest;
 import client.net.sf.saxon.ce.trans.XPathException;
+import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.value.StringValue;
-import client.net.sf.saxon.ce.value.Whitespace;
 
 /**
 * Handler for xsl:text elements in stylesheet. <BR>
@@ -17,7 +17,6 @@ import client.net.sf.saxon.ce.value.Whitespace;
 
 public class XSLText extends XSLLeafNodeConstructor {
 
-    private boolean disable = false;
     private StringValue value;
 
     /**
@@ -31,36 +30,13 @@ public class XSLText extends XSLLeafNodeConstructor {
     }
 
     public void prepareAttributes() throws XPathException {
-
-        String disableAtt = null;
-
-		AttributeCollection atts = getAttributeList();
-
-		for (int a=0; a<atts.getLength(); a++) {
-			StructuredQName qn = atts.getStructuredQName(a);
-            String f = qn.getClarkName();
-			if (f.equals("disable-output-escaping")) {
-        		disableAtt = Whitespace.trim(atts.getValue(a));
-        	} else {
-        		checkUnknownAttribute(qn);
-        	}
-        }
-
-        if (disableAtt != null) {
-            if (disableAtt.equals("yes")) {
-                disable = true;
-            } else if (disableAtt.equals("no")) {
-                disable = false;
-            } else {
-                compileError("disable-output-escaping attribute must be either 'yes' or 'no'", "XTSE0020");
-            }
-        }
+        checkAttribute("disable-output-escaping", "b");
+        checkForUnknownAttributes();
     }
 
     public void validate(Declaration decl) throws XPathException {
 
-        // 2.0 spec has reverted to the 1.0 rule that xsl:text may not have child elements
-        AxisIterator kids = iterateAxis(Axis.CHILD);
+        UnfailingIterator kids = iterateAxis(Axis.CHILD);
         value = StringValue.EMPTY_STRING;
         while(true) {
             Item child = kids.next();

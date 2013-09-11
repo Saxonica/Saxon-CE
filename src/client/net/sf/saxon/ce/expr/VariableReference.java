@@ -1,8 +1,5 @@
 package client.net.sf.saxon.ce.expr;
 
-import java.util.logging.Logger;
-
-import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.expr.instruct.GlobalParam;
 import client.net.sf.saxon.ce.expr.instruct.UserFunctionParameter;
 import client.net.sf.saxon.ce.om.Item;
@@ -18,6 +15,8 @@ import client.net.sf.saxon.ce.value.Cardinality;
 import client.net.sf.saxon.ce.value.SequenceType;
 import client.net.sf.saxon.ce.value.SingletonItem;
 import client.net.sf.saxon.ce.value.Value;
+
+import java.util.logging.Logger;
 
 /**
  * Variable reference: a reference to a variable. This may be an XSLT-defined variable, a range
@@ -164,13 +163,8 @@ public class VariableReference extends Expression {
 
     public void refineVariableType(
             ItemType type, int cardinality, Value constantValue, int properties, ExpressionVisitor visitor) {
-        Executable exec = visitor.getExecutable();
-        if (exec == null) {
-            // happens during use-when evaluation
-            return;
-        } 
-        TypeHierarchy th = exec.getConfiguration().getTypeHierarchy();
-        ItemType oldItemType = getItemType(th);
+        TypeHierarchy th = TypeHierarchy.getInstance();
+        ItemType oldItemType = getItemType();
         ItemType newItemType = oldItemType;
         if (th.isSubType(type, oldItemType)) {
             newItemType = type;
@@ -187,12 +181,11 @@ public class VariableReference extends Expression {
     /**
      * Determine the data type of the expression, if possible
      *
-     * @param th the type hierarchy cache
      * @return the type of the variable, if this can be determined statically;
      *         otherwise Type.ITEM (meaning not known in advance)
      */
 
-    public ItemType getItemType(TypeHierarchy th) {
+    public ItemType getItemType() {
         if (staticType == null || staticType.getPrimaryType() == AnyItemType.getInstance()) {
             if (binding != null) {
                 return binding.getRequiredType().getPrimaryType();
@@ -314,7 +307,7 @@ public class VariableReference extends Expression {
     public SequenceIterator iterate(XPathContext c) throws XPathException {
         try {
             ValueRepresentation actual = evaluateVariable(c);
-            return Value.getIterator(actual);
+            return Value.asIterator(actual);
         } catch (XPathException err) {
             err.maybeSetLocation(getSourceLocator());
             throw err;
@@ -348,7 +341,7 @@ public class VariableReference extends Expression {
             if (actual instanceof NodeInfo) {
                 actual = new SingletonItem((NodeInfo) actual);
             }
-            ((Value) actual).process(c);
+            Value.process(Value.asIterator(actual), c);
         } catch (XPathException err) {
             err.maybeSetLocation(getSourceLocator());
             throw err;

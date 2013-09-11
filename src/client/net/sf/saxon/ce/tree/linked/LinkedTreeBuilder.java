@@ -181,7 +181,7 @@ public class LinkedTreeBuilder extends Builder
             throw new IllegalStateException("attribute() called after startContent()");
         }
         if (attributes==null) {
-            attributes = new AttributeCollection(config);
+            attributes = new AttributeCollection();
         }
         attributes.addAttribute(nameCode, value.toString());
     }

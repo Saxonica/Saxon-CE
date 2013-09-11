@@ -39,15 +39,6 @@ public class ForExpression extends Assignation {
     }
 
     /**
-     * Get the number of slots required.
-     * @return normally 1, except for a FOR expression with an AT clause, where it is 2.
-     */
-
-    public int getRequiredSlots() {
-        return 1;
-    }
-
-    /**
     * Type-check the expression
     */
 
@@ -64,7 +55,7 @@ public class ForExpression extends Assignation {
 
         if (requiredType != null) {
             // if declaration is null, we've already done the type checking in a previous pass
-            final TypeHierarchy th = visitor.getConfiguration().getTypeHierarchy();
+            final TypeHierarchy th = TypeHierarchy.getInstance();
             SequenceType decl = requiredType;
             SequenceType sequenceType = SequenceType.makeSequenceType(
                     decl.getPrimaryType(), StaticProperty.ALLOWS_ZERO_OR_MORE);
@@ -73,7 +64,7 @@ public class ForExpression extends Assignation {
             //role.setSourceLocator(this);
 //            sequence = TypeChecker.strictTypeCheck(
 //                                    sequence, sequenceType, role, visitor.getStaticContext());
-            ItemType actualItemType = sequence.getItemType(th);
+            ItemType actualItemType = sequence.getItemType();
             refineTypeInformation(actualItemType,
                     getRangeVariableCardinality(),
                     null,
@@ -168,7 +159,7 @@ public class ForExpression extends Assignation {
             LetExpression let = new LetExpression();
             let.setVariableQName(variableName);
             let.setRequiredType(SequenceType.makeSequenceType(
-                    sequence.getItemType(visitor.getConfiguration().getTypeHierarchy()),
+                    sequence.getItemType(),
                     StaticProperty.EXACTLY_ONE));
             let.setSequence(sequence);
             let.setAction(action);
@@ -284,7 +275,9 @@ public class ForExpression extends Assignation {
             if (item == null) break;
             context.setLocalVariable(slot, item);
             if (pslot >= 0) {
-                context.setLocalVariable(pslot, IntegerValue.makeIntegerValue(position++));
+                int value = position++;
+
+                context.setLocalVariable(pslot, new IntegerValue(value));
             }
             action.process(context);
         }
@@ -295,11 +288,10 @@ public class ForExpression extends Assignation {
      * Determine the data type of the items returned by the expression, if possible
      * @return one of the values Type.STRING, Type.BOOLEAN, Type.NUMBER, Type.NODE,
      * or Type.ITEM (meaning not known in advance)
-     * @param th the type hierarchy cache
      */
 
-	public ItemType getItemType(TypeHierarchy th) {
-	    return action.getItemType(th);
+	public ItemType getItemType() {
+	    return action.getItemType();
 	}
 
 	/**
@@ -353,7 +345,9 @@ public class ForExpression extends Assignation {
         public SequenceIterator map(Item item) throws XPathException {
             context.setLocalVariable(slotNumber, item);
             if (pslot >= 0) {
-                context.setLocalVariable(pslot, IntegerValue.makeIntegerValue(position++));
+                int value = position++;
+
+                context.setLocalVariable(pslot, new IntegerValue(value));
             }
             return action.iterate(context);
         }
@@ -361,7 +355,9 @@ public class ForExpression extends Assignation {
         public Item mapItem(Item item) throws XPathException {
             context.setLocalVariable(slotNumber, item);
             if (pslot >= 0) {
-                context.setLocalVariable(pslot, IntegerValue.makeIntegerValue(position++));
+                int value = position++;
+
+                context.setLocalVariable(pslot, new IntegerValue(value));
             }
             return action.evaluateItem(context);
         }

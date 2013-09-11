@@ -38,7 +38,7 @@ public class NormalizeSpace extends SystemFunction {
 
     public Expression typeCheck(ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
         if (argument.length == 0 && contextItemType == null) {
-            typeError("The context item for normalize-space() is undefined", "XPDY0002", null);
+            typeError("The context item for normalize-space() is undefined", "XPDY0002");
         }
         return super.typeCheck(visitor, contextItemType);
     }
@@ -66,7 +66,7 @@ public class NormalizeSpace extends SystemFunction {
         if (argument.length == 0) {
             Item item = c.getContextItem();
             if (item == null) {
-                dynamicError("Context item for normalize-space() is undefined", "FONC0001", c);
+                dynamicError("Context item for normalize-space() is undefined", "FONC0001");
                 return null;
             }
             return StringValue.makeStringValue(
@@ -102,7 +102,7 @@ public class NormalizeSpace extends SystemFunction {
         if (argument.length == 0) {
             Item item = c.getContextItem();
             if (item == null) {
-                dynamicError("Context item for normalize-space() is undefined", "FONC0001", c);
+                dynamicError("Context item for normalize-space() is undefined", "FONC0001");
                 return false;
             }
             cs = item.getStringValue();

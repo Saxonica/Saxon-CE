@@ -127,11 +127,10 @@ public class SlashExpression extends Expression
     /**
      * Determine the data type of the items returned by this exprssion
      * @return the type of the step
-     * @param th the type hierarchy cache
      */
 
-    public final ItemType getItemType(TypeHierarchy th) {
-        return step.getItemType(th);
+    public final ItemType getItemType() {
+        return step.getItemType();
     }
 
     /**
@@ -139,7 +138,7 @@ public class SlashExpression extends Expression
      */
 
     public Expression typeCheck(ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
-        final TypeHierarchy th = visitor.getConfiguration().getTypeHierarchy();
+        final TypeHierarchy th = TypeHierarchy.getInstance();
 
         Expression start2 = visitor.typeCheck(start, contextItemType);
 
@@ -152,13 +151,13 @@ public class SlashExpression extends Expression
 
         // Now check the second operand
 
-        setStepExpression(visitor.typeCheck(step, start.getItemType(th)));
+        setStepExpression(visitor.typeCheck(step, start.getItemType()));
 
         // We distinguish three cases for the second operand: either it is known statically to deliver
         // nodes only (a traditional path expression), or it is known statically to deliver atomic values
         // only (a simple mapping expression), or we don't yet know.
 
-        ItemType stepType = step.getItemType(th);
+        ItemType stepType = step.getItemType();
         if (th.isSubType(stepType, Type.NODE_TYPE)) {
 
             if ((step.getSpecialProperties() & StaticProperty.NON_CREATIVE) != 0) {
@@ -216,10 +215,10 @@ public class SlashExpression extends Expression
     }
 
     public Expression optimize(ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
-        TypeHierarchy th = visitor.getConfiguration().getTypeHierarchy();
+        TypeHierarchy th = TypeHierarchy.getInstance();
 
         setStartExpression(visitor.optimize(start, contextItemType));
-        setStepExpression(step.optimize(visitor, start.getItemType(th)));
+        setStepExpression(step.optimize(visitor, start.getItemType()));
 
         if (Literal.isEmptySequence(start) || Literal.isEmptySequence(step)) {
             return new Literal(EmptySequence.getInstance());
@@ -295,26 +294,6 @@ public class SlashExpression extends Expression
 
     public boolean hasLoopingSubexpression(Expression child) {
         return child == step;
-    }
-
-   /**
-     * Replace one subexpression by a replacement subexpression
-     * @param original the original subexpression
-     * @param replacement the replacement subexpression
-     * @return true if the original subexpression is found
-     */
-
-    public boolean replaceSubExpression(Expression original, Expression replacement) {
-        boolean found = false;
-        if (start == original) {
-            setStartExpression(replacement);
-            found = true;
-        }
-        if (step == original) {
-            setStepExpression(replacement);
-            found = true;
-        }
-        return found;
     }
 
     /**
@@ -406,7 +385,7 @@ public class SlashExpression extends Expression
                     if (item instanceof AtomicValue) {
                         return item;
                     } else {
-                        throw reportMixedItems(loc, context);
+                        throw reportMixedItems(loc);
                     }
                 }
             };
@@ -417,7 +396,7 @@ public class SlashExpression extends Expression
                     if (item instanceof NodeInfo) {
                         return item;
                     } else {
-                        throw reportMixedItems(loc, context);
+                        throw reportMixedItems(loc);
                     }
                 }
             };
@@ -428,12 +407,8 @@ public class SlashExpression extends Expression
 
     }
 
-    private XPathException reportMixedItems(SourceLocator loc, XPathContext context) {
-        XPathException err = new XPathException("Cannot mix nodes and atomic values in the result of a path expression");
-        err.setErrorCode("XPTY0018");
-        err.setLocator(loc);
-        err.setXPathContext(context);
-        return err;
+    private XPathException reportMixedItems(SourceLocator loc) {
+        return new XPathException("Cannot mix nodes and atomic values in the result of a path expression", "XPTY0018", loc);
     }
 
     /**

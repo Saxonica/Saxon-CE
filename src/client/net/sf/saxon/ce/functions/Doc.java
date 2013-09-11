@@ -16,44 +16,12 @@ public class Doc extends SystemFunction {
     }
 
     private String expressionBaseURI = null;
-    private boolean readOnce = false;
-
-    /**
-     * Indicate that the document will be read once only (or that it should be treated as if it
-     * is read once only. This means (a) the document will not be held in memory after all references
-     * to it go out of scope, and (b) if the query or transformation tries to read it again, it will get a new
-     * copy, with different node identities, and potentially with different content. It also means that the
-     * document is eligible for document projection.
-     * @param once true if this document is to be treated as being read once only
-     */
-
-    public void setReadOnce(boolean once) {
-        readOnce = once;
-    }
-
-    /**
-     * Ask whether this document has been marked as being read once only.
-     * @return true if the document has been marked as being read once only
-     */
-
-    public boolean isReadOnce() {
-        return readOnce;
-    }
 
     public void checkArguments(ExpressionVisitor visitor) throws XPathException {
         if (expressionBaseURI == null) {
             super.checkArguments(visitor);
             expressionBaseURI = visitor.getStaticContext().getBaseURI();
         }
-    }
-
-    /**
-     * Get the static base URI of the expression
-     * @return the static base URI
-     */
-
-    public String getStaticBaseURI() {
-        return expressionBaseURI;
     }
 
     /**
@@ -108,7 +76,7 @@ public class Doc extends SystemFunction {
         NodeInfo item = DocumentFn.makeDoc(href, expressionBaseURI, context, this.getSourceLocator());
         if (item==null) {
             // we failed to read the document
-            dynamicError("Failed to load document " + href, "FODC0002", context);
+            dynamicError("Failed to load document " + href, "FODC0002");
             return null;
         }
         return item;

@@ -2,7 +2,7 @@ package client.net.sf.saxon.ce.om;
 import client.net.sf.saxon.ce.event.Receiver;
 import client.net.sf.saxon.ce.pattern.NodeTest;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.tree.iter.AxisIterator;
+import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
 
 /**
@@ -226,7 +226,7 @@ public interface NodeInfo extends Item, ValueRepresentation {
      * @since 8.4
      */
 
-    public AxisIterator iterateAxis(byte axisNumber);
+    public UnfailingIterator iterateAxis(byte axisNumber);
 
 
     /**
@@ -246,7 +246,7 @@ public interface NodeInfo extends Item, ValueRepresentation {
      * @since 8.4
      */
 
-    public AxisIterator iterateAxis(byte axisNumber, NodeTest nodeTest);
+    public UnfailingIterator iterateAxis(byte axisNumber, NodeTest nodeTest);
 
     /**
      * Get the root node of the tree containing this node

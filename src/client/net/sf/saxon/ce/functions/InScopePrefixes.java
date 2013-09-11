@@ -13,7 +13,7 @@ import java.util.Iterator;
 import java.util.List;
 
 /**
-* This class supports fuctions get-in-scope-prefixes()
+* This class supports the function in-scope-prefixes()
 */
 
 public class InScopePrefixes extends SystemFunction {

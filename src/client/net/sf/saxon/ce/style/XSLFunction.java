@@ -7,12 +7,13 @@ import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.expr.instruct.SlotManager;
 import client.net.sf.saxon.ce.expr.instruct.UserFunction;
 import client.net.sf.saxon.ce.expr.instruct.UserFunctionParameter;
-import client.net.sf.saxon.ce.lib.NamespaceConstant;
-import client.net.sf.saxon.ce.om.*;
+import client.net.sf.saxon.ce.om.Axis;
+import client.net.sf.saxon.ce.om.Item;
+import client.net.sf.saxon.ce.om.NodeInfo;
+import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.tree.iter.AxisIterator;
+import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 import client.net.sf.saxon.ce.value.SequenceType;
-import client.net.sf.saxon.ce.value.Whitespace;
 import com.google.gwt.logging.client.LogConfiguration;
 
 import java.util.ArrayList;
@@ -27,11 +28,8 @@ import java.util.List;
 
 public class XSLFunction extends StyleElement implements StylesheetProcedure {
 
-    private String nameAtt = null;
-    private String asAtt = null;
-    private String overrideAtt = null;
+    private boolean prepared = false;
     private SequenceType resultType;
-    private String functionName;
     private SlotManager stackFrameMap;
     private boolean override = true;
     private int numberOfArguments = -1;  // -1 means not yet known
@@ -63,52 +61,26 @@ public class XSLFunction extends StyleElement implements StylesheetProcedure {
 
     public void prepareAttributes() throws XPathException {
 
-		AttributeCollection atts = getAttributeList();
-        overrideAtt = "yes";
-    	for (int a=0; a<atts.getLength(); a++) {
-            StructuredQName qn = atts.getStructuredQName(a);
-            String f = qn.getClarkName();
-            if (f.equals("name")) {
-				nameAtt = Whitespace.trim(atts.getValue(a));
-				if (nameAtt.indexOf(':')<0) {
-					compileError("Function name must have a namespace prefix", "XTSE0740");
-				}
-				try {
-				    setObjectName(makeQName(nameAtt));
-        		} catch (NamespaceException err) {
-        		    compileError(err.getMessage(), "XTSE0280");
-        		} catch (XPathException err) {
-                    compileError(err);
-                }
-        	} else if (f.equals("as")) {
-        		asAtt = atts.getValue(a);
-            } else if (f.equals("override")) {
-                overrideAtt = Whitespace.trim(atts.getValue(a));
-                if (overrideAtt.equals("yes")) {
-                    override = true;
-                } else if (overrideAtt.equals("no")) {
-                    override = false;
-                } else {
-                    override = true;
-                    compileError("override must be 'yes' or 'no'", "XTSE0020");
-                }
-        	} else {
-        		checkUnknownAttribute(qn);
-        	}
+        if (prepared) {
+            return;
         }
+        prepared = true;
 
-        if (nameAtt == null) {
-            reportAbsence("name");
-            nameAtt="xsl:unnamed-function";
+        setObjectName((StructuredQName)checkAttribute("name", "q1"));
+        resultType = (SequenceType)checkAttribute("as", "z");
+        Boolean b = (Boolean)checkAttribute("override", "b");
+        if (b != null) {
+            override = b;
         }
+        checkForUnknownAttributes();
 
-        if (asAtt == null) {
+        if (resultType == null) {
             resultType = SequenceType.ANY_SEQUENCE;
-        } else {
-            resultType = makeSequenceType(asAtt);
         }
 
-        functionName = nameAtt;
+        if (getObjectName().getNamespaceURI().equals("")) {
+		    compileError("Function name must have a namespace prefix", "XTSE0740");
+        }
     }
 
     /**
@@ -120,18 +92,12 @@ public class XSLFunction extends StyleElement implements StylesheetProcedure {
     public StructuredQName getObjectName() {
         StructuredQName qn = super.getObjectName();
         if (qn == null) {
-            nameAtt = Whitespace.trim(getAttributeValue("", "name"));
-            if (nameAtt == null) {
-                return new StructuredQName("saxon", NamespaceConstant.SAXON, "badly-named-function");
-            }
             try {
-                qn = makeQName(nameAtt);
-                setObjectName(qn);
-            } catch (NamespaceException err) {
-                return new StructuredQName("saxon", NamespaceConstant.SAXON, "badly-named-function");
-            } catch (XPathException err) {
-                return new StructuredQName("saxon", NamespaceConstant.SAXON, "badly-named-function");
+                qn = (StructuredQName)checkAttribute("name", "q1");
+            } catch (XPathException e) {
+                // no action
             }
+            setObjectName(qn);
         }
         return qn;
     }
@@ -162,10 +128,13 @@ public class XSLFunction extends StyleElement implements StylesheetProcedure {
     */
 
     public boolean isOverriding() {
-        if (overrideAtt == null) {
+        if (!prepared) {
             // this is a forwards reference
             try {
-                prepareAttributes();
+                Boolean b = (Boolean)checkAttribute("override", "b");
+                if (b != null) {
+                    override = b;
+                }
             } catch (XPathException e) {
                 // no action: error will be caught later
             }
@@ -270,7 +239,7 @@ public class XSLFunction extends StyleElement implements StylesheetProcedure {
             exp2 = visitor.typeCheck(exp, null);
             if (resultType != null) {
                 RoleLocator role =
-                        new RoleLocator(RoleLocator.FUNCTION_RESULT, functionName, 0);
+                        new RoleLocator(RoleLocator.FUNCTION_RESULT, getObjectName().getDisplayName(), 0);
                 role.setErrorCode("XTTE0780");
                 exp2 = TypeChecker.staticTypeCheck(exp2, resultType, false, role, visitor);
             }
@@ -357,7 +326,7 @@ public class XSLFunction extends StyleElement implements StylesheetProcedure {
     public int getNumberOfArguments() {
         if (numberOfArguments == -1) {
             numberOfArguments = 0;
-            AxisIterator kids = iterateAxis(Axis.CHILD);
+            UnfailingIterator kids = iterateAxis(Axis.CHILD);
             while (true) {
                 Item child = kids.next();
                 if (child instanceof XSLParam) {
@@ -379,7 +348,7 @@ public class XSLFunction extends StyleElement implements StylesheetProcedure {
         UserFunctionParameter[] params = new UserFunctionParameter[getNumberOfArguments()];
         fn.setParameterDefinitions(params);
         int count = 0;
-        AxisIterator kids = iterateAxis(Axis.CHILD);
+        UnfailingIterator kids = iterateAxis(Axis.CHILD);
         while (true) {
             NodeInfo node = (NodeInfo)kids.next();
             if (node == null) {

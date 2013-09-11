@@ -1,5 +1,6 @@
 package client.net.sf.saxon.ce.style;
 
+import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 import com.google.gwt.logging.client.LogConfiguration;
 
 import client.net.sf.saxon.ce.LogController;
@@ -11,7 +12,6 @@ import client.net.sf.saxon.ce.lib.NamespaceConstant;
 import client.net.sf.saxon.ce.om.*;
 import client.net.sf.saxon.ce.trans.Err;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.tree.iter.AxisIterator;
 import client.net.sf.saxon.ce.type.AnyItemType;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.Type;
@@ -59,39 +59,42 @@ public class XSLCallTemplate extends StyleElement {
 
     public void prepareAttributes() throws XPathException {
 
-		AttributeCollection atts = getAttributeList();
+        calledTemplateName = (StructuredQName)checkAttribute("name", "q1");
+        checkForUnknownAttributes();
 
-        String nameAttribute = null;
-
-		for (int a=0; a<atts.getLength(); a++) {
-			StructuredQName qn = atts.getStructuredQName(a);
-            String f = qn.getClarkName();
-			if (f.equals("name")) {
-        		nameAttribute = Whitespace.trim(atts.getValue(a));
-        	} else {
-        		checkUnknownAttribute(qn);
-        	}
-        }
-
-        if (nameAttribute==null) {
-            calledTemplateName = new StructuredQName("saxon", NamespaceConstant.SAXON, "error-template");
-            reportAbsence("name");
-            return;
-        }
-
-        try {
-            calledTemplateName = makeQName(nameAttribute);
-        } catch (NamespaceException err) {
-            calledTemplateName = new StructuredQName("saxon", NamespaceConstant.SAXON, "error-template");
-            compileError(err.getMessage(), "XTSE0280");
-        } catch (XPathException err) {
-            calledTemplateName = new StructuredQName("saxon", NamespaceConstant.SAXON, "error-template");
-            compileError(err.getMessage(), err.getErrorCodeQName());
-        }
+//		AttributeCollection atts = getAttributeList();
+//
+//        String nameAttribute = null;
+//
+//		for (int a=0; a<atts.getLength(); a++) {
+//			StructuredQName qn = atts.getStructuredQName(a);
+//            String f = qn.getClarkName();
+//			if (f.equals("name")) {
+//        		nameAttribute = Whitespace.trim(atts.getValue(a));
+//        	} else {
+//        		checkUnknownAttribute(qn);
+//        	}
+//        }
+//
+//        if (nameAttribute==null) {
+//            calledTemplateName = new StructuredQName("saxon", NamespaceConstant.SAXON, "error-template");
+//            reportAbsence("name");
+//            return;
+//        }
+//
+//        try {
+//            calledTemplateName = makeQName(nameAttribute);
+//        } catch (NamespaceException err) {
+//            calledTemplateName = new StructuredQName("saxon", NamespaceConstant.SAXON, "error-template");
+//            compileError(err.getMessage(), "XTSE0280");
+//        } catch (XPathException err) {
+//            calledTemplateName = new StructuredQName("saxon", NamespaceConstant.SAXON, "error-template");
+//            compileError(err.getMessage(), err.getErrorCodeQName());
+//        }
     }
 
     public void validate(Declaration decl) throws XPathException {
-        AxisIterator kids = iterateAxis(Axis.CHILD);
+        UnfailingIterator kids = iterateAxis(Axis.CHILD);
         while (true) {
             NodeInfo child = (NodeInfo)kids.next();
             if (child == null) {
@@ -120,7 +123,7 @@ public class XSLCallTemplate extends StyleElement {
         // of the called template
 
         if (template != null) {
-            AxisIterator declaredParams = template.iterateAxis(Axis.CHILD);
+            UnfailingIterator declaredParams = template.iterateAxis(Axis.CHILD);
             while(true) {
                 NodeInfo param = (NodeInfo)declaredParams.next();
                 if (param == null) {
@@ -128,7 +131,7 @@ public class XSLCallTemplate extends StyleElement {
                 }
                 if (param instanceof XSLParam && ((XSLParam)param).isRequiredParam()
                                               && !((XSLParam)param).isTunnelParam()) {
-                    AxisIterator actualParams = iterateAxis(Axis.CHILD);
+                    UnfailingIterator actualParams = iterateAxis(Axis.CHILD);
                     boolean ok = false;
                     while(true) {
                         NodeInfo withParam = (NodeInfo)actualParams.next();
@@ -153,7 +156,7 @@ public class XSLCallTemplate extends StyleElement {
             // check that every supplied parameter is declared in the called
             // template
 
-            AxisIterator actualParams = iterateAxis(Axis.CHILD);
+            UnfailingIterator actualParams = iterateAxis(Axis.CHILD);
             while(true) {
                 NodeInfo w = (NodeInfo)actualParams.next();
                 if (w == null) {
@@ -161,7 +164,7 @@ public class XSLCallTemplate extends StyleElement {
                 }
                 if (w instanceof XSLWithParam && !((XSLWithParam)w).isTunnelParam()) {
                     XSLWithParam withParam = (XSLWithParam)w;
-                    AxisIterator formalParams = template.iterateAxis(Axis.CHILD);
+                    UnfailingIterator formalParams = template.iterateAxis(Axis.CHILD);
                     boolean ok = false;
                     while(true) {
                         NodeInfo param = (NodeInfo)formalParams.next();

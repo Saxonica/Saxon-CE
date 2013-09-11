@@ -5,12 +5,9 @@ import client.net.sf.saxon.ce.expr.Expression;
 import client.net.sf.saxon.ce.expr.Literal;
 import client.net.sf.saxon.ce.expr.StringLiteral;
 import client.net.sf.saxon.ce.expr.instruct.*;
-import client.net.sf.saxon.ce.lib.StandardURIChecker;
-import client.net.sf.saxon.ce.lib.Validation;
 import client.net.sf.saxon.ce.om.*;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.value.EmptySequence;
-import client.net.sf.saxon.ce.value.Whitespace;
 import com.google.gwt.logging.client.LogConfiguration;
 
 
@@ -47,66 +44,16 @@ public class XSLElement extends StyleElement {
     }
 
     public void prepareAttributes() throws XPathException {
-
-        AttributeCollection atts = getAttributeList();
-
-        String nameAtt = null;
-        String namespaceAtt = null;
-        String validationAtt = null;
-        String typeAtt = null;
-        String inheritAtt = null;
-
-        for (int a = 0; a < atts.getLength(); a++) {
-            StructuredQName qn = atts.getStructuredQName(a);
-            String f = qn.getClarkName();
-            if (f.equals("name")) {
-                nameAtt = Whitespace.trim(atts.getValue(a));
-            } else if (f.equals("namespace")) {
-                namespaceAtt = atts.getValue(a);
-            } else if (f.equals("validation")) {
-                validationAtt = Whitespace.trim(atts.getValue(a));
-            } else if (f.equals("type")) {
-                typeAtt = Whitespace.trim(atts.getValue(a));
-            } else if (f.equals("inherit-namespaces")) {
-                inheritAtt = Whitespace.trim(atts.getValue(a));
-            } else if (f.equals("use-attribute-sets")) {
-                use = atts.getValue(a);
-            } else {
-                checkUnknownAttribute(qn);
-            }
+        elementName = (Expression)checkAttribute("name", "a1");
+        namespace = (Expression)checkAttribute("namespace", "a");
+        checkAttribute("validation", "v");
+        checkAttribute("type", "t");
+        Boolean b = (Boolean)checkAttribute("inherit-namespaces", "b");
+        if (b != null) {
+            inheritNamespaces = b;
         }
-
-        if (nameAtt == null) {
-            reportAbsence("name");
-        } else {
-            elementName = makeAttributeValueTemplate(nameAtt);
-        }
-
-        if (namespaceAtt != null) {
-            namespace = makeAttributeValueTemplate(namespaceAtt);
-            if (namespace instanceof StringLiteral) {
-                if (!StandardURIChecker.getInstance().isValidURI(((StringLiteral)namespace).getStringValue())) {
-                    compileError("The value of the namespace attribute must be a valid URI", "XTDE0835");
-                }
-            }
-        }
-
-        if (validationAtt != null && Validation.getCode(validationAtt) != Validation.STRIP) {
-            compileError("To perform validation, a schema-aware XSLT processor is needed", "XTSE1660");
-        }
-        if (typeAtt!=null) {
-            compileError("The @type attribute is available only with a schema-aware XSLT processor", "XTSE1660");
-        }
-
-        if (inheritAtt != null) {
-            if (inheritAtt.equals("yes")) {
-                inheritNamespaces = true;
-            } else if (inheritAtt.equals("no")) {
-                inheritNamespaces = false;
-            } else {
-                compileError("The @inherit-namespaces attribute has permitted values (yes, no)", "XTSE0020");
-            }
-        }
+        use = (String)checkAttribute("use-attribute-sets", "s");
+        checkForUnknownAttributes();
     }
 
     public void validate(Declaration decl) throws XPathException {
@@ -120,7 +67,7 @@ public class XSLElement extends StyleElement {
 
     public Expression compile(Executable exec, Declaration decl) throws XPathException {
 
-        NamespaceResolver nsContext = null;
+        NamespaceResolver resolver = new InscopeNamespaceResolver(this);
 
         // deal specially with the case where the element name is known statically
 
@@ -142,7 +89,7 @@ public class XSLElement extends StyleElement {
                     parts[0] = "";
                 }
             } else if (namespace == null) {
-                nsuri = getURIForPrefix(parts[0], true);
+                nsuri = resolver.getURIForPrefix(parts[0], true);
                 if (nsuri == null) {
                     undeclaredNamespaceError(parts[0], "XTDE0830");
                 }
@@ -157,16 +104,9 @@ public class XSLElement extends StyleElement {
                 }
                 return compileContentExpression(exec, decl, inst);
             }
-        } else {
-            // if the namespace URI must be deduced at run-time from the element name
-            // prefix, we need to save the namespace context of the instruction
-
-            if (namespace == null) {
-                nsContext = this;
-            }
         }
 
-        ComputedElement inst = new ComputedElement(elementName, namespace, nsContext, inheritNamespaces);
+        ComputedElement inst = new ComputedElement(elementName, namespace, resolver, inheritNamespaces);
         return compileContentExpression(exec, decl, inst);
     }
 

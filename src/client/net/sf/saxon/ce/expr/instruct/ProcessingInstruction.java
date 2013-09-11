@@ -8,7 +8,6 @@ import client.net.sf.saxon.ce.pattern.NodeKindTest;
 import client.net.sf.saxon.ce.trans.Err;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.SequenceType;
 import client.net.sf.saxon.ce.value.Whitespace;
 
@@ -44,7 +43,7 @@ public class ProcessingInstruction extends SimpleNodeConstructor {
         return name;
     }
 
-    public ItemType getItemType(TypeHierarchy th) {
+    public ItemType getItemType() {
         return NodeKindTest.PROCESSING_INSTRUCTION;
     }
 
@@ -79,26 +78,6 @@ public class ProcessingInstruction extends SimpleNodeConstructor {
         }
         list.add(name);
         return list.iterator();
-    }
-
-    /**
-     * Replace one subexpression by a replacement subexpression
-     * @param original the original subexpression
-     * @param replacement the replacement subexpression
-     * @return true if the original subexpression is found
-     */
-
-    public boolean replaceSubExpression(Expression original, Expression replacement) {
-        boolean found = false;
-        if (select == original) {
-            select = replacement;
-            found = true;
-        }
-        if (name == original) {
-            name = replacement;
-            found = true;
-        }
-        return found;
     }
 
 
@@ -170,7 +149,7 @@ public class ProcessingInstruction extends SimpleNodeConstructor {
         try {
             expandedName = Whitespace.trim(name.evaluateAsString(context));
         } catch (ClassCastException err) {
-            dynamicError("Processing instruction name is not a string", "XQDY0041", context);
+            dynamicError("Processing instruction name is not a string", "XQDY0041");
         }
         checkName(expandedName, context);
         return expandedName;
@@ -178,10 +157,10 @@ public class ProcessingInstruction extends SimpleNodeConstructor {
 
     private void checkName(String expandedName, XPathContext context) throws XPathException {
         if (!(NameChecker.isValidNCName(expandedName))) {
-            dynamicError("Processing instruction name " + Err.wrap(expandedName) + " is not a valid NCName", "XTDE0890", context);
+            dynamicError("Processing instruction name " + Err.wrap(expandedName) + " is not a valid NCName", "XTDE0890");
         }
         if (expandedName.equalsIgnoreCase("xml")) {
-            dynamicError("Processing instructions cannot be named 'xml' in any combination of upper/lower case", "XTDE0890", context);
+            dynamicError("Processing instructions cannot be named 'xml' in any combination of upper/lower case", "XTDE0890");
         }
     }
 

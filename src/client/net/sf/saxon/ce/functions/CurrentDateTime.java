@@ -51,8 +51,8 @@ public class CurrentDateTime extends SystemFunction {
 
     public Item evaluateItem(XPathContext context) throws XPathException {
         final DateTimeValue dt = DateTimeValue.getCurrentDateTime(context);
-        final TypeHierarchy th = context.getConfiguration().getTypeHierarchy();
-        final BuiltInAtomicType targetType = (BuiltInAtomicType)getItemType(th);
+        final TypeHierarchy th = TypeHierarchy.getInstance();
+        final BuiltInAtomicType targetType = (BuiltInAtomicType)getItemType();
         if (targetType == BuiltInAtomicType.DATE_TIME) {
             return dt;
         } else if (targetType == BuiltInAtomicType.DATE) {

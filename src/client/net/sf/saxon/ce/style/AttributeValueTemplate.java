@@ -75,7 +75,7 @@ public abstract class AttributeValueTemplate {
                 last = parser.getTokenizer().currentTokenStartOffset + 1;
 
                 if (env.isInBackwardsCompatibleMode()) {
-                    components.add(makeFirstItem(exp, env));
+                    components.add(makeFirstItem(exp));
                 } else {
                     components.add(visitor.simplify(
                             XSLLeafNodeConstructor.makeSimpleContentConstructor(
@@ -120,15 +120,15 @@ public abstract class AttributeValueTemplate {
     * Make an expression that extracts the first item of a sequence, after atomization
     */
 
-    public static Expression makeFirstItem(Expression exp, StaticContext env) {
-        final TypeHierarchy th = env.getConfiguration().getTypeHierarchy();
-        if (!exp.getItemType(th).isAtomicType()) {
+    public static Expression makeFirstItem(Expression exp) {
+        final TypeHierarchy th = TypeHierarchy.getInstance();
+        if (!exp.getItemType().isAtomicType()) {
             exp = new Atomizer(exp);
         }
         if (Cardinality.allowsMany(exp.getCardinality())) {
             exp = new FirstItemExpression(exp);
         }
-        if (!th.isSubType(exp.getItemType(th), BuiltInAtomicType.STRING)) {
+        if (!th.isSubType(exp.getItemType(), BuiltInAtomicType.STRING)) {
             exp = new AtomicSequenceConverter(exp, BuiltInAtomicType.STRING);
         }
         return exp;

@@ -9,7 +9,6 @@ import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.SourceLocator;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.Type;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
 
 
 /**
@@ -40,10 +39,9 @@ public abstract class Instruction extends Expression implements TailCallReturner
     /**
      * Get the item type of the items returned by evaluating this instruction
      * @return the static item type of the instruction
-     * @param th the type hierarchy cache
      */
 
-    public ItemType getItemType(TypeHierarchy th) {
+    public ItemType getItemType() {
         return Type.ITEM_TYPE;
     }
 
@@ -102,7 +100,6 @@ public abstract class Instruction extends Expression implements TailCallReturner
             return error;
         }
         error.maybeSetLocation(loc);
-        error.maybeSetContext(context);
         return error;
     }
 
@@ -148,10 +145,10 @@ public abstract class Instruction extends Expression implements TailCallReturner
         if (actualParams == null || actualParams.length == 0) {
             return newParams;
         }
-        for (int i=0; i<actualParams.length; i++) {
-            newParams.put(actualParams[i].getParameterId(),
-                          actualParams[i].getSelectValue(context),
-                          false);
+        for (WithParam actualParam : actualParams) {
+            newParams.put(actualParam.getParameterId(),
+                    actualParam.getSelectValue(context),
+                    false);
         }
         return newParams;
     }
@@ -253,18 +250,23 @@ public abstract class Instruction extends Expression implements TailCallReturner
         } else if ((m & ITERATE_METHOD) != 0) {
             return iterate(context).next();
         } else {
-            Controller controller = context.getController();
-            XPathContext c2 = context.newMinorContext();
-            SequenceOutputter seq = controller.allocateSequenceOutputter(1);
-            PipelineConfiguration pipe = controller.makePipelineConfiguration();
-            seq.setPipelineConfiguration(pipe);
-            c2.setTemporaryReceiver(seq);
-            process(c2);
-            seq.close();
+            SequenceOutputter seq = pushToSequence(1, context);
             Item result = seq.getFirstItem();
             seq.reset();
             return result;
         }
+    }
+
+    private SequenceOutputter pushToSequence(int len, XPathContext context) throws XPathException {
+        Controller controller = context.getController();
+        XPathContext c2 = context.newMinorContext();
+        SequenceOutputter seq = controller.allocateSequenceOutputter(len);
+        PipelineConfiguration pipe = controller.makePipelineConfiguration();
+        seq.setPipelineConfiguration(pipe);
+        c2.setTemporaryReceiver(seq);
+        process(c2);
+        seq.close();
+        return seq;
     }
 
     /**
@@ -288,14 +290,7 @@ public abstract class Instruction extends Expression implements TailCallReturner
         } else if ((m & ITERATE_METHOD) != 0) {
             throw new AssertionError("iterate");
         } else {
-            Controller controller = context.getController();
-            XPathContext c2 = context.newMinorContext();
-            SequenceOutputter seq = controller.allocateSequenceOutputter(20);
-            PipelineConfiguration pipe = controller.makePipelineConfiguration();
-            seq.setPipelineConfiguration(pipe);
-            c2.setTemporaryReceiver(seq);
-            process(c2);
-            seq.close();
+            SequenceOutputter seq = pushToSequence(20, context);
             return seq.iterate();
         }
     }

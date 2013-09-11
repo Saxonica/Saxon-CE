@@ -74,8 +74,8 @@ public class GroupByIterator implements GroupIterator, LastPositionFinder {
         this.keyExpression = keyExpression;
         this.keyContext = keyContext;
         this.collator = collator;
-        BuiltInAtomicType type = (BuiltInAtomicType)keyExpression.getItemType(keyContext.getConfiguration().getTypeHierarchy());
-        this.comparer = AtomicSortComparer.makeSortComparer(collator, type, keyContext);
+        BuiltInAtomicType type = (BuiltInAtomicType)keyExpression.getItemType();
+        this.comparer = AtomicSortComparer.makeSortComparer(collator, type, keyContext.getImplicitTimezone());
         buildIndexedGroups();
     }
 
@@ -120,7 +120,7 @@ public class GroupByIterator implements GroupIterator, LastPositionFinder {
             if (key.isNaN()) {
                 comparisonKey = DistinctValues.class;
             } else {
-                comparisonKey = key.getXPathComparable(false, collator, keyContext);
+                comparisonKey = key.getXPathComparable(false, collator, c2.getImplicitTimezone());
             }
             List<Item> g = index.get(comparisonKey);
             if (g == null) {

@@ -17,7 +17,7 @@ public class Last extends SystemFunction {
 
     public Expression typeCheck(ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
         if (contextItemType == null) {
-            dynamicError("The context for last() is undefined", "XPDY0002", null);
+            dynamicError("The context for last() is undefined", "XPDY0002");
         }
         return super.typeCheck(visitor, contextItemType);
     }
@@ -35,7 +35,8 @@ public class Last extends SystemFunction {
     */
 
     public Item evaluateItem(XPathContext c) throws XPathException {
-        return IntegerValue.makeIntegerValue(c.getLast());
+
+        return new IntegerValue(c.getLast());
     }
 
     /**

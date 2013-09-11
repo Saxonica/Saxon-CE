@@ -6,7 +6,6 @@ import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.AnyItemType;
 import client.net.sf.saxon.ce.type.ItemType;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.SequenceType;
 
 
@@ -74,6 +73,7 @@ public abstract class SystemFunction extends FunctionCall {
      * type conversion logic where necessary.
      * @param arg argument number, zero-based
      * @param visitor an expression visitor
+     * @throws XPathException if type checking fails
     */
 
     private void checkArgument(int arg, ExpressionVisitor visitor) throws XPathException {
@@ -124,14 +124,13 @@ public abstract class SystemFunction extends FunctionCall {
 
     /**
     * Determine the item type of the value returned by the function
-     * @param th the type hierarchy cache
      */
 
-    public ItemType getItemType(TypeHierarchy th) {
+    public ItemType getItemType() {
         ItemType type = details.resultType.getPrimaryType();
         if (details.sameItemTypeAsFirstArgument) {
             if (argument.length > 0) {
-                return argument[0].getItemType(th);
+                return argument[0].getItemType();
             } else {
                 return AnyItemType.getInstance();
                 // if there is no first argument, an error will be reported
@@ -166,8 +165,8 @@ public abstract class SystemFunction extends FunctionCall {
         if (details.resultType.getPrimaryType().isAtomicType()) {
             return p | StaticProperty.NON_CREATIVE;
         }
-        for (int i=0; i<argument.length; i++) {
-            if ((argument[i].getSpecialProperties() & StaticProperty.NON_CREATIVE) == 0) {
+        for (Expression arg : argument) {
+            if ((arg.getSpecialProperties() & StaticProperty.NON_CREATIVE) == 0) {
                 // the argument is creative
                 return p;
             }
@@ -199,6 +198,7 @@ public abstract class SystemFunction extends FunctionCall {
      * There are some cases where user function calls cannot supply the argument directly (notably
      * unparsed-entity-uri() and unparsed-entity-public-id()) and in these cases a synthesized
      * function name is used for the new function call.
+     * @throws XPathException if an error occurs
     */
 
     protected final void addContextDocumentArgument(int pos, String augmentedName)

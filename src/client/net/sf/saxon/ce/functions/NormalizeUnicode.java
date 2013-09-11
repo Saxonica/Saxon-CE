@@ -41,7 +41,7 @@ public class NormalizeUnicode extends SystemFunction {
             } else if (form.length() == 0) {
                 return sv;
             } else {
-                dynamicError("Normalization form " + form + " is not supported", "FOCH0003", c);
+                dynamicError("Normalization form " + form + " is not supported", "FOCH0003");
             }
         }
 

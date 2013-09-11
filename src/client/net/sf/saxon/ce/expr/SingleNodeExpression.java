@@ -5,11 +5,9 @@ import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.tree.iter.SingletonIterator;
-import client.net.sf.saxon.ce.tree.util.SourceLocator;
 import client.net.sf.saxon.ce.pattern.AnyNodeTest;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
 
 
 /**
@@ -37,7 +35,7 @@ public abstract class SingleNodeExpression extends Expression {
     	            message = noContextMessage() + ": the context item is an atomic value";
     	        }
         	}
-    		typeError(visitor, message, code, null); // not reported if logging not enabled, but still throws exception
+    		typeError(visitor, message, code); // not reported if logging not enabled, but still throws exception
     	}
         return this;
     }
@@ -85,10 +83,9 @@ public abstract class SingleNodeExpression extends Expression {
     /**
     * Determine the data type of the items returned by this expression
     * @return Type.NODE
-     * @param th the type hierarchy cache
      */
 
-    public ItemType getItemType(TypeHierarchy th) {
+    public ItemType getItemType() {
         return AnyNodeTest.getInstance();
     }
 

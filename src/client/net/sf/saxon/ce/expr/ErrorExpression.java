@@ -4,7 +4,6 @@ import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.AnyItemType;
 import client.net.sf.saxon.ce.type.ItemType;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
 
 
 /**
@@ -57,7 +56,6 @@ public class ErrorExpression extends Expression {
         XPathException err = new XPathException(exception.getMessage());
         err.setLocator(getSourceLocator());
         err.setErrorCodeQName(exception.getErrorCodeQName());
-        err.setXPathContext(context);
         throw err;
     }
 
@@ -74,10 +72,9 @@ public class ErrorExpression extends Expression {
     /**
     * Determine the data type of the expression, if possible
     * @return Type.ITEM (meaning not known in advance)
-     * @param th the type hierarchy cache
      */
 
-    public ItemType getItemType(TypeHierarchy th) {
+    public ItemType getItemType() {
         return AnyItemType.getInstance();
     }
 

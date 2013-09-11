@@ -1,20 +1,19 @@
 package client.net.sf.saxon.ce.style;
-import com.google.gwt.logging.client.LogConfiguration;
-
 import client.net.sf.saxon.ce.LogController;
 import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.expr.instruct.*;
-import client.net.sf.saxon.ce.om.*;
-import client.net.sf.saxon.ce.tree.iter.AxisIterator;
+import client.net.sf.saxon.ce.om.Axis;
+import client.net.sf.saxon.ce.om.NodeInfo;
+import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.pattern.NodeKindTest;
 import client.net.sf.saxon.ce.trans.XPathException;
+import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.value.Cardinality;
 import client.net.sf.saxon.ce.value.SequenceType;
 import client.net.sf.saxon.ce.value.StringValue;
-import client.net.sf.saxon.ce.value.Whitespace;
-import client.net.sf.saxon.ce.lib.NamespaceConstant;
+import com.google.gwt.logging.client.LogConfiguration;
 
 /**
 * This class defines common behaviour across xsl:variable, xsl:param, and xsl:with-param
@@ -122,106 +121,33 @@ public abstract class XSLGeneralVariable extends StyleElement {
      */
 
     public StructuredQName getVariableQName() {
-        // if an expression has a forwards reference to this variable, getVariableQName() can be
-        // called before prepareAttributes() is called. We need to allow for this. But we'll
-        // deal with any errors when we come round to processing this attribute, to avoid
-        // duplicate error messages
-
-        if (getObjectName() == null) {
-            String nameAttribute = getAttributeValue("", "name");
-            if (nameAttribute == null) {
-                return new StructuredQName("saxon", NamespaceConstant.SAXON, "error-variable-name");
-            }
-            try {
-                setObjectName(makeQName(nameAttribute));
-
-            } catch (NamespaceException err) {
-                setObjectName(new StructuredQName("saxon", NamespaceConstant.SAXON, "error-variable-name"));
-            } catch (XPathException err) {
-                setObjectName(new StructuredQName("saxon", NamespaceConstant.SAXON, "error-variable-name"));
-            }
-        }
         return getObjectName();
     }
     
     public void prepareAttributes() throws XPathException {
 
-        getVariableQName();
+        setObjectName((StructuredQName)checkAttribute("name", "q1"));
+        select = (Expression)checkAttribute("select", "e");
+        requiredType = (SequenceType)checkAttribute("as", "z");
+        Boolean b = (Boolean)checkAttribute("required", "b");
+        if (b != null) {
+            requiredParam = b;
+        }
+        b = (Boolean)checkAttribute("tunnel", "b");
+        if (b != null) {
+            tunnel = b;
+        }
+        checkForUnknownAttributes();
 
-		AttributeCollection atts = getAttributeList();
-
-		String selectAtt = null;
-        String nameAtt = null;
-        String asAtt = null;
-        String requiredAtt = null;
-        String tunnelAtt = null;
-
-		for (int a=0; a<atts.getLength(); a++) {
-            StructuredQName qn = atts.getStructuredQName(a);
-            String f = qn.getClarkName();
-			if (f.equals("name")) {
-        		nameAtt = Whitespace.trim(atts.getValue(a)) ;
-        	} else if (f.equals("select")) {
-        		selectAtt = atts.getValue(a);
-        	} else if (f.equals("as") && allowsAsAttribute()) {
-        		asAtt = atts.getValue(a);
-        	} else if (f.equals("required") && allowsRequired()) {
-        		requiredAtt = Whitespace.trim(atts.getValue(a)) ;
-            } else if (f.equals("tunnel") && allowsTunnelAttribute()) {
-        		tunnelAtt = Whitespace.trim(atts.getValue(a)) ;
-        	} else {
-        		checkUnknownAttribute(qn);
-        	}
+        if (select!=null && !allowsValue()) {
+            compileError("Function parameters cannot have a default value", "XTSE0760");
         }
 
-        if (nameAtt==null) {
-            reportAbsence("name");
-        } else {
-            // the name might have already been read, but errors weren't reported
-            try {
-                setObjectName(makeQName(nameAtt));
-            } catch (NamespaceException e) {
-                compileError("Prefix in variable name has not been declared: " + nameAtt, "XTSE0280");
-            } catch (XPathException e) {
-                String expl = (nameAtt.startsWith("$") ? " (must not start with '$')" : "");
-                compileError("Variable name is not a valid QName: " + nameAtt + expl, "XTSE0020");
-            }
+        if (tunnel && this instanceof XSLParam && !(getParent() instanceof XSLTemplate)) {
+            compileError("For attribute 'tunnel' within an " + getParent().getDisplayName() +
+                    " parameter, the only permitted value is 'no'", "XTSE0020");
         }
 
-        if (selectAtt!=null) {
-            if (!allowsValue()) {
-                compileError("Function parameters cannot have a default value", "XTSE0760");
-            }
-            select = makeExpression(selectAtt);
-        }
-
-        if (requiredAtt!=null) {
-            if (requiredAtt.equals("yes")) {
-                requiredParam = true;
-            } else if (requiredAtt.equals("no")) {
-                requiredParam = false;
-            } else {
-                compileError("The attribute 'required' must be set to 'yes' or 'no'", "XTSE0020");
-            }
-        }
-
-        if (tunnelAtt!=null) {
-            if (tunnelAtt.equals("yes")) {
-                tunnel = true;
-                if (this instanceof XSLParam && !(getParent() instanceof XSLTemplate)) {
-                    compileError("For attribute 'tunnel' within an " + getParent().getDisplayName() +
-                            " parameter, the only permitted value is 'no'", "XTSE0020");
-                }
-            } else if (tunnelAtt.equals("no")) {
-                tunnel = false;
-            } else {
-                compileError("The attribute 'tunnel' must be set to 'yes' or 'no'", "XTSE0020");
-            }
-        }
-
-        if (asAtt!=null) {
-            requiredType = makeSequenceType(asAtt);
-        }
     }
 
     public void validate(Declaration decl) throws XPathException {
@@ -248,7 +174,7 @@ public abstract class XSLGeneralVariable extends StyleElement {
 
         if (select==null && allowsValue()) {
             textonly = true;
-            AxisIterator kids = iterateAxis(Axis.CHILD);
+            UnfailingIterator kids = iterateAxis(Axis.CHILD);
             NodeInfo first = (NodeInfo)kids.next();
             if (first == null) {
                 if (requiredType == null) {

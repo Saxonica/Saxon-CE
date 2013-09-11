@@ -6,8 +6,8 @@ import client.net.sf.saxon.ce.om.DocumentInfo;
 import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.pattern.NodeKindTest;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.tree.iter.AxisIterator;
-import client.net.sf.saxon.ce.tree.util.StringTokenizer;
+import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
+import client.net.sf.saxon.ce.value.Whitespace;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -41,7 +41,7 @@ class UnicodeDataParserFromXML {
         NodeInfo decompositionKeys = null;
         NodeInfo decompositionValues = null;
 
-        AxisIterator iter = doc.iterateAxis(Axis.DESCENDANT, NodeKindTest.ELEMENT);
+        UnfailingIterator iter = doc.iterateAxis(Axis.DESCENDANT, NodeKindTest.ELEMENT);
         while (true) {
             NodeInfo item = (NodeInfo)iter.next();
             if (item == null) {
@@ -81,9 +81,7 @@ class UnicodeDataParserFromXML {
      */
 
     private static void readExclusionList(String s, BitSet isExcluded) {
-        StringTokenizer st = new StringTokenizer(s);
-        while (st.hasMoreTokens()) {
-            String tok = st.nextToken();
+        for (String tok : Whitespace.tokenize(s)) {
             int value = Integer.parseInt(tok, 32);
             isExcluded.set(value);
         }
@@ -94,9 +92,7 @@ class UnicodeDataParserFromXML {
      */
 
     private static void readCompatibilityList(String s, BitSet isCompatible) {
-        StringTokenizer st = new StringTokenizer(s);
-        while (st.hasMoreTokens()) {
-            String tok = st.nextToken();
+        for (String tok : Whitespace.tokenize(s)) {
             int value = Integer.parseInt(tok, 32);
             isCompatible.set(value);
         }
@@ -109,17 +105,13 @@ class UnicodeDataParserFromXML {
     private static void readCanonicalClassTable(String keyString, String valueString, Map<Integer, Integer> canonicalClasses) {
         ArrayList keys = new ArrayList(5000);
 
-        StringTokenizer st = new StringTokenizer(keyString);
-        while (st.hasMoreTokens()) {
-            String tok = st.nextToken();
+        for (String tok : Whitespace.tokenize(keyString)) {
             int value = Integer.parseInt(tok, 32);
             keys.add(Integer.valueOf(value));
         }
 
         int k = 0;
-        st = new StringTokenizer(valueString);
-        while (st.hasMoreTokens()) {
-            String tok = st.nextToken();
+        for (String tok : Whitespace.tokenize(valueString)) {
             int clss;
             int repeat = 1;
             int star = tok.indexOf('*');
@@ -146,9 +138,7 @@ class UnicodeDataParserFromXML {
         int k = 0;
 
         List<String> values = new ArrayList<String>(1000);
-        StringTokenizer st = new StringTokenizer(decompositionValuesString);
-        while (st.hasMoreTokens()) {
-            String tok = st.nextToken();
+        for (String tok : Whitespace.tokenize(decompositionValuesString)) {
             String value = "";
             for (int c=0; c<tok.length();) {
                 char h0 = tok.charAt(c++);
@@ -165,9 +155,7 @@ class UnicodeDataParserFromXML {
         }
 
 
-        st = new StringTokenizer(decompositionKeyString);
-        while (st.hasMoreTokens()) {
-            String tok = st.nextToken();
+        for (String tok : Whitespace.tokenize(decompositionKeyString)) {
             int key = Integer.parseInt(tok, 32);
             String value = values.get(k++);
             decompose.put(key, value);

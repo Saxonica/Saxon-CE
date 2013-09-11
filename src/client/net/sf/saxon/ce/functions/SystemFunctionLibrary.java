@@ -104,10 +104,7 @@ public class SystemFunctionLibrary implements FunctionLibrary {
         if (uri.equals(NamespaceConstant.FN)) {
             String local = functionName.getLocalName();
             StandardFunction.Entry entry = StandardFunction.getFunction(local, staticArgs.length);
-            if (entry != null && entry.minArguments == 1 && staticArgs.length == 0 &&
-                    ("name".equals(local) || "local-name".equals(local) || "namespace-uri".equals(local) ||
-                    "generate-id".equals(local) || "string".equals(local) || "number".equals(local) ||
-                    "base-uri".equals(local))) {
+            if (entry != null && entry.contextItemAsFirstArgument && staticArgs.length == 0) {
                 Expression[] newArgs = new Expression[]{new ContextItemExpression()};
                 return bind(functionName, newArgs, env, container);
             }

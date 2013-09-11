@@ -3,6 +3,7 @@ package client.net.sf.saxon.ce.expr.instruct;
 import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.expr.number.NumberFormatter;
+import client.net.sf.saxon.ce.expr.number.Numberer_en;
 import client.net.sf.saxon.ce.functions.NumberFn;
 import client.net.sf.saxon.ce.lib.Numberer;
 import client.net.sf.saxon.ce.om.Item;
@@ -111,8 +112,8 @@ public class NumberInstruction extends Expression {
         this.hasVariablesInPatterns = hasVariablesInPatterns;
         this.backwardsCompatible = backwardsCompatible;
 
-        final TypeHierarchy th = config.getTypeHierarchy();
-        if (arguments[VALUE] != null && !arguments[VALUE].getItemType(th).isAtomicType()) {
+        final TypeHierarchy th = TypeHierarchy.getInstance();
+        if (arguments[VALUE] != null && !arguments[VALUE].getItemType().isAtomicType()) {
             arguments[VALUE] = new Atomizer(arguments[VALUE]);
         }
 
@@ -239,25 +240,6 @@ public class NumberInstruction extends Expression {
 
 
     /**
-     * Replace one subexpression by a replacement subexpression
-     * @param original the original subexpression
-     * @param replacement the replacement subexpression
-     * @return true if the original subexpression is found
-     */
-
-    public boolean replaceSubExpression(Expression original, Expression replacement) {
-        boolean found = false;
-        for (int i=0; i<ARGS; i++) {
-            if (arguments[i] == original) {
-                arguments[i] = replacement;
-                found = true;
-            }
-        }
-        return found;
-    }
-
-
-    /**
      * Determine the intrinsic dependencies of an expression, that is, those which are not derived
      * from the dependencies of its subexpressions. For example, position() has an intrinsic dependency
      * on the context position, while (position()+1) does not. The default implementation
@@ -271,7 +253,7 @@ public class NumberInstruction extends Expression {
         return ((arguments[SELECT] == null && arguments[VALUE] == null) ? StaticProperty.DEPENDS_ON_CONTEXT_ITEM : 0);
     }
 
-    public ItemType getItemType(TypeHierarchy th) {
+    public ItemType getItemType() {
         return BuiltInAtomicType.STRING;
     }
 
@@ -360,10 +342,7 @@ public class NumberInstruction extends Expression {
                         vec.add("NaN");
                     } else {
                         vec.add(val.getStringValue());
-                        XPathException e = new XPathException("Cannot convert supplied value to an integer. " + err.getMessage());
-                        e.setErrorCode("XTDE0980");
-                        e.setXPathContext(context);
-                        throw e;
+                        throw new XPathException("Cannot convert supplied value to an integer. " + err.getMessage(), "XTDE0980");
                     }
                 }
             }
@@ -377,10 +356,8 @@ public class NumberInstruction extends Expression {
             } else {
                 Item item = context.getContextItem();
                 if (!(item instanceof NodeInfo)) {
-                    XPathException err = new XPathException("context item for xsl:number must be a node");
-                    err.setErrorCode("XTTE0990");
+                    XPathException err = new XPathException("context item for xsl:number must be a node", "XTTE0990");
                     err.setIsTypeError(true);
-                    err.setXPathContext(context);
                     throw err;
                 }
                 source = (NodeInfo) item;
@@ -413,10 +390,7 @@ public class NumberInstruction extends Expression {
             try {
                 gpsize = Integer.parseInt(g);
             } catch (NumberFormatException err) {
-                XPathException e = new XPathException("grouping-size must be numeric");
-                e.setXPathContext(context);
-                e.setErrorCode("XTDE0030");
-                throw e;
+                throw new XPathException("grouping-size must be numeric", "XTDE0030");
             }
         }
 
@@ -443,7 +417,7 @@ public class NumberInstruction extends Expression {
             if (!StringValue.isValidLanguageCode(language)) {
                  throw new XPathException("The lang attribute of xsl:number must be a valid language code", "XTDE0030");
             }   
-            numb = context.getConfiguration().makeNumberer(language, null);
+            numb = new Numberer_en();
         }
 
         if (arguments[LETTER_VALUE] == null) {
@@ -451,10 +425,7 @@ public class NumberInstruction extends Expression {
         } else {
             letterVal = arguments[LETTER_VALUE].evaluateAsString(context).toString();
             if (!("alphabetic".equals(letterVal) || "traditional".equals(letterVal))) {
-                XPathException e = new XPathException("letter-value must be \"traditional\" or \"alphabetic\"");
-                e.setXPathContext(context);
-                e.setErrorCode("XTDE0030");
-                throw e;
+                throw new XPathException("letter-value must be \"traditional\" or \"alphabetic\"", "XTDE0030");
             }
         }
 

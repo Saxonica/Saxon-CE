@@ -28,14 +28,7 @@ public class KeyFn extends SystemFunction {
     private transient boolean internal = false;
         // the second time checkArguments is called, it's a global check so the static context is inaccurate
 
-    /**
-     * Get the key name, if known statically. If not known statically, return null.
-     * @return the key name if known, otherwise null
-     */
 
-    public StructuredQName getStaticKeyName() {
-        return (staticKeySet == null ? null : staticKeySet.getKeyName());
-    }
 
     /**
      * Type-check the expression. This also calls preEvaluate() to evaluate the function
@@ -48,7 +41,7 @@ public class KeyFn extends SystemFunction {
             return super.typeCheck(visitor, contextItemType);
         } catch (XPathException err) {
             if ("XPDY0002".equals(err.getErrorCodeLocalPart())) {
-                dynamicError("Cannot call the key() function when there is no context node", "XTDE1270", null);
+                dynamicError("Cannot call the key() function when there is no context node", "XTDE1270");
             }
             throw err;
         }
@@ -79,8 +72,7 @@ public class KeyFn extends SystemFunction {
             // common case, key name is supplied as a constant
             StructuredQName keyName;
             try {
-                keyName = ((ExpressionContext)visitor.getStaticContext()).getStructuredQName(
-                        ((StringLiteral)argument[0]).getStringValue(), false);
+                keyName = StructuredQName.fromLexicalQName(((StringLiteral)argument[0]).getStringValue(), "", nsContext);
             } catch (XPathException e) {
                 XPathException err = new XPathException("Error in key name " +
                         ((StringLiteral)argument[0]).getStringValue() + ": " + e.getMessage());
@@ -143,16 +135,16 @@ public class KeyFn extends SystemFunction {
         } catch (XPathException e) {
             String code = e.getErrorCodeLocalPart();
             if ("XPDY0002".equals(code)) {
-                dynamicError("Cannot call the key() function when there is no context item", "XTDE1270", context);
+                dynamicError("Cannot call the key() function when there is no context item", "XTDE1270");
                 return null;
             } else if ("XPDY0050".equals(code)) {
                 dynamicError("In the key() function," +
                             " the node supplied in the third argument (or the context node if absent)" +
-                            " must be in a tree whose root is a document node", "XTDE1270", context);
+                            " must be in a tree whose root is a document node", "XTDE1270");
                 return null;
             } else if ("XPTY0020".equals(code)) {
                 dynamicError("Cannot call the key() function when the context item is an atomic value",
-                        "XTDE1270", context);
+                        "XTDE1270");
                 return null;
             }
             throw e;
@@ -163,7 +155,7 @@ public class KeyFn extends SystemFunction {
         if (root.getNodeKind() != Type.DOCUMENT) {
             dynamicError("In the key() function," +
                             " the node supplied in the third argument (or the context node if absent)" +
-                            " must be in a tree whose root is a document node", "XTDE1270", context);
+                            " must be in a tree whose root is a document node", "XTDE1270");
             return null;
         }
         DocumentInfo doc = (DocumentInfo)root;
@@ -174,15 +166,13 @@ public class KeyFn extends SystemFunction {
             String givenkeyname = argument[0].evaluateItem(context).getStringValue();
             StructuredQName qName = null;
             try {
-                qName = StructuredQName.fromLexicalQName(
-                            givenkeyname, false,
-                            nsContext);
+                qName = StructuredQName.fromLexicalQName(givenkeyname, "", nsContext);
             } catch (XPathException err) {
-                dynamicError("Invalid key name: " + err.getMessage(), "XTDE1260", context);
+                dynamicError("Invalid key name: " + err.getMessage(), "XTDE1260");
             }
             selectedKeySet = keyManager.getKeyDefinitionSet(qName);
             if (selectedKeySet == null) {
-                dynamicError("Key '" + givenkeyname + "' has not been defined", "XTDE1260", context);
+                dynamicError("Key '" + givenkeyname + "' has not been defined", "XTDE1260");
                 return null;
             }
         }

@@ -16,17 +16,6 @@ public class StringLength extends SystemFunction {
     }
 
     /**
-    * Simplify and validate.
-    * This is a pure function so it can be simplified in advance if the arguments are known
-     * @param visitor an expression visitor
-     */
-
-     public Expression simplify(ExpressionVisitor visitor) throws XPathException {
-        //useContextItemAsDefault();
-        return simplifyArguments(visitor);
-    }
-
-    /**
      * Determine the intrinsic dependencies of an expression, that is, those which are not derived
      * from the dependencies of its subexpressions. For example, position() has an intrinsic dependency
      * on the context position, while (position()+1) does not. The default implementation
@@ -62,7 +51,7 @@ public class StringLength extends SystemFunction {
 
     public Expression typeCheck(ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
         if (argument.length == 0 && contextItemType == null) {
-            typeError("The context item for string-length() is undefined", "XPDY0002", null);
+            typeError("The context item for string-length() is undefined", "XPDY0002");
         }
         return super.typeCheck(visitor, contextItemType);
     }
@@ -76,7 +65,7 @@ public class StringLength extends SystemFunction {
         if (argument.length == 0) {
             final Item contextItem = c.getContextItem();
             if (contextItem == null) {
-                dynamicError("The context item for string-length() is not set", "XPDY0002", c);
+                dynamicError("The context item for string-length() is not set", "XPDY0002");
                 return null;
             }
             sv = StringValue.makeStringValue(contextItem.getStringValue());
@@ -88,10 +77,12 @@ public class StringLength extends SystemFunction {
         }
 
         if (sv instanceof StringValue) {
-            return IntegerValue.makeIntegerValue(((StringValue)sv).getStringLength());
+
+            return new IntegerValue(((StringValue)sv).getStringLength());
         } else {
             CharSequence s = sv.getStringValue();
-            return IntegerValue.makeIntegerValue(StringValue.getStringLength(s));
+
+            return new IntegerValue(StringValue.getStringLength(s));
         }
     }
 

@@ -2,10 +2,7 @@ package client.net.sf.saxon.ce.style;
 
 import client.net.sf.saxon.ce.expr.Expression;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
-import client.net.sf.saxon.ce.om.AttributeCollection;
-import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.value.Whitespace;
 
 
 /**
@@ -27,26 +24,9 @@ public class XSLImportSchema extends StyleElement {
     }    
 
     public void prepareAttributes() throws XPathException {
-
-		AttributeCollection atts = getAttributeList();
-        String namespace = null;
-
-		for (int a=0; a<atts.getLength(); a++) {
-			StructuredQName qn = atts.getStructuredQName(a);
-            String f = qn.getClarkName();
-            if (f.equals("schema-location")) {
-        		//
-            } else if (f.equals("namespace")) {
-                namespace = Whitespace.trim(atts.getValue(a));
-        	} else {
-        		checkUnknownAttribute(qn);
-        	}
-        }
-
-        if ("".equals(namespace)) {
-            compileError("The zero-length string is not a valid namespace URI. "+
-                    "For a schema with no namespace, omit the namespace attribute");
-        }
+        checkAttribute("schema-location", "s");
+        checkAttribute("namespace", "s");
+        checkForUnknownAttributes();
     }
 
     public void validate(Declaration decl) throws XPathException {

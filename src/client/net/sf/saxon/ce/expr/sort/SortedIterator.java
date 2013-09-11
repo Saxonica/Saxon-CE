@@ -54,10 +54,7 @@ public class SortedIterator implements SequenceIterator, LastPositionFinder, Sor
         this.context.setCurrentIterator(base);
         this.base = base;
         this.sortKeyEvaluator = sortKeyEvaluator;
-        this.comparators = new AtomicComparer[comparators.length];
-        for (int n=0; n<comparators.length; n++) {
-            this.comparators[n] = comparators[n].provideContext(context);
-        }
+        this.comparators = comparators;
         recordSize = comparators.length + 2;
 
         // Avoid doing the sort until the user wants the first item. This is because

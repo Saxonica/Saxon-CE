@@ -1,20 +1,27 @@
 package client.net.sf.saxon.ce.functions;
 
-import client.net.sf.saxon.ce.expr.*;
+import client.net.sf.saxon.ce.expr.Expression;
+import client.net.sf.saxon.ce.expr.FunctionCall;
+import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.om.Item;
-import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.value.BooleanValue;
 
 
 /**
- * Implementation of the fn:exists function
+ * Implementation of the fn:exists and fn:empty functions
  */
 public class Exists extends Aggregate {
 
+    public static final int EXISTS = 2;
+    public static final int EMPTY = 3;
+
+    public Exists(int operation) {
+        this.operation = operation;
+    }
+
     public Exists newInstance() {
-        return new Exists();
+        return new Exists(operation);
     }
 
     /**
@@ -23,51 +30,10 @@ public class Exists extends Aggregate {
      */
 
     public Expression negate() {
-        FunctionCall fc = SystemFunction.makeSystemFunction("empty", getArguments());
+        FunctionCall fc = SystemFunction.makeSystemFunction(
+                (operation == EXISTS ? "empty" : "exists"), getArguments());
         fc.setSourceLocator(getSourceLocator());
         return fc;
-    }
-
-    /**
-     * Perform optimisation of an expression and its subexpressions.
-     * <p/>
-     * <p>This method is called after all references to functions and variables have been resolved
-     * to the declaration of the function or variable, and after all type checking has been done.</p>
-     *
-     * @param visitor         an expression visitor
-     * @param contextItemType the static type of "." at the point where this expression is invoked.
-     *                        The parameter is set to null if it is known statically that the context item will be undefined.
-     *                        If the type of the context item is not known statically, the argument is set to
-     *                        {@link client.net.sf.saxon.ce.type.Type#ITEM_TYPE}
-     * @return the original expression, rewritten if appropriate to optimize execution
-     * @throws client.net.sf.saxon.ce.trans.XPathException
-     *          if an error is discovered during this phase
-     *          (typically a type error)
-     */
-
-    public Expression optimize(ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
-        Expression e2 = super.optimize(visitor, contextItemType);
-        if (e2 != this) {
-            return e2;
-        }
-        // See if we can deduce the answer from the cardinality
-        int c = argument[0].getCardinality();
-        if (c == StaticProperty.ALLOWS_ONE_OR_MORE) {
-            return new Literal(BooleanValue.TRUE);
-        } else if (c == StaticProperty.ALLOWS_ZERO) {
-            return new Literal(BooleanValue.FALSE);
-        }
-        // Rewrite
-        //    exists(A|B) => exists(A) or exists(B)
-        if (argument[0] instanceof VennExpression) {
-            VennExpression v = (VennExpression)argument[0];
-            if (v.getOperator() == Token.UNION) {
-                FunctionCall e0 = SystemFunction.makeSystemFunction("exists", new Expression[]{v.getOperands()[0]});
-                FunctionCall e1 = SystemFunction.makeSystemFunction("exists", new Expression[]{v.getOperands()[1]});
-                return new BooleanExpression(e0, Token.OR, e1).optimize(visitor, contextItemType);
-            }
-        }
-        return this;
     }
 
     /**
@@ -83,8 +49,8 @@ public class Exists extends Aggregate {
     */
 
     public boolean effectiveBooleanValue(XPathContext c) throws XPathException {
-        SequenceIterator iter = argument[0].iterate(c);
-        return iter.next() != null;
+        Item next = argument[0].iterate(c).next();
+        return (operation == EXISTS ? next != null : next == null);
     }
 
 }

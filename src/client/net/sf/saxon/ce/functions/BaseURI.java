@@ -1,6 +1,4 @@
 package client.net.sf.saxon.ce.functions;
-import client.net.sf.saxon.ce.expr.Expression;
-import client.net.sf.saxon.ce.expr.ExpressionVisitor;
 import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.NodeInfo;
@@ -15,17 +13,6 @@ public class BaseURI extends SystemFunction {
 
     public BaseURI newInstance() {
         return new BaseURI();
-    }
-
-    /**
-     * Simplify and validate.
-     * This is a pure function so it can be simplified in advance if the arguments are known
-     * @param visitor an expression visitor
-     */
-
-     public Expression simplify(ExpressionVisitor visitor) throws XPathException {
-        useContextItemAsDefault();
-        return simplifyArguments(visitor);
     }
 
     /**

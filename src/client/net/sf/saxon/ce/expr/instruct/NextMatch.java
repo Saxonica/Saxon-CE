@@ -34,27 +34,18 @@ public class NextMatch extends ApplyImports {
 
         Rule currentRule = context.getCurrentTemplateRule();
         if (currentRule==null) {
-            XPathException e = new XPathException("There is no current template rule");
-            e.setXPathContext(context);
-            e.setErrorCode("XTDE0560");
-            throw e;
+            throw new XPathException("There is no current template rule", "XTDE0560");
         }
         Mode mode = context.getCurrentMode();
         if (mode == null) {
             mode = controller.getRuleManager().getUnnamedMode();
         }
         if (context.getCurrentIterator()==null) {
-            XPathException e = new XPathException("There is no context item");
-            e.setXPathContext(context);
-            e.setErrorCode("XTDE0565");
-            throw e;
+            throw new XPathException("There is no context item", "XTDE0565");
         }
         Item currentItem = context.getCurrentIterator().current();
         if (!(currentItem instanceof NodeInfo)) {
-            XPathException e = new XPathException("Cannot call xsl:next-match when context item is not a node");
-            e.setXPathContext(context);
-            e.setErrorCode("XTDE0565");
-            throw e;
+            throw new XPathException("Cannot call xsl:next-match when context item is not a node", "XTDE0565");
         }
         NodeInfo node = (NodeInfo)currentItem;
         Rule rule = controller.getRuleManager().getNextMatchHandler(node, mode, currentRule, context);

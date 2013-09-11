@@ -3,7 +3,6 @@ package client.net.sf.saxon.ce.type;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.tree.util.SourceLocator;
 import client.net.sf.saxon.ce.value.AtomicValue;
 
 /**
@@ -19,7 +18,6 @@ import client.net.sf.saxon.ce.value.AtomicValue;
 public class ValidationFailure implements ConversionResult {
 
     private String message;
-    private SourceLocator sourceLocator;
     private StructuredQName errorCode;
 
     /**
@@ -30,16 +28,9 @@ public class ValidationFailure implements ConversionResult {
         this.message = message;
     }
 
-    /**
-     * Creates a new ValidationFailure with the given nested
-     * exception.
-     * @param exception the nested exception
-    **/
-    public ValidationFailure(Exception exception) {
-        message = exception.getMessage();
-        if (exception instanceof XPathException) {
-            errorCode = ((XPathException)exception).getErrorCodeQName();
-        }
+    public ValidationFailure(String message, String errorCode) {
+        this.message = message;
+        setErrorCode(errorCode);
     }
 
 
@@ -52,21 +43,7 @@ public class ValidationFailure implements ConversionResult {
      * @return the String representation of this Exception
     **/
     public String toString() {
-        StringBuffer sb = new StringBuffer("ValidationException: ");
-        String message = getMessage();
-        if (message != null) {
-            sb.append(message);
-        }
-        return sb.toString();
-    }
-
-
-    public void setSourceLocator(SourceLocator locator) {
-        sourceLocator = locator;
-    }
-
-    public SourceLocator getSourceLocator() {
-        return sourceLocator;
+        return "ValidationException" + (message == null ? "" : ": " + message);
     }
 
     public void setErrorCode(String errorCode) {
@@ -77,24 +54,9 @@ public class ValidationFailure implements ConversionResult {
         this.errorCode = errorCode;
     }
 
-    public String getErrorCode() {
-        return errorCode == null ? null : errorCode.getLocalName();
-    }
-
     public StructuredQName getErrorCodeQName() {
         return errorCode;
     }
-
-    public XPathException makeException() {
-        XPathException ve = new XPathException(message, getSourceLocator());
-        if (errorCode == null) {
-            ve.setErrorCode("FORG0001");
-        } else {
-            ve.setErrorCodeQName(errorCode);
-        }
-        return ve;
-    }
-
 
     /**
      * Calling this method on a ConversionResult returns the AtomicValue that results
@@ -110,7 +72,13 @@ public class ValidationFailure implements ConversionResult {
      */
 
     public AtomicValue asAtomic() throws XPathException {
-        throw makeException();
+        XPathException ve = new XPathException(message);
+        if (errorCode == null) {
+            ve.setErrorCode("FORG0001");
+        } else {
+            ve.setErrorCodeQName(errorCode);
+        }
+        throw ve;
     }
 }
 

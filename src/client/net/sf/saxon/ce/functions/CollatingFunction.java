@@ -22,31 +22,16 @@ public abstract class CollatingFunction extends SystemFunction {
 
     // The collation, if known statically
     protected StringCollator stringCollator = null;
-    private String absoluteCollationURI = null;
-    private String expressionBaseURI = null;
+    private StaticContext staticContext = null;
 
     public void checkArguments(ExpressionVisitor visitor) throws XPathException {
+        if (staticContext == null) {
+            staticContext = visitor.getStaticContext();
+        }
         if (stringCollator == null) {
-            StaticContext env = visitor.getStaticContext();
-            saveBaseURI(env, false);
-            preEvaluateCollation(env);
+            preEvaluateCollation(staticContext);
         }
         super.checkArguments(visitor);
-    }
-
-    private void saveBaseURI(StaticContext env, boolean fail) throws XPathException {
-        if (expressionBaseURI == null) {
-            expressionBaseURI = env.getBaseURI();
-        }
-    }
-
-    /**
-     * Get the absolute collation URI if known statically, as a string
-     * @return the absolute collation URI, as a string, or null if it is not known statically
-     */
-
-    public String getAbsoluteCollationURI() {
-        return absoluteCollationURI;
     }
 
     /**
@@ -92,7 +77,7 @@ public abstract class CollatingFunction extends SystemFunction {
 
     protected GenericAtomicComparer getAtomicComparer(int arg, XPathContext context) throws XPathException {
         // TODO:PERF avoid creating a new object on each call when the collation is specified dynamically
-        return new GenericAtomicComparer(getCollator(arg, context), context);
+        return new GenericAtomicComparer(getCollator(arg, context), context.getImplicitTimezone());
     }
 
     /**
@@ -132,6 +117,7 @@ public abstract class CollatingFunction extends SystemFunction {
         try {
             collationURI = new URI(collationName, true);
             if (!collationURI.isAbsolute()) {
+                String expressionBaseURI = staticContext.getBaseURI();
                 if (expressionBaseURI == null) {
                     XPathException err = new XPathException("Cannot resolve relative collation URI '" + collationName +
                             "': unknown or invalid base URI");
@@ -154,7 +140,7 @@ public abstract class CollatingFunction extends SystemFunction {
 
     protected void doesNotSupportSubstringMatching(XPathContext context) throws XPathException {
         dynamicError("The collation requested for " + getDisplayName() +
-                        " does not support substring matching", "FOCH0004", context);
+                        " does not support substring matching", "FOCH0004");
     }
 
 }

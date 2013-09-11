@@ -4,16 +4,13 @@ import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.expr.instruct.ForEachGroup;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
 import client.net.sf.saxon.ce.lib.StringCollator;
-import client.net.sf.saxon.ce.om.AttributeCollection;
 import client.net.sf.saxon.ce.om.Axis;
-import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.pattern.Pattern;
 import client.net.sf.saxon.ce.pattern.PatternSponsor;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.URI;
 import client.net.sf.saxon.ce.value.EmptySequence;
 import client.net.sf.saxon.ce.value.SequenceType;
-import client.net.sf.saxon.ce.value.Whitespace;
 
 
 /**
@@ -58,65 +55,21 @@ public final class XSLForEachGroup extends StyleElement {
 
     public void prepareAttributes() throws XPathException {
 
-		AttributeCollection atts = getAttributeList();
+        select = (Expression)checkAttribute("select", "e1");
+        groupBy = (Expression)checkAttribute("group-by", "e");
+        groupAdjacent = (Expression)checkAttribute("group-adjacent", "e");
+        starting = (Pattern)checkAttribute("group-starting-with", "p");
+        ending = (Pattern)checkAttribute("group-ending-with", "p");
+        String collationAtt = (String)checkAttribute("collation", "w");
+        checkForUnknownAttributes();
 
-		String selectAtt = null;
-		String groupByAtt = null;
-		String groupAdjacentAtt = null;
-		String startingAtt = null;
-		String endingAtt = null;
-        String collationAtt = null;
-
-		for (int a=0; a<atts.getLength(); a++) {
-			StructuredQName qn = atts.getStructuredQName(a);
-            String f = qn.getClarkName();
-            if (f.equals("select")) {
-        		selectAtt = atts.getValue(a);
-        	} else if (f.equals("group-by")) {
-        		groupByAtt = atts.getValue(a);
-        	} else if (f.equals("group-adjacent")) {
-        		groupAdjacentAtt = atts.getValue(a);
-        	} else if (f.equals("group-starting-with")) {
-        		startingAtt = atts.getValue(a);
-        	} else if (f.equals("group-ending-with")) {
-        		endingAtt = atts.getValue(a);
-        	} else if (f.equals("collation")) {
-        		collationAtt = Whitespace.trim(atts.getValue(a));
-        	} else {
-        		checkUnknownAttribute(qn);
-        	}
-        }
-
-        if (selectAtt==null) {
-            reportAbsence("select");
-            select = new Literal(EmptySequence.getInstance()); // for error recovery
-        } else {
-            select = makeExpression(selectAtt);
-        }
-
-        int c = (groupByAtt==null ? 0 : 1) +
-                (groupAdjacentAtt==null ? 0 : 1) +
-                (startingAtt==null ? 0 : 1) +
-                (endingAtt==null ? 0 : 1);
+        int c = (groupBy==null ? 0 : 1) +
+                (groupAdjacent==null ? 0 : 1) +
+                (starting==null ? 0 : 1) +
+                (ending==null ? 0 : 1);
         if (c!=1) {
             compileError("Exactly one of the attributes group-by, group-adjacent, group-starting-with, " +
                     "and group-ending-with must be specified", "XTSE1080");
-        }
-
-        if (groupByAtt != null) {
-            groupBy = makeExpression(groupByAtt);
-        }
-
-        if (groupAdjacentAtt != null) {
-            groupAdjacent = makeExpression(groupAdjacentAtt);
-        }
-
-        if (startingAtt != null) {
-            starting = makePattern(startingAtt);
-        }
-
-        if (endingAtt != null) {
-            ending = makePattern(endingAtt);
         }
 
         if (collationAtt != null) {
@@ -203,17 +156,7 @@ public final class XSLForEachGroup extends StyleElement {
 
     public Expression compile(Executable exec, Declaration decl) throws XPathException {
 
-        StringCollator collator = null;
-        if (collationName instanceof StringLiteral) {
-            // if the collation name is constant, then we've already resolved it against the base URI
-            final String uri = ((StringLiteral)collationName).getStringValue();
-            collator = getConfiguration().getNamedCollation(uri);
-            if (collator==null) {
-                compileError("The collation name '" + collationName + "' has not been defined", "XTDE1110");
-            }
-        }
-
-        byte algorithm = 0;
+        int algorithm = 0;
         Expression key = null;
         if (groupBy != null) {
             algorithm = ForEachGroup.GROUP_BY;
@@ -241,7 +184,6 @@ public final class XSLForEachGroup extends StyleElement {
                                         makeExpressionVisitor().simplify(action),
                                         algorithm,
                                         key,
-                                        collator,
                                         collationName,
                                         getBaseURI(),
                                         makeSortKeys(decl) );

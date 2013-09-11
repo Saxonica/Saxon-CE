@@ -13,8 +13,8 @@ import java.math.BigInteger;
 
 
 /**
-* A decimal value
-*/
+ * A decimal value
+ */
 
 public class DecimalValue extends NumericValue {
 
@@ -29,62 +29,59 @@ public class DecimalValue extends NumericValue {
     public static final DecimalValue ZERO = new DecimalValue(BigDecimal.valueOf(0));
     public static final DecimalValue ONE = new DecimalValue(BigDecimal.valueOf(1));
     public static final DecimalValue TWO = new DecimalValue(BigDecimal.valueOf(2));
-    public static final DecimalValue THREE = new DecimalValue(BigDecimal.valueOf(3));
 
     /**
-    * Constructor supplying a BigDecimal
-    * @param value the value of the DecimalValue
-    */
+     * Constructor supplying a BigDecimal
+     *
+     * @param value the value of the DecimalValue
+     */
 
     public DecimalValue(BigDecimal value) {
-    	this.value = stripTrailingZeros(value);
-        //this.value = value.stripTrailingZeros();
-        //this.value = value; // GWT bug 6110 prevents stripTrailingZeros (2011-03-14)
-        typeLabel = BuiltInAtomicType.DECIMAL;
+        this.value = stripTrailingZeros(value);
     }
-    
+
     /**
-     * 
      * @param value a BigDecimal that may have trailing zeros
      * @return a value that has trailing zeros trimmed
-     * Used instead of BigDecimal's own method as this has a
-     * GWT bug 6110 reported causing infinite recursion
+     *         Used instead of BigDecimal's own method as this has a
+     *         GWT bug 6110 reported causing infinite recursion: see http://code.google.com/p/google-web-toolkit/issues/detail?id=6110
      */
-    
+
     public static BigDecimal stripTrailingZeros(BigDecimal value) {
-    	String str = value.toString();
-    	
-    	int dotPos  = str.indexOf('.');
-    	if (dotPos < 0) {
-    		return value;
-    	}
-    	int expPos = str.indexOf('E');
-    	if (expPos > -1) {
-    		return value; // e.g. 12.3E+7
-    	}
-    	int lastZeroPos = -1;
-    	char zeroCh = '0';
-    	for (int i = str.length() -1; i > -1; i--) {
-    		char ch = str.charAt(i);
-    		if (ch != zeroCh) break;
-    		lastZeroPos = i;
-    	}
-    	if(lastZeroPos > -1) {
-    		if (lastZeroPos - dotPos == 1) lastZeroPos = dotPos;
-    		String strippedValue = str.substring(0, lastZeroPos);
-    		return new BigDecimal(strippedValue);
-    	} else {
-    		return value;
-    	}
+        String str = value.toString();
+
+        int dotPos = str.indexOf('.');
+        if (dotPos < 0) {
+            return value;
+        }
+        int expPos = str.indexOf('E');
+        if (expPos > -1) {
+            return value; // e.g. 12.3E+7
+        }
+        int lastZeroPos = -1;
+        char zeroCh = '0';
+        for (int i = str.length() - 1; i > -1; i--) {
+            char ch = str.charAt(i);
+            if (ch != zeroCh) break;
+            lastZeroPos = i;
+        }
+        if (lastZeroPos > -1) {
+            if (lastZeroPos - dotPos == 1) lastZeroPos = dotPos;
+            String strippedValue = str.substring(0, lastZeroPos);
+            return new BigDecimal(strippedValue);
+        } else {
+            return value;
+        }
     }
 
     private static final RegExp decimalPattern = RegExp.compile("(\\-|\\+)?((\\.[0-9]+)|([0-9]+(\\.[0-9]*)?))");
 
     /**
      * Factory method to construct a DecimalValue from a string
+     *
      * @param in the value of the DecimalValue
      * @return the required DecimalValue if the input is valid, or a ValidationFailure encapsulating the error
-     * message if not.
+     *         message if not.
      */
 
     public static ConversionResult makeDecimalValue(CharSequence in) {
@@ -97,7 +94,7 @@ public class DecimalValue extends NumericValue {
             // 3 - after decimal point; 5 - in final whitespace
             boolean foundDigit = false;
             int len = in.length();
-            for (int i=0; i<len; i++) {
+            for (int i = 0; i < len; i++) {
                 char c = in.charAt(i);
                 switch (c) {
                     case ' ':
@@ -163,7 +160,7 @@ public class DecimalValue extends NumericValue {
 
             // remove insignificant trailing zeroes
             while (scale > 0) {
-                if (digits.charAt(digits.length()-1) == '0') {
+                if (digits.charAt(digits.length() - 1) == '0') {
                     digits.setLength(digits.length() - 1);
                     scale--;
                 } else {
@@ -177,16 +174,15 @@ public class DecimalValue extends NumericValue {
             BigDecimal bigDec = new BigDecimal(bigInt, scale);
             return new DecimalValue(bigDec);
         } catch (NumberFormatException err) {
-            ValidationFailure e = new ValidationFailure(
+            return new ValidationFailure(
                     "Cannot convert string " + Err.wrap(Whitespace.trim(in), Err.VALUE) +
-                            " to xs:decimal: " + err.getMessage());
-            e.setErrorCode("FORG0001");
-            return e;
-        }                                                                                                            
+                            " to xs:decimal: " + err.getMessage(), "FORG0001");
+        }
     }
 
     /**
      * Test whether a string is castable to a decimal value
+     *
      * @param in the string to be tested
      * @return true if the string has the correct format for a decimal
      */
@@ -197,9 +193,11 @@ public class DecimalValue extends NumericValue {
     }
 
     /**
-    * Constructor supplying a double
-    * @param in the value of the DecimalValue
-    */
+     * Constructor supplying a double
+     *
+     * @param in the value of the DecimalValue
+     * @throws XPathException if the double cannot be converted (e.g. Infinity or NaN)
+     */
 
     public DecimalValue(double in) throws XPathException {
         try {
@@ -208,22 +206,19 @@ public class DecimalValue extends NumericValue {
             value = d; // GWT bug 6110 prevents stripTrailingZeros (2011-03-14)
         } catch (NumberFormatException err) {
             // Must be a special value such as NaN or infinity
-            XPathException e = new XPathException(
-                    "Cannot convert double " + Err.wrap(in+"", Err.VALUE) + " to decimal");
-            e.setErrorCode("FOCA0002");
-            throw e;
+            throw new XPathException(
+                    "Cannot convert double " + Err.wrap(in + "", Err.VALUE) + " to decimal", "FOCA0002");
         }
-        typeLabel = BuiltInAtomicType.DECIMAL;
     }
 
     /**
-    * Constructor supplying a long integer
-    * @param in the value of the DecimalValue
-    */
+     * Constructor supplying a long integer
+     *
+     * @param in the value of the DecimalValue
+     */
 
     public DecimalValue(long in) {
         value = BigDecimal.valueOf(in);
-        typeLabel = BuiltInAtomicType.DECIMAL;
     }
 
     /**
@@ -233,14 +228,14 @@ public class DecimalValue extends NumericValue {
      * and xs:untypedAtomic. For external objects, the result is AnyAtomicType.
      */
 
-    public BuiltInAtomicType getPrimitiveType() {
+    public BuiltInAtomicType getItemType() {
         return BuiltInAtomicType.DECIMAL;
     }
 
 
     /**
-    * Get the value
-    */
+     * Get the value
+     */
 
     public BigDecimal getDecimalValue() {
         return value;
@@ -248,6 +243,7 @@ public class DecimalValue extends NumericValue {
 
     /**
      * Get the hashCode. This must conform to the rules for other NumericValue hashcodes
+     *
      * @see NumericValue#hashCode
      */
 
@@ -255,7 +251,7 @@ public class DecimalValue extends NumericValue {
         BigDecimal round = value.setScale(0, BigDecimal.ROUND_DOWN);
         long value = round.longValue();
         if (value > Integer.MIN_VALUE && value < Integer.MAX_VALUE) {
-            return (int)value;
+            return (int) value;
         } else {
             return new Double(getDoubleValue()).hashCode();
         }
@@ -266,8 +262,8 @@ public class DecimalValue extends NumericValue {
     }
 
     /**
-    * Convert to target data type
-    */
+     * Convert to target data type
+     */
 
     public ConversionResult convertPrimitive(BuiltInAtomicType requiredType, boolean validate) {
         if (requiredType == BuiltInAtomicType.ANY_ATOMIC ||
@@ -277,20 +273,18 @@ public class DecimalValue extends NumericValue {
         } else if (requiredType == BuiltInAtomicType.INTEGER) {
             return IntegerValue.decimalToInteger(value);
         } else if (requiredType == BuiltInAtomicType.BOOLEAN) {
-            return BooleanValue.get(value.signum()!=0);
+            return BooleanValue.get(value.signum() != 0);
         } else if (requiredType == BuiltInAtomicType.DOUBLE) {
             return new DoubleValue(value.doubleValue());
         } else if (requiredType == BuiltInAtomicType.FLOAT) {
-            return new DoubleValue(value.floatValue());
+            return new FloatValue(value.floatValue());
         } else if (requiredType == BuiltInAtomicType.STRING) {
             return new StringValue(getStringValue());
         } else if (requiredType == BuiltInAtomicType.UNTYPED_ATOMIC) {
             return new UntypedAtomicValue((getStringValue()));
         } else {
-            ValidationFailure err = new ValidationFailure("Cannot convert decimal to " +
-                                     requiredType.getDisplayName());
-            err.setErrorCode("XPTY0004");
-            return err;
+            return new ValidationFailure("Cannot convert decimal to " +
+                    requiredType.getDisplayName(), "XPTY0004");
         }
     }
 
@@ -304,9 +298,10 @@ public class DecimalValue extends NumericValue {
 //    }
 
     /**
-    * Get the value as a String
-    * @return a String representation of the value
-    */
+     * Get the value as a String
+     *
+     * @return a String representation of the value
+     */
 
     public CharSequence getPrimitiveStringValue() {
         return decimalToString(value, new FastStringBuffer(FastStringBuffer.TINY));
@@ -314,8 +309,9 @@ public class DecimalValue extends NumericValue {
 
     /**
      * Convert a decimal value to a string, using the XPath rules for formatting
+     *
      * @param value the decimal value to be converted
-     * @param fsb the FastStringBuffer to which the value is to be appended
+     * @param fsb   the FastStringBuffer to which the value is to be appended
      * @return the supplied FastStringBuffer, suitably populated
      */
 
@@ -337,7 +333,7 @@ public class DecimalValue extends NumericValue {
                 fsb.append('-');
             }
             fsb.append(s);
-            for (int i=0; i<(-scale); i++) {
+            for (int i = 0; i < (-scale); i++) {
                 fsb.append('0');
             }
             return fsb;
@@ -354,46 +350,46 @@ public class DecimalValue extends NumericValue {
             }
             if (scale >= len) {
                 fsb.append("0.");
-                for (int i=len; i<scale; i++) {
+                for (int i = len; i < scale; i++) {
                     fsb.append('0');
                 }
                 fsb.append(s);
             } else {
-                fsb.append(s.substring(0, len-scale));
+                fsb.append(s.substring(0, len - scale));
                 fsb.append('.');
-                fsb.append(s.substring(len-scale));
+                fsb.append(s.substring(len - scale));
             }
             return fsb;
         }
     }
 
     /**
-    * Negate the value
-    */
+     * Negate the value
+     */
 
     public NumericValue negate() {
         return new DecimalValue(value.negate());
     }
 
     /**
-    * Implement the XPath floor() function
-    */
+     * Implement the XPath floor() function
+     */
 
     public NumericValue floor() {
         return new DecimalValue(value.setScale(0, BigDecimal.ROUND_FLOOR));
     }
 
     /**
-    * Implement the XPath ceiling() function
-    */
+     * Implement the XPath ceiling() function
+     */
 
     public NumericValue ceiling() {
         return new DecimalValue(value.setScale(0, BigDecimal.ROUND_CEILING));
     }
 
     /**
-    * Implement the XPath round() function
-    */
+     * Implement the XPath round() function
+     */
 
     public NumericValue round() {
         // The XPath rules say that we should round to the nearest integer, with .5 rounding towards
@@ -418,8 +414,8 @@ public class DecimalValue extends NumericValue {
     }
 
     /**
-    * Implement the XPath round-half-to-even() function
-    */
+     * Implement the XPath round-half-to-even() function
+     */
 
     public NumericValue roundHalfToEven(int scale) {
         BigDecimal scaledValue = value.setScale(scale, BigDecimal.ROUND_HALF_EVEN);
@@ -428,6 +424,7 @@ public class DecimalValue extends NumericValue {
 
     /**
      * Determine whether the value is negative, zero, or positive
+     *
      * @return -1 if negative, 0 if zero, +1 if positive, NaN if NaN
      */
 
@@ -436,17 +433,18 @@ public class DecimalValue extends NumericValue {
     }
 
     /**
-    * Determine whether the value is a whole number, that is, whether it compares
-    * equal to some integer
-    */
+     * Determine whether the value is a whole number, that is, whether it compares
+     * equal to some integer
+     */
 
     public boolean isWholeNumber() {
-        return value.scale()==0 ||
-               value.compareTo(value.setScale(0, BigDecimal.ROUND_DOWN)) == 0;
+        return value.scale() == 0 ||
+                value.compareTo(value.setScale(0, BigDecimal.ROUND_DOWN)) == 0;
     }
 
     /**
      * Get the absolute value as defined by the XPath abs() function
+     *
      * @return the absolute value
      * @since 9.2
      */
@@ -460,16 +458,17 @@ public class DecimalValue extends NumericValue {
     }
 
     /**
-    * Compare the value to another numeric value
-    */
+     * Compare the value to another numeric value
+     */
 
     public int compareTo(Object other) {
         if (other instanceof DecimalValue) {
             // including xs:integer
-            return value.compareTo(((DecimalValue)other).value);
+            return value.compareTo(((DecimalValue) other).value);
         } else if (other instanceof FloatValue) {
             try {
-                return ((FloatValue)convertPrimitive(BuiltInAtomicType.FLOAT, true).asAtomic()).compareTo(other);
+                FloatValue f = (FloatValue) convertPrimitive(BuiltInAtomicType.FLOAT, true).asAtomic();
+                return f.compareTo(other);
             } catch (XPathException err) {
                 throw new AssertionError("Conversion of decimal to float should never fail");
             }
@@ -480,6 +479,7 @@ public class DecimalValue extends NumericValue {
 
     /**
      * Compare the value to a long
+     *
      * @param other the value to be compared with
      * @return -1 if this is less, 0 if this is equal, +1 if this is greater or if this is NaN
      */

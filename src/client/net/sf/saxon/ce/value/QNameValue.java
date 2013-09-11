@@ -1,6 +1,7 @@
 package client.net.sf.saxon.ce.value;
 
 import client.net.sf.saxon.ce.functions.Component;
+import client.net.sf.saxon.ce.lib.StringCollator;
 import client.net.sf.saxon.ce.om.*;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.*;
@@ -11,7 +12,9 @@ import client.net.sf.saxon.ce.type.*;
  * QName to a string.
  */
 
-public class QNameValue extends QualifiedNameValue {
+public class QNameValue extends AtomicValue {
+
+    protected StructuredQName qName;
 
 
     /**
@@ -23,26 +26,7 @@ public class QNameValue extends QualifiedNameValue {
      */
 
     public QNameValue(String prefix, String uri, String localName) {
-        this(prefix, uri, localName, BuiltInAtomicType.QNAME);
-    }
-
-    /**
-     * Constructor for a QName that is known to be valid, allowing a user-defined subtype of QName
-     * to be specified. No validation takes place.
-     * @param prefix The prefix part of the QName (not used in comparisons). Use "" to represent the
-     * default prefix (but null is also accepted)
-     * @param uri The namespace part of the QName. Use null to represent the non-namespace (but "" is also
-     * accepted).
-     * @param localName The local part of the QName
-     * @param type The type label, xs:QName or a subtype of xs:QName
-     */
-
-    public QNameValue(String prefix, String uri, String localName, BuiltInAtomicType type) {
         qName = new StructuredQName(prefix, uri, localName);
-        if (type == null) {
-            type = BuiltInAtomicType.QNAME;
-        }
-        typeLabel = type;
     }
 
     /**
@@ -52,12 +36,12 @@ public class QNameValue extends QualifiedNameValue {
 
     public QNameValue(StructuredQName name) {
         qName = name;
-        typeLabel = BuiltInAtomicType.QNAME;
     }
 
 
     /**
      * Constructor. This constructor validates that the local part is a valid NCName.
+     *
      * @param prefix The prefix part of the QName (not used in comparisons). Use "" to represent the
      * default prefix (but null is also accepted).
      * Note that the prefix is not checked for lexical correctness, because in most cases
@@ -66,13 +50,11 @@ public class QNameValue extends QualifiedNameValue {
      * @param uri The namespace part of the QName. Use null to represent the non-namespace (but "" is also
      * accepted).
      * @param localName The local part of the QName
-     * @param type The atomic type, which must be either xs:QName, or a
-     * user-defined type derived from xs:QName by restriction
      * @throws XPathException if the local part of the name is malformed or if the name has a null
      * namespace with a non-empty prefix
      */
 
-    public QNameValue(String prefix, String uri, String localName, BuiltInAtomicType type, boolean validate) throws XPathException {
+    public QNameValue(String prefix, String uri, String localName, boolean validate) throws XPathException {
         if (!NameChecker.isValidNCName(localName)) {
             XPathException err = new XPathException("Malformed local name in QName: '" + localName + '\'');
             err.setErrorCode("FORG0001");
@@ -86,24 +68,6 @@ public class QNameValue extends QualifiedNameValue {
             throw err;
         }
         qName = new StructuredQName(prefix, uri, localName);
-        typeLabel = type;
-    }
-
-    /**
-     * Constructor
-     * @param qName the name as a StructuredQName
-     * @param typeLabel idenfies a subtype of xs:QName
-     */
-
-    public QNameValue(StructuredQName qName, BuiltInAtomicType typeLabel) {
-        if (qName == null) {
-            throw new NullPointerException("qName");
-        }
-        if (typeLabel == null) {
-            throw new NullPointerException("typeLabel");
-        }
-        this.qName = qName;
-        this.typeLabel = typeLabel;
     }
 
     /**
@@ -113,7 +77,7 @@ public class QNameValue extends QualifiedNameValue {
      * and xs:untypedAtomic. For external objects, the result is AnyAtomicType.
      */
 
-    public BuiltInAtomicType getPrimitiveType() {
+    public BuiltInAtomicType getItemType() {
         return BuiltInAtomicType.QNAME;
     }
 
@@ -131,10 +95,7 @@ public class QNameValue extends QualifiedNameValue {
         } else if (requiredType == BuiltInAtomicType.STRING) {
             return new StringValue(getStringValue());
         } else {
-            ValidationFailure err = new ValidationFailure("Cannot convert gYear to " +
-                    requiredType.getDisplayName());
-            err.setErrorCode("XPTY0004");
-            return err;
+            return new ValidationFailure("Cannot convert QName to " + requiredType.getDisplayName(), "XPTY0004");
         }
     }
 
@@ -162,6 +123,90 @@ public class QNameValue extends QualifiedNameValue {
             throw new UnsupportedOperationException("Component of QName must be URI, Local Name, or Prefix");
         }
     }
+
+    /**
+     * Get the string value as a String. Returns the QName as a lexical QName, retaining the original
+     * prefix if available.
+     */
+
+    public final String getPrimitiveStringValue() {
+        return qName.getDisplayName();
+    }
+
+    /**
+     * Convert to a StructuredQName
+     * @return the name as a StructuredQName
+     */
+
+    public StructuredQName toStructuredQName() {
+        return qName;
+    }
+
+    /**
+     * Get the QName in Clark notation, that is "{uri}local" if in a namespace, or "local" otherwise
+     */
+
+    public final String getClarkName() {
+        return qName.getClarkName();
+    }
+
+    /**
+     * Get the local part
+     */
+
+    public final String getLocalName() {
+        return qName.getLocalName();
+    }
+
+    /**
+     * Get the namespace part. Returns the empty string for a name in no namespace.
+     */
+
+    public final String getNamespaceURI() {
+        return qName.getNamespaceURI();
+    }
+
+    /**
+     * Get the prefix. Returns the empty string if the name is unprefixed.
+     */
+
+    public final String getPrefix() {
+        return qName.getPrefix();
+    }
+
+    /**
+     * Get an object value that implements the XPath equality and ordering comparison semantics for this value.
+     * If the ordered parameter is set to true, the result will be a Comparable and will support a compareTo()
+     * method with the semantics of the XPath lt/gt operator, provided that the other operand is also obtained
+     * using the getXPathComparable() method. In all cases the result will support equals() and hashCode() methods
+     * that support the semantics of the XPath eq operator, again provided that the other operand is also obtained
+     * using the getXPathComparable() method. A context argument is supplied for use in cases where the comparison
+     * semantics are context-sensitive, for example where they depend on the implicit timezone or the default
+     * collation.
+     *
+     * @param ordered true if an ordered comparison is required. In this case the result is null if the
+     *                type is unordered; in other cases the returned value will be a Comparable.
+     * @param collator
+     * @param implicitTimezone
+     */
+
+    public Object getXPathComparable(boolean ordered, StringCollator collator, int implicitTimezone) {
+        return (ordered ? null : this);
+    }
+
+    public int hashCode() {
+        return qName.hashCode();
+    }
+
+    /**
+     * The toString() method returns the name in the form QName("uri", "local")
+     * @return the name in in the form QName("uri", "local")
+     */
+
+    public String toString() {
+        return "QName(\"" + getNamespaceURI() + "\", \"" + getLocalName() + "\")";
+    }
+
 
     /**
      * Determine if two QName values are equal. This comparison ignores the prefix part

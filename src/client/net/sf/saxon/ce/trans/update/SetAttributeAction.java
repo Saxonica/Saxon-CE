@@ -1,14 +1,9 @@
 package client.net.sf.saxon.ce.trans.update;
 
-import client.net.sf.saxon.ce.dom.HTMLNodeWrapper;
 import client.net.sf.saxon.ce.dom.HTMLWriter;
 import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
-import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.trans.XPathException;
-
-import com.google.gwt.core.client.JavaScriptObject;
-import com.google.gwt.dom.client.Document;
 import com.google.gwt.dom.client.Element;
 import com.google.gwt.dom.client.Node;
 
@@ -28,7 +23,7 @@ public class SetAttributeAction extends PendingUpdateAction {
      * Create a SetAttributeAction
      * @param element the element whose attribute is to be set
      * @param localNname the attribute name
-     * @param value the attribute value
+     * @param value the attribute value: null means remove the attribute
      */
 
     public SetAttributeAction(Element element, String uri, String localNname, String value) {
@@ -45,7 +40,11 @@ public class SetAttributeAction extends PendingUpdateAction {
      */
 
     public void apply(XPathContext context) throws XPathException {
-        if (NamespaceConstant.HTML_PROP.equals(uri)) {
+        if (value == null) {
+            // remove-attribute action
+            // TODO: not clear why this ignores the URI
+            targetNode.removeAttribute(localName);
+        } else if (NamespaceConstant.HTML_PROP.equals(uri)) {
             targetNode.setPropertyString(localName, value);
         } else if (NamespaceConstant.HTML_STYLE_PROP.equals(uri)) {
         	String name;

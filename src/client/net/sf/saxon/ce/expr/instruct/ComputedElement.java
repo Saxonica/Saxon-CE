@@ -5,7 +5,6 @@ import client.net.sf.saxon.ce.event.Receiver;
 import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.functions.SystemFunction;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
-import client.net.sf.saxon.ce.lib.StandardURIChecker;
 import client.net.sf.saxon.ce.om.*;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.BuiltInAtomicType;
@@ -83,8 +82,8 @@ public class ComputedElement extends ElementCreator {
     public Expression typeCheck(ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
         elementName = visitor.typeCheck(elementName, contextItemType);
         RoleLocator role;
-        TypeHierarchy th = visitor.getConfiguration().getTypeHierarchy();
-        if (!th.isSubType(elementName.getItemType(th), BuiltInAtomicType.STRING)) {
+        TypeHierarchy th = TypeHierarchy.getInstance();
+        if (!th.isSubType(elementName.getItemType(), BuiltInAtomicType.STRING)) {
             elementName = SystemFunction.makeSystemFunction("string", new Expression[]{elementName});
         }
         if (namespace != null) {
@@ -142,31 +141,6 @@ public class ComputedElement extends ElementCreator {
         return list.iterator();
     }
 
-    /**
-     * Replace one subexpression by a replacement subexpression
-     * @param original the original subexpression
-     * @param replacement the replacement subexpression
-     * @return true if the original subexpression is found
-     */
-
-    public boolean replaceSubExpression(Expression original, Expression replacement) {
-        boolean found = false;
-        if (content == original) {
-            content = replacement;
-            found = true;
-        }
-        if (elementName == original) {
-            elementName = replacement;
-            found = true;
-        }
-        if (namespace == original) {
-            namespace = replacement;
-            found = true;
-        }
-        return found;
-    }
-
-
 
     /**
      * Offer promotion for subexpressions. The offer will be accepted if the subexpression
@@ -210,7 +184,7 @@ public class ComputedElement extends ElementCreator {
         // name needs to be evaluated at run-time
         AtomicValue nameValue = (AtomicValue)elementName.evaluateItem(context);
         if (nameValue == null) {
-            dynamicError("Invalid element name (empty sequence)", "XTDE0820", context);
+            dynamicError("Invalid element name (empty sequence)", "XTDE0820");
         }
         //nameValue = nameValue.getPrimitiveValue();
         if (nameValue instanceof StringValue) {  // which includes UntypedAtomic
@@ -226,10 +200,10 @@ public class ComputedElement extends ElementCreator {
                 if (rawName.length() == 0) {
                     message = "Supplied element name is a zero-length string";
                 }
-                dynamicError(message, "XTDE0820", context);
+                dynamicError(message, "XTDE0820");
             }
         } else {
-            dynamicError("Computed element name has incorrect type", "XTDE0820", context);
+            dynamicError("Computed element name has incorrect type", "XTDE0820");
         }
 
         if (namespace == null && uri == null) {
@@ -238,19 +212,12 @@ public class ComputedElement extends ElementCreator {
 //            } else {
                 uri = nsContext.getURIForPrefix(prefix, true);
                 if (uri == null) {
-                    dynamicError("Undeclared prefix in element name: " + prefix, "XTDE0830", context);
+                    dynamicError("Undeclared prefix in element name: " + prefix, "XTDE0830");
                 }
 //            }
         } else {
             if (uri == null) {
-                if (namespace instanceof StringLiteral) {
-                    uri = ((StringLiteral)namespace).getStringValue();
-                } else {
-                    uri = namespace.evaluateAsString(context).toString();
-                    if (!StandardURIChecker.getInstance().isValidURI(uri)) {
-                        dynamicError("The value of the namespace attribute must be a valid URI", "XTDE0835", context);
-                    }
-                }
+                uri = namespace.evaluateAsString(context).toString();
             }
             if (uri.length() == 0) {
                 // there is a special rule for this case in the specification;
@@ -263,7 +230,7 @@ public class ComputedElement extends ElementCreator {
             }
         }
         if (uri.equals(NamespaceConstant.XMLNS)) {
-            dynamicError("Cannot create element in namespace " + uri, "XTDE0835", context);
+            dynamicError("Cannot create element in namespace " + uri, "XTDE0835");
         }
         if (uri.equals(NamespaceConstant.XML) != prefix.equals("xml")) {
             String message;
@@ -272,7 +239,7 @@ public class ComputedElement extends ElementCreator {
             } else {
                 message = "When the namespace URI is " + NamespaceConstant.XML + ", the prefix must be 'xml'";
             }
-            dynamicError(message, "XTDE0835", context);
+            dynamicError(message, "XTDE0835");
         }
 
         return new StructuredQName(prefix, uri, localName);

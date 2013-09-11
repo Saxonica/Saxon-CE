@@ -25,6 +25,7 @@ public interface SourceLocator {
      * Return a string identifying the current location for the purpose
      * of error messages. Designed to be suitable for use as the LOCATION in a phrase
      * such as "Error XXX at LOCATION". May be null if no location information is available
+     * @return a string identifying the location
      */
 
     public String getLocation();

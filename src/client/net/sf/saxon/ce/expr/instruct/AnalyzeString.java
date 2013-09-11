@@ -11,7 +11,6 @@ import client.net.sf.saxon.ce.tree.iter.EmptyIterator;
 import client.net.sf.saxon.ce.type.BuiltInAtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.Type;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.SequenceType;
 
 import java.util.ArrayList;
@@ -158,20 +157,19 @@ public class AnalyzeString extends Instruction {
     /**
      * Get the item type of the items returned by evaluating this instruction
      *
-     * @param th the type hierarchy cache
      * @return the static item type of the instruction
      */
 
-    public ItemType getItemType(TypeHierarchy th) {
+    public ItemType getItemType() {
         if (matching != null) {
             if (nonMatching != null) {
-                return Type.getCommonSuperType(matching.getItemType(th), nonMatching.getItemType(th), th);
+                return Type.getCommonSuperType(matching.getItemType(), nonMatching.getItemType());
             } else {
-                return matching.getItemType(th);
+                return matching.getItemType();
             }
         } else {
             if (nonMatching != null) {
-                return nonMatching.getItemType(th);
+                return nonMatching.getItemType();
             } else {
                 return EmptySequenceTest.getInstance();
             }
@@ -232,7 +230,7 @@ public class AnalyzeString extends Instruction {
      */
 
     public Iterator<Expression> iterateSubExpressions() {
-        ArrayList<Expression> list = new ArrayList(5);
+        ArrayList<Expression> list = new ArrayList<Expression>(5);
         list.add(select);
         list.add(regex);
         list.add(flags);
@@ -256,39 +254,6 @@ public class AnalyzeString extends Instruction {
 
     public boolean hasLoopingSubexpression(Expression child) {
         return child == matching || child == nonMatching;
-    }
-
-    /**
-     * Replace one subexpression by a replacement subexpression
-     *
-     * @param original    the original subexpression
-     * @param replacement the replacement subexpression
-     * @return true if the original subexpression is found
-     */
-
-    public boolean replaceSubExpression(Expression original, Expression replacement) {
-        boolean found = false;
-        if (select == original) {
-            select = replacement;
-            found = true;
-        }
-        if (regex == original) {
-            regex = replacement;
-            found = true;
-        }
-        if (flags == original) {
-            flags = replacement;
-            found = true;
-        }
-        if (matching == original) {
-            matching = replacement;
-            found = true;
-        }
-        if (nonMatching == original) {
-            nonMatching = replacement;
-            found = true;
-        }
-        return found;
     }
 
     /**
@@ -344,7 +309,7 @@ public class AnalyzeString extends Instruction {
         ARegularExpression re = new ARegularExpression(regex.evaluateAsString(context), flagstr, "XP20", null);
         if (re.matches("")) {
             dynamicError("The regular expression must not be one that matches a zero-length string",
-                    "XTDE1150", context);
+                    "XTDE1150");
         }
 
         return re.analyze(input);

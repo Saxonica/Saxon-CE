@@ -5,7 +5,6 @@ import client.net.sf.saxon.ce.expr.sort.GlobalOrderComparer;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.BuiltInAtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.BooleanValue;
 import client.net.sf.saxon.ce.value.SequenceType;
 
@@ -99,10 +98,9 @@ public final class IdentityComparison extends BinaryExpression {
     /**
     * Determine the data type of the expression
     * @return Type.BOOLEAN
-     * @param th the type hierarchy cache
      */
 
-    public ItemType getItemType(TypeHierarchy th) {
+    public ItemType getItemType() {
         return BuiltInAtomicType.BOOLEAN;
     }
 

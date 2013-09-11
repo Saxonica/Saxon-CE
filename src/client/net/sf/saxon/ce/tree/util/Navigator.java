@@ -11,6 +11,7 @@ import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.*;
 import client.net.sf.saxon.ce.tree.wrapper.SiblingCountingNode;
 import client.net.sf.saxon.ce.type.Type;
+import client.net.sf.saxon.ce.value.SequenceExtent;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -39,7 +40,7 @@ public final class Navigator {
 
     public static String getAttributeValue(NodeInfo element, String uri, String local) {
         NameTest test = new NameTest(Type.ATTRIBUTE, uri, local);
-        AxisIterator iterator = element.iterateAxis(Axis.ATTRIBUTE, test);
+        UnfailingIterator iterator = element.iterateAxis(Axis.ATTRIBUTE, test);
         NodeInfo attribute = (NodeInfo)iterator.next();
         if (attribute == null) {
             return null;
@@ -140,7 +141,7 @@ public final class Navigator {
                     } else {
                         int position = 1;
                         int count = 0;
-                        AxisIterator siblings = parent.iterateAxis(Axis.CHILD, new NameTest(node));
+                        UnfailingIterator siblings = parent.iterateAxis(Axis.CHILD, new NameTest(node));
                         while (true) {
                             NodeInfo sib = (NodeInfo)siblings.next();
                             if (sib == null) {
@@ -210,7 +211,7 @@ public final class Navigator {
         }
 
         Controller controller = (context == null ? null : context.getController());
-        AxisIterator preceding = node.iterateAxis(Axis.PRECEDING_SIBLING, same);
+        UnfailingIterator preceding = node.iterateAxis(Axis.PRECEDING_SIBLING, same);
 
         int i = 1;
         while (true) {
@@ -482,7 +483,7 @@ public final class Navigator {
             case Type.DOCUMENT:
                 {
                     out.startDocument();
-                    AxisIterator children0 = node.iterateAxis(Axis.CHILD, AnyNodeTest.getInstance());
+                    UnfailingIterator children0 = node.iterateAxis(Axis.CHILD, AnyNodeTest.getInstance());
                     while (true) {
                         NodeInfo child = (NodeInfo)children0.next();
                         if (child == null) {
@@ -514,7 +515,7 @@ public final class Navigator {
 
                     // output the attributes
 
-                    AxisIterator attributes = node.iterateAxis(Axis.ATTRIBUTE, AnyNodeTest.getInstance());
+                    UnfailingIterator attributes = node.iterateAxis(Axis.ATTRIBUTE, AnyNodeTest.getInstance());
                     while (true) {
                         NodeInfo att = (NodeInfo)attributes.next();
                         if (att == null) {
@@ -529,7 +530,7 @@ public final class Navigator {
 
                     // output the children
 
-                    AxisIterator children = node.iterateAxis(Axis.CHILD, AnyNodeTest.getInstance());
+                    UnfailingIterator children = node.iterateAxis(Axis.CHILD, AnyNodeTest.getInstance());
                     while (true) {
                         NodeInfo child = (NodeInfo)children.next();
                         if (child == null) {
@@ -806,9 +807,9 @@ public final class Navigator {
      * @return an iterator over the node if it exists and matches the test.
      */
 
-    public static AxisIterator filteredSingleton(NodeInfo node, NodeTest nodeTest) {
+    public static UnfailingIterator filteredSingleton(NodeInfo node, NodeTest nodeTest) {
         if (node != null && nodeTest.matches(node)) {
-            return SingleNodeIterator.makeIterator(node);
+            return SingletonIterator.makeIterator(node);
         } else {
             return EmptyIterator.getInstance();
         }
@@ -820,7 +821,7 @@ public final class Navigator {
      */
 
     public static class AxisFilter extends AxisIteratorImpl {
-        private AxisIterator base;
+        private UnfailingIterator base;
         private NodeTest nodeTest;
 
         /**
@@ -833,7 +834,7 @@ public final class Navigator {
          *             returned by the AxisFilter
          */
 
-        public AxisFilter(AxisIterator base, NodeTest test) {
+        public AxisFilter(UnfailingIterator base, NodeTest test) {
             this.base = base;
             nodeTest = test;
             position = 0;
@@ -854,7 +855,7 @@ public final class Navigator {
         }
 
         public SequenceIterator getAnother() {
-            return new AxisFilter((AxisIterator)base.getAnother(), nodeTest);
+            return new AxisFilter((UnfailingIterator)base.getAnother(), nodeTest);
         }
     }
 
@@ -864,7 +865,7 @@ public final class Navigator {
      */
 
     public static class EmptyTextFilter extends AxisIteratorImpl {
-        private AxisIterator base;
+        private UnfailingIterator base;
 
         /**
          * Construct an EmptyTextFilter
@@ -873,7 +874,7 @@ public final class Navigator {
          *             a required axis. This must not be an atomizing iterator
          */
 
-        public EmptyTextFilter(AxisIterator base) {
+        public EmptyTextFilter(UnfailingIterator base) {
             this.base = base;
             position = 0;
         }
@@ -893,7 +894,7 @@ public final class Navigator {
         }
 
         public SequenceIterator getAnother() {
-            return new EmptyTextFilter((AxisIterator)base.getAnother());
+            return new EmptyTextFilter((UnfailingIterator)base.getAnother());
         }
     }
 
@@ -932,44 +933,9 @@ public final class Navigator {
 
     }
 
-    /**
-     * General-purpose implementation of the ancestor and ancestor-or-self axes
-     */
-
-    public static final class AncestorEnumeration extends BaseEnumeration {
-
-        private boolean includeSelf;
-        private boolean atStart;
-        private NodeInfo start;
-
-        /**
-         * Create an iterator over the ancestor or ancestor-or-self axis
-         * @param start the initial context node
-         * @param includeSelf true if the "self" node is to be included
-         */
-
-        public AncestorEnumeration(NodeInfo start, boolean includeSelf) {
-            this.start = start;
-            this.includeSelf = includeSelf;
-            current = start;
-            atStart = true;
-        }
-
-        public void advance() {
-            if (atStart) {
-                atStart = false;
-                if (includeSelf) {
-                    return;
-                }
-            }
-            current = (current == null ? null : current.getParent());
-        }
-
-        public SequenceIterator getAnother() {
-            return new AncestorEnumeration(start, includeSelf);
-        }
-
-    } // end of class AncestorEnumeration
+    public static final UnfailingIterator getAncestorIterator(NodeInfo origin, NodeTest nodeTest, boolean includeSelf) {
+        return new SteppingIterator(origin, new ParentFunction(nodeTest), includeSelf);
+    }
 
     /**
      * General-purpose implementation of the descendant and descendant-or-self axes,
@@ -982,8 +948,8 @@ public final class Navigator {
 
     public static final class DescendantEnumeration extends BaseEnumeration {
 
-        private AxisIterator children = null;
-        private AxisIterator descendants = null;
+        private UnfailingIterator children = null;
+        private UnfailingIterator descendants = null;
         private NodeInfo start;
         private boolean includeSelf;
         private boolean forwards;
@@ -1045,23 +1011,14 @@ public final class Navigator {
                     //children = new XMLNodeWrapper.ChildEnumeration(start, true, forwards);
                     children = start.iterateAxis(Axis.CHILD);
                     if (!forwards) {
+                        UnfailingIterator forwards = start.iterateAxis(Axis.CHILD);
+                        SequenceExtent reversed;
                         try {
-                            List list = new ArrayList(20);
-                            SequenceIterator forwards = start.iterateAxis(Axis.CHILD);
-                            while (true) {
-                                Item n = forwards.next();
-                                if (n == null) {
-                                    break;
-                                }
-                                list.add(n);
-                            }
-                            NodeInfo[] nodes = new NodeInfo[list.size()];
-                            nodes = (NodeInfo[])list.toArray(nodes);
-                            children = new ReverseNodeArrayIterator(nodes, 0, nodes.length);
+                            reversed = SequenceExtent.makeReversed(forwards);
                         } catch (XPathException e) {
-                            throw new AssertionError("Internal error in Navigator#descendantEnumeration: " + e.getMessage());
-                            // shouldn't happen.
+                            throw new AssertionError(e);
                         }
+                        children = reversed.iterate();
                     }
                 } else {
                     children = EmptyIterator.getInstance();
@@ -1087,9 +1044,9 @@ public final class Navigator {
 
     public static final class FollowingEnumeration extends BaseEnumeration {
         private NodeInfo start;
-        private AxisIterator ancestorEnum = null;
-        private AxisIterator siblingEnum = null;
-        private AxisIterator descendEnum = null;
+        private UnfailingIterator ancestorEnum = null;
+        private UnfailingIterator siblingEnum = null;
+        private UnfailingIterator descendEnum = null;
 
         /**
          * Create an iterator over the "following" axis
@@ -1098,7 +1055,7 @@ public final class Navigator {
 
         public FollowingEnumeration(NodeInfo start) {
             this.start = start;
-            ancestorEnum = new AncestorEnumeration(start, false);
+            ancestorEnum = getAncestorIterator(start, AnyNodeTest.getInstance(), false);
             switch (start.getNodeKind()) {
                 case Type.ELEMENT:
                 case Type.TEXT:
@@ -1182,9 +1139,9 @@ public final class Navigator {
     public static final class PrecedingEnumeration extends BaseEnumeration {
 
         private NodeInfo start;
-        private AxisIterator ancestorEnum = null;
-        private AxisIterator siblingEnum = null;
-        private AxisIterator descendEnum = null;
+        private UnfailingIterator ancestorEnum = null;
+        private UnfailingIterator siblingEnum = null;
+        private UnfailingIterator descendEnum = null;
         private boolean includeAncestors;
 
         /**
@@ -1198,7 +1155,7 @@ public final class Navigator {
         public PrecedingEnumeration(NodeInfo start, boolean includeAncestors) {
             this.start = start;
             this.includeAncestors = includeAncestors;
-            ancestorEnum = new AncestorEnumeration(start, false);
+            ancestorEnum = getAncestorIterator(start, AnyNodeTest.getInstance(), false);
             switch (start.getNodeKind()) {
                 case Type.ELEMENT:
                 case Type.TEXT:
@@ -1262,6 +1219,19 @@ public final class Navigator {
     } // end of class PrecedingEnumeration
 
 
+    public static class ParentFunction implements SteppingIterator.SteppingFunction {
+        private NodeTest predicate;
+        public ParentFunction(NodeTest predicate) {
+            this.predicate = predicate;
+        }
+        public Item step(Item current) {
+            return ((NodeInfo)current).getParent();
+        }
+
+        public boolean conforms(Item current) {
+            return predicate.matches((NodeInfo)current);
+        }
+    }
 }
 
 // This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. 

@@ -1,6 +1,5 @@
 package client.net.sf.saxon.ce.expr.sort;
 
-import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.lib.StringCollator;
 import client.net.sf.saxon.ce.trans.NoDynamicContextException;
 import client.net.sf.saxon.ce.value.AtomicValue;
@@ -11,28 +10,14 @@ import client.net.sf.saxon.ce.value.CalendarValue;
  */
 public class CalendarValueComparer implements AtomicComparer {
 
-    private transient XPathContext context;
+    private int implicitTimezone;
 
-    public CalendarValueComparer(XPathContext context) {
-        this.context = context;
+    public CalendarValueComparer(int implicitTimezone) {
+        this.implicitTimezone = implicitTimezone;
     }
 
     public StringCollator getCollator() {
         return null;
-    }
-
-    /**
-     * Supply the dynamic context in case this is needed for the comparison
-     *
-     * @param context the dynamic evaluation context
-     * @return either the original AtomicComparer, or a new AtomicComparer in which the context
-     *         is known. The original AtomicComparer is not modified
-     * @throws client.net.sf.saxon.ce.trans.NoDynamicContextException
-     *          if the context is an "early evaluation" (compile-time) context
-     */
-
-    public AtomicComparer provideContext(XPathContext context) {
-        return new CalendarValueComparer(context);
     }
 
     /**
@@ -56,7 +41,7 @@ public class CalendarValueComparer implements AtomicComparer {
         } else if (b == null) {
             return +1;
         }
-        return ((CalendarValue)a).compareTo((CalendarValue)b, context);
+        return ((CalendarValue)a).compareTo((CalendarValue)b, implicitTimezone);
     }
 
     /**

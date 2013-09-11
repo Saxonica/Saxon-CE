@@ -27,22 +27,6 @@ public final class FloatValue extends NumericValue {
 
     public FloatValue(float value) {
         this.value = value;
-        typeLabel = BuiltInAtomicType.FLOAT;
-    }
-
-    /**
-     * Constructor supplying a float and an AtomicType, for creating
-     * a value that belongs to a user-defined subtype of xs:float. It is
-     * the caller's responsibility to ensure that the supplied value conforms
-     * to the supplied type.
-     * @param value the value of the NumericValue
-     * @param type the type of the value. This must be a subtype of xs:float, and the
-     * value must conform to this type. The method does not check these conditions.
-     */
-
-    public FloatValue(float value, BuiltInAtomicType type) {
-        this.value = value;
-        typeLabel = type;
     }
 
     /**
@@ -52,7 +36,7 @@ public final class FloatValue extends NumericValue {
      * and xs:untypedAtomic. For external objects, the result is AnyAtomicType.
      */
 
-    public BuiltInAtomicType getPrimitiveType() {
+    public BuiltInAtomicType getItemType() {
         return BuiltInAtomicType.FLOAT;
     }
 
@@ -112,21 +96,17 @@ public final class FloatValue extends NumericValue {
             return BooleanValue.get(effectiveBooleanValue());
         } else if (requiredType == BuiltInAtomicType.INTEGER) {
             if (Float.isNaN(value)) {
-                ValidationFailure err = new ValidationFailure("Cannot convert float NaN to an integer");
-                err.setErrorCode("FOCA0002");
-                return err;
+                return new ValidationFailure("Cannot convert float NaN to an integer", "FOCA0002");
             }
             if (Float.isInfinite(value)) {
-                ValidationFailure err = new ValidationFailure("Cannot convert float INF to an integer");
-                err.setErrorCode("FOCA0002");
-                return err;
+                return new ValidationFailure("Cannot convert float INF to an integer", "FOCA0002");
             }
             return IntegerValue.decimalToInteger(new BigDecimal(value));
         } else if (requiredType == BuiltInAtomicType.DECIMAL) {
             try {
                 return new DecimalValue(value);
             } catch (XPathException e) {
-                return new ValidationFailure(e);
+                return new ValidationFailure(e.getMessage());
             }
         } else if (requiredType == BuiltInAtomicType.DOUBLE) {
             return new DoubleValue(value);
@@ -135,10 +115,7 @@ public final class FloatValue extends NumericValue {
         } else if (requiredType == BuiltInAtomicType.UNTYPED_ATOMIC) {
             return new UntypedAtomicValue(getStringValue());
         } else {
-            ValidationFailure err = new ValidationFailure("Cannot convert float to " +
-                    requiredType.getDisplayName());
-            err.setErrorCode("XPTY0004");
-            return err;
+            return new ValidationFailure("Cannot convert float to " + requiredType.getDisplayName(), "XPTY0004");
         }
     }
 

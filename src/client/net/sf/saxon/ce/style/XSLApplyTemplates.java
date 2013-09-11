@@ -1,5 +1,6 @@
 package client.net.sf.saxon.ce.style;
 
+import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 import com.google.gwt.logging.client.LogConfiguration;
 
 import client.net.sf.saxon.ce.LogController;
@@ -15,7 +16,6 @@ import client.net.sf.saxon.ce.om.*;
 import client.net.sf.saxon.ce.trans.Err;
 import client.net.sf.saxon.ce.trans.Mode;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.tree.iter.AxisIterator;
 import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.value.SequenceType;
 import client.net.sf.saxon.ce.value.Whitespace;
@@ -48,22 +48,27 @@ public class XSLApplyTemplates extends StyleElement {
 
     public void prepareAttributes() throws XPathException {
 
-		AttributeCollection atts = getAttributeList();
+//		AttributeCollection atts = getAttributeList();
+//
+//		selectAtt = null;
+//
+//		for (int a=0; a<atts.getLength(); a++) {
+//			StructuredQName qn = atts.getStructuredQName(a);
+//            String f = qn.getClarkName();
+//			if (f.equals("mode")) {
+//        		modeAttribute = Whitespace.trim(atts.getValue(a));
+//        	} else if (f.equals("select")) {
+//        		selectAtt = atts.getValue(a);
+//                defaultedSelectExpression = false;
+//            } else {
+//        		checkUnknownAttribute(qn);
+//        	}
+//        }
 
-		selectAtt = null;
+        select = (Expression)checkAttribute("select", "e");
+        modeAttribute = (String)checkAttribute("mode", "w");
+        checkForUnknownAttributes();
 
-		for (int a=0; a<atts.getLength(); a++) {
-			StructuredQName qn = atts.getStructuredQName(a);
-            String f = qn.getClarkName();
-			if (f.equals("mode")) {
-        		modeAttribute = Whitespace.trim(atts.getValue(a));
-        	} else if (f.equals("select")) {
-        		selectAtt = atts.getValue(a);
-                defaultedSelectExpression = false;
-            } else {
-        		checkUnknownAttribute(qn);
-        	}
-        }
 
         if (modeAttribute!=null) {
             if (modeAttribute.equals("#current")) {
@@ -84,8 +89,8 @@ public class XSLApplyTemplates extends StyleElement {
             }
         }
 
-        if (selectAtt!=null) {
-            select = makeExpression(selectAtt);
+        if (select != null) {
+            defaultedSelectExpression = false;
         }
     }
 
@@ -104,7 +109,7 @@ public class XSLApplyTemplates extends StyleElement {
 
         // handle sorting if requested
 
-        AxisIterator kids = iterateAxis(Axis.CHILD);
+        UnfailingIterator kids = iterateAxis(Axis.CHILD);
         while (true) {
             NodeInfo child = (NodeInfo)kids.next();
             if (child == null) {

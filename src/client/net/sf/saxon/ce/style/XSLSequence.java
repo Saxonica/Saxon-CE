@@ -1,15 +1,13 @@
 package client.net.sf.saxon.ce.style;
-import com.google.gwt.logging.client.LogConfiguration;
-
 import client.net.sf.saxon.ce.LogController;
 import client.net.sf.saxon.ce.expr.Expression;
-import client.net.sf.saxon.ce.expr.Literal;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
-import client.net.sf.saxon.ce.om.*;
-import client.net.sf.saxon.ce.tree.iter.AxisIterator;
+import client.net.sf.saxon.ce.om.Axis;
+import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.trans.XPathException;
+import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 import client.net.sf.saxon.ce.type.ItemType;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
+import com.google.gwt.logging.client.LogConfiguration;
 
 
 /**
@@ -40,8 +38,7 @@ public final class XSLSequence extends StyleElement {
      */
 
     protected ItemType getReturnedItemType() {
-        final TypeHierarchy th = getConfiguration().getTypeHierarchy();
-        return select.getItemType(th);
+        return select.getItemType();
     }
 
     /**
@@ -63,35 +60,16 @@ public final class XSLSequence extends StyleElement {
     }
 
     public void prepareAttributes() throws XPathException {
-
-		String selectAtt = null;
-
-		AttributeCollection atts = getAttributeList();
-
-		for (int a=0; a<atts.getLength(); a++) {
-			StructuredQName qn = atts.getStructuredQName(a);
-            String f = qn.getClarkName();
-			if (f.equals("select")) {
-        		selectAtt = atts.getValue(a);
-        	} else {
-        		checkUnknownAttribute(qn);
-        	}
-        }
-
-        if (selectAtt!=null) {
-            select = makeExpression(selectAtt);
-        } else {
-            reportAbsence("select");
-            select = Literal.makeEmptySequence();
-        }
+        select = (Expression)checkAttribute("select", "e1");
+        checkForUnknownAttributes();
         
         if (LogConfiguration.loggingIsEnabled() && LogController.traceIsEnabled()) {
-        	selectAttTrace = selectAtt;
+        	selectAttTrace = getAttributeValue("", "select");
         }
     }
 
     public void validate(Declaration decl) throws XPathException {
-        AxisIterator kids = iterateAxis(Axis.CHILD);
+        UnfailingIterator kids = iterateAxis(Axis.CHILD);
         while (true) {
             NodeInfo child = (NodeInfo)kids.next();
             if (child == null) break;

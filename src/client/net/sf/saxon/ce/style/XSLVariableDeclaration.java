@@ -102,7 +102,7 @@ public abstract class XSLVariableDeclaration
 
     public void fixupReferences() throws XPathException {
         final SequenceType type = getRequiredType();
-        final TypeHierarchy th = getConfiguration().getTypeHierarchy();
+        final TypeHierarchy th = TypeHierarchy.getInstance();
         final Iterator iter = references.iterator();
         while (iter.hasNext()) {
             Value constantValue = null;
@@ -112,7 +112,7 @@ public abstract class XSLVariableDeclaration
                     // we can't rely on the constant value because it hasn't yet been type-checked,
                     // which could change it (eg by numeric promotion). Rather than attempt all the type-checking
                     // now, we do a quick check. See test bug64
-                    int relation = th.relationship(select.getItemType(th), type.getPrimaryType());
+                    int relation = th.relationship(select.getItemType(), type.getPrimaryType());
                     if (relation == TypeHierarchy.SAME_TYPE || relation == TypeHierarchy.SUBSUMED_BY) {
                         constantValue = ((Literal)select).getValue();
                     }

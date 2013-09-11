@@ -1,6 +1,5 @@
 package client.net.sf.saxon.ce.value;
 
-import client.net.sf.saxon.ce.trans.Err;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.BuiltInAtomicType;
 import client.net.sf.saxon.ce.type.ConversionResult;
@@ -36,36 +35,10 @@ public class IntegerValue extends DecimalValue {
      * IntegerValue representing the maximum value for a long
      */
     public static final IntegerValue MAX_LONG = new IntegerValue(new BigDecimal(Long.MAX_VALUE));
-    /**
-     * Array of small integer values
-     */
-    public static final IntegerValue[] SMALL_INTEGERS = {
-        new IntegerValue(0),
-        new IntegerValue(1),
-        new IntegerValue(2),
-        new IntegerValue(3),
-        new IntegerValue(4),
-        new IntegerValue(5),
-        new IntegerValue(6),
-        new IntegerValue(7),
-        new IntegerValue(8),
-        new IntegerValue(9),
-        new IntegerValue(10),
-        new IntegerValue(11),
-        new IntegerValue(12),
-        new IntegerValue(13),
-        new IntegerValue(14),
-        new IntegerValue(15),
-        new IntegerValue(16),
-        new IntegerValue(17),
-        new IntegerValue(18),
-        new IntegerValue(19),
-        new IntegerValue(20)
-    };
+
 
     public IntegerValue(int value) {
         super(value);
-        typeLabel = BuiltInAtomicType.INTEGER;
     }
 
     public IntegerValue(BigDecimal value) {
@@ -73,21 +46,11 @@ public class IntegerValue extends DecimalValue {
         if (value.scale()!=0 && value.compareTo(value.setScale(0, BigDecimal.ROUND_DOWN)) != 0) {
             throw new IllegalArgumentException("non-integral");
         }
-        typeLabel = BuiltInAtomicType.INTEGER;
     }
     
     public static ConversionResult decimalToInteger(BigDecimal value) {
     	int setScaleValue = value.setScale(0, BigDecimal.ROUND_DOWN).intValue();
     	return new IntegerValue(setScaleValue);
-    }
-
-    /**
-     * Get the value of the integer as an int.
-     * @return the value as an int: if the value is too large to fit in an int, only the bottom 32 bits are returned.
-     */
-
-    public int getIntValue() {
-        return getDecimalValue().intValue();
     }
 
     /**
@@ -98,66 +61,15 @@ public class IntegerValue extends DecimalValue {
      */
 
     public static ConversionResult stringToInteger(CharSequence s) {
-
-        int len = s.length();
-        int start = 0;
-        int last = len - 1;
-        while (start < len && s.charAt(start) <= 0x20) {
-            start++;
-        }
-        while (last > start && s.charAt(last) <= 0x20) {
-            last--;
-        }
-        if (start > last) {
-            return numericError("Cannot convert zero-length string to an integer");
-        }
-        if (last - start < 16) {
-            // for short numbers, we do the conversion ourselves, to avoid throwing unnecessary exceptions
-            boolean negative = false;
-            long value = 0;
-            int i=start;
-            if (s.charAt(i) == '+') {
-                i++;
-            } else if (s.charAt(i) == '-') {
-                negative = true;
-                i++;
+        try {
+            String t = Whitespace.trimWhitespace(s).toString();
+            if (t.indexOf('.') >= 0) {
+                t = "*"; // force a failure
             }
-            if (i > last) {
-                return numericError("Cannot convert string " + Err.wrap(s, Err.VALUE) +
-                        " to integer: no digits after the sign");
-            }
-            while (i <= last) {
-                char d = s.charAt(i++);
-                if (d >= '0' && d <= '9') {
-                    value = 10*value + (d-'0');
-                } else {
-                    return numericError("Cannot convert string " + Err.wrap(s, Err.VALUE) + " to an integer");
-                }
-            }
-            return new IntegerValue(new BigDecimal(negative ? -value : value));
-        } else {
-            // for longer numbers, rely on library routines
-            try {
-                CharSequence t = Whitespace.trimWhitespace(s);
-                if (t.charAt(0) == '+') {
-                    t = t.subSequence(1, t.length());
-                }
-                return new IntegerValue(new BigDecimal(t.toString()));
-            } catch (NumberFormatException err) {
-                return numericError("Cannot convert string " + Err.wrap(s, Err.VALUE) + " to an integer");
-            }
+            return new IntegerValue(new BigDecimal(t));
+        } catch (NumberFormatException err) {
+            return new ValidationFailure("Cannot convert string '" + s + "' to an integer", "FORG0001");
         }
-    }
-
-    /**
-     * Helper method to handle errors converting a string to a number
-     * @param message error message
-     * @return a ValidationFailure encapsulating an Exception describing the error
-     */
-    private static ValidationFailure numericError(String message) {
-        ValidationFailure err = new ValidationFailure(message);
-        err.setErrorCode("FORG0001");
-        return err;
     }
 
     /**
@@ -167,7 +79,7 @@ public class IntegerValue extends DecimalValue {
      * and xs:untypedAtomic. For external objects, the result is AnyAtomicType.
      */
 
-    public BuiltInAtomicType getPrimitiveType() {
+    public BuiltInAtomicType getItemType() {
         return BuiltInAtomicType.INTEGER;
     }
 
@@ -187,13 +99,6 @@ public class IntegerValue extends DecimalValue {
      * @param other the other integer
      * @return the result of the modulo operation (the remainder)
      * @throws XPathException if the other integer is zero
-     */
-
-    /**
-     * Take modulo another integer
-     *
-     * @throws client.net.sf.saxon.ce.trans.XPathException
-     *          if the other integer is zero
      */
 
     public IntegerValue mod(IntegerValue other) throws XPathException {
@@ -270,21 +175,6 @@ public class IntegerValue extends DecimalValue {
     }
 
 
-    /**
-     * Factory method: allows Int64Value objects to be reused. Note that
-     * a value obtained using this method must not be modified to set a type label, because
-     * the value is in general shared.
-     * @param value the integer value
-     * @return an Int64Value with this integer value
-     */
-
-    public static IntegerValue makeIntegerValue(int value) {
-        if (value <= 20 && value >= 0) {
-            return SMALL_INTEGERS[value];
-        } else {
-            return new IntegerValue(value);
-        }
-    }
 }
 
 // This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. 

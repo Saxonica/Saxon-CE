@@ -9,7 +9,7 @@ import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.pattern.NameTest;
 import client.net.sf.saxon.ce.pattern.NodeKindTest;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.tree.iter.AxisIterator;
+import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
 import client.net.sf.saxon.ce.tree.util.Navigator;
 import client.net.sf.saxon.ce.type.Type;
@@ -65,7 +65,7 @@ public class UnicodeBlocks {
         }
 
 
-        AxisIterator iter = doc.iterateAxis(Axis.DESCENDANT, new NameTest(Type.ELEMENT, "", "block"));
+        UnfailingIterator iter = doc.iterateAxis(Axis.DESCENDANT, new NameTest(Type.ELEMENT, "", "block"));
         while (true) {
             NodeInfo item = (NodeInfo)iter.next();
             if (item == null) {
@@ -73,7 +73,7 @@ public class UnicodeBlocks {
             }
             String blockName = normalizeBlockName(Navigator.getAttributeValue(item, "", "name"));
             IntRangeSet range = null;
-            AxisIterator ranges = item.iterateAxis(Axis.CHILD, NodeKindTest.ELEMENT);
+            UnfailingIterator ranges = item.iterateAxis(Axis.CHILD, NodeKindTest.ELEMENT);
             while (true) {
                 NodeInfo rangeElement = (NodeInfo)ranges.next();
                 if (rangeElement == null) {

@@ -1,15 +1,14 @@
 package client.net.sf.saxon.ce.style;
 
-import client.net.sf.saxon.ce.PreparedStylesheet;
 import client.net.sf.saxon.ce.expr.Expression;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.functions.DocumentFn;
-import client.net.sf.saxon.ce.om.*;
+import client.net.sf.saxon.ce.om.DocumentInfo;
+import client.net.sf.saxon.ce.om.DocumentURI;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.linked.DocumentImpl;
 import client.net.sf.saxon.ce.tree.linked.ElementImpl;
 import client.net.sf.saxon.ce.tree.util.URI;
-import client.net.sf.saxon.ce.value.Whitespace;
 
 
 /**
@@ -41,22 +40,8 @@ public abstract class XSLGeneralIncorporate extends StyleElement {
     public abstract boolean isImport();
 
     public void prepareAttributes() throws XPathException {
-
-		AttributeCollection atts = getAttributeList();
-
-		for (int a=0; a<atts.getLength(); a++) {
-			StructuredQName qn = atts.getStructuredQName(a);
-            String f = qn.getClarkName();
-			if (f.equals("href")) {
-        		href = Whitespace.trim(atts.getValue(a));
-        	} else {
-        		checkUnknownAttribute(qn);
-        	}
-        }
-
-        if (href==null) {
-            reportAbsence("href");
-        }
+        href = (String)checkAttribute("href", "w1");
+        checkForUnknownAttributes();
     }
 
     public void validate(Declaration decl) throws XPathException {
@@ -89,7 +74,7 @@ public abstract class XSLGeneralIncorporate extends StyleElement {
 
         try {
             PrincipalStylesheetModule psm = importer.getPrincipalStylesheetModule();
-            PreparedStylesheet pss = psm.getPreparedStylesheet();
+            Executable pss = psm.getExecutable();
             XSLStylesheet includedSheet;
             StylesheetModule incModule;
 

@@ -1,6 +1,5 @@
 package client.net.sf.saxon.ce.value;
 
-import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.lib.StringCollator;
 import client.net.sf.saxon.ce.trans.Err;
 import client.net.sf.saxon.ce.trans.XPathException;
@@ -36,7 +35,6 @@ public class StringValue extends AtomicValue {
 
     protected StringValue() {
         value = "";
-        typeLabel = BuiltInAtomicType.STRING;
     }
 
     /**
@@ -49,7 +47,6 @@ public class StringValue extends AtomicValue {
 
     public StringValue(CharSequence value) {
         this.value = (value == null ? "" : value);
-        typeLabel = BuiltInAtomicType.STRING;
     }
 
     /**
@@ -67,7 +64,7 @@ public class StringValue extends AtomicValue {
      * and xs:untypedAtomic. For external objects, the result is AnyAtomicType.
      */
 
-    public BuiltInAtomicType getPrimitiveType() {
+    public BuiltInAtomicType getItemType() {
         return BuiltInAtomicType.STRING;
     }
 
@@ -135,9 +132,7 @@ public class StringValue extends AtomicValue {
                     double dbl = StringToDouble.stringToNumber(value);
                     return new DoubleValue(dbl);
                 } catch (NumberFormatException err) {
-                    ValidationFailure ve = new ValidationFailure("Cannot convert string to double: " + value.toString());
-                    ve.setErrorCode("FORG0001");
-                    return ve;
+                    return new ValidationFailure("Cannot convert string to double: " + value.toString(), "FORG0001");
                 }
             } else if (requiredType == BuiltInAtomicType.INTEGER) {
                 return IntegerValue.stringToInteger(value);
@@ -148,9 +143,7 @@ public class StringValue extends AtomicValue {
                     float flt = (float) StringToDouble.stringToNumber(value);
                     return new FloatValue(flt);
                 } catch (NumberFormatException err) {
-                    ValidationFailure ve = new ValidationFailure("Cannot convert string to float: " + value.toString());
-                    ve.setErrorCode("FORG0001");
-                    return ve;
+                    return new ValidationFailure("Cannot convert string to float: " + value.toString(), "FORG0001");
                 }
             } else if (requiredType == BuiltInAtomicType.DATE) {
                 return DateValue.makeDateValue(value);
@@ -185,13 +178,9 @@ public class StringValue extends AtomicValue {
             } else if (requiredType == BuiltInAtomicType.BASE64_BINARY) {
                 return new Base64BinaryValue(value);
             } else {
-                ValidationFailure ve = new ValidationFailure("Cannot convert string to type " +
-                        Err.wrap(requiredType.getDisplayName()));
-                ve.setErrorCode("XPTY0004");
-                return ve;
+                return new ValidationFailure("Cannot convert string to type " + Err.wrap(requiredType.getDisplayName()), "XPTY0004");
             }
         } catch (XPathException err) {
-            err.maybeSetErrorCode("FORG0001");
             ValidationFailure vf = new ValidationFailure(err.getMessage());
             vf.setErrorCodeQName(err.getErrorCodeQName());
             if (vf.getErrorCodeQName() == null) {
@@ -339,17 +328,18 @@ public class StringValue extends AtomicValue {
      * semantics are context-sensitive, for example where they depend on the implicit timezone or the default
      * collation.
      *
+     *
+     *
      * @param ordered  true if an ordered comparison is required. In this case the result is null if the
      *                 type is unordered; in other cases the returned value will be a Comparable.
      * @param collator Collation to be used for comparing strings
-     * @param context  the XPath dynamic evaluation context, used in cases where the comparison is context
-     *                 sensitive
+     * @param implicitTimezone
      * @return an Object whose equals() and hashCode() methods implement the XPath comparison semantics
      *         with respect to this atomic value. If ordered is specified, the result will either be null if
      *         no ordering is defined, or will be a Comparable
      */
 
-    public Object getXPathComparable(boolean ordered, StringCollator collator, XPathContext context) {
+    public Object getXPathComparable(boolean ordered, StringCollator collator, int implicitTimezone) {
         return collator.getCollationKey(value.toString());
     }
 

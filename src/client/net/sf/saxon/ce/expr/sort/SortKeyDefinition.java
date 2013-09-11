@@ -39,13 +39,16 @@ public class SortKeyDefinition {
     private static StringLiteral defaultLanguage = new StringLiteral(StringValue.EMPTY_STRING);
 
     protected Expression sortKey;
-    protected Expression order = defaultOrder;
-    protected Expression dataTypeExpression = null;
-                                        // used when the type is not known till run-time
-    protected Expression caseOrder = defaultCaseOrder;
-    protected Expression language = defaultLanguage;
-    protected Expression collationName = null;
-    protected Expression stable = null; // not actually used, but present so it can be validated
+
+    public static final int ORDER = 0;
+    public static final int DATA_TYPE = 1;
+    public static final int CASE_ORDER = 2;
+    public static final int LANG = 3;
+    public static final int COLLATION = 4;
+    public static final int STABLE = 5;
+    public static final int N = 6;
+
+    protected Expression[] sortProperties = new Expression[N];
     protected StringCollator collation;
     protected String baseURI;           // needed in case collation URI is relative
     protected boolean backwardsCompatible = false;
@@ -54,6 +57,12 @@ public class SortKeyDefinition {
     // Note, the "collation" defines the collating sequence for the sort key. The
     // "finalComparator" is what is actually used to do comparisons, after taking into account
     // ascending/descending, caseOrder, etc.
+
+    public SortKeyDefinition() {
+        sortProperties[ORDER] = defaultOrder;
+        sortProperties[CASE_ORDER] = defaultCaseOrder;
+        sortProperties[LANG] = defaultLanguage;
+    }
 
     /**
      * Set the expression used as the sort key
@@ -73,106 +82,12 @@ public class SortKeyDefinition {
         return sortKey;
     }
 
-
-    /**
-     * Set the order. This is supplied as an expression which must evaluate to "ascending"
-     * or "descending". If the order is fixed, supply e.g. new StringValue("ascending").
-     * Default is "ascending".
-     * @param exp the expression that determines the order (always a literal in XQuery, but
-     * can be defined by an AVT in XSLT)
-    */
-
-    public void setOrder(Expression exp) {
-        order = exp;
+    public void setSortProperty(int property, Expression value) {
+        sortProperties[property] = value;
     }
 
-    /**
-     * Get the expression that defines the order as ascending or descending
-     * @return the expression that determines the order (always a literal in XQuery, but
-     * can be defined by an AVT in XSLT)
-     */
-
-    public Expression getOrder() {
-        return order;
-    }
-
-    /**
-     * Set the data type. This is supplied as an expression which must evaluate to "text",
-     * "number", or a QName. If the data type is fixed, the valus should be supplied using
-     * setDataType() and not via this method.
-     * @param exp the expression that defines the data type, as used in XSLT 1.0
-    */
-
-    public void setDataTypeExpression(Expression exp) {
-        dataTypeExpression = exp;
-    }
-
-    /**
-     * Get the expression that defines the data type of the sort keys
-     * @return the expression that defines the data type, as used in XSLT 1.0
-     */
-
-    public Expression getDataTypeExpression() {
-        return dataTypeExpression;
-    }
-
-    /**
-     * Set the case order. This is supplied as an expression which must evaluate to "upper-first"
-     * or "lower-first" or "#default". If the order is fixed, supply e.g. new StringValue("lower-first").
-     * Default is "#default".
-     * @param exp the expression that defines the case order
-    */
-
-    public void setCaseOrder(Expression exp) {
-        caseOrder = exp;
-    }
-
-    /**
-     * Get the expression that defines the case order of the sort keys.
-     * @return the expression that defines the case order, whose run-time value will be "upper-first",
-     * "lower-first", or "#default".
-     */
-
-    public Expression getCaseOrder() {
-        return caseOrder;
-    }
-
-    /**
-     * Set the language. This is supplied as an expression which evaluates to the language name.
-     * If the order is fixed, supply e.g. new StringValue("de").
-     * @param exp the expression that determines the language
-    */
-
-    public void setLanguage(Expression exp) {
-        language = exp;
-    }
-
-    /**
-     * Get the expression that defines the language of the sort keys
-     * @return exp the expression that determines the language
-     */
-
-    public Expression getLanguage() {
-        return language;
-    }
-
-    /**
-     * Set the collation name (specifically, an expression which when evaluated returns the collation URI).
-     * @param collationName the expression that determines the collation name
-    */
-
-    public void setCollationNameExpression(Expression collationName) {
-        this.collationName = collationName;
-    }
-
-    /**
-     * Get the selected collation name
-     * (specifically, an expression which when evaluated returns the collation URI).
-     * @return the expression that determines the collation name
-    */
-
-    public Expression getCollationNameExpression() {
-        return collationName;
+    public Expression getSortProperty(int property) {
+        return sortProperties[property];
     }
 
     /**
@@ -214,26 +129,6 @@ public class SortKeyDefinition {
     }
 
     /**
-     * Set whether this sort key definition is stable
-     * @param stable the expression that determines whether the sort key definition is stable
-     * (it evaluates to the string "yes" or "no".
-     */
-
-    public void setStable(Expression stable) {
-        this.stable = stable;
-    }
-
-    /**
-     * Ask whether this sort key definition is stable
-     * @return the expression that determines whether the sort key definition is stable
-     * (it evaluates to the string "yes" or "no".
-     */
-
-    public Expression getStable() {
-        return stable;
-    }
-
-    /**
      * Set whether this sort key is evaluated in XSLT 1.0 backwards compatibility mode
      * @param compatible true if backwards compatibility mode is selected
      */
@@ -258,13 +153,12 @@ public class SortKeyDefinition {
      */
 
     public boolean isFixed() {
-        return (order instanceof Literal &&
-                (dataTypeExpression == null ||
-                    dataTypeExpression instanceof Literal) &&
-                caseOrder instanceof Literal &&
-                language instanceof Literal &&
-                (stable == null || stable instanceof Literal) &&
-                (collationName == null || collationName instanceof Literal));
+        for (int i=0; i<N; i++) {
+            if (sortProperties[i] != null && !(sortProperties[i] instanceof Literal)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     /**
@@ -276,12 +170,9 @@ public class SortKeyDefinition {
 
     public SortKeyDefinition simplify(ExpressionVisitor visitor) throws XPathException {
         sortKey = visitor.simplify(sortKey);
-        order = visitor.simplify(order);
-        dataTypeExpression = visitor.simplify(dataTypeExpression);
-        caseOrder = visitor.simplify(caseOrder);
-        language = visitor.simplify(language);
-        stable = visitor.simplify(stable);
-        collationName = visitor.simplify(collationName);
+        for (int i=0; i<N; i++) {
+            sortProperties[i] = visitor.simplify(sortProperties[i]);
+        }
         return this;
     }
 
@@ -295,13 +186,11 @@ public class SortKeyDefinition {
      */
 
     public void typeCheck(ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
-        order = visitor.typeCheck(order, contextItemType);
-        dataTypeExpression = visitor.typeCheck(dataTypeExpression, contextItemType);
-        caseOrder = visitor.typeCheck(caseOrder, contextItemType);
-        language = visitor.typeCheck(language, contextItemType);
-        stable = visitor.typeCheck(stable, contextItemType);
-        collationName = visitor.typeCheck(collationName, contextItemType);
+        for (int i=0; i<N; i++) {
+            sortProperties[i] = visitor.typeCheck(sortProperties[i], contextItemType);
+        }
 
+        Expression language = sortProperties[LANG];
         if (language instanceof StringLiteral && ((StringLiteral)language).getStringValue().length() != 0) {
             if (!StringValue.isValidLanguageCode(((StringLiteral)language).getStringValue())) {
                 throw new XPathException("The lang attribute of xsl:sort must be a valid language code", "XTDE0030");
@@ -320,17 +209,17 @@ public class SortKeyDefinition {
 
     public AtomicComparer makeComparator(XPathContext context) throws XPathException {
 
-        String orderX = order.evaluateAsString(context).toString();
+        String orderX = sortProperties[ORDER].evaluateAsString(context).toString();
 
         final Configuration config = context.getConfiguration();
-        final TypeHierarchy th = config.getTypeHierarchy();
+        final TypeHierarchy th = TypeHierarchy.getInstance();
 
         AtomicComparer atomicComparer;
         StringCollator stringCollator;
         if (collation != null) {
             stringCollator = collation;
-        } else if (collationName != null) {
-            String cname = collationName.evaluateAsString(context).toString();
+        } else if (sortProperties[COLLATION] != null) {
+            String cname = sortProperties[COLLATION].evaluateAsString(context).toString();
             URI collationURI;
             try {
                 collationURI = new URI(cname, true);
@@ -350,11 +239,11 @@ public class SortKeyDefinition {
                 throw new XPathException("Unknown collation " + collationURI.toString(), "XTDE1035");
             }
         } else {
-            String caseOrderX = caseOrder.evaluateAsString(context).toString();
-            String languageX = language.evaluateAsString(context).toString();
+            String caseOrderX = sortProperties[CASE_ORDER].evaluateAsString(context).toString();
+            String languageX = sortProperties[LANG].evaluateAsString(context).toString();
             HashMap props = new HashMap();
-            if (languageX.length() != 0 && !(language instanceof StringLiteral)) {
-                if (!StringValue.isValidLanguageCode(((StringLiteral)language).getStringValue())) {
+            if (languageX.length() != 0 && !(sortProperties[LANG] instanceof StringLiteral)) {
+                if (!StringValue.isValidLanguageCode(((StringLiteral)sortProperties[LANG]).getStringValue())) {
                     throw new XPathException("The lang attribute of xsl:sort must be a valid language code", "XTDE0030");
                 }
                 props.put("lang", languageX);
@@ -368,14 +257,14 @@ public class SortKeyDefinition {
 
 
 
-        if (dataTypeExpression==null) {
+        if (sortProperties[DATA_TYPE]==null) {
             atomicComparer = AtomicSortComparer.makeSortComparer(stringCollator,
-                sortKey.getItemType(th).getAtomizedItemType(), context);
+                sortKey.getItemType().getAtomizedItemType(), context.getImplicitTimezone());
         } else {
-            String dataType = dataTypeExpression.evaluateAsString(context).toString();
+            String dataType = sortProperties[DATA_TYPE].evaluateAsString(context).toString();
             if (dataType.equals("text")) {
                 atomicComparer = AtomicSortComparer.makeSortComparer(stringCollator,
-                    BuiltInAtomicType.STRING, context);
+                    BuiltInAtomicType.STRING, context.getImplicitTimezone());
                 atomicComparer = new TextComparer(atomicComparer);
             } else if (dataType.equals("number")) {
                 atomicComparer = NumericComparer.getInstance();
@@ -386,8 +275,8 @@ public class SortKeyDefinition {
             }
         }
 
-        if (stable != null) {
-            StringValue stableVal = (StringValue)stable.evaluateItem(context);
+        if (sortProperties[STABLE] != null) {
+            StringValue stableVal = (StringValue)sortProperties[STABLE].evaluateItem(context);
             String s = Whitespace.trim(stableVal.getStringValue());
             if (s.equals("yes") || s.equals("no")) {
                 // no action

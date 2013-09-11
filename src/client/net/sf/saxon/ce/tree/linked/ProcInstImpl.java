@@ -1,6 +1,7 @@
 package client.net.sf.saxon.ce.tree.linked;
 
 import client.net.sf.saxon.ce.event.Receiver;
+import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.value.AtomicValue;
@@ -23,6 +24,15 @@ class ProcInstImpl extends NodeImpl {
         this.content = content;
     }
 
+    /**
+     * Get the name of the node
+     *
+     * @return the name of the node, as a StructuredQName. Return null for an unnamed node.
+     */
+    @Override
+    public StructuredQName getNodeName() {
+        return new StructuredQName("", "", localName);
+    }
 
     public String getStringValue() {
         return content;

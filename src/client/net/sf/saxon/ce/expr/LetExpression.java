@@ -67,8 +67,8 @@ public class LetExpression extends Assignation implements TailCallReturner {
         //role.setSourceLocator(this);
 //        sequence = TypeChecker.strictTypeCheck(
 //                sequence, requiredType, role, visitor.getStaticContext());
-        final TypeHierarchy th = visitor.getConfiguration().getTypeHierarchy();
-        final ItemType actualItemType = sequence.getItemType(th);
+        final TypeHierarchy th = TypeHierarchy.getInstance();
+        final ItemType actualItemType = sequence.getItemType();
 
         refineTypeInformation(actualItemType,
                 sequence.getCardinality(),
@@ -200,10 +200,10 @@ public class LetExpression extends Assignation implements TailCallReturner {
      */
 
     private boolean allReferencesAreFlattened() {
-        List references = new ArrayList();
+        List<VariableReference> references = new ArrayList<VariableReference>();
         ExpressionTool.gatherVariableReferences(action, this, references);
         for (int i=references.size()-1; i>=0; i--) {
-            VariableReference bref = (VariableReference)references.get(i);
+            VariableReference bref = references.get(i);
             if (bref.isFlattened()) {
                 // OK, it's a string context
             } else {
@@ -243,7 +243,7 @@ public class LetExpression extends Assignation implements TailCallReturner {
         if (evaluationMode == ExpressionTool.UNDECIDED) {
             evaluationMode = ExpressionTool.lazyEvaluationMode(sequence);
         }
-        return ExpressionTool.evaluate(sequence, evaluationMode, context, 10);
+        return ExpressionTool.evaluate(sequence, evaluationMode, context);
     }
 
     /**
@@ -289,13 +289,12 @@ public class LetExpression extends Assignation implements TailCallReturner {
     /**
      * Determine the data type of the items returned by the expression, if possible
      *
-     * @param th the type hierarchy cache
      * @return one of the values Type.STRING, Type.BOOLEAN, Type.NUMBER, Type.NODE,
      *         or Type.ITEM (meaning not known in advance)
      */
 
-    public ItemType getItemType(TypeHierarchy th) {
-        return action.getItemType(th);
+    public ItemType getItemType() {
+        return action.getItemType();
     }
 
     /**

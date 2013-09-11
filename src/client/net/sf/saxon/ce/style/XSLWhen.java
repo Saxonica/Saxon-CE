@@ -1,7 +1,4 @@
 package client.net.sf.saxon.ce.style;
-import com.google.gwt.logging.client.LogConfiguration;
-
-import client.net.sf.saxon.ce.LogController;
 import client.net.sf.saxon.ce.expr.Expression;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.trans.XPathException;
@@ -32,12 +29,10 @@ public class XSLWhen extends StyleElement {
     }
 
     public void prepareAttributes() throws XPathException {
-        test = XSLIf.prepareTestAttribute(this);
-        if (test==null) {
-            reportAbsence("test");
-        }
+        test = (Expression)checkAttribute("test", "e1");
+        checkForUnknownAttributes();
     }
-    
+
     /**
     * Determine whether this type of element is allowed to contain a template-body
     * @return true: yes, it may contain a template-body

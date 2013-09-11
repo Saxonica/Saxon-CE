@@ -8,10 +8,8 @@ import client.net.sf.saxon.ce.expr.sort.LocalOrderComparer;
 import client.net.sf.saxon.ce.lib.StringCollator;
 import client.net.sf.saxon.ce.om.*;
 import client.net.sf.saxon.ce.pattern.Pattern;
-import client.net.sf.saxon.ce.tree.iter.AxisIterator;
-import client.net.sf.saxon.ce.tree.iter.EmptyIterator;
+import client.net.sf.saxon.ce.tree.iter.*;
 import client.net.sf.saxon.ce.tree.iter.ListIterator;
-import client.net.sf.saxon.ce.tree.iter.SingleNodeIterator;
 import client.net.sf.saxon.ce.type.BuiltInAtomicType;
 import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.value.AtomicValue;
@@ -147,7 +145,7 @@ public class KeyManager {
             for (int i=0; i<v.size(); i++) {
                 KeyDefinition kd = (KeyDefinition)v.get(i);
                 kd.setBackwardsCompatible(true);
-                if (!kd.getBody().getItemType(config.getTypeHierarchy()).equals(BuiltInAtomicType.STRING)) {
+                if (!kd.getBody().getItemType().equals(BuiltInAtomicType.STRING)) {
                     Expression exp = new AtomicSequenceConverter(kd.getBody(), BuiltInAtomicType.STRING);
                     kd.setBody(exp);
                 }
@@ -263,7 +261,7 @@ public class KeyManager {
         // Make the node we are testing the context node,
         // with context position and context size set to 1
 
-        AxisIterator si = SingleNodeIterator.makeIterator(curr);
+        UnfailingIterator si = SingletonIterator.makeIterator(curr);
         si.next();    // need to position iterator at first node
 
         xc.setCurrentIterator(si);
@@ -274,12 +272,13 @@ public class KeyManager {
 
         Expression use = keydef.getUse();
         SequenceIterator useval = use.iterate(xc);
+        int tz = xc.getImplicitTimezone();
         while (true) {
             AtomicValue item = (AtomicValue)useval.next();
             if (item == null) {
                 break;
             }
-            BuiltInAtomicType actualItemType = item.getPrimitiveType();
+            BuiltInAtomicType actualItemType = item.getItemType();
             if (foundItemTypes != null) {
                 foundItemTypes.add(actualItemType);
             }
@@ -309,7 +308,7 @@ public class KeyManager {
                 }
                 try {
                     AtomicValue av = item.convert(soughtItemType, true).asAtomic();
-                    val = av.getXPathComparable(false, collation, xc);
+                    val = av.getXPathComparable(false, collation, tz);
                 } catch (XPathException err) {
                     // ignore values that can't be converted to the required type
                     break;
@@ -401,7 +400,7 @@ public class KeyManager {
             // If the key value is numeric, promote it to a double
             // TODO: this could result in two decimals comparing equal because they convert to the same double
 
-            BuiltInAtomicType itemType = soughtValue.getPrimitiveType();
+            BuiltInAtomicType itemType = soughtValue.getItemType();
             if (itemType.equals(BuiltInAtomicType.INTEGER) ||
                     itemType.equals(BuiltInAtomicType.DECIMAL) ||
                     itemType.equals(BuiltInAtomicType.FLOAT)) {
@@ -421,14 +420,13 @@ public class KeyManager {
         // No special action needed for anyURI to string promotion (it just seems to work: tests idky44, 45)
 
         int keySetNumber = keySet.getKeySetNumber();
-        BuiltInAtomicType itemType = value.getPrimitiveType();
+        BuiltInAtomicType itemType = value.getItemType();
         HashMap index;
 
         Object indexObject = getIndex(doc, keyName, itemType);
         if (indexObject instanceof String) {
             // index is under construction
             XPathException de = new XPathException("Key definition is circular");
-            de.setXPathContext(context);
             de.setErrorCode("XTDE0640");
             throw de;
         }
@@ -473,7 +471,6 @@ public class KeyManager {
                         if (indexObject2 instanceof String) {
                             // index is under construction
                             XPathException de = new XPathException("Key definition is circular");
-                            de.setXPathContext(context);
                             de.setErrorCode("XTDE0640");
                             throw de;
                         }
@@ -486,7 +483,7 @@ public class KeyManager {
                                 if (result == null) {
                                     result = new ListIterator(nodes);
                                 } else {
-                                    result = new UnionEnumeration(result, new ListIterator(nodes), LocalOrderComparer.getInstance());
+                                    result = new VennIterator(result, new ListIterator(nodes), LocalOrderComparer.getInstance(), Token.UNION);
                                 }
                             }
                         }
@@ -513,7 +510,7 @@ public class KeyManager {
                 val = collation.getCollationKey(value.getStringValue());
             }
         } else {
-            val = value.getXPathComparable(false, collation, context);
+            val = value.getXPathComparable(false, collation, context.getImplicitTimezone());
         }
         return val;
     }

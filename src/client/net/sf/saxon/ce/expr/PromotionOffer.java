@@ -223,17 +223,17 @@ public class PromotionOffer  {
     */
 
     private Expression promote(Expression parent, Expression child) {
-        final TypeHierarchy th = config.getTypeHierarchy();
+        final TypeHierarchy th = TypeHierarchy.getInstance();
         LetExpression let = new LetExpression();
         let.setVariableQName(new StructuredQName("zz", NamespaceConstant.SAXON, "zz" + let.hashCode()));
-        SequenceType type = SequenceType.makeSequenceType(child.getItemType(th), child.getCardinality());
+        SequenceType type = SequenceType.makeSequenceType(child.getItemType(), child.getCardinality());
         let.setRequiredType(type);
         ExpressionTool.copyLocationInfo(containingExpression, let);
         let.setSequence(child);
         let.setEvaluationMode(
                 Cardinality.allowsMany(child.getCardinality()) ?
-                        ExpressionTool.MAKE_MEMO_CLOSURE :
-                        ExpressionTool.MAKE_SINGLETON_CLOSURE);
+                        ExpressionTool.ITERATE_AND_MATERIALIZE :
+                        ExpressionTool.CALL_EVALUATE_ITEM);
         let.setAction(containingExpression);
         let.adoptChildExpression(containingExpression);
         containingExpression = let;

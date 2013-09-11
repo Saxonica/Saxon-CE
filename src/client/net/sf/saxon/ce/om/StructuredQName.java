@@ -76,8 +76,7 @@ public class StructuredQName implements Comparable<StructuredQName> {
      * Make a structured QName from a lexical QName, using a supplied NamespaceResolver to
      * resolve the prefix
      * @param lexicalName the QName as a lexical name (prefix:local)
-     * @param useDefault set to true if an absent prefix implies use of the default namespace;
-     * set to false if an absent prefix implies no namespace
+     * @param defaultURI the uri to be used if there is no prefix
      * @param resolver NamespaceResolver used to look up a URI for the prefix
      * @return the StructuredQName object corresponding to this lexical QName
      * @throws XPathException if the namespace prefix is not in scope or if the value is lexically
@@ -85,12 +84,13 @@ public class StructuredQName implements Comparable<StructuredQName> {
      * code FOCA0002 is set if the name is lexically invalid.
      */
 
-    public static StructuredQName fromLexicalQName(CharSequence lexicalName, boolean useDefault,
+    public static StructuredQName fromLexicalQName(CharSequence lexicalName, String defaultURI,
                                                    NamespaceResolver resolver)
     throws XPathException {
         try {
             String[] parts = NameChecker.getQNameParts(Whitespace.trimWhitespace(lexicalName));
-            String uri = resolver.getURIForPrefix(parts[0], useDefault);
+            String prefix = parts[0];
+            String uri = (prefix.equals("") ? defaultURI : resolver.getURIForPrefix(prefix, false));
             if (uri == null) {
                 XPathException de = new XPathException("Namespace prefix '" + parts[0] + "' has not been declared");
                 de.setErrorCode("FONS0004");

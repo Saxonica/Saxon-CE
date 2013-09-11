@@ -1,5 +1,4 @@
 package client.net.sf.saxon.ce.expr.sort;
-import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.lib.StringCollator;
 import client.net.sf.saxon.ce.value.*;
 import client.net.sf.saxon.ce.type.StringToDouble;
@@ -29,17 +28,6 @@ public class NumericComparer implements AtomicComparer {
 
     public StringCollator getCollator() {
         return null;
-    }
-
-    /**
-     * Supply the dynamic context in case this is needed for the comparison
-     * @param context the dynamic evaluation context
-     * @return either the original AtomicComparer, or a new AtomicComparer in which the context
-     * is known. The original AtomicComparer is not modified
-     */
-
-    public AtomicComparer provideContext(XPathContext context) {
-        return this;
     }
 
     /**
@@ -107,14 +95,6 @@ public class NumericComparer implements AtomicComparer {
 
     public boolean comparesEqual(AtomicValue a, AtomicValue b) {
         return compareAtomicValues(a, b) == 0;
-    }
-
-    private static DoubleValue toDoubleValue(NumericValue nv) {
-        if (nv instanceof DoubleValue) {
-            return ((DoubleValue)nv);
-        } else {
-            return new DoubleValue(nv.getDoubleValue());
-        }
     }
 
 }

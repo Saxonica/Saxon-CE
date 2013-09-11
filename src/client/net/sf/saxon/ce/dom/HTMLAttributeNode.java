@@ -4,10 +4,7 @@ import client.net.sf.saxon.ce.event.Receiver;
 import client.net.sf.saxon.ce.om.*;
 import client.net.sf.saxon.ce.pattern.NodeTest;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.tree.iter.AxisIterator;
-import client.net.sf.saxon.ce.tree.iter.EmptyIterator;
-import client.net.sf.saxon.ce.tree.iter.PrependIterator;
-import client.net.sf.saxon.ce.tree.iter.SingleNodeIterator;
+import client.net.sf.saxon.ce.tree.iter.*;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
 import client.net.sf.saxon.ce.tree.util.Navigator;
 import client.net.sf.saxon.ce.type.Type;
@@ -91,7 +88,7 @@ public class HTMLAttributeNode implements NodeInfo {
         return element;
     }
 
-    public AxisIterator iterateAxis(byte axisNumber) {
+    public UnfailingIterator iterateAxis(byte axisNumber) {
         switch (axisNumber) {
             case Axis.ANCESTOR:
                 return element.iterateAxis(Axis.ANCESTOR_OR_SELF);
@@ -109,7 +106,7 @@ public class HTMLAttributeNode implements NodeInfo {
                 return EmptyIterator.getInstance();
 
             case Axis.DESCENDANT_OR_SELF:
-                return SingleNodeIterator.makeIterator(this);
+                return SingletonIterator.makeIterator(this);
 
             case Axis.FOLLOWING:
                 return new Navigator.FollowingEnumeration(this);
@@ -121,7 +118,7 @@ public class HTMLAttributeNode implements NodeInfo {
                 return EmptyIterator.getInstance();
 
             case Axis.PARENT:
-                return SingleNodeIterator.makeIterator(element);
+                return SingletonIterator.makeIterator(element);
 
             case Axis.PRECEDING:
                 return new Navigator.PrecedingEnumeration(this, false);
@@ -130,7 +127,7 @@ public class HTMLAttributeNode implements NodeInfo {
                 return EmptyIterator.getInstance();
 
             case Axis.SELF:
-                return SingleNodeIterator.makeIterator(this);
+                return SingletonIterator.makeIterator(this);
 
             case Axis.PRECEDING_OR_ANCESTOR:
                 return new Navigator.PrecedingEnumeration(this, true);
@@ -140,7 +137,7 @@ public class HTMLAttributeNode implements NodeInfo {
         }
     }
 
-    public AxisIterator iterateAxis(byte axisNumber, NodeTest nodeTest) {
+    public UnfailingIterator iterateAxis(byte axisNumber, NodeTest nodeTest) {
         return new Navigator.AxisFilter(iterateAxis(axisNumber), nodeTest);
     }
 

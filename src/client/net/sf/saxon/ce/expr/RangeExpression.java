@@ -1,17 +1,16 @@
 package client.net.sf.saxon.ce.expr;
 
+import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.EmptyIterator;
-import client.net.sf.saxon.ce.tree.iter.ListIterator;
+import client.net.sf.saxon.ce.tree.iter.SteppingIterator;
 import client.net.sf.saxon.ce.type.BuiltInAtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
-import client.net.sf.saxon.ce.value.*;
-
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
+import client.net.sf.saxon.ce.value.AtomicValue;
+import client.net.sf.saxon.ce.value.IntegerValue;
+import client.net.sf.saxon.ce.value.NumericValue;
+import client.net.sf.saxon.ce.value.SequenceType;
 
 /**
 * A RangeExpression is an expression that represents an integer sequence as
@@ -46,74 +45,21 @@ public class RangeExpression extends BinaryExpression {
 
         boolean backCompat = visitor.getStaticContext().isInBackwardsCompatibleMode();
         RoleLocator role0 = new RoleLocator(RoleLocator.BINARY_EXPR, "to", 0);
-        //role0.setSourceLocator(this);
         operand0 = TypeChecker.staticTypeCheck(
                 operand0, SequenceType.OPTIONAL_INTEGER, backCompat, role0, visitor);
 
         RoleLocator role1 = new RoleLocator(RoleLocator.BINARY_EXPR, "to", 1);
-        //role1.setSourceLocator(this);
         operand1 = TypeChecker.staticTypeCheck(
                 operand1, SequenceType.OPTIONAL_INTEGER, backCompat, role1, visitor);
 
-        return makeConstantRange();
-    }
-
-    /**
-     * Perform optimisation of an expression and its subexpressions.
-     * <p/>
-     * <p>This method is called after all references to functions and variables have been resolved
-     * to the declaration of the function or variable, and after all type checking has been done.</p>
-     *
-     * @param visitor an expression visitor
-     * @param contextItemType the static type of "." at the point where this expression is invoked.
-     *                        The parameter is set to null if it is known statically that the context item will be undefined.
-     *                        If the type of the context item is not known statically, the argument is set to
-     *                        {@link client.net.sf.saxon.ce.type.Type#ITEM_TYPE}
-     * @return the original expression, rewritten if appropriate to optimize execution
-     * @throws XPathException if an error is discovered during this phase
-     *                                        (typically a type error)
-     */
-
-    public Expression optimize(ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
-        operand0 = visitor.optimize(operand0, contextItemType);
-        operand1 = visitor.optimize(operand1, contextItemType);
-        return makeConstantRange();
-
-    }
-
-    private Expression makeConstantRange() throws XPathException {
-        if (operand0 instanceof Literal && operand1 instanceof Literal) {
-            Value v0 = ((Literal)operand0).getValue();
-            Value v1 = ((Literal)operand1).getValue();
-            if (v0 instanceof IntegerValue && v1 instanceof IntegerValue &&
-                    ((IntegerValue) v0).getDecimalValue().compareTo(DecimalValue.BIG_DECIMAL_MAX_INT) < 0 &&
-                    ((IntegerValue) v0).getDecimalValue().compareTo(DecimalValue.BIG_DECIMAL_MIN_INT) > 0 &&
-                    ((IntegerValue) v1).getDecimalValue().compareTo(DecimalValue.BIG_DECIMAL_MAX_INT) < 0 &&
-                    ((IntegerValue) v1).getDecimalValue().compareTo(DecimalValue.BIG_DECIMAL_MIN_INT) > 0) {
-                int i0 = ((IntegerValue)v0).intValue();
-                int i1 = ((IntegerValue)v1).intValue();
-                Literal result;
-                if (i0 > i1) {
-                    result = Literal.makeEmptySequence();
-                } else if (i0 == i1) {
-                    result = Literal.makeLiteral(new IntegerValue(new BigDecimal(i0)));
-                } else {
-                    result = Literal.makeLiteral(new IntegerRange(i0, i1));
-                }
-                ExpressionTool.copyLocationInfo(this, result);
-                return result;
-            }
-        }
         return this;
     }
 
-
     /**
     * Get the data type of the items returned
-     * @param th the type hierarchy cache
      */
 
-    public ItemType getItemType(TypeHierarchy th) {
+    public ItemType getItemType() {
         return BuiltInAtomicType.INTEGER;
     }
 
@@ -146,18 +92,32 @@ public class RangeExpression extends BinaryExpression {
         if (v1.compareTo(v2) > 0) {
             return EmptyIterator.getInstance();
         }
-        try {
-            return new RangeIterator(v1.intValue(), v2.intValue());
-        } catch (XPathException err) {
-            // values out of range for int; not much hope, but we'll try the hard way
-            BigDecimal ds = v1.getDecimalValue();
-            BigDecimal de = v2.getDecimalValue();
-            List<IntegerValue> list = new ArrayList<IntegerValue>();
-            do {
-                list.add(new IntegerValue(ds));
-                ds = ds.add(BigDecimal.ONE);
-            } while (ds.compareTo(de) <= 0);
-            return new ListIterator(list);
+
+        return new SteppingIterator(v1, new RangeSteppingFunction(v2.intValue()), true);
+
+    }
+
+    /**
+     * Function used by SteppingIterator to compute the next value in the sequence
+     */
+
+    private static class RangeSteppingFunction implements SteppingIterator.SteppingFunction {
+        private int limit;
+
+        public RangeSteppingFunction(int limit) {
+            this.limit = limit;
+        }
+        public Item step(Item current) {
+            try {
+                int curr = ((IntegerValue)current).intValue();
+                return (curr >= limit ? null : new IntegerValue(curr+1));
+            } catch (XPathException e) {
+                throw new AssertionError(e);
+            }
+        }
+
+        public boolean conforms(Item current) {
+            return true;
         }
     }
 

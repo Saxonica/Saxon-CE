@@ -6,6 +6,7 @@ import client.net.sf.saxon.ce.dom.HTMLDocumentWrapper;
 import client.net.sf.saxon.ce.dom.HTMLDocumentWrapper.DocType;
 import client.net.sf.saxon.ce.dom.XMLDOM;
 import client.net.sf.saxon.ce.expr.XPathContext;
+import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.lib.JavaScriptAPIException;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
 import client.net.sf.saxon.ce.lib.StandardErrorListener;
@@ -15,7 +16,6 @@ import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.pattern.JSObjectPattern;
 import client.net.sf.saxon.ce.pattern.NodeKindTest;
-import client.net.sf.saxon.ce.trans.CompilerInfo;
 import client.net.sf.saxon.ce.trans.Mode;
 import client.net.sf.saxon.ce.trans.Rule;
 import client.net.sf.saxon.ce.trans.XPathException;
@@ -52,7 +52,7 @@ public class Xslt20ProcessorImpl implements EntryPoint {
     final Configuration config = new Configuration();
     private boolean registeredForEvents = false;
     private boolean principleEventListener = false;
-    PreparedStylesheet stylesheet = null;
+    Executable stylesheet = null;
     private JavaScriptObject successCallback = null;
     Controller localController = new Controller(config, true);       
     private static Logger logger = Logger.getLogger("XSLT20Processor");
@@ -300,8 +300,7 @@ public class Xslt20ProcessorImpl implements EntryPoint {
         		throw new Exception("Stylesheet for transform is null");
         	}
         	docFetchRequired = inSourceDoc != null;
-            CompilerInfo info = config.getDefaultXsltCompilerInfo();
-            info.setErrorListener(new StandardErrorListener());
+            config.setErrorListener(new StandardErrorListener());
 
             String asyncSourceURI = null;
 
@@ -370,7 +369,7 @@ public class Xslt20ProcessorImpl implements EntryPoint {
             		LogController.InitializeTraceListener();
             	}
             	logger.log(Level.FINE, "Compiling Stylesheet...");
-	            PreparedStylesheet sheet = new PreparedStylesheet(config, info);
+	            Executable sheet = new Executable(config);
 	            sheet.prepare(styleDoc);
 	            stylesheet = sheet;
 	            logger.log(Level.FINE, "Stylesheet compiled OK");
@@ -562,8 +561,6 @@ public class Xslt20ProcessorImpl implements EntryPoint {
     		excName = "XPathException";
     		XPathException xe = (XPathException)err;
     		logException = !xe.hasBeenReported();
-    	} else if (err instanceof LicenseException) {
-    		excName = "LicenseException";
     	} else {
     		excName = "Exception " + err.getClass().getName();
     	}

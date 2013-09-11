@@ -1,4 +1,5 @@
 package client.net.sf.saxon.ce.style;
+
 import client.net.sf.saxon.ce.expr.Expression;
 import client.net.sf.saxon.ce.expr.RoleLocator;
 import client.net.sf.saxon.ce.expr.StringLiteral;
@@ -7,16 +8,14 @@ import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.expr.instruct.NumberInstruction;
 import client.net.sf.saxon.ce.expr.instruct.ValueOf;
 import client.net.sf.saxon.ce.expr.number.NumberFormatter;
+import client.net.sf.saxon.ce.expr.number.Numberer_en;
 import client.net.sf.saxon.ce.lib.Numberer;
-import client.net.sf.saxon.ce.om.AttributeCollection;
-import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.pattern.NodeKindTest;
 import client.net.sf.saxon.ce.pattern.Pattern;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.value.SequenceType;
 import client.net.sf.saxon.ce.value.StringValue;
-import client.net.sf.saxon.ce.value.Whitespace;
 
 /**
 * An xsl:number element in the stylesheet. <br>
@@ -65,84 +64,32 @@ public class XSLNumber extends StyleElement {
 
     public void prepareAttributes() throws XPathException {
 
-		AttributeCollection atts = getAttributeList();
+		String levelAtt;
 
-		String selectAtt = null;
-        String valueAtt = null;
-		String countAtt = null;
-		String fromAtt = null;
-		String levelAtt = null;
-		String formatAtt = null;
-		String gsizeAtt = null;
-		String gsepAtt = null;
-		String langAtt = null;
-		String letterValueAtt = null;
-        String ordinalAtt = null;
+        select = (Expression)checkAttribute("select", "e");
+        value = (Expression)checkAttribute("value", "e");
+        count = (Pattern)checkAttribute("count", "p");
+        from = (Pattern)checkAttribute("from", "p");
+        levelAtt = (String)checkAttribute("level", "w");
+        format = (Expression)checkAttribute("format", "a");
+        lang = (Expression)checkAttribute("lang", "a");
+        letterValue = (Expression)checkAttribute("letter-value", "a");
+        groupSize = (Expression)checkAttribute("grouping-size", "a");
+        groupSeparator = (Expression)checkAttribute("grouping-separator", "a");
+        ordinal = (Expression)checkAttribute("ordinal", "a");
+        checkForUnknownAttributes();
 
-		for (int a=0; a<atts.getLength(); a++) {
-			StructuredQName qn = atts.getStructuredQName(a);
-            String f = qn.getClarkName();
-			if (f.equals("select")) {
-        		selectAtt = atts.getValue(a);
-            } else if (f.equals("value")) {
-        		valueAtt = atts.getValue(a);
-        	} else if (f.equals("count")) {
-        		countAtt = atts.getValue(a);
-        	} else if (f.equals("from")) {
-        		fromAtt = atts.getValue(a);
-        	} else if (f.equals("level")) {
-        		levelAtt = Whitespace.trim(atts.getValue(a));
-        	} else if (f.equals("format")) {
-        		formatAtt = atts.getValue(a);
-        	} else if (f.equals("lang")) {
-        		langAtt = atts.getValue(a);
-        	} else if (f.equals("letter-value")) {
-        		letterValueAtt = Whitespace.trim(atts.getValue(a));
-        	} else if (f.equals("grouping-size")) {
-        		gsizeAtt = Whitespace.trim(atts.getValue(a));
-        	} else if (f.equals("grouping-separator")) {
-        		gsepAtt = atts.getValue(a);
-            } else if (f.equals("ordinal")) {
-                ordinalAtt = atts.getValue(a);
-        	} else {
-        		checkUnknownAttribute(qn);
-        	}
-        }
 
-        if (selectAtt != null) {
-            select = makeExpression(selectAtt);
-        }
-
-        if (valueAtt!=null) {
-            value = makeExpression(valueAtt);
-            if (selectAtt != null) {
-                compileError("The select attribute and value attribute must not both be present", "XTSE0975");
-            }
-            if (countAtt != null) {
-                compileError("The count attribute and value attribute must not both be present", "XTSE0975");
-            }
-            if (fromAtt != null) {
-                compileError("The from attribute and value attribute must not both be present", "XTSE0975");
-            }
-            if (levelAtt != null) {
-                compileError("The level attribute and value attribute must not both be present", "XTSE0975");
+        if (value!=null) {
+            if (select != null || count != null || from != null || levelAtt != null) {
+                compileError("If the value attribute is present then select, count, from, and level must be absent", "XTSE0975");
             }
         }
 
-        if (countAtt!=null) {
-            count = makePattern(countAtt);
-            // the following test is a very crude way of testing if the pattern might
-            // contain variables, but it's good enough...
-            if (countAtt.indexOf('$')>=0) {
-                hasVariablesInPatterns = true;
-            }
-        }
-
-        if (fromAtt!=null) {
-            from = makePattern(fromAtt);
-            if (fromAtt.indexOf('$')>=0) {
-                hasVariablesInPatterns = true;
-            }
+        // the following test is a very crude way of testing if the pattern might
+        // contain variables, but it's good enough...
+        if ((count != null && count.toString().indexOf('$')>=0) || (count != null && count.toString().indexOf('$')>=0)) {
+            hasVariablesInPatterns = true;
         }
 
         if (levelAtt==null) {
@@ -161,8 +108,7 @@ public class XSLNumber extends StyleElement {
             level=SIMPLE;
         }
 
-        if (formatAtt != null) {
-            format = makeAttributeValueTemplate(formatAtt);
+        if (format != null) {
             if (format instanceof StringLiteral) {
                 formatter = new NumberFormatter();
                 formatter.prepare(((StringLiteral)format).getStringValue());
@@ -173,16 +119,15 @@ public class XSLNumber extends StyleElement {
             formatter.prepare("1");
         }
 
-        if (gsepAtt!=null && gsizeAtt!=null) {
+        if ((groupSize == null) != (groupSeparator == null)) {
             // the spec says that if only one is specified, it is ignored
-            groupSize = makeAttributeValueTemplate(gsizeAtt);
-            groupSeparator = makeAttributeValueTemplate(gsepAtt);
+            groupSize = null;
+            groupSeparator = null;
         }
 
-        if (langAtt==null) {
-            numberer = getConfiguration().makeNumberer(null, null);
+        if (lang==null) {
+            numberer = new Numberer_en();
         } else {
-            lang = makeAttributeValueTemplate(langAtt);
             if (lang instanceof StringLiteral) {
                 String language = ((StringLiteral)lang).getStringValue();
                 if (language.length() != 0) {
@@ -191,16 +136,8 @@ public class XSLNumber extends StyleElement {
                         lang = new StringLiteral(StringValue.EMPTY_STRING);
                     }
                 }
-                numberer = getConfiguration().makeNumberer(language, null);
-            }   // else we allocate a numberer at run-time
-        }
-
-        if (letterValueAtt != null) {
-            letterValue = makeAttributeValueTemplate(letterValueAtt);
-        }
-
-        if (ordinalAtt != null) {
-            ordinal = makeAttributeValueTemplate(ordinalAtt);
+                numberer = new Numberer_en();
+            }   // no localisation support currently
         }
 
     }

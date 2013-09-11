@@ -3,7 +3,6 @@ package client.net.sf.saxon.ce.expr;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.NumericValue;
 import client.net.sf.saxon.ce.value.SequenceType;
 import client.net.sf.saxon.ce.value.DoubleValue;
@@ -51,11 +50,10 @@ public class NegateExpression extends UnaryExpression {
 
     /**
      * Determine the data type of the expression, if this is known statically
-     * @param th the type hierarchy cache
      */
 
-    public ItemType getItemType(TypeHierarchy th) {
-        return operand.getItemType(th);
+    public ItemType getItemType() {
+        return operand.getItemType();
     }
 
     /**

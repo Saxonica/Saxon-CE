@@ -1,6 +1,5 @@
 package client.net.sf.saxon.ce.functions;
 
-import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.pattern.NodeTest;
@@ -17,6 +16,9 @@ import client.net.sf.saxon.ce.value.BooleanValue;
 
 public class BooleanFn extends SystemFunction  {
 
+    public static final int BOOLEAN = 0;
+    public static final int NOT = 1;
+
     public BooleanFn(int operation) {
         this.operation = operation;
     }
@@ -25,16 +27,13 @@ public class BooleanFn extends SystemFunction  {
         return new BooleanFn(operation);
     }
 
-    public static final int BOOLEAN = 0;
-    public static final int NOT = 1;
-
     /**
      * Static analysis: prevent sorting of the argument
      */
 
     public void checkArguments(ExpressionVisitor visitor) throws XPathException {
         super.checkArguments(visitor);
-        XPathException err = TypeChecker.ebvError(argument[0], visitor.getConfiguration().getTypeHierarchy());
+        XPathException err = TypeChecker.ebvError(argument[0]);
         if (err != null) {
             err.setLocator(getSourceLocator());
             throw err;
@@ -88,17 +87,10 @@ public class BooleanFn extends SystemFunction  {
 
     public static Expression rewriteEffectiveBooleanValue(
             Expression exp, ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
-        Configuration config = visitor.getConfiguration();
-        TypeHierarchy th = config.getTypeHierarchy();
-        if (exp instanceof ValueComparison) {
-            ValueComparison vc = (ValueComparison)exp;
-            if (vc.getResultWhenEmpty() == null) {
-                vc.setResultWhenEmpty(BooleanValue.FALSE);
-            }
-            return exp;
-        } else if (exp instanceof BooleanFn && ((BooleanFn)exp).operation == BooleanFn.BOOLEAN) {
+        TypeHierarchy th = TypeHierarchy.getInstance();
+        if (exp instanceof BooleanFn && ((BooleanFn)exp).operation == BooleanFn.BOOLEAN) {
             return ((BooleanFn)exp).getArguments()[0];
-        } else if (th.isSubType(exp.getItemType(th), BuiltInAtomicType.BOOLEAN) &&
+        } else if (th.isSubType(exp.getItemType(), BuiltInAtomicType.BOOLEAN) &&
                 exp.getCardinality() == StaticProperty.EXACTLY_ONE) {
             return exp;
         } else if (exp instanceof Count) {
@@ -106,7 +98,7 @@ public class BooleanFn extends SystemFunction  {
             FunctionCall exists = SystemFunction.makeSystemFunction("exists", ((Count)exp).getArguments());
             exists.setSourceLocator(exp.getSourceLocator());
             return exists.optimize(visitor, contextItemType);
-        } else if (exp.getItemType(th) instanceof NodeTest) {
+        } else if (exp.getItemType() instanceof NodeTest) {
             // rewrite boolean(x) => exists(x)
             FunctionCall exists = SystemFunction.makeSystemFunction("exists", new Expression[]{exp});
             exists.setSourceLocator(exp.getSourceLocator());

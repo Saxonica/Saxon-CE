@@ -1,7 +1,5 @@
 package client.net.sf.saxon.ce.om;
 
-import client.net.sf.saxon.ce.Configuration;
-
 
 /**
  * AttributeCollection represents the collection of attributes available on a particular element
@@ -13,7 +11,6 @@ public class AttributeCollection {
 
     // Attribute values are maintained as an array of Strings.
 
-    private Configuration config;
     private String[] values = null;
     private StructuredQName[] names = null;
     private int used = 0;
@@ -21,38 +18,14 @@ public class AttributeCollection {
     // Empty attribute collection. The caller is trusted not to try and modify it.
 
     public static AttributeCollection EMPTY_ATTRIBUTE_COLLECTION =
-            new AttributeCollection((Configuration)null);
+            new AttributeCollection();
 
     /**
      * Create an empty attribute list.
-     * @param config the Saxon Configuration
      */
 
-    public AttributeCollection(Configuration config) {
-        this.config = config;
+    public AttributeCollection() {
         used = 0;
-    }
-
-    /**
-     * Create an attribute list as a copy of an existing attribute list
-     * @param atts the existing attribute list to be copied
-     * @return the copied attribute list. Note that if the original attribute list
-     * is empty, the method returns the singleton object {@link #EMPTY_ATTRIBUTE_COLLECTION};
-     * this case must therefore be handled specially if the returned attribute list is to
-     * be modified.
-     */
-
-    public static AttributeCollection copy(AttributeCollection atts) {
-        if (atts.getLength() == 0) {
-            return EMPTY_ATTRIBUTE_COLLECTION;
-        }
-        AttributeCollection t = new AttributeCollection(atts.config);
-        t.used = atts.used;
-        t.values = new String[atts.used];
-        t.names = new StructuredQName[atts.used];
-        System.arraycopy(atts.values, 0, t.values, 0, atts.used);
-        System.arraycopy(atts.names, 0, t.names, 0, atts.used);
-        return t;
     }
 
     /**

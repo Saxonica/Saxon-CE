@@ -4,7 +4,6 @@ import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.tree.iter.EmptyIterator;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.*;
 
 /**
@@ -21,11 +20,10 @@ public class Subsequence extends SystemFunction {
     /**
     * Determine the data type of the items in the sequence
     * @return the type of the argument
-     * @param th the type hierarchy cache
      */
 
-    public ItemType getItemType(TypeHierarchy th) {
-        return argument[0].getItemType(th);
+    public ItemType getItemType() {
+        return argument[0].getItemType();
     }
 
     /**

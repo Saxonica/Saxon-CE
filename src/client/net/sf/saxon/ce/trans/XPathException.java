@@ -1,13 +1,10 @@
 package client.net.sf.saxon.ce.trans;
 
-import com.google.gwt.logging.client.LogConfiguration;
-
-import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.tree.util.SourceLocator;
-import client.net.sf.saxon.ce.value.Value;
-
+import com.google.gwt.logging.client.LogConfiguration;
+import org.xml.sax.Locator;
 
 
 /**
@@ -20,16 +17,11 @@ public class XPathException extends Exception {
 
     private boolean isTypeError = false;
     private boolean isStaticError = false;
-    private boolean isGlobalError = false;
     private String locationText = null;
     private StructuredQName errorCode;
-    private transient Value errorObject;
     private boolean hasBeenReported = false;
-    transient XPathContext context;
     private String message = "";
-    private transient SourceLocator locator;
-    // declared transient because a compiled stylesheet might contain a "deferred action" dynamic error
-    // and the EarlyEvaluationContext links back to the source stylesheet.
+    private SourceLocator locator;
 
     /**
      * Create an XPathException with an error message
@@ -90,24 +82,6 @@ public class XPathException extends Exception {
     }
 
     /**
-     * Create an XPathException that supplies an error message and wraps an underlying exception
-     * and supplies location information
-     * @param message the error message (which should generally explain what Saxon was doing when the
-     * underlying exception occurred)
-     * @param loc indicates where in the user-written query or stylesheet (or sometimes in a source
-     * document) the error occurred
-     * @param err the underlying exception (the cause of this exception)
-     */
-
-    public XPathException(String message, SourceLocator loc, Throwable err) {
-        super(err);
-        if (LogConfiguration.loggingIsEnabled()) {
-        	this.message = message;
-        }
-        this.locator = loc;
-    }
-
-    /**
      * Create an XPathException that supplies an error message and an error code
      * @param message the error message
      * @param errorCode the error code - an eight-character code, which is taken to be in the standard
@@ -120,24 +94,27 @@ public class XPathException extends Exception {
         	this.message = message;
         }
         setErrorCode(errorCode);
+        if (errorCode.equals("XPTY0004")) {
+            setIsTypeError(true);
+        }
     }
 
     /**
-     * Create an XPathException that supplies an error message and an error code and provides the
-     * dynamic context
+     * Create an XPathException that supplies an error message and an error code and a locator
      * @param message the error message
      * @param errorCode the error code - an eight-character code, which is taken to be in the standard
      * system error code namespace
-     * @param context the dynamic evaluation context
+     * @param loc indicates where in the user-written query or stylesheet (or sometimes in a source
+     * document) the error occurred
      */
 
-    public XPathException(String message, String errorCode, XPathContext context) {
+    public XPathException(String message, String errorCode, SourceLocator loc) {
         super();
         if (LogConfiguration.loggingIsEnabled()) {
         	this.message = message;
         }
         setErrorCode(errorCode);
-        setXPathContext(context);
+        this.locator = loc;
     }
 
     /**
@@ -148,24 +125,6 @@ public class XPathException extends Exception {
     public XPathException makeStatic() {
         setIsStaticError(true);
         return this;
-    }
-
-    /**
-     * Set dynamic context information in the exception object
-     * @param context the dynamic context at the time the exception occurred
-     */
-
-    public void setXPathContext(XPathContext context) {
-        this.context = context;
-    }
-
-    /**
-     * Get the dynamic context at the time the exception occurred
-     * @return the dynamic context if known; otherwise null
-     */
-
-    public XPathContext getXPathContext() {
-        return context;
     }
 
     /**
@@ -235,29 +194,6 @@ public class XPathException extends Exception {
     }
 
     /**
-     * Mark this exception to indicate that it originated while evaluating a global
-     * variable reference, and is therefore to be reported regardless of the try/catch
-     * context surrounding the variable reference
-     * @param is true if this exception is a global variable error
-     */
-
-    public void setIsGlobalError(boolean is) {
-        isGlobalError = is;
-    }
-
-    /**
-     * Ask whether this exception originated while evaluating a global
-     * variable reference, and is therefore to be reported regardless of the try/catch
-     * context surrounding the variable reference
-     * @return true if this exception is a global variable error
-     */
-
-    public boolean isGlobalError() {
-        return isGlobalError;
-    }
-
-
-    /**
      * Set the error code. The error code is a QName; this method sets the local part of the name,
      * setting the namespace of the error code to the standard system namespace {@link client.net.sf.saxon.ce.lib.NamespaceConstant#ERR}
      * @param code The local part of the name of the error code
@@ -319,27 +255,9 @@ public class XPathException extends Exception {
     }
 
     /**
-     * Set the error object associated with this error. This is used by the standard XPath fn:error() function
-     * @param value the error object, as supplied to the fn:error() function
-     */
-
-    public void setErrorObject(Value value) {
-        errorObject = value;
-    }
-
-    /**
-     * Get the error object associated with this error. This is used by the standard XPath fn:error() function
-     * @return the error object, as supplied to the fn:error() function
-     */
-
-    public Value getErrorObject() {
-        return errorObject;
-    }
-
-    /**
      * Mark this error to indicate that it has already been reported to the error listener, and should not be
      * reported again
-     * @param reported
+     * @param reported true if the error has been reported to the error listener
      */
 
     public void setHasBeenReported(boolean reported) {
@@ -382,17 +300,6 @@ public class XPathException extends Exception {
     public void maybeSetLocation(SourceLocator locator) {
         if (this.locator == null) {
             this.locator = locator;
-        }
-    }
-
-    /**
-     * Set the context of a message, only if it is not already set
-     * @param context the current XPath context (or null)
-     */
-
-    public void maybeSetContext(XPathContext context) {
-        if (getXPathContext() == null) {
-            setXPathContext(context);
         }
     }
 

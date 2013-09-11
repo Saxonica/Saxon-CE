@@ -5,10 +5,10 @@ import client.net.sf.saxon.ce.event.Receiver;
 import client.net.sf.saxon.ce.om.*;
 import client.net.sf.saxon.ce.pattern.NodeTest;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.tree.iter.AxisIterator;
+import client.net.sf.saxon.ce.tree.iter.ArrayIterator;
 import client.net.sf.saxon.ce.tree.iter.EmptyIterator;
-import client.net.sf.saxon.ce.tree.iter.NodeArrayIterator;
-import client.net.sf.saxon.ce.tree.iter.SingleNodeIterator;
+import client.net.sf.saxon.ce.tree.iter.SingletonIterator;
+import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
 import client.net.sf.saxon.ce.tree.util.Navigator;
 import client.net.sf.saxon.ce.type.Type;
@@ -65,7 +65,7 @@ public final class TextFragmentValue implements DocumentInfo {
 
 	public int getDocumentNumber() {
         if (documentNumber == -1) {
-            documentNumber = config.getDocumentNumberAllocator().allocateDocumentNumber();
+            documentNumber = config.allocateDocumentNumber();
             // technically this isn't thread-safe; however, TextFragmentValues are invariably used within
             // a single thread
         }
@@ -236,7 +236,7 @@ public final class TextFragmentValue implements DocumentInfo {
     * @see client.net.sf.saxon.ce.om.Axis
     */
 
-    public AxisIterator iterateAxis(byte axisNumber) {
+    public UnfailingIterator iterateAxis(byte axisNumber) {
         switch (axisNumber) {
             case Axis.ANCESTOR:
             case Axis.ATTRIBUTE:
@@ -251,15 +251,15 @@ public final class TextFragmentValue implements DocumentInfo {
 
             case Axis.SELF:
             case Axis.ANCESTOR_OR_SELF:
-                return SingleNodeIterator.makeIterator(this);
+                return SingletonIterator.makeIterator(this);
 
             case Axis.CHILD:
             case Axis.DESCENDANT:
-                return SingleNodeIterator.makeIterator(getTextNode());
+                return SingletonIterator.makeIterator(getTextNode());
 
             case Axis.DESCENDANT_OR_SELF:
                 NodeInfo[] nodes = {this, getTextNode()};
-                return new NodeArrayIterator(nodes);
+                return new ArrayIterator(nodes);
 
             default:
                  throw new IllegalArgumentException("Unknown axis number " + axisNumber);
@@ -274,7 +274,7 @@ public final class TextFragmentValue implements DocumentInfo {
     * @see client.net.sf.saxon.ce.om.Axis
     */
 
-    public AxisIterator iterateAxis(byte axisNumber, NodeTest nodeTest) {
+    public UnfailingIterator iterateAxis(byte axisNumber, NodeTest nodeTest) {
         switch (axisNumber) {
             case Axis.ANCESTOR:
             case Axis.ATTRIBUTE:
@@ -302,13 +302,13 @@ public final class TextFragmentValue implements DocumentInfo {
                 if (b1) {
                     if (b2) {
                         NodeInfo[] pair = {this, textNode2};
-                        return new NodeArrayIterator(pair);
+                        return new ArrayIterator(pair);
                     } else {
-                        return SingleNodeIterator.makeIterator(this);
+                        return SingletonIterator.makeIterator(this);
                     }
                 } else {
                     if (b2) {
-                        return SingleNodeIterator.makeIterator(textNode2);
+                        return SingletonIterator.makeIterator(textNode2);
                     } else {
                         return EmptyIterator.getInstance();
                     }
@@ -564,16 +564,16 @@ public final class TextFragmentValue implements DocumentInfo {
          * @return a AxisIterator that scans the nodes reached by the axis in turn.
          */
 
-         public AxisIterator iterateAxis(byte axisNumber) {
+         public UnfailingIterator iterateAxis(byte axisNumber) {
              switch (axisNumber) {
                  case Axis.ANCESTOR:
                  case Axis.PARENT:
                  case Axis.PRECEDING_OR_ANCESTOR:
-                     return SingleNodeIterator.makeIterator(TextFragmentValue.this);
+                     return SingletonIterator.makeIterator(TextFragmentValue.this);
 
                  case Axis.ANCESTOR_OR_SELF:
                      NodeInfo[] nodes = {this, TextFragmentValue.this};
-                     return new NodeArrayIterator(nodes);
+                     return new ArrayIterator(nodes);
 
                  case Axis.ATTRIBUTE:
                  case Axis.CHILD:
@@ -587,7 +587,7 @@ public final class TextFragmentValue implements DocumentInfo {
 
                  case Axis.SELF:
                  case Axis.DESCENDANT_OR_SELF:
-                     return SingleNodeIterator.makeIterator(this);
+                     return SingletonIterator.makeIterator(this);
 
                  default:
                       throw new IllegalArgumentException("Unknown axis number " + axisNumber);
@@ -602,7 +602,7 @@ public final class TextFragmentValue implements DocumentInfo {
         * @return a AxisIterator that scans the nodes reached by the axis in turn.
         */
 
-        public AxisIterator iterateAxis( byte axisNumber, NodeTest nodeTest) {
+        public UnfailingIterator iterateAxis( byte axisNumber, NodeTest nodeTest) {
             switch (axisNumber) {
                 case Axis.ANCESTOR:
                 case Axis.PARENT:
@@ -614,11 +614,11 @@ public final class TextFragmentValue implements DocumentInfo {
                     boolean matchesText = nodeTest.matches(this);
                     if (matchesDoc && matchesText) {
                         NodeInfo[] nodes = {this, TextFragmentValue.this};
-                        return new NodeArrayIterator(nodes);
+                        return new ArrayIterator(nodes);
                     } else if (matchesDoc && !matchesText) {
-                        return SingleNodeIterator.makeIterator(TextFragmentValue.this);
+                        return SingletonIterator.makeIterator(TextFragmentValue.this);
                     } else if (matchesText && !matchesDoc) {
-                        return SingleNodeIterator.makeIterator(this);
+                        return SingletonIterator.makeIterator(this);
                     } else {
                         return EmptyIterator.getInstance();
                     }

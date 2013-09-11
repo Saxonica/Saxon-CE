@@ -228,40 +228,21 @@ public class Block extends Instruction {
 
     public boolean containsLocalParam() {
         return children.length > 0 && children[0] instanceof LocalParam;
-    }    
-
-    /**
-     * Replace one subexpression by a replacement subexpression
-     * @param original the original subexpression
-     * @param replacement the replacement subexpression
-     * @return true if the original subexpression is found
-     */
-
-    public boolean replaceSubExpression(Expression original, Expression replacement) {
-        boolean found = false;
-        for (int c=0; c<children.length; c++) {
-            if (children[c] == original) {
-                children[c] = replacement;
-                found = true;
-            }
-        }
-        return found;
     }
 
 
     /**
      * Determine the data type of the items returned by this expression
      * @return the data type
-     * @param th the type hierarchy cache
      */
 
-    public final ItemType getItemType(TypeHierarchy th) {
+    public final ItemType getItemType() {
         if (children.length==0) {
             return EmptySequenceTest.getInstance();
         }
-        ItemType t1 = children[0].getItemType(th);
+        ItemType t1 = children[0].getItemType();
         for (int i=1; i<children.length; i++) {
-            t1 = Type.getCommonSuperType(t1, children[i].getItemType(th), th);
+            t1 = Type.getCommonSuperType(t1, children[i].getItemType());
             if (t1 instanceof AnyItemType) {
                 return t1;  // no point going any further
             }
@@ -376,7 +357,7 @@ public class Block extends Instruction {
                 flushCurrentLiteralList(currentLiteralList, targetList);
                 currentLiteralList = null;
                 ((Block)children[i]).flatten(targetList);
-            } else if (children[i] instanceof Literal &&!(((Literal)children[i]).getValue() instanceof IntegerRange)) {
+            } else if (children[i] instanceof Literal) {
                 SequenceIterator iterator = ((Literal)children[i]).getValue().iterate();
                 if (currentLiteralList == null) {
                     currentLiteralList = new ArrayList<Item>(10);
@@ -481,7 +462,6 @@ public class Block extends Instruction {
                 }
             } catch (XPathException e) {
                 e.maybeSetLocation(children[i].getSourceLocator());
-                e.maybeSetContext(context);
                 throw e;
             }
         }

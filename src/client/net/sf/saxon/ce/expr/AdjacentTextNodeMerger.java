@@ -1,6 +1,5 @@
 package client.net.sf.saxon.ce.expr;
 
-import client.net.sf.saxon.ce.event.SequenceReceiver;
 import client.net.sf.saxon.ce.expr.instruct.Block;
 import client.net.sf.saxon.ce.expr.instruct.Choose;
 import client.net.sf.saxon.ce.expr.instruct.ValueOf;
@@ -36,8 +35,8 @@ public class AdjacentTextNodeMerger extends UnaryExpression {
         }
         // This wrapper expression is unnecessary if the base expression cannot return text nodes,
         // or if it can return at most one item
-        TypeHierarchy th = visitor.getConfiguration().getTypeHierarchy();
-        if (th.relationship(getBaseExpression().getItemType(th), NodeKindTest.TEXT) == TypeHierarchy.DISJOINT) {
+        TypeHierarchy th = TypeHierarchy.getInstance();
+        if (th.relationship(getBaseExpression().getItemType(), NodeKindTest.TEXT) == TypeHierarchy.DISJOINT) {
             return getBaseExpression();
         }
         if (!Cardinality.allowsMany(getBaseExpression().getCardinality())) {
@@ -73,7 +72,7 @@ public class AdjacentTextNodeMerger extends UnaryExpression {
                         maybeEmpty = true;
                     }
                 } else {
-                    maybetext = th.relationship(actions[i].getItemType(th), NodeKindTest.TEXT) != TypeHierarchy.DISJOINT;
+                    maybetext = th.relationship(actions[i].getItemType(), NodeKindTest.TEXT) != TypeHierarchy.DISJOINT;
                     maybeEmpty |= maybetext;
                 }
                 if (prevtext && maybetext) {
@@ -101,14 +100,13 @@ public class AdjacentTextNodeMerger extends UnaryExpression {
     /**
      * Determine the data type of the expression, if possible. The default
      * implementation for unary expressions returns the item type of the operand
-     * @param th the type hierarchy cache
      * @return the item type of the items in the result sequence, insofar as this
      *         is known statically.
      */
 
     @Override
-    public ItemType getItemType(TypeHierarchy th) {
-        return getBaseExpression().getItemType(th);
+    public ItemType getItemType() {
+        return getBaseExpression().getItemType();
     }
 
     @Override
@@ -145,44 +143,6 @@ public class AdjacentTextNodeMerger extends UnaryExpression {
     }
 
     /**
-     * Process the instruction, without returning any tail calls
-     * @param context The dynamic context, giving access to the current node,
-     *                the current variables, etc.
-     */
-
-    public void process(XPathContext context, int locationId, int options) throws XPathException {
-        SequenceReceiver out = context.getReceiver();
-        FastStringBuffer fsb = new FastStringBuffer(FastStringBuffer.MEDIUM);
-        SequenceIterator iter = getBaseExpression().iterate(context);
-        boolean prevText = false;
-        while (true) {
-            Item item = iter.next();
-            if (item == null) {
-                break;
-            }
-            if (isTextNode(item)) {
-                String s = item.getStringValue();
-                if (s.length() > 0) {
-                    fsb.append(s);
-                    prevText = true;
-                }
-
-            } else {
-                if (prevText) {
-                    out.characters(fsb);
-                }
-                prevText = false;
-                fsb.setLength(0);
-                out.append(item, options);
-            }
-        }
-        if (prevText) {
-            out.characters(fsb);
-        }
-    }
-
-
-    /**
      * AdjacentTextNodeMergingIterator is an iterator that eliminates zero-length text nodes
      * and merges adjacent text nodes from the underlying iterator
      */
@@ -204,9 +164,7 @@ public class AdjacentTextNodeMerger extends UnaryExpression {
                 position = -1;
                 return null;
             }
-            if (next != null) {
-                next = base.next();
-            }
+            next = base.next();
 
             if (isTextNode(current)) {
                 FastStringBuffer fsb = new FastStringBuffer(FastStringBuffer.MEDIUM);

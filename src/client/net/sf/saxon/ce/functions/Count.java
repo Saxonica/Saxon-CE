@@ -22,7 +22,8 @@ public class Count extends Aggregate {
 
     public Item evaluateItem(XPathContext context) throws XPathException {
         SequenceIterator iter = argument[0].iterate(context);
-        return IntegerValue.makeIntegerValue(count(iter));
+
+        return new IntegerValue(count(iter));
     }
 
     /**

@@ -38,11 +38,11 @@ public final class GlobalParam extends GlobalVariable {
         } else {
             if (isRequiredParam()) {
                 dynamicError("No value supplied for required global parameter $" +
-                        getVariableQName().getDisplayName(), "XTDE0050", context);
+                        getVariableQName().getDisplayName(), "XTDE0050");
             } else if (isImplicitlyRequiredParam()) {
                 dynamicError("A value must be supplied for global parameter $" +
                         getVariableQName().getDisplayName() +
-                        " because there is no default value for the required type", "XTDE0610", context);
+                        " because there is no default value for the required type", "XTDE0610");
             }
             // evaluate and save the default value
             return actuallyEvaluate(context);

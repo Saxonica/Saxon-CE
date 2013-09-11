@@ -6,16 +6,13 @@ import client.net.sf.saxon.ce.expr.sort.CodepointCollator;
 import client.net.sf.saxon.ce.expr.sort.SortKeyDefinition;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
 import client.net.sf.saxon.ce.lib.StringCollator;
-import client.net.sf.saxon.ce.om.AttributeCollection;
 import client.net.sf.saxon.ce.om.Axis;
-import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.URI;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.value.EmptySequence;
 import client.net.sf.saxon.ce.value.SequenceType;
 import client.net.sf.saxon.ce.value.StringValue;
-import client.net.sf.saxon.ce.value.Whitespace;
 
 
 /**
@@ -44,88 +41,31 @@ public class XSLSort extends StyleElement {
     }
 
     public void prepareAttributes() throws XPathException {
+        select = (Expression)checkAttribute("select", "e");
+        order = (Expression)checkAttribute("order", "a");
+        dataType = (Expression)checkAttribute("data-type", "a");
+        caseOrder = (Expression)checkAttribute("case-order", "a");
+        lang = (Expression)checkAttribute("lang", "a");
+        collationName = (Expression)checkAttribute("collation", "a");
+        stable = (Expression)checkAttribute("stable", "a");
 
-		AttributeCollection atts = getAttributeList();
-
-		String selectAtt = null;
-        String orderAtt = null;
-        String dataTypeAtt = null;
-        String caseOrderAtt = null;
-        String langAtt = null;
-        String collationAtt = null;
-        String stableAtt = null;
-
-		for (int a=0; a<atts.getLength(); a++) {
-			StructuredQName qn = atts.getStructuredQName(a);
-            String f = qn.getClarkName();
-			if (f.equals("select")) {
-        		selectAtt = atts.getValue(a);
-        	} else if (f.equals("order")) {
-        		orderAtt = Whitespace.trim(atts.getValue(a));
-        	} else if (f.equals("data-type")) {
-        		dataTypeAtt = Whitespace.trim(atts.getValue(a));
-        	} else if (f.equals("case-order")) {
-        		caseOrderAtt = Whitespace.trim(atts.getValue(a));
-        	} else if (f.equals("lang")) {
-        		langAtt = Whitespace.trim(atts.getValue(a));
-        	} else if (f.equals("collation")) {
-        		collationAtt = Whitespace.trim(atts.getValue(a));
-            } else if (f.equals("stable")) {
-        		stableAtt = Whitespace.trim(atts.getValue(a));
-        	} else {
-        		checkUnknownAttribute(qn);
-        	}
-        }
-
-        if (selectAtt==null) {
-            //select = new ContextItemExpression();
-        } else {
-            select = makeExpression(selectAtt);
-        }
-
-        if (orderAtt == null) {
+        if (order == null) {
             order = new StringLiteral("ascending");
-        } else {
-            order = makeAttributeValueTemplate(orderAtt);
         }
 
-        if (dataTypeAtt == null) {
-            dataType = null;
-        } else {
-            dataType = makeAttributeValueTemplate(dataTypeAtt);
-        }
-
-        if (caseOrderAtt == null) {
+        if (caseOrder == null) {
             caseOrder = new StringLiteral("#default");
         } else {
-            caseOrder = makeAttributeValueTemplate(caseOrderAtt);
             useDefaultCollation = false;
         }
 
-        if (langAtt == null || langAtt.equals("")) {
+        if (lang == null) {
             lang = new StringLiteral(StringValue.EMPTY_STRING);
         } else {
-            lang = makeAttributeValueTemplate(langAtt);
             useDefaultCollation = false;
-            if (lang instanceof StringLiteral) {
-                String s = ((StringLiteral)lang).getStringValue();
-                if (s.length() != 0) {
-                    if (!StringValue.isValidLanguageCode(s)) {
-                        compileError("The lang attribute must be a valid language code", "XTDE0030");
-                        lang = new StringLiteral(StringValue.EMPTY_STRING);
-                    }
-                }
-            }
         }
 
-        if (stableAtt == null) {
-            stable = null;
-        } else {
-            stable = makeAttributeValueTemplate(stableAtt);
-        }
-
-        if (collationAtt != null) {
-            collationName = makeAttributeValueTemplate(collationAtt);
+        if (collationName != null) {
             useDefaultCollation = false;
         }
 
@@ -188,15 +128,15 @@ public class XSLSort extends StyleElement {
         }
 
         sortKeyDefinition = new SortKeyDefinition();
-        sortKeyDefinition.setOrder(order);
-        sortKeyDefinition.setCaseOrder(caseOrder);
-        sortKeyDefinition.setLanguage(lang);
+        sortKeyDefinition.setSortProperty(SortKeyDefinition.ORDER, order);
+        sortKeyDefinition.setSortProperty(SortKeyDefinition.CASE_ORDER, caseOrder);
+        sortKeyDefinition.setSortProperty(SortKeyDefinition.LANG, lang);
         sortKeyDefinition.setSortKey(select);
-        sortKeyDefinition.setDataTypeExpression(dataType);
-        sortKeyDefinition.setCollationNameExpression(collationName);
+        sortKeyDefinition.setSortProperty(SortKeyDefinition.DATA_TYPE, dataType);
+        sortKeyDefinition.setSortProperty(SortKeyDefinition.COLLATION, collationName);
         sortKeyDefinition.setCollation(stringCollator);
         sortKeyDefinition.setBaseURI(getBaseURI());
-        sortKeyDefinition.setStable(stable);
+        sortKeyDefinition.setSortProperty(SortKeyDefinition.STABLE, stable);
         sortKeyDefinition.setBackwardsCompatible(xPath10ModeIsEnabled());
     }
 

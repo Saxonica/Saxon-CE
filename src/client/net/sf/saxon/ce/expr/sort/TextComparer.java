@@ -1,9 +1,8 @@
 package client.net.sf.saxon.ce.expr.sort;
 import client.net.sf.saxon.ce.lib.StringCollator;
+import client.net.sf.saxon.ce.trans.NoDynamicContextException;
 import client.net.sf.saxon.ce.value.AtomicValue;
 import client.net.sf.saxon.ce.value.StringValue;
-import client.net.sf.saxon.ce.expr.XPathContext;
-import client.net.sf.saxon.ce.trans.NoDynamicContextException;
 
 /**
  * A Comparer used for comparing sort keys when data-type="text". The items to be
@@ -33,24 +32,6 @@ public class TextComparer implements AtomicComparer {
     public StringCollator getCollator() {
         return baseComparer.getCollator();
     }
-
-    /**
-     * Supply the dynamic context in case this is needed for the comparison
-     * @param context the dynamic evaluation context
-     * @return either the original AtomicComparer, or a new AtomicComparer in which the context
-     * is known. The original AtomicComparer is not modified
-     * @throws client.net.sf.saxon.ce.trans.NoDynamicContextException if the context is an "early evaluation" (compile-time) context
-     */
-
-    public AtomicComparer provideContext(XPathContext context) {
-        AtomicComparer newBase = baseComparer.provideContext(context);
-        if (newBase != baseComparer) {
-            return new TextComparer(newBase);
-        } else {
-            return this;
-        }
-    }
-
 
     /**
     * Compare two Items by converting them to strings and comparing the string values.

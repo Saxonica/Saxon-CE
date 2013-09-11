@@ -279,24 +279,6 @@ public abstract class FunctionCall extends Expression {
     }
 
     /**
-     * Replace one subexpression by a replacement subexpression
-     * @param original the original subexpression
-     * @param replacement the replacement subexpression
-     * @return true if the original subexpression is found
-     */
-
-    public boolean replaceSubExpression(Expression original, Expression replacement) {
-        boolean found = false;
-        for (int i=0; i<argument.length; i++) {
-             if (argument[i] == original) {
-                 argument[i] = replacement;
-                 found = true;
-             }
-        }
-        return found;
-    }
-
-    /**
      * Get the name of the function for display in messages
      * @return  the name of the function as a lexical QName
      */

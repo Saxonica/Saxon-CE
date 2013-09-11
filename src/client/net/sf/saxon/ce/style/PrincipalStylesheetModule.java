@@ -1,7 +1,5 @@
 package client.net.sf.saxon.ce.style;
 
-import client.net.sf.saxon.ce.Configuration;
-import client.net.sf.saxon.ce.PreparedStylesheet;
 import client.net.sf.saxon.ce.expr.Expression;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.functions.ConstructorFunctionLibrary;
@@ -25,7 +23,7 @@ import java.util.*;
  */
 public class PrincipalStylesheetModule extends StylesheetModule {
 
-    private PreparedStylesheet preparedStylesheet;
+    private Executable preparedStylesheet;
 
     // library of functions that are in-scope for XPath expressions in this stylesheet
     private FunctionLibraryList functionLibrary;
@@ -39,7 +37,7 @@ public class PrincipalStylesheetModule extends StylesheetModule {
     private HashMap<StructuredQName, Declaration> globalVariableIndex =
             new HashMap<StructuredQName, Declaration>(20);
 
-    // table of named templates. Key is the integer fingerprint of the template name;
+    // table of named templates. Key is the template name;
     // value is the XSLTemplate object in the source stylesheet.
     private HashMap<StructuredQName, Declaration> templateIndex =
             new HashMap<StructuredQName, Declaration>(20);
@@ -71,11 +69,11 @@ public class PrincipalStylesheetModule extends StylesheetModule {
         super(sourceElement, precedence);
     }
 
-    public void setPreparedStylesheet(PreparedStylesheet preparedStylesheet) {
+    public void setPreparedStylesheet(Executable preparedStylesheet) {
         this.preparedStylesheet = preparedStylesheet;
     }
 
-    public PreparedStylesheet getPreparedStylesheet() {
+    public Executable getExecutable() {
         return preparedStylesheet;
     }
 
@@ -88,7 +86,6 @@ public class PrincipalStylesheetModule extends StylesheetModule {
      */
 
     public FunctionLibraryList createFunctionLibrary() {
-        Configuration config = getPreparedStylesheet().getConfiguration();
         functionLibrary = new FunctionLibraryList();
         int functionSet = StandardFunction.CORE | StandardFunction.XSLT;
         functionLibrary.addFunctionLibrary(
@@ -131,14 +128,7 @@ public class PrincipalStylesheetModule extends StylesheetModule {
      */
 
     public XSLStylesheet getStylesheetDocument(DocumentURI key) {
-        XSLStylesheet sheet = moduleCache.get(key);
-        if (sheet != null) {
-            XPathException warning = new XPathException(
-                    "Stylesheet module " + key + " is included or imported more than once. " +
-                            "This is permitted, but may lead to errors or unexpected behavior");
-            getPreparedStylesheet().reportWarning(warning);
-        }
-        return sheet;
+        return moduleCache.get(key);
     }
 
     /**
@@ -397,7 +387,7 @@ public class PrincipalStylesheetModule extends StylesheetModule {
             if (other == null) {
                 // this is the first
                 templateIndex.put(qName, decl);
-                getPreparedStylesheet().putNamedTemplate(qName, template.getCompiledTemplate());
+                getExecutable().putNamedTemplate(qName, template.getCompiledTemplate());
             } else {
                 // check the precedences
                 int thisPrecedence = decl.getPrecedence();
@@ -411,7 +401,7 @@ public class PrincipalStylesheetModule extends StylesheetModule {
                     // can't happen, but we'll play safe
                     //other.setRedundantNamedTemplate();
                     templateIndex.put(qName, decl);
-                    getPreparedStylesheet().putNamedTemplate(qName, template.getCompiledTemplate());
+                    getExecutable().putNamedTemplate(qName, template.getCompiledTemplate());
                 }
             }
         }
@@ -524,9 +514,7 @@ public class PrincipalStylesheetModule extends StylesheetModule {
 
         try {
 
-            PreparedStylesheet pss = getPreparedStylesheet();
-            //Configuration config = pss.getConfiguration();
-            Executable exec = pss.getExecutable();
+            Executable pss = getExecutable();
 
             // Register template rules with the rule manager
 
@@ -547,7 +535,7 @@ public class PrincipalStylesheetModule extends StylesheetModule {
                 StyleElement snode = decl.getSourceElement();
                 if (!snode.isActionCompleted(StyleElement.ACTION_COMPILE)) {
                     snode.setActionCompleted(StyleElement.ACTION_COMPILE);
-                    Expression inst = snode.compile(exec, decl);
+                    Expression inst = snode.compile(pss, decl);
                     if (inst != null) {
                         inst.setSourceLocator(snode);
                     }
@@ -575,7 +563,7 @@ public class PrincipalStylesheetModule extends StylesheetModule {
                 }
             }
 
-            if (getPreparedStylesheet().getErrorCount() > 0) {
+            if (getExecutable().getErrorCount() > 0) {
                 // not much point carrying on
                 return;
             }
@@ -616,14 +604,14 @@ public class PrincipalStylesheetModule extends StylesheetModule {
 
             // Finish off the lists of template rules
 
-            RuleManager ruleManager = getPreparedStylesheet().getRuleManager();
+            RuleManager ruleManager = getExecutable().getRuleManager();
             ruleManager.computeRankings();
 
         } catch (RuntimeException err) {
         // if syntax errors were reported earlier, then exceptions may occur during this phase
         // due to inconsistency of data structures. We can ignore these exceptions as they
         // will go away when the user corrects the stylesheet
-            if (getPreparedStylesheet().getErrorCount() == 0) {
+            if (getExecutable().getErrorCount() == 0) {
                 // rethrow the exception
                 throw err;
             }
@@ -671,7 +659,7 @@ public class PrincipalStylesheetModule extends StylesheetModule {
      */
 
     protected StripSpaceRules getStripperRules() {
-        Executable exec = getPreparedStylesheet().getExecutable();
+        Executable exec = getExecutable();
         if (exec.getStripperRules() == null) {
             exec.setStripperRules(new StripSpaceRules());
         }
@@ -734,7 +722,7 @@ public class PrincipalStylesheetModule extends StylesheetModule {
     protected void compileError(XPathException error)
             throws XPathException {
         error.setIsStaticError(true);
-        PreparedStylesheet pss = getPreparedStylesheet();
+        Executable pss = getExecutable();
         if (pss == null) {
             // it is null before the stylesheet has been fully built
             throw error;

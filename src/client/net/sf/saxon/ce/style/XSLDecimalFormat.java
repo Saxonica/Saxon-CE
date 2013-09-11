@@ -1,14 +1,12 @@
 package client.net.sf.saxon.ce.style;
 import client.net.sf.saxon.ce.expr.Expression;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
-import client.net.sf.saxon.ce.om.AttributeCollection;
 import client.net.sf.saxon.ce.om.NamespaceException;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.DecimalFormatManager;
 import client.net.sf.saxon.ce.trans.DecimalSymbols;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.value.StringValue;
-import client.net.sf.saxon.ce.value.Whitespace;
 
 /**
 * Handler for xsl:decimal-format elements in stylesheet. <br>
@@ -48,37 +46,17 @@ public class XSLDecimalFormat extends StyleElement {
         }
         prepared = true;
 
-		AttributeCollection atts = getAttributeList();
-
-        for (int a=0; a<atts.getLength(); a++) {
-			StructuredQName qn = atts.getStructuredQName(a);
-            String f = qn.getClarkName();
-			if (f.equals("name")) {
-        		name = Whitespace.trim(atts.getValue(a));
-        	} else if (f.equals("decimal-separator")) {
-        		decimalSeparator = atts.getValue(a);
-        	} else if (f.equals("grouping-separator")) {
-        		groupingSeparator = atts.getValue(a);
-        	} else if (f.equals("infinity")) {
-        		infinity = atts.getValue(a);
-        	} else if (f.equals("minus-sign")) {
-        		minusSign = atts.getValue(a);
-        	} else if (f.equals("NaN")) {
-        		NaN = atts.getValue(a);
-        	} else if (f.equals("percent")) {
-        		percent = atts.getValue(a);
-        	} else if (f.equals("per-mille")) {
-        		perMille = atts.getValue(a);
-        	} else if (f.equals("zero-digit")) {
-        		zeroDigit = atts.getValue(a);
-        	} else if (f.equals("digit")) {
-        		digit = atts.getValue(a);
-        	} else if (f.equals("pattern-separator")) {
-        		patternSeparator = atts.getValue(a);
-        	} else {
-        		checkUnknownAttribute(qn);
-        	}
-        }
+        setObjectName((StructuredQName)checkAttribute("name", "q1"));
+        decimalSeparator = (String)checkAttribute("decimal-separator", "s");
+        groupingSeparator = (String)checkAttribute("grouping-separator", "s");
+        infinity = (String)checkAttribute("infinity", "s");
+        minusSign = (String)checkAttribute("minus-sign", "s");
+        NaN = (String)checkAttribute("NaN", "s");
+        percent = (String)checkAttribute("percent", "s");
+        perMille = (String)checkAttribute("per-mille", "s");
+        digit = (String)checkAttribute("digit", "s");
+        patternSeparator = (String)checkAttribute("pattern-separator", "s");
+        checkForUnknownAttributes();
     }
 
     public void validate(Declaration decl) throws XPathException {

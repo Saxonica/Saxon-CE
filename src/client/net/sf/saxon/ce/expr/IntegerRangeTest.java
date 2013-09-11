@@ -3,7 +3,6 @@ import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.BuiltInAtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.AtomicValue;
 import client.net.sf.saxon.ce.value.BooleanValue;
 import client.net.sf.saxon.ce.value.NumericValue;
@@ -94,10 +93,9 @@ public class IntegerRangeTest extends Expression {
 
     /**
     * Get the data type of the items returned
-     * @param th the type hierarchy cache
      */
 
-    public ItemType getItemType(TypeHierarchy th) {
+    public ItemType getItemType() {
         return BuiltInAtomicType.BOOLEAN;
     }
 
@@ -120,30 +118,6 @@ public class IntegerRangeTest extends Expression {
     public Iterator<Expression> iterateSubExpressions() {
         Expression[] e = {value, min, max};
         return Arrays.asList(e).iterator();
-    }
-
-    /**
-     * Replace one subexpression by a replacement subexpression
-     * @param original the original subexpression
-     * @param replacement the replacement subexpression
-     * @return true if the original subexpression is found
-     */
-
-    public boolean replaceSubExpression(Expression original, Expression replacement) {
-        boolean found = false;
-        if (value == original) {
-            value = replacement;
-            found = true;
-        }
-        if (min == original) {
-            min = replacement;
-            found = true;
-        }
-        if (max == original) {
-            max = replacement;
-            found = true;
-        }
-                return found;
     }
 
     /**

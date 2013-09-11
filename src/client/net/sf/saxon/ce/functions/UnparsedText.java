@@ -1,6 +1,5 @@
 package client.net.sf.saxon.ce.functions;
 
-import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.dom.XMLDOM;
 import client.net.sf.saxon.ce.expr.Expression;
 import client.net.sf.saxon.ce.expr.ExpressionVisitor;
@@ -122,22 +121,13 @@ public class UnparsedText extends SystemFunction {
         try {
             absoluteURI = ResolveURI.makeAbsolute(href, baseURI);
         } catch (URI.URISyntaxException err) {
-            XPathException e = new XPathException(err.getMessage());
-            e.setErrorCode("XTDE1170");
-            throw e;
+            throw new XPathException(err.getMessage(), "XTDE1170");
         }
 
         if (absoluteURI.getFragment() != null) {
-            XPathException e = new XPathException("URI for unparsed-text() must not contain a fragment identifier");
-            e.setErrorCode("XTDE1170");
-            throw e;
+            throw new XPathException("URI for unparsed-text() must not contain a fragment identifier", "XTDE1170");
         }
 
-        // The URL dereferencing classes throw all kinds of strange exceptions if given
-        // ill-formed sequences of %hh escape characters. So we do a sanity check that the
-        // escaping is well-formed according to UTF-8 rules
-
-        EscapeURI.checkPercentEncoding(absoluteURI.toString());
         return absoluteURI;
     }
 

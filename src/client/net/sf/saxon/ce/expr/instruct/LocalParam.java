@@ -79,26 +79,6 @@ public final class LocalParam extends GeneralVariable {
         }
     }
 
-    /**
-     * Replace one subexpression by a replacement subexpression
-     * @param original the original subexpression
-     * @param replacement the replacement subexpression
-     * @return true if the original subexpression is found
-     */
-
-    public boolean replaceSubExpression(Expression original, Expression replacement) {
-        boolean found = false;
-        if (select == original) {
-            select = replacement;
-            found = true;
-        }
-        if (conversion == original) {
-            conversion = replacement;
-            found = true;
-        }
-        return found;
-    }
-
 
     /**
     * Process the local parameter declaration
@@ -116,7 +96,7 @@ public final class LocalParam extends GeneralVariable {
             // then we may need to convert it to the type required
             if (conversion != null) {
                 context.setLocalVariable(getSlotNumber(),
-                        ExpressionTool.evaluate(conversion, conversionEvaluationMode, context, 10));
+                        ExpressionTool.evaluate(conversion, conversionEvaluationMode, context));
                 // We do an eager evaluation here for safety, because the result of the
                 // type conversion overwrites the slot where the actual supplied parameter
                 // is contained.
@@ -129,18 +109,12 @@ public final class LocalParam extends GeneralVariable {
         case ParameterSet.NOT_SUPPLIED:
             if (isImplicitlyRequiredParam()) {
                 String name = "$" + getVariableQName().getDisplayName();
-                XPathException e = new XPathException("A value must be supplied for parameter "
+                throw new XPathException("A value must be supplied for parameter "
                         + name + " because " +
-                        "the default value is not a valid instance of the required type");
-                e.setXPathContext(context);
-                e.setErrorCode("XTDE0610");
-                throw e;
+                        "the default value is not a valid instance of the required type", "XTDE0610");
             } else if (isRequiredParam()) {
                 String name = "$" + getVariableQName().getDisplayName();
-                XPathException e = new XPathException("No value supplied for required parameter " + name);
-                e.setXPathContext(context);
-                e.setErrorCode("XTDE0700");
-                throw e;
+                throw new XPathException("No value supplied for required parameter " + name, "XTDE0700");
             }
             context.setLocalVariable(getSlotNumber(), getSelectValue(context));
         }

@@ -4,9 +4,7 @@ import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.functions.FunctionLibrary;
 import client.net.sf.saxon.ce.om.NamespaceResolver;
 import client.net.sf.saxon.ce.om.StructuredQName;
-import client.net.sf.saxon.ce.trans.DecimalFormatManager;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.tree.util.SourceLocator;
 
 
 /**
@@ -32,14 +30,6 @@ public interface StaticContext {
     public XPathContext makeEarlyEvaluationContext();
 
     /**
-     * Issue a compile-time warning.
-     * @param message The warning message. This should not contain any prefix such as "Warning".
-     * @param locator the location of the construct in question. May be null.
-    */
-
-    public void issueWarning(String message, SourceLocator locator);
-
-    /**
      * Get the System ID of the container of the expression. This is the containing
      * entity (file) and is therefore useful for diagnostics. Use getBaseURI() to get
      * the base URI, which may be different.
@@ -57,16 +47,6 @@ public interface StaticContext {
     */
 
     public String getBaseURI();
-
-    /**
-     * Get the URI for a namespace prefix. The default namespace is NOT used
-     * when the prefix is empty.
-     * @param prefix The namespace prefix.
-     * @return the corresponding namespace URI
-     * @throws XPathException if the prefix is not declared
-    */
-
-    public String getURIForPrefix(String prefix) throws XPathException;
 
     /**
      * Bind a variable used in this element to the XSLVariable element in which it is declared
@@ -121,23 +101,6 @@ public interface StaticContext {
      */
 
     public NamespaceResolver getNamespaceResolver();
-
-    /**
-     * Get a DecimalFormatManager to resolve the names of decimal formats used in calls
-     * to the format-number() function.
-     * @return the decimal format manager for this static context, or null if no named decimal
-     *         formats are available in this environment.
-     * @since 9.2
-     */
-
-    public DecimalFormatManager getDecimalFormatManager();
-
-    /**
-     * Determine if an extension element is available
-     * @throws client.net.sf.saxon.ce.trans.XPathException if the name is invalid or the prefix is not declared
-     */
-
-    public boolean isElementAvailable(String qname) throws XPathException;
 
 
 }

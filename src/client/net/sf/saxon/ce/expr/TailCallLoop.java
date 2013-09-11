@@ -5,7 +5,6 @@ import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.om.ValueRepresentation;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.SequenceExtent;
 import client.net.sf.saxon.ce.value.Value;
 
@@ -122,7 +121,7 @@ public final class TailCallLoop extends UnaryExpression {
                 return;
             }
             if (fn != containingFunction) {
-                Value.asValue(tailCallDifferentFunction(fn, cm)).process(cm);
+                Value.process(Value.asIterator(tailCallDifferentFunction(fn, cm)), cm);
                 return;
             }
             // otherwise, loop round to execute the tail call
@@ -142,10 +141,9 @@ public final class TailCallLoop extends UnaryExpression {
     private ValueRepresentation tailCallDifferentFunction(UserFunction fn, XPathContextMajor cm) throws XPathException {
         cm.resetStackFrameMap(fn.getStackFrameMap(), fn.getNumberOfArguments());
         try {
-            return ExpressionTool.evaluate(fn.getBody(), fn.getEvaluationMode(), cm, 1);
+            return ExpressionTool.evaluate(fn.getBody(), fn.getEvaluationMode(), cm);
         } catch (XPathException err) {
             err.maybeSetLocation(getSourceLocator());
-            err.maybeSetContext(cm);
             throw err;
         }
     }
@@ -153,11 +151,10 @@ public final class TailCallLoop extends UnaryExpression {
 
     /**
      * Determine the data type of the items returned by the expression
-     * @param th The type hierarchy cache
      */
 
-	public ItemType getItemType(TypeHierarchy th) {
-	    return operand.getItemType(th);
+	public ItemType getItemType() {
+	    return operand.getItemType();
 	}
 
 

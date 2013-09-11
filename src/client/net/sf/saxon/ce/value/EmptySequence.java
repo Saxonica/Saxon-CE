@@ -5,7 +5,6 @@ import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.pattern.EmptySequenceTest;
 import client.net.sf.saxon.ce.type.ItemType;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
 
 /**
 * An EmptySequence object represents a sequence containing no members.
@@ -55,10 +54,9 @@ public final class EmptySequence extends Value implements GroundedValue {
 
     /**
      * Determine the item type
-     * @param th the type hierarchy cache
      */
 
-    public ItemType getItemType(TypeHierarchy th) {
+    public ItemType getItemType() {
         return EmptySequenceTest.getInstance();
     }
 

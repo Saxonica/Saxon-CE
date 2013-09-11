@@ -33,14 +33,13 @@ public class ForceCase extends SystemFunction {
             return StringValue.EMPTY_STRING;
         }
 
-        switch(operation) {
-            case UPPERCASE:
-                return StringValue.makeStringValue(sv.getStringValue().toUpperCase());
-            case LOWERCASE:
-                return StringValue.makeStringValue(sv.getStringValue().toLowerCase());
-            default:
-                throw new UnsupportedOperationException("Unknown function");
+        String s = sv.getStringValue();
+        if (operation == UPPERCASE) {
+            s = s.toUpperCase();
+        } else {
+            s = s.toLowerCase();
         }
+        return StringValue.makeStringValue(s);
     }
 
 }

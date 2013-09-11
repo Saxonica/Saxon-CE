@@ -53,12 +53,7 @@ public final class DateTimeValue extends CalendarValue implements Comparable {
         Controller c;
         if (context == null || (c = context.getController()) == null) {
             // non-XSLT/XQuery environment
-            // We also take this path when evaluating compile-time expressions that require an implicit timezone.
-            try {
-                return DateTimeValue.fromJavaDate(new Date());
-            } catch (XPathException e) {
-                throw new IllegalStateException();
-            }
+            return DateTimeValue.fromJavaDate(new Date());
         } else {
             return c.getCurrentDateTime();
         }
@@ -72,9 +67,13 @@ public final class DateTimeValue extends CalendarValue implements Comparable {
      * @return the corresponding xs:dateTime value
      */
 
-    public static DateTimeValue fromJavaDate(Date suppliedDate) throws XPathException {
-        long millis = suppliedDate.getTime();
-        return (DateTimeValue)EPOCH.add(DayTimeDurationValue.fromMilliseconds(millis));
+    public static DateTimeValue fromJavaDate(Date suppliedDate){
+        try {
+            long millis = suppliedDate.getTime();
+            return EPOCH.add(DayTimeDurationValue.fromMilliseconds(millis));
+        } catch (XPathException e) {
+            return EPOCH;
+        }
     }
 
     /**
@@ -100,9 +99,7 @@ public final class DateTimeValue extends CalendarValue implements Comparable {
         int tz1 = date.getTimezoneInMinutes();
         int tz2 = time.getTimezoneInMinutes();
         if (tz1 != NO_TIMEZONE && tz2 != NO_TIMEZONE && tz1 != tz2) {
-            XPathException err = new XPathException("Supplied date and time are in different timezones");
-            err.setErrorCode("FORG0008");
-            throw err;
+            throw new XPathException("Supplied date and time are in different timezones", "FORG0008");
         }
 
         DateTimeValue v = date.toDateTime();
@@ -111,12 +108,11 @@ public final class DateTimeValue extends CalendarValue implements Comparable {
         v.second = time.getSecond();
         v.microsecond = time.getMicrosecond();
         v.setTimezoneInMinutes(Math.max(tz1, tz2));
-        v.typeLabel = BuiltInAtomicType.DATE_TIME;
         return v;
     }
 
     private static RegExp dateTimePattern =
-            RegExp.compile("\\-?([0-9][0-9][0-9][0-9])-([0-9][0-9])-([0-9][0-9])T([0-9][0-9]):([0-9][0-9]):([0-9][0-9])(\\.[0-9]*)?([-+Z].*)?");
+            RegExp.compile("^\\-?([0-9][0-9][0-9][0-9][0-9]*)-([0-9][0-9])-([0-9][0-9])T([0-2][0-9]):([0-5][0-9]):([0-5][0-9])(\\.[0-9]*)?([-+Z].*)?$");
 
     public static ConversionResult makeDateTimeValue(CharSequence s) {
         String str = s.toString();
@@ -165,16 +161,13 @@ public final class DateTimeValue extends CalendarValue implements Comparable {
                 dt.day = tomorrow.getDay();
             }
         }
-        dt.typeLabel = BuiltInAtomicType.DATE_TIME;
         return dt;
     }
 
 
     private static ValidationFailure badDate(String msg, CharSequence value) {
-        ValidationFailure err = new ValidationFailure(
-                "Invalid dateTime value " + Err.wrap(value, Err.VALUE) + " (" + msg + ")");
-        err.setErrorCode("FORG0001");
-        return err;
+        return new ValidationFailure(
+                "Invalid dateTime value " + Err.wrap(value, Err.VALUE) + " (" + msg + ")", "FORG0001");
     }
 
     /**
@@ -203,7 +196,6 @@ public final class DateTimeValue extends CalendarValue implements Comparable {
         this.second = second;
         this.microsecond = microsecond;
         setTimezoneInMinutes(tz);
-        typeLabel = BuiltInAtomicType.DATE_TIME;
     }
 
     /**
@@ -213,7 +205,7 @@ public final class DateTimeValue extends CalendarValue implements Comparable {
      * and xs:untypedAtomic. For external objects, the result is AnyAtomicType.
      */
 
-    public BuiltInAtomicType getPrimitiveType() {
+    public BuiltInAtomicType getItemType() {
         return BuiltInAtomicType.DATE_TIME;
     }
 
@@ -270,7 +262,7 @@ public final class DateTimeValue extends CalendarValue implements Comparable {
     /**
      * Get the second component, 0-59
      *
-     * @return the second component
+     * @return the second component, excluding fractional seconds
      */
 
     public int getSecond() {
@@ -393,10 +385,8 @@ public final class DateTimeValue extends CalendarValue implements Comparable {
         } else if (requiredType == BuiltInAtomicType.G_DAY) {
             return new GDayValue(day, getTimezoneInMinutes());
         } else {
-            ValidationFailure err = new ValidationFailure("Cannot convert dateTime to " +
-                    requiredType.getDisplayName());
-            err.setErrorCode("XPTY0004");
-            return err;
+            return new ValidationFailure("Cannot convert dateTime to " +
+                    requiredType.getDisplayName(), "XPTY0004");
         }
     }
 
@@ -454,10 +444,8 @@ public final class DateTimeValue extends CalendarValue implements Comparable {
      */
 
     public AtomicValue copy() {
-        DateTimeValue v = new DateTimeValue(year, month, day,
+        return new DateTimeValue(year, month, day,
                 hour, minute, second, microsecond, getTimezoneInMinutes());
-        v.typeLabel = typeLabel;
-        return v;
     }
 
     /**
@@ -520,7 +508,7 @@ public final class DateTimeValue extends CalendarValue implements Comparable {
      *          a subclass thereof
      */
 
-    public CalendarValue add(DurationValue duration) throws XPathException {
+    public DateTimeValue add(DurationValue duration) throws XPathException {
         if (duration instanceof DayTimeDurationValue) {
             long microseconds = ((DayTimeDurationValue)duration).getLengthInMicroseconds();
             BigDecimal seconds = BigDecimal.valueOf(microseconds).divide(
@@ -547,9 +535,7 @@ public final class DateTimeValue extends CalendarValue implements Comparable {
             return  new DateTimeValue(y, (byte)m, (byte)d,
                     hour, minute, second, microsecond, getTimezoneInMinutes());
         } else {
-            XPathException err = new XPathException("DateTime arithmetic is not supported on xs:duration, only on its subtypes");
-            err.setIsTypeError(true);
-            throw err;
+            return (DateTimeValue)super.add(duration); // throw type error
         }
     }
 
@@ -565,9 +551,7 @@ public final class DateTimeValue extends CalendarValue implements Comparable {
 
     public DayTimeDurationValue subtract(CalendarValue other, XPathContext context) throws XPathException {
         if (!(other instanceof DateTimeValue)) {
-            XPathException err = new XPathException("First operand of '-' is a dateTime, but the second is not");
-            err.setIsTypeError(true);
-            throw err;
+            throw new XPathException("First operand of '-' is a dateTime, but the second is not", "XPTY0004");
         }
         return super.subtract(other, context);
     }
@@ -580,29 +564,35 @@ public final class DateTimeValue extends CalendarValue implements Comparable {
 
     public AtomicValue getComponent(int component) throws XPathException {
         switch (component) {
-        case Component.YEAR_ALLOWING_ZERO:
-            return IntegerValue.makeIntegerValue(year);
         case Component.YEAR:
-            return IntegerValue.makeIntegerValue(year > 0 ? year : year - 1);
-        case Component.MONTH:
-            return IntegerValue.makeIntegerValue(month);
-        case Component.DAY:
-            return IntegerValue.makeIntegerValue(day);
-        case Component.HOURS:
-            return IntegerValue.makeIntegerValue(hour);
-        case Component.MINUTES:
-            return IntegerValue.makeIntegerValue(minute);
-        case Component.SECONDS:
+            int value = year > 0 ? year : year - 1;
+
+            return new IntegerValue(value);
+            case Component.MONTH:
+
+                return new IntegerValue(month);
+            case Component.DAY:
+
+                return new IntegerValue(day);
+            case Component.HOURS:
+
+                return new IntegerValue(hour);
+            case Component.MINUTES:
+
+                return new IntegerValue(minute);
+            case Component.SECONDS:
             BigDecimal d = BigDecimal.valueOf(microsecond);
             d = d.divide(DecimalValue.BIG_DECIMAL_ONE_MILLION, 6, BigDecimal.ROUND_HALF_UP);
             d = d.add(BigDecimal.valueOf(second));
             return new DecimalValue(d);
         case Component.WHOLE_SECONDS: //(internal use only)
-            return IntegerValue.makeIntegerValue(second);
-        case Component.MICROSECONDS:
+
+            return new IntegerValue(second);
+            case Component.MICROSECONDS:
             // internal use only
-            return IntegerValue.makeIntegerValue(microsecond);
-        case Component.TIMEZONE:
+
+                return new IntegerValue(microsecond);
+            case Component.TIMEZONE:
             if (hasTimezone()) {
                 return DayTimeDurationValue.fromMilliseconds(60000L * getTimezoneInMinutes());
             } else {
@@ -616,48 +606,53 @@ public final class DateTimeValue extends CalendarValue implements Comparable {
     /**
      * Compare the value to another dateTime value, following the XPath comparison semantics
      *
+     *
+     *
      * @param other  The other dateTime value
-     * @param context XPath dynamic evaluation context
+     * @param implicitTimezone timezone to be used by default
      * @return negative value if this one is the earler, 0 if they are chronologically equal,
      *         positive value if this one is the later. For this purpose, dateTime values with an unknown
      *         timezone are considered to be values in the implicit timezone (the Comparable interface requires
      *         a total ordering).
      * @throws ClassCastException if the other value is not a DateTimeValue (the parameter
      *                            is declared as CalendarValue to satisfy the interface)
-     * @throws NoDynamicContextException if the implicit timezone is needed and is not available
      */
 
-    public int compareTo(CalendarValue other, XPathContext context) throws NoDynamicContextException {
+    public int compareTo(CalendarValue other, int implicitTimezone) {
         if (!(other instanceof DateTimeValue)) {
             throw new ClassCastException("DateTime values are not comparable to " + other.getClass());
         }
+        DateTimeValue v1 = (DateTimeValue)(hasTimezone() ? this : adjustTimezone(implicitTimezone));
         DateTimeValue v2 = (DateTimeValue)other;
-        if (getTimezoneInMinutes() == v2.getTimezoneInMinutes()) {
-            // both values are in the same timezone (explicitly or implicitly)
-            if (year != v2.year) {
-                return IntegerValue.signum(year - v2.year);
-            }
-            if (month != v2.month) {
-                return IntegerValue.signum(month - v2.month);
-            }
-            if (day != v2.day) {
-                return IntegerValue.signum(day - v2.day);
-            }
-            if (hour != v2.hour) {
-                return IntegerValue.signum(hour - v2.hour);
-            }
-            if (minute != v2.minute) {
-                return IntegerValue.signum(minute - v2.minute);
-            }
-            if (second != v2.second) {
-                return IntegerValue.signum(second - v2.second);
-            }
-            if (microsecond != v2.microsecond) {
-                return IntegerValue.signum(microsecond - v2.microsecond);
-            }
-            return 0;
+        if (!v2.hasTimezone()) {
+            v2 = (DateTimeValue)v2.adjustTimezone(implicitTimezone);
         }
-        return normalize(context).compareTo(v2.normalize(context), context);
+        if (v1.getTimezoneInMinutes() != v2.getTimezoneInMinutes()) {
+            v1 = (DateTimeValue)v1.adjustTimezone(v2.getTimezoneInMinutes());
+        }
+        // both values are now in the same timezone (explicitly or implicitly)
+        if (v1.year != v2.year) {
+            return IntegerValue.signum(v1.year - v2.year);
+        }
+        if (v1.month != v2.month) {
+            return IntegerValue.signum(v1.month - v2.month);
+        }
+        if (v1.day != v2.day) {
+            return IntegerValue.signum(v1.day - v2.day);
+        }
+        if (v1.hour != v2.hour) {
+            return IntegerValue.signum(v1.hour - v2.hour);
+        }
+        if (v1.minute != v2.minute) {
+            return IntegerValue.signum(v1.minute - v2.minute);
+        }
+        if (v1.second != v2.second) {
+            return IntegerValue.signum(v1.second - v2.second);
+        }
+        if (v1.microsecond != v2.microsecond) {
+            return IntegerValue.signum(v1.microsecond - v2.microsecond);
+        }
+        return 0;
     }
 
     /**
@@ -672,7 +667,7 @@ public final class DateTimeValue extends CalendarValue implements Comparable {
 
     public int compareTo(Object v2) {
         try {
-            return compareTo((DateTimeValue)v2, null);
+            return compareTo((DateTimeValue)v2, 0);
         } catch (Exception err) {
             throw new ClassCastException("DateTime comparison requires access to implicit timezone");
         }

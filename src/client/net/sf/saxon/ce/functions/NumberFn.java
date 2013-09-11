@@ -26,7 +26,6 @@ public class NumberFn extends SystemFunction  {
      */
 
      public Expression simplify(ExpressionVisitor visitor) throws XPathException {
-        useContextItemAsDefault();
         argument[0].setFlattened(true);
         return simplifyArguments(visitor);
     }

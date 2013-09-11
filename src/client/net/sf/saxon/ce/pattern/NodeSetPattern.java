@@ -40,7 +40,7 @@ public class NodeSetPattern extends Pattern {
         if ((expression.getDependencies() & StaticProperty.DEPENDS_ON_NON_DOCUMENT_FOCUS) != 0) {
             throw new IllegalArgumentException("Expression used in pattern must not depend on focus");
         }
-//        itemType = (exp.getItemType(config.getTypeHierarchy()));
+//        itemType = (exp.getItemType(TypeHierarchy.getInstance()));
 //        if (!(itemType instanceof NodeTest)) {
 //            throw new IllegalArgumentException("Expression used in a pattern must evaluate to a node-set");
 //        }
@@ -57,7 +57,7 @@ public class NodeSetPattern extends Pattern {
         expression = visitor.typeCheck(expression, contextItemType);
         RoleLocator role = new RoleLocator(RoleLocator.VARIABLE, expression.toString(), 0);
         expression = TypeChecker.staticTypeCheck(expression, SequenceType.NODE_SEQUENCE, false, role, visitor);
-        itemType = expression.getItemType(visitor.getConfiguration().getTypeHierarchy());
+        itemType = expression.getItemType();
         return this;
     }
 
@@ -100,22 +100,6 @@ public class NodeSetPattern extends Pattern {
 
     public void promote(PromotionOffer offer, Expression parent) throws XPathException {
         expression = expression.promote(offer, parent);
-    }
-
-    /**
-     * Replace a subexpression by a replacement subexpression
-     * @param original    the expression to be replaced
-     * @param replacement the new expression to be inserted in its place
-     * @return true if the replacement was carried out
-     */
-
-    public boolean replaceSubExpression(Expression original, Expression replacement) {
-        if (expression == original) {
-            expression = replacement;
-            return true;
-        } else {
-            return false;
-        }
     }
 
     /**

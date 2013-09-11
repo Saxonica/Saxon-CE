@@ -6,7 +6,6 @@ import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.Type;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
 
 /**
  * This class performs the first phase of processing in "constructing simple content":
@@ -23,14 +22,13 @@ public class EmptyTextNodeRemover extends UnaryExpression {
     /**
      * Determine the data type of the expression, if possible. The default
      * implementation for unary expressions returns the item type of the operand
-     * @param th the type hierarchy cache
      * @return the item type of the items in the result sequence, insofar as this
      *         is known statically.
      */
 
     @Override
-    public ItemType getItemType(TypeHierarchy th) {
-        return getBaseExpression().getItemType(th);
+    public ItemType getItemType() {
+        return getBaseExpression().getItemType();
     }
 
     @Override

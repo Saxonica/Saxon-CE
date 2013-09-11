@@ -2,11 +2,7 @@ package client.net.sf.saxon.ce.style;
 import client.net.sf.saxon.ce.expr.Expression;
 import client.net.sf.saxon.ce.expr.instruct.CopyOf;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
-import client.net.sf.saxon.ce.lib.Validation;
-import client.net.sf.saxon.ce.om.AttributeCollection;
-import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.value.Whitespace;
 
 
 /**
@@ -28,53 +24,14 @@ public final class XSLCopyOf extends StyleElement {
     }
 
     public void prepareAttributes() throws XPathException {
-
-		AttributeCollection atts = getAttributeList();
-		String selectAtt = null;
-		String copyNamespacesAtt = null;
-		String validationAtt = null;
-		String typeAtt = null;
-
-		for (int a=0; a<atts.getLength(); a++) {
-			StructuredQName qn = atts.getStructuredQName(a);
-            String f = qn.getClarkName();
-			if (f.equals("select")) {
-        		selectAtt = atts.getValue(a);
-            } else if (f.equals("copy-namespaces")) {
-                copyNamespacesAtt = Whitespace.trim(atts.getValue(a));
-            } else if (f.equals("validation")) {
-                validationAtt = Whitespace.trim(atts.getValue(a));
-            } else if (f.equals("type")) {
-                typeAtt = Whitespace.trim(atts.getValue(a));
-        	} else {
-        		checkUnknownAttribute(qn);
-        	}
+        select = (Expression)checkAttribute("select", "e1");
+        Boolean b = (Boolean)checkAttribute("copy-namespaces", "b");
+        if (b != null) {
+            copyNamespaces = b;
         }
-
-        if (selectAtt!=null) {
-            select = makeExpression(selectAtt);
-        } else {
-            reportAbsence("select");
-        }
-
-        if (copyNamespacesAtt == null) {
-            copyNamespaces = true;
-        } else {
-            if (copyNamespacesAtt.equals("yes")) {
-                copyNamespaces = true;
-            } else if (copyNamespacesAtt.equals("no")) {
-                copyNamespaces = false;
-            } else {
-                compileError("Value of copy-namespaces must be 'yes' or 'no'", "XTSE0020");
-            }
-        }
-
-        if (validationAtt != null && Validation.getCode(validationAtt) != Validation.STRIP) {
-            compileError("To perform validation, a schema-aware XSLT processor is needed", "XTSE1660");
-        }
-        if (typeAtt!=null) {
-            compileError("The @type attribute is available only with a schema-aware XSLT processor", "XTSE1660");
-        }
+        checkAttribute("type", "t");
+        checkAttribute("validation", "v");
+        checkForUnknownAttributes();
     }
 
     public void validate(Declaration decl) throws XPathException {

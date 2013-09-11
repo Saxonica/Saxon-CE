@@ -2,10 +2,9 @@ package client.net.sf.saxon.ce.tree.linked;
 import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.pattern.AnyNodeTest;
 import client.net.sf.saxon.ce.pattern.NodeTest;
-import client.net.sf.saxon.ce.tree.iter.AxisIterator;
+import client.net.sf.saxon.ce.tree.iter.ArrayIterator;
 import client.net.sf.saxon.ce.tree.iter.EmptyIterator;
-import client.net.sf.saxon.ce.tree.iter.NodeArrayIterator;
-import client.net.sf.saxon.ce.tree.iter.SingleNodeIterator;
+import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
 import client.net.sf.saxon.ce.tree.util.Navigator;
 
@@ -71,21 +70,17 @@ abstract class ParentNodeImpl extends NodeImpl {
      * @return an iterator over the children of this node
     */
 
-    protected final AxisIterator enumerateChildren(NodeTest test) {
+    protected final UnfailingIterator enumerateChildren(NodeTest test) {
         if (children==null) {
             return EmptyIterator.getInstance();
         } else if (children instanceof NodeImpl) {
-            NodeImpl child = (NodeImpl)children;
-            if (test == null || test instanceof AnyNodeTest) {
-                return SingleNodeIterator.makeIterator(child);
-            } else {
-                return Navigator.filteredSingleton(child, test);
-            }
+            return Navigator.filteredSingleton((NodeImpl)children, test);
         } else {
+            ArrayIterator allChildren = new ArrayIterator((NodeImpl[])children);
             if (test == null || test instanceof AnyNodeTest) {
-                return new NodeArrayIterator((NodeImpl[])children);
+                return allChildren;
             } else {
-                return new ChildEnumeration(this, test);
+                return new Navigator.AxisFilter(allChildren, test);
             }
         }
     }

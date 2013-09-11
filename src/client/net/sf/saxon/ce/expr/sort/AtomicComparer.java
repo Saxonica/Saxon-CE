@@ -1,6 +1,5 @@
 package client.net.sf.saxon.ce.expr.sort;
 
-import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.lib.StringCollator;
 import client.net.sf.saxon.ce.trans.NoDynamicContextException;
 import client.net.sf.saxon.ce.value.AtomicValue;
@@ -18,15 +17,6 @@ public interface AtomicComparer {
      */
 
     public StringCollator getCollator();
-
-    /**
-     * Supply the dynamic context in case this is needed for the comparison
-     * @param context the dynamic evaluation context
-     * @return either the original AtomicComparer, or a new AtomicComparer in which the context
-     * is known. The original AtomicComparer is not modified
-     */
-
-    public AtomicComparer provideContext(XPathContext context);
 
     /**
     * Compare two AtomicValue objects according to the rules for their data type. UntypedAtomic

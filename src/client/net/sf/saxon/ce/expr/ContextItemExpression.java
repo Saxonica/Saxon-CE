@@ -5,7 +5,6 @@ import client.net.sf.saxon.ce.tree.iter.SingletonIterator;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.Type;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
 
 
 /**
@@ -44,7 +43,7 @@ public class ContextItemExpression extends Expression {
 
     public Expression typeCheck(ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
         if (contextItemType == null) {
-            typeError("The context item is undefined at this point", getErrorCodeForUndefinedContext(), null) ;
+            typeError("The context item is undefined at this point", getErrorCodeForUndefinedContext()) ;
         }
         itemType = contextItemType;
         return this;
@@ -74,10 +73,9 @@ public class ContextItemExpression extends Expression {
 
     /**
      * Determine the item type
-     * @param th the type hierarchy cache
      */
 
-    public ItemType getItemType(TypeHierarchy th) {
+    public ItemType getItemType() {
         return itemType;
     }
 
@@ -121,25 +119,13 @@ public class ContextItemExpression extends Expression {
 
 
     /**
-     * Determine whether the expression can be evaluated without reference to the part of the context
-     * document outside the subtree rooted at the context node.
-     * @return true if the expression has no dependencies on the context node, or if the only dependencies
-     *         on the context node are downward selections using the self, child, descendant, attribute, and namespace
-     *         axes.
-     */
-
-     public boolean isSubtreeExpression() {
-        return true;
-    }    
-
-    /**
     * Iterate over the value of the expression
     */
 
     public SequenceIterator iterate(XPathContext context) throws XPathException {
         Item item = context.getContextItem();
         if (item==null) {
-            dynamicError("The context item is not set", getErrorCodeForUndefinedContext(), context);
+            dynamicError("The context item is not set", getErrorCodeForUndefinedContext());
         }
         return SingletonIterator.makeIterator(item);
     }
@@ -151,7 +137,7 @@ public class ContextItemExpression extends Expression {
     public Item evaluateItem(XPathContext context) throws XPathException {
         Item item = context.getContextItem();
         if (item==null) {
-            dynamicError("The context item is not set", getErrorCodeForUndefinedContext(), context);
+            dynamicError("The context item is not set", getErrorCodeForUndefinedContext());
         }
         return item;
     }

@@ -1,10 +1,8 @@
 package client.net.sf.saxon.ce.type;
 
-import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.expr.sort.SetUtils;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.pattern.AnyNodeTest;
-import client.net.sf.saxon.ce.pattern.DocumentNodeTest;
 import client.net.sf.saxon.ce.pattern.EmptySequenceTest;
 import client.net.sf.saxon.ce.pattern.NodeTest;
 
@@ -14,14 +12,21 @@ import java.util.Map;
 
 /**
  * This class exists to provide answers to questions about the type hierarchy. Because
- * such questions are potentially expensive, it caches the answers. There is one instance of
- * this class for a Configuration.
+ * such questions are potentially expensive, it caches the answers.
+ *
+ * <p>In Saxon-CE, because the number of types is bounded, and the same for all applications,
+ * the TypeHierarchy cache is in static data.</p>
  */
 
 public class TypeHierarchy {
 
-    private Map map;
-    private Configuration config;
+    private static TypeHierarchy THE_INSTANCE = new TypeHierarchy();
+
+    public static TypeHierarchy getInstance() {
+        return THE_INSTANCE;
+    }
+
+    private Map<ItemTypePair, Integer> map;
 
     /**
      * Constant denoting relationship between two types: A is the same type as B
@@ -48,21 +53,10 @@ public class TypeHierarchy {
 
     /**
      * Create the type hierarchy cache for a configuration
-     * @param config the configuration
      */
 
-    public TypeHierarchy(Configuration config){
-        this.config = config;
-        map = new HashMap();
-    }
-
-    /**
-     * Get the Saxon configuration to which this type hierarchy belongs
-     * @return the configuration
-     */
-
-    public Configuration getConfiguration() {
-        return config;
+    public TypeHierarchy(){
+        map = new HashMap<ItemTypePair, Integer>();
     }
 
     /**
@@ -98,13 +92,12 @@ public class TypeHierarchy {
             return SAME_TYPE;
         }
         ItemTypePair pair = new ItemTypePair(t1, t2);
-        Integer result = (Integer)map.get(pair);
+        Integer result = map.get(pair);
         if (result == null) {
-            final int r = computeRelationship(t1, t2);
-            result = Integer.valueOf(r);
+            result = computeRelationship(t1, t2);
             map.put(pair, result);
         }
-        return result.intValue();
+        return result;
     }
 
     /**
@@ -135,9 +128,6 @@ public class TypeHierarchy {
             if (t2 instanceof NodeTest) {
                 return DISJOINT;
             } else {
-                if (t1 == t2) {
-                    return SAME_TYPE;
-                }
                 ItemType t = t2;
                 while (t.isAtomicType()) {
                     if (t1 == t) {
@@ -216,42 +206,19 @@ public class TypeHierarchy {
                         nodeNameRelationship = DISJOINT;
                     }
 
-                    // now find the relationship between the content types allowed
-
-                    int contentRelationship;
-
-                    if (t1 instanceof DocumentNodeTest) {
-                        if (t2 instanceof DocumentNodeTest) {
-                            contentRelationship = relationship(((DocumentNodeTest)t1).getElementTest(),
-                                ((DocumentNodeTest)t2).getElementTest());
-                        } else {
-                            contentRelationship = SUBSUMED_BY;
-                        }
-                    } else if (t2 instanceof DocumentNodeTest) {
-                        contentRelationship = SUBSUMES;
-                    } else {
-                        SchemaType s1 = ((NodeTest)t1).getContentType();
-                        SchemaType s2 = ((NodeTest)t2).getContentType();
-                        contentRelationship = schemaTypeRelationship(s1, s2);
-                    }
 
                     // now analyse the three different relationsships
 
                     if (nodeKindRelationship == SAME_TYPE &&
-                            nodeNameRelationship == SAME_TYPE &&
-                            contentRelationship == SAME_TYPE) {
+                            nodeNameRelationship == SAME_TYPE) {
                         return SAME_TYPE;
                     } else if ((nodeKindRelationship == SAME_TYPE || nodeKindRelationship == SUBSUMES) &&
-                            (nodeNameRelationship == SAME_TYPE || nodeNameRelationship == SUBSUMES) &&
-                            (contentRelationship == SAME_TYPE || contentRelationship == SUBSUMES)) {
+                            (nodeNameRelationship == SAME_TYPE || nodeNameRelationship == SUBSUMES) ) {
                         return SUBSUMES;
                     } else if ((nodeKindRelationship == SAME_TYPE || nodeKindRelationship == SUBSUMED_BY) &&
-                            (nodeNameRelationship == SAME_TYPE || nodeNameRelationship == SUBSUMED_BY) &&
-                            (contentRelationship == SAME_TYPE || contentRelationship == SUBSUMED_BY)) {
+                            (nodeNameRelationship == SAME_TYPE || nodeNameRelationship == SUBSUMED_BY) ) {
                         return SUBSUMED_BY;
-                    } else if (nodeKindRelationship == DISJOINT ||
-                            nodeNameRelationship == DISJOINT ||
-                            contentRelationship == DISJOINT) {
+                    } else if (nodeNameRelationship == DISJOINT) {
                         return DISJOINT;
                     } else {
                         return OVERLAPS;
@@ -263,58 +230,6 @@ public class TypeHierarchy {
             return DISJOINT;
         }
 
-    }
-
-    /**
-     * Test whether a type annotation code represents the type xs:ID or one of its subtypes
-     * @param typeCode the type annotation to be tested
-     * @return true if the type annotation represents an xs:ID
-     */
-
-     public boolean isIdCode(int typeCode) {
-        return false;
-     }
-
-    /**
-     * Get the relationship of two schema types to each other
-     * @param s1 the first type
-     * @param s2 the second type
-     * @return the relationship of the two types, as one of the constants
-     * {@link client.net.sf.saxon.ce.type.TypeHierarchy#SAME_TYPE}, {@link client.net.sf.saxon.ce.type.TypeHierarchy#SUBSUMES},
-     * {@link client.net.sf.saxon.ce.type.TypeHierarchy#SUBSUMED_BY}, {@link client.net.sf.saxon.ce.type.TypeHierarchy#DISJOINT}
-     */
-
-    public static int schemaTypeRelationship(SchemaType s1, SchemaType s2) {
-        if (s1.isSameType(s2)) {
-            return SAME_TYPE;
-        }
-        if (s1 instanceof AnyType) {
-            return SUBSUMES;
-        }
-        if (s2 instanceof AnyType) {
-            return SUBSUMED_BY;
-        }
-        SchemaType t1 = s1;
-        while (true) {
-            t1 = t1.getBaseType();
-            if (t1 == null) {
-                break;
-            }
-            if (t1.isSameType(s2)) {
-                return SUBSUMED_BY;
-            }
-        }
-        SchemaType t2 = s2;
-        while (true) {
-            t2 = t2.getBaseType();
-            if (t2 == null) {
-                break;
-            }
-            if (t2.isSameType(s1)) {
-                return SUBSUMES;
-            }
-        }
-        return DISJOINT;
     }
 
 

@@ -4,14 +4,12 @@ import client.net.sf.saxon.ce.dom.HTMLNodeWrapper;
 import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.NodeInfo;
-import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.pattern.EmptySequenceTest;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.trans.update.PendingUpdateList;
 import client.net.sf.saxon.ce.trans.update.SetAttributeAction;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.Type;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
 import com.google.gwt.dom.client.Element;
 
 import java.util.Iterator;
@@ -22,15 +20,22 @@ import java.util.Iterator;
 
 public class SetAttribute extends Instruction  {
 
+    public static final int SET = 0;
+    public static final int REMOVE = 1;
+
     private Expression content;
+    private int action = SET;
 
     /**
-     * Create a set-attribute instruction
-     * @param content                an instruction to create the attribute
+     * Create a set-attribute or remove-attribute instruction
+     * @param content  an expression to create an attribute which will be copied to identify the attribute
+     * to be set, or removed
+     * @param action distinguishes set-attribute from remove-attribute
      */
 
-    public SetAttribute(AttributeCreator content) {
+    public SetAttribute(AttributeCreator content, int action) {
         this.content = content;
+        this.action = action;
         adoptChildExpression(content);
     }
 
@@ -74,12 +79,11 @@ public class SetAttribute extends Instruction  {
 
     /**
      * Get the item type of the items returned by evaluating this instruction
-     * @param th the type hierarchy cache
      * @return the static item type of the instruction. This is empty: the set-attribute instruction
      *         returns nothing.
      */
 
-    public ItemType getItemType(TypeHierarchy th) {
+    public ItemType getItemType() {
         return EmptySequenceTest.getInstance();
     }
 
@@ -94,22 +98,6 @@ public class SetAttribute extends Instruction  {
         return monoIterator(content);
     }
 
-    /**
-     * Replace one subexpression by a replacement subexpression
-     * @param original    the original subexpression
-     * @param replacement the replacement subexpression
-     * @return true if the original subexpression is found
-     */
-
-    public boolean replaceSubExpression(Expression original, Expression replacement) {
-        boolean found = false;
-        if (content == original) {
-            content = replacement;
-            found = true;
-        }
-        return found;
-    }
-
     public TailCall processLeavingTail(XPathContext context) throws XPathException {
 
         Item element = context.getContextItem();
@@ -119,15 +107,13 @@ public class SetAttribute extends Instruction  {
 
         Element parent = (Element)((HTMLNodeWrapper)element).getUnderlyingNode();
         final PendingUpdateList pul = context.getController().getPendingUpdateList();
-        SequenceIterator iter = content.iterate(context);
-        while (true) {
-            Item att = iter.next();
-            if (att == null) {
-                break;
-            }
-            if (att instanceof NodeInfo && ((NodeInfo)att).getNodeKind() == Type.ATTRIBUTE) {
-                pul.add(new SetAttributeAction(parent, ((NodeInfo)att).getURI(), ((NodeInfo)att).getLocalPart(), att.getStringValue()));
-            }
+
+        Item att = content.evaluateItem(context);
+
+        if (att instanceof NodeInfo && ((NodeInfo)att).getNodeKind() == Type.ATTRIBUTE) {
+            pul.add(new SetAttributeAction(
+                    parent, ((NodeInfo)att).getURI(), ((NodeInfo)att).getLocalPart(),
+                    (action == SET ? att.getStringValue() : null)));
         }
 
         return null;

@@ -50,7 +50,7 @@ public class XSLVariable extends XSLVariableDeclaration {
 
     public SequenceType getRequiredType() {
         // System.err.println("Get required type of $" + getVariableName());
-        final TypeHierarchy th = getConfiguration().getTypeHierarchy();
+        final TypeHierarchy th = TypeHierarchy.getInstance();
         SequenceType defaultType = (requiredType==null ? SequenceType.ANY_SEQUENCE : requiredType);
         if (requiredType != null) {
             return requiredType;
@@ -61,7 +61,7 @@ public class XSLVariable extends XSLVariableDeclaration {
             } else {
                 try {
                     // try to infer the type from the select expression
-                    return SequenceType.makeSequenceType(select.getItemType(th), select.getCardinality());
+                    return SequenceType.makeSequenceType(select.getItemType(), select.getCardinality());
                 } catch (Exception err) {
                     // this may fail because the select expression references a variable or function
                     // whose type is not yet known, because of forwards (perhaps recursive) references.

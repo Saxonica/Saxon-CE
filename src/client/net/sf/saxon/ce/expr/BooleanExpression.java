@@ -31,12 +31,12 @@ public class BooleanExpression extends BinaryExpression {
     public Expression typeCheck(ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
         Expression e = super.typeCheck(visitor, contextItemType);
         if (e == this) {
-            XPathException err0 = TypeChecker.ebvError(operand0, visitor.getConfiguration().getTypeHierarchy());
+            XPathException err0 = TypeChecker.ebvError(operand0);
             if (err0 != null) {
                 err0.setLocator(getSourceLocator());
                 throw err0;
             }
-            XPathException err1 = TypeChecker.ebvError(operand1, visitor.getConfiguration().getTypeHierarchy());
+            XPathException err1 = TypeChecker.ebvError(operand1);
             if (err1 != null) {
                 err1.setLocator(getSourceLocator());
                 throw err1;
@@ -79,7 +79,7 @@ public class BooleanExpression extends BinaryExpression {
     public Expression optimize(ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
 
         final Expression e = super.optimize(visitor, contextItemType);
-        final TypeHierarchy th = visitor.getConfiguration().getTypeHierarchy();
+        final TypeHierarchy th = TypeHierarchy.getInstance();
 
         if (e != this) {
             return e;
@@ -132,7 +132,7 @@ public class BooleanExpression extends BinaryExpression {
 
         if (e == this && operator == Token.AND &&
                 operand1 instanceof UserFunctionCall &&
-                th.isSubType(operand1.getItemType(th), BuiltInAtomicType.BOOLEAN) &&
+                th.isSubType(operand1.getItemType(), BuiltInAtomicType.BOOLEAN) &&
                 !visitor.isLoopingSubexpression(null)) {
             Expression cond = Choose.makeConditional(operand0, operand1, Literal.makeLiteral(BooleanValue.FALSE));
             ExpressionTool.copyLocationInfo(this, cond);
@@ -142,7 +142,7 @@ public class BooleanExpression extends BinaryExpression {
     }
 
     private Expression forceToBoolean(Expression in, TypeHierarchy th) {
-        if (in.getItemType(th) == BuiltInAtomicType.BOOLEAN && in.getCardinality() == StaticProperty.ALLOWS_ONE) {
+        if (in.getItemType() == BuiltInAtomicType.BOOLEAN && in.getCardinality() == StaticProperty.ALLOWS_ONE) {
             return in;
         } else {
             return SystemFunction.makeSystemFunction("boolean", new Expression[]{in});
@@ -177,10 +177,9 @@ public class BooleanExpression extends BinaryExpression {
     /**
      * Determine the data type of the expression
      * @return BuiltInAtomicType.BOOLEAN
-     * @param th the type hierarchy cache
      */
 
-    public ItemType getItemType(TypeHierarchy th) {
+    public ItemType getItemType() {
         return BuiltInAtomicType.BOOLEAN;
     }
 

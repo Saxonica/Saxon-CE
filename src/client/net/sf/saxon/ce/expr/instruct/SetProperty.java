@@ -9,7 +9,6 @@ import client.net.sf.saxon.ce.js.IXSLFunction;
 import client.net.sf.saxon.ce.pattern.EmptySequenceTest;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.expr.*;
 
 public class SetProperty extends Instruction {
@@ -85,12 +84,11 @@ public class SetProperty extends Instruction {
 
     /**
      * Get the item type of the items returned by evaluating this instruction
-     * @param th the type hierarchy cache
      * @return the static item type of the instruction. This is empty: the set-attribute instruction
      *         returns nothing.
      */
 
-    public ItemType getItemType(TypeHierarchy th) {
+    public ItemType getItemType() {
         return EmptySequenceTest.getInstance();
     }
 
@@ -109,32 +107,8 @@ public class SetProperty extends Instruction {
         return list.iterator();
     }
 
-    /**
-     * Replace one subexpression by a replacement subexpression
-     * @param original    the original subexpression
-     * @param replacement the replacement subexpression
-     * @return true if the original subexpression is found
-     */
-
-    public boolean replaceSubExpression(Expression original, Expression replacement) {
-        boolean found = false;
-        if (select == original) {
-            select = replacement;
-            found = true;
-        }
-        if (targetObject == original) {
-            targetObject = replacement;
-            found = true;
-        }
-        if (name == original) {
-            name = replacement;
-            found = true;
-        }
-        return found;
-    }
-    
     private static Object eval(Expression ex, XPathContext context) throws XPathException {
-    	return IXSLFunction.convertToJavaScript(ExpressionTool.evaluate(ex, ExpressionTool.ITERATE_AND_MATERIALIZE, context, 1));
+    	return IXSLFunction.convertToJavaScript(ExpressionTool.evaluate(ex, ExpressionTool.ITERATE_AND_MATERIALIZE, context));
     }
 
     public TailCall processLeavingTail(XPathContext context) throws XPathException {

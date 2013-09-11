@@ -33,7 +33,7 @@ import java.util.ArrayList;
 
 public final class SequenceOutputter extends SequenceReceiver {
 
-    private ArrayList list;
+    private ArrayList<Item> list;
     private Controller controller;  // enables the SequenceOutputter to be reused
     private Receiver outputter = null;
     private Builder builder = null;
@@ -42,7 +42,7 @@ public final class SequenceOutputter extends SequenceReceiver {
 
 
     public SequenceOutputter(Controller controller, int estimatedSize) {
-	    this.list = new ArrayList(estimatedSize);
+	    this.list = new ArrayList<Item>(estimatedSize);
         this.controller = controller;
 	}
 
@@ -51,22 +51,15 @@ public final class SequenceOutputter extends SequenceReceiver {
      */
 
     public void reset() {
-        list = new ArrayList(Math.max(list.size()+10, 50));
+        list = new ArrayList<Item>(Math.max(list.size()+10, 50));
         if (controller != null && adviseReuse()) {
             controller.reuseSequenceOutputter(this);
         }
     }
 
     /**
-     * Method to be supplied by subclasses: output one item in the sequence.
-     */
-
-    public void write(Item item) {
-        list.add(item);
-    }
-
-    /**
     * Get the sequence that has been built
+     * @return the sequence
     */
 
     public ValueRepresentation getSequence() {
@@ -74,7 +67,7 @@ public final class SequenceOutputter extends SequenceReceiver {
             case 0:
                 return EmptySequence.getInstance();
             case 1:
-                return (Item)list.get(0);
+                return list.get(0);
             default:
                 return new SequenceExtent(list);
         }
@@ -82,6 +75,7 @@ public final class SequenceOutputter extends SequenceReceiver {
 
     /**
      * Get an iterator over the sequence of items that has been constructed
+     * @return the iterator
      */
 
     public SequenceIterator iterate() {
@@ -93,34 +87,15 @@ public final class SequenceOutputter extends SequenceReceiver {
     }
 
     /**
-     * Get the list containing the sequence of items
-     */
-
-    public ArrayList getList() {
-        return list;
-    }
-
-    /**
      * Get the first item in the sequence that has been built
+     * @return the first item in the list, or null if there are none
      */
 
     public Item getFirstItem() {
         if (list.isEmpty()) {
             return null;
         } else {
-            return (Item)list.get(0);
-        }
-    }
-
-    /**
-     * Get the last item in the sequence that has been built, and remove it
-     */
-
-    public Item popLastItem() {
-        if (list.isEmpty()) {
-            return null;
-        } else {
-            return (Item)list.remove(list.size()-1);
+            return list.get(0);
         }
     }
 
@@ -373,7 +348,7 @@ public final class SequenceOutputter extends SequenceReceiver {
         }
 
         if (level==0) {
-            write(item);
+            list.add(item);
             previousAtomic = false;
         } else {
             if (item instanceof AtomicValue) {

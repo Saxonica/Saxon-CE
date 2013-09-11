@@ -6,7 +6,6 @@ import client.net.sf.saxon.ce.pattern.EmptySequenceTest;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.EmptyIterator;
 import client.net.sf.saxon.ce.type.ItemType;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.SequenceType;
 
 import java.util.Collections;
@@ -141,10 +140,9 @@ public abstract class GeneralVariable extends Instruction implements Binding {
      * Get the type of the result of this instruction. An xsl:variable instruction returns nothing, so the
      * type is empty.
      * @return the empty type.
-     * @param th the type hierarchy cache
      */
 
-    public ItemType getItemType(TypeHierarchy th) {
+    public ItemType getItemType() {
         return EmptySequenceTest.getInstance();
     }
 
@@ -323,7 +321,7 @@ public abstract class GeneralVariable extends Instruction implements Binding {
             // There is a select attribute: do a lazy evaluation of the expression,
             // which will already contain any code to force conversion to the required type.
 
-            return ExpressionTool.evaluate(select, evaluationMode, context, referenceCount);
+            return ExpressionTool.evaluate(select, evaluationMode, context);
 
         }
     }
@@ -357,22 +355,6 @@ public abstract class GeneralVariable extends Instruction implements Binding {
         } else {
             return Collections.EMPTY_LIST.iterator();
         }
-    }
-
-    /**
-     * Replace one subexpression by a replacement subexpression
-     * @param original the original subexpression
-     * @param replacement the replacement subexpression
-     * @return true if the original subexpression is found
-     */
-
-    public boolean replaceSubExpression(Expression original, Expression replacement) {
-        boolean found = false;
-        if (select == original) {
-            select = replacement;
-            found = true;
-        }
-        return found;
     }
 
 

@@ -4,10 +4,7 @@ import client.net.sf.saxon.ce.expr.StringLiteral;
 import client.net.sf.saxon.ce.expr.instruct.Block;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.expr.instruct.Message;
-import client.net.sf.saxon.ce.om.AttributeCollection;
 import client.net.sf.saxon.ce.om.Axis;
-import client.net.sf.saxon.ce.om.StructuredQName;
-import client.net.sf.saxon.ce.value.Whitespace;
 import client.net.sf.saxon.ce.trans.XPathException;
 
 
@@ -39,38 +36,11 @@ public final class XSLMessage extends StyleElement {
     }
 
     public void prepareAttributes() throws XPathException {
+        terminate = (Expression)checkAttribute("terminate", "a");
+        select = (Expression)checkAttribute("select", "e");
 
-        String terminateAtt = null;
-        String selectAtt = null;
-		AttributeCollection atts = getAttributeList();
-
-		for (int a=0; a<atts.getLength(); a++) {
-			StructuredQName qn = atts.getStructuredQName(a);
-            String f = qn.getClarkName();
-			if (f.equals("terminate")) {
-        		terminateAtt = Whitespace.trim(atts.getValue(a));
-            } else if (f.equals("select")) {
-                selectAtt = atts.getValue(a);
-
-            } else {
-        		checkUnknownAttribute(qn);
-        	}
-        }
-        if (selectAtt!=null) {
-            select = makeExpression(selectAtt);
-        }
-
-
-        if (terminateAtt==null) {
-            terminateAtt = "no";
-        }
-
-        terminate = makeAttributeValueTemplate(terminateAtt);
-        if (terminate instanceof StringLiteral) {
-            String t = ((StringLiteral)terminate).getStringValue();
-            if (!(t.equals("yes") || t.equals("no"))) {
-                compileError("terminate must be 'yes' or 'no'", "XTSE0020");
-            }
+        if (terminate==null) {
+            terminate = makeAttributeValueTemplate("no");
         }
     }
 

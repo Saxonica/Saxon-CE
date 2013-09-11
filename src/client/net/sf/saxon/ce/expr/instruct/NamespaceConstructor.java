@@ -4,12 +4,10 @@ import client.net.sf.saxon.ce.event.ReceiverOptions;
 import client.net.sf.saxon.ce.event.SequenceReceiver;
 import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
-import client.net.sf.saxon.ce.lib.StandardURIChecker;
 import client.net.sf.saxon.ce.om.*;
 import client.net.sf.saxon.ce.pattern.NodeKindTest;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.Whitespace;
 
 import java.util.ArrayList;
@@ -38,7 +36,7 @@ public class NamespaceConstructor extends SimpleNodeConstructor {
         return super.simplify(visitor);
     }
 
-    public ItemType getItemType(TypeHierarchy th) {
+    public ItemType getItemType() {
         return NodeKindTest.NAMESPACE;
     }
 
@@ -68,35 +66,14 @@ public class NamespaceConstructor extends SimpleNodeConstructor {
     }
 
 
-    /**
-     * Replace one subexpression by a replacement subexpression
-     * @param original the original subexpression
-     * @param replacement the replacement subexpression
-     * @return true if the original subexpression is found
-     */
-
-    public boolean replaceSubExpression(Expression original, Expression replacement) {
-        boolean found = false;
-        if (select == original) {
-            select = replacement;
-            found = true;
-        }
-        if (name == original) {
-            name = replacement;
-            found = true;
-        }
-                return found;
-    }
-
-
     private String evaluatePrefix(XPathContext context) throws XPathException {
         String prefix = Whitespace.trim(name.evaluateAsString(context));
         if (!(prefix.length() == 0 || NameChecker.isValidNCName(prefix))) {
-            dynamicError("Namespace prefix is invalid: " + prefix, "XTDE0920", context);
+            dynamicError("Namespace prefix is invalid: " + prefix, "XTDE0920");
         }
 
         if (prefix.equals("xmlns")) {
-            dynamicError("Namespace prefix 'xmlns' is not allowed", "XTDE0920", context);
+            dynamicError("Namespace prefix 'xmlns' is not allowed", "XTDE0920");
         }
         return prefix;
     }
@@ -133,20 +110,16 @@ public class NamespaceConstructor extends SimpleNodeConstructor {
     private void checkPrefixAndUri(String prefix, String uri, XPathContext context) throws XPathException {
         if (prefix.equals("xml") != uri.equals(NamespaceConstant.XML)) {
             dynamicError("Namespace prefix 'xml' and namespace uri " + NamespaceConstant.XML +
-                    " must only be used together", "XTDE0925", context);
+                    " must only be used together", "XTDE0925");
         }
 
         if (uri.length() == 0) {
-            dynamicError("Namespace URI is an empty string", "XTDE0930", context);
+            dynamicError("Namespace URI is an empty string", "XTDE0930");
         }
 
         if (uri.equals(NamespaceConstant.XMLNS)) {
             dynamicError("A namespace node cannot have the reserved namespace " +
-                    NamespaceConstant.XMLNS, "XTDE0935", context);
-        }
-
-        if (!StandardURIChecker.getInstance().isValidURI(uri)) {
-            dynamicError("The string value of the constructed namespace node must be a valid URI", "XTDE0905", context);
+                    NamespaceConstant.XMLNS, "XTDE0935");
         }
     }
 

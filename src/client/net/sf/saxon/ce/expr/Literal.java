@@ -4,9 +4,9 @@ import client.net.sf.saxon.ce.event.SequenceReceiver;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.om.SequenceIterator;
+import client.net.sf.saxon.ce.om.ValueRepresentation;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.*;
 import client.net.sf.saxon.ce.value.StringValue;
 
@@ -35,11 +35,11 @@ public class Literal extends Expression {
      * @return the Literal
      */
 
-    public static Literal makeLiteral(Value value) {
+    public static Literal makeLiteral(ValueRepresentation value) {
         if (value instanceof StringValue) {
             return new StringLiteral((StringValue)value);
         } else {
-            return new Literal(value);
+            return new Literal(Value.asValue(value));
         }
     }
 
@@ -59,21 +59,6 @@ public class Literal extends Expression {
 
     public Value getValue() {
         return value;
-    }
-
-    /**
-     * Simplify an expression
-     * @return for a Value, this always returns the value unchanged
-     * @param visitor an expression visitor
-     */
-
-    public Expression simplify(ExpressionVisitor visitor) {
-        try {
-            value = value.reduce();
-        } catch (XPathException err) {
-            throw new AssertionError();
-        }
-        return this;
     }
 
     /**
@@ -97,11 +82,10 @@ public class Literal extends Expression {
     /**
      * Determine the data type of the items in the expression, if possible
      * @return for the default implementation: AnyItemType (not known)
-     * @param th The TypeHierarchy. Can be null if the target is an AtomicValue.
      */
 
-    public ItemType getItemType(TypeHierarchy th) {
-        return value.getItemType(th);
+    public ItemType getItemType() {
+        return value.getItemType();
     }
 
     /**
@@ -156,6 +140,7 @@ public class Literal extends Expression {
     private Expression copy() {
         return new Literal(value);
     }
+
 
     /**
     * Determine which aspects of the context the expression depends on. The result is
@@ -284,7 +269,7 @@ public class Literal extends Expression {
                	    }
                 } else if(m0 instanceof AtomicValue && m1 instanceof AtomicValue){
 					if (!n0 && !n1 && (!((AtomicValue)m0).equals((AtomicValue)m1)) ||
-							((AtomicValue)m0).getTypeLabel() != ((AtomicValue)m1).getTypeLabel()) {
+							((AtomicValue)m0).getItemType() != ((AtomicValue)m1).getItemType()) {
 						return false;
 					}
 				}
@@ -371,17 +356,6 @@ public class Literal extends Expression {
         }
     }
 
-    /**
-     * Determine whether the expression can be evaluated without reference to the part of the context
-     * document outside the subtree rooted at the context node.
-     * @return true if the expression has no dependencies on the context node, or if the only dependencies
-     *         on the context node are downward selections using the self, child, descendant, attribute, and namespace
-     *         axes.
-     */
-
-     public boolean isSubtreeExpression() {
-        return true;
-    }
 }
 
 // This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. 

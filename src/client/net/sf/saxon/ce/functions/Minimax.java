@@ -90,8 +90,8 @@ public class Minimax extends CollatingFunction {
      */
 
     public Expression optimize(ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
-        TypeHierarchy th = visitor.getConfiguration().getTypeHierarchy();
-        argumentType = (BuiltInAtomicType)argument[0].getItemType(th).getAtomizedItemType().getPrimitiveItemType();
+        TypeHierarchy th = TypeHierarchy.getInstance();
+        argumentType = (BuiltInAtomicType)argument[0].getItemType().getAtomizedItemType().getPrimitiveItemType();
         Expression e = super.optimize(visitor, contextItemType);
         if (e != this) {
             return e;
@@ -99,7 +99,7 @@ public class Minimax extends CollatingFunction {
         if (getNumberOfArguments() == 1) {
             // test for a singleton: this often happens after (A<B) is rewritten as (min(A) lt max(B))
             int card = argument[0].getCardinality();
-            if (!Cardinality.allowsMany(card) && th.isSubType(argument[0].getItemType(th), BuiltInAtomicType.NUMERIC)) {
+            if (!Cardinality.allowsMany(card) && th.isSubType(argument[0].getItemType(), BuiltInAtomicType.NUMERIC)) {
                 return argument[0];
             }
         }
@@ -109,12 +109,11 @@ public class Minimax extends CollatingFunction {
     /**
      * Determine the item type of the value returned by the function
      *
-     * @param th the type hierarchy cache
      * @return the statically inferred type of the expression
      */
 
-    public ItemType getItemType(TypeHierarchy th) {
-        ItemType t = Atomizer.getAtomizedItemType(argument[0], false, th);
+    public ItemType getItemType() {
+        ItemType t = Atomizer.getAtomizedItemType(argument[0], false);
         if (t == BuiltInAtomicType.UNTYPED_ATOMIC) {
             return BuiltInAtomicType.DOUBLE;
         } else {
@@ -144,7 +143,7 @@ public class Minimax extends CollatingFunction {
             type = BuiltInAtomicType.DOUBLE;
         }
         AtomicComparer comparer =
-                GenericAtomicComparer.makeAtomicComparer(type, type, collator, context);
+                GenericAtomicComparer.makeAtomicComparer(type, type, collator, context.getImplicitTimezone());
         return comparer;
     }
 
@@ -162,7 +161,7 @@ public class Minimax extends CollatingFunction {
                                       AtomicComparer atomicComparer, boolean ignoreNaN, XPathContext context)
             throws XPathException {
 
-        TypeHierarchy th = context.getConfiguration().getTypeHierarchy();
+        TypeHierarchy th = TypeHierarchy.getInstance();
         boolean foundDouble = false;
         boolean foundFloat = false;
         boolean foundNaN = false;
@@ -193,10 +192,7 @@ public class Minimax extends CollatingFunction {
                     prim = min;
                     foundDouble = true;
                 } catch (NumberFormatException e) {
-                    XPathException de = new XPathException("Failure converting " + Err.wrap(min.getStringValue()) + " to a number");
-                    de.setErrorCode("FORG0001");
-                    de.setXPathContext(context);
-                    throw de;
+                    throw new XPathException("Failure converting " + Err.wrap(min.getStringValue()) + " to a number", "FORG0001");
                 }
             } else {
                 if (prim instanceof DoubleValue) {
@@ -218,18 +214,16 @@ public class Minimax extends CollatingFunction {
                     break;
                 }
             } else {
-                if (!prim.getPrimitiveType().isOrdered()) {
-                    XPathException de = new XPathException("Type " + prim.getPrimitiveType() + " is not an ordered type");
-                    de.setErrorCode("FORG0006");
+                if (!prim.getItemType().isOrdered()) {
+                    XPathException de = new XPathException("Type " + prim.getItemType() + " is not an ordered type", "FORG0006");
                     de.setIsTypeError(true);
-                    de.setXPathContext(context);
                     throw de;
                 }
                 break;          // process the rest of the sequence
             }
         }
 
-        BuiltInAtomicType lowestCommonSuperType = min.getPrimitiveType();
+        BuiltInAtomicType lowestCommonSuperType = min.getItemType();
 
         while (true) {
             AtomicValue test = (AtomicValue)iter.next();
@@ -247,10 +241,7 @@ public class Minimax extends CollatingFunction {
                     prim = test2;
                     foundDouble = true;
                 } catch (NumberFormatException e) {
-                    XPathException de = new XPathException("Failure converting " + Err.wrap(test.getStringValue()) + " to a number");
-                    de.setErrorCode("FORG0001");
-                    de.setXPathContext(context);
-                    throw de;
+                    throw new XPathException("Failure converting " + Err.wrap(test.getStringValue()) + " to a number", "FORG0001");
                 }
             } else {
                 if (prim instanceof DoubleValue) {
@@ -263,7 +254,7 @@ public class Minimax extends CollatingFunction {
                 }
             }
             lowestCommonSuperType = (BuiltInAtomicType)Type.getCommonSuperType(
-                    lowestCommonSuperType, prim.getPrimitiveType(), th);
+                    lowestCommonSuperType, prim.getItemType());
             if (prim.isNaN()) {
                 // if there's a double NaN in the sequence, return NaN, unless ignoreNaN is set
                 if (ignoreNaN) {
@@ -280,10 +271,8 @@ public class Minimax extends CollatingFunction {
                         min = test2;
                     }
                 } catch (ClassCastException err) {
-                    XPathException de = new XPathException("Cannot compare " + min.getItemType(th) + " with " + test2.getItemType(th));
-                    de.setErrorCode("FORG0006");
+                    XPathException de = new XPathException("Cannot compare " + min.getItemType() + " with " + test2.getItemType(), "FORG0006");
                     de.setIsTypeError(true);
-                    de.setXPathContext(context);
                     throw de;
                 }
             }

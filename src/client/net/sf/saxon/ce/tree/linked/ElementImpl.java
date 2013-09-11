@@ -18,7 +18,7 @@ import java.util.Iterator;
   */
 
 
-public class ElementImpl extends ParentNodeImpl implements NamespaceResolver {
+public class ElementImpl extends ParentNodeImpl {
 
     private StructuredQName elementName;
     private AttributeCollection attributeList;      // this excludes namespace attributes
@@ -242,26 +242,26 @@ public class ElementImpl extends ParentNodeImpl implements NamespaceResolver {
      * the default namespace (prefix="") and the XML namespace where appropriate
      */
 
-    public Iterator iteratePrefixes() {
-        return new Iterator() {
-            private boolean atStart = true;
-            private Iterator<NamespaceBinding> iter = NamespaceIterator.iterateNamespaces(ElementImpl.this);
-            public boolean hasNext() {
-                return (atStart || iter.hasNext());
-            }
-            public Object next() {
-                if (atStart) {
-                    atStart = false;
-                    return "xml";
-                } else {
-                    return iter.next().getPrefix();
-                }
-            }
-            public void remove() {
-                throw new UnsupportedOperationException("remove");
-            }
-        };
-    }
+//    public Iterator iteratePrefixes() {
+//        return new Iterator() {
+//            private boolean atStart = true;
+//            private Iterator<NamespaceBinding> iter = NamespaceIterator.iterateNamespaces(ElementImpl.this);
+//            public boolean hasNext() {
+//                return (atStart || iter.hasNext());
+//            }
+//            public Object next() {
+//                if (atStart) {
+//                    atStart = false;
+//                    return "xml";
+//                } else {
+//                    return iter.next().getPrefix();
+//                }
+//            }
+//            public void remove() {
+//                throw new UnsupportedOperationException("remove");
+//            }
+//        };
+//    }
 
     /**
      * Get the URI bound to a given prefix in the in-scope namespaces of this element
@@ -269,30 +269,30 @@ public class ElementImpl extends ParentNodeImpl implements NamespaceResolver {
      * @return the uri , or null if there is no in-scope binding for this prefix
      */
 
-    public String getURIForPrefix(String prefix, boolean useDefault) {
-        if (prefix.equals("xml")) {
-            return NamespaceConstant.XML;
-        }
-        if (prefix.isEmpty() && !useDefault) {
-            return NamespaceConstant.NULL;
-        }
-
-        if (namespaceList!=null) {
-            for (int i=0; i<namespaceList.length; i++) {
-                if ((namespaceList[i].getPrefix().equals(prefix))) {
-                    String uri = namespaceList[i].getURI();
-                    return (uri.isEmpty() && !prefix.isEmpty() ? null : uri);
-                }
-            }
-        }
-        NodeInfo next = getRawParent();
-        if (next.getNodeKind()==Type.DOCUMENT) {
-            // prefixCode==0 represents the empty namespace prefix ""
-            return (prefix.isEmpty() ? NamespaceConstant.NULL : null);
-        } else {
-            return ((ElementImpl)next).getURIForPrefix(prefix, useDefault);
-        }
-    }
+//    public String getURIForPrefix(String prefix, boolean useDefault) {
+//        if (prefix.equals("xml")) {
+//            return NamespaceConstant.XML;
+//        }
+//        if (prefix.isEmpty() && !useDefault) {
+//            return NamespaceConstant.NULL;
+//        }
+//
+//        if (namespaceList!=null) {
+//            for (int i=0; i<namespaceList.length; i++) {
+//                if ((namespaceList[i].getPrefix().equals(prefix))) {
+//                    String uri = namespaceList[i].getURI();
+//                    return (uri.isEmpty() && !prefix.isEmpty() ? null : uri);
+//                }
+//            }
+//        }
+//        NodeInfo next = getRawParent();
+//        if (next.getNodeKind()==Type.DOCUMENT) {
+//            // prefixCode==0 represents the empty namespace prefix ""
+//            return (prefix.isEmpty() ? NamespaceConstant.NULL : null);
+//        } else {
+//            return ((ElementImpl)next).getURIForPrefix(prefix, useDefault);
+//        }
+//    }
     /**
     * Search the NamespaceList for a given URI, returning the corresponding prefix.
     * @param uri The URI to be matched.
@@ -305,9 +305,10 @@ public class ElementImpl extends ParentNodeImpl implements NamespaceResolver {
         if (uri.equals(NamespaceConstant.XML)) {
             return "xml";
         }
-        for (Iterator<String> iter = iteratePrefixes(); iter.hasNext();) {
+        NamespaceResolver resolver = new InscopeNamespaceResolver(this);
+        for (Iterator<String> iter = resolver.iteratePrefixes(); iter.hasNext();) {
             String prefix = iter.next();
-            if (uri.equals(getURIForPrefix(prefix, true))) {
+            if (uri.equals(resolver.getURIForPrefix(prefix, true))) {
                 return uri;
             }
         }

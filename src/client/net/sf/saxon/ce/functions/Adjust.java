@@ -1,6 +1,4 @@
 package client.net.sf.saxon.ce.functions;
-import client.net.sf.saxon.ce.expr.Expression;
-import client.net.sf.saxon.ce.expr.ExpressionVisitor;
 import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.trans.XPathException;
@@ -18,15 +16,6 @@ public class Adjust extends SystemFunction {
 
     public Adjust newInstance() {
         return new Adjust();
-    }
-
-    /**
-     * Simplify and validate.
-     * @param visitor an expression visitor
-     */
-
-    public Expression simplify(ExpressionVisitor visitor) throws XPathException {
-        return super.simplify(visitor);
     }
 
     /**
@@ -52,11 +41,11 @@ public class Adjust extends SystemFunction {
             tz = (DayTimeDurationValue)av2;
             long microseconds = tz.getLengthInMicroseconds();
             if (microseconds%60000000 != 0) {
-                dynamicError("Timezone is not an integral number of minutes", "FODT0003", context);
+                dynamicError("Timezone is not an integral number of minutes", "FODT0003");
             }
             int tzminutes = (int)(microseconds / 60000000);
             if (Math.abs(tzminutes) > 14*60) {
-                dynamicError("Timezone out of range (-14:00 to +14:00)", "FODT0003", context);
+                dynamicError("Timezone out of range (-14:00 to +14:00)", "FODT0003");
             }
             return in.adjustTimezone(tzminutes);
         }

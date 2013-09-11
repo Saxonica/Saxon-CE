@@ -10,7 +10,6 @@ import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.ListIterator;
 import client.net.sf.saxon.ce.tree.iter.SingletonIterator;
-import client.net.sf.saxon.ce.tree.util.StringTokenizer;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.value.AtomicValue;
@@ -59,7 +58,7 @@ public class Id extends SystemFunction {
         if (argument[1] instanceof RootExpression && contextItemType != null && contextItemType.isAtomicType()) {
             // intercept this to get better diagnostics
             typeError(getFunctionName().getLocalName() +
-                    "() function called when the context item is not a node", "XPTY0004", null);
+                    "() function called when the context item is not a node", "XPTY0004");
         }
         return super.typeCheck(visitor, contextItemType);
     }
@@ -113,7 +112,7 @@ public class Id extends SystemFunction {
             if (context.getContextItem() instanceof AtomicValue) {
                 // Override the unhelpful message that trickles down..
                 dynamicError("For the " + getFunctionName().getLocalName() +
-                        "() function, the context item is not a node", "XPTY0004", context);
+                        "() function, the context item is not a node", "XPTY0004");
                 return null;
             } else {
                 throw e;
@@ -122,7 +121,7 @@ public class Id extends SystemFunction {
         arg1 = arg1.getRoot();
         if (arg1.getNodeKind() != Type.DOCUMENT) {
             dynamicError("In the " + getFunctionName().getLocalName() + "() function," +
-                            " the tree being searched must be one whose root is a document node", "FODC0001", context);
+                            " the tree being searched must be one whose root is a document node", "FODC0001");
             return null;
         }
         DocumentInfo doc = (DocumentInfo)arg1;
@@ -150,10 +149,10 @@ public class Id extends SystemFunction {
             // separate tokens; if not, we can process it directly
 
             if (Whitespace.containsWhitespace(idrefs)) {
-                List<StringValue> refs = new ArrayList<StringValue>(10);
-                StringTokenizer st = new StringTokenizer(idrefs);
-                while (st.hasMoreTokens()) {
-                    refs.add(StringValue.makeStringValue(st.nextToken()));
+                List<String> tokens = Whitespace.tokenize(idrefs);
+                List<StringValue> refs = new ArrayList<StringValue>(tokens.size());
+                for (String s : tokens) {
+                    refs.add(StringValue.makeStringValue(s));
                 }
                 IdMappingFunction submap = new IdMappingFunction();
                 submap.document = document;

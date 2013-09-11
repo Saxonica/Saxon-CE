@@ -12,7 +12,7 @@ import client.net.sf.saxon.ce.om.Axis;
 import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.tree.iter.AxisIterator;
+import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 import client.net.sf.saxon.ce.value.SequenceType;
 
 /**
@@ -64,7 +64,7 @@ public class IXSLScheduleAction extends StyleElement {
         }
 
         boolean found = false;
-        AxisIterator kids = iterateAxis(Axis.CHILD);
+        UnfailingIterator kids = iterateAxis(Axis.CHILD);
         while(true) {
             NodeInfo child = (NodeInfo)kids.next();
             if (child == null) {

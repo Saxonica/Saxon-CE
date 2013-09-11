@@ -64,7 +64,6 @@ public class Controller {
     private Bindery bindery;                // holds values of global variables
     private RuleManager ruleManager;
     private HashMap<StructuredQName, ValueRepresentation> parameters;
-    private PreparedStylesheet preparedStylesheet;
     private String principalResultURI;
     private ErrorListener errorListener;
     private Executable executable;
@@ -564,18 +563,16 @@ public class Controller {
         	return;
         }
         StructuredQName qName = StructuredQName.fromClarkName(expandedName);
-        Template t = ((PreparedStylesheet)getExecutable()).getNamedTemplate(qName);
+        Template t = getExecutable().getNamedTemplate(qName);
         if (t == null) {
             XPathException err = new XPathException("The requested initial template, with expanded name "
-                    + expandedName + ", does not exist");
-            err.setErrorCode("XTDE0040");
+                    + expandedName + ", does not exist", "XTDE0040");
             reportFatalError(err);
             throw err;
         } else if (t.hasRequiredParams()) {
             XPathException err = new XPathException("The named template "
                     + expandedName
-                    + " has required parameters, so cannot be used as the entry point");
-            err.setErrorCode("XTDE0060");
+                    + " has required parameters, so cannot be used as the entry point", "XTDE0060");
             reportFatalError(err);
             throw err;
         } else {
@@ -635,22 +632,6 @@ public class Controller {
 	public ErrorListener getErrorListener() {
 		return errorListener;
 	}
-
-    /**
-     * Report a recoverable error. This is an XSLT concept: by default, such an error results in a warning
-     * message, and processing continues. In XQuery, however, there are no recoverable errors so a fatal
-     * error is reported.
-     * <p>
-     * This method is intended for internal use only.
-     *
-     * @param err An exception holding information about the error
-     * @throws XPathException if the error listener decides not to
-     *     recover from the error
-     */
-
-    public void recoverableError(XPathException err) throws XPathException {
-        getConfiguration().issueWarning(err.getMessage());
-    }
 
     /**
      * Report a fatal error
@@ -863,13 +844,12 @@ public class Controller {
      * @param sheet the compiled stylesheet
      */
 
-    public void setPreparedStylesheet(PreparedStylesheet sheet) {
-        preparedStylesheet = sheet;
-        executable = sheet.getExecutable();
+    public void setPreparedStylesheet(Executable sheet) {
+        executable = sheet;
     }
     
-    public PreparedStylesheet getPreparedStylesheet(){
-    	return preparedStylesheet;
+    public Executable getPreparedStylesheet(){
+    	return executable;
     }
 
     /**
@@ -892,8 +872,8 @@ public class Controller {
      */
 
     private void initializeController() throws XPathException {
-        if (preparedStylesheet != null) {
-            setRuleManager(preparedStylesheet.getRuleManager());
+        if (executable != null) {
+            setRuleManager(executable.getRuleManager());
         }
         //setDecimalFormatManager(executable.getDecimalFormatManager());
 
@@ -997,7 +977,7 @@ public class Controller {
                     "The Transformer is being used recursively or concurrently. This is not permitted.");
         }
         clearPerTransformationData();
-        if (preparedStylesheet==null) {
+        if (executable==null) {
             throw new XPathException("Stylesheet has not been prepared");
         }
 
@@ -1021,7 +1001,7 @@ public class Controller {
 
             } else {
 
-                Mode mode = preparedStylesheet.getRuleManager().getMode(initialMode, false);
+                Mode mode = executable.getRuleManager().getMode(initialMode, false);
                 if (mode == null || (initialMode != null && mode.isEmpty())) {
                     throw new XPathException("Requested initial mode " +
                             (initialMode == null ? "" : initialMode.getDisplayName()) +
@@ -1260,7 +1240,7 @@ public class Controller {
             if (dateTime.getComponent(Component.TIMEZONE) == null) {
                 throw new XPathException("No timezone is present in supplied value of current date/time");
             }
-            currentDateTime = dateTime;
+            currentDateTime = (DateTimeValue)dateTime.adjustTimezone(getConfiguration().getImplicitTimezone());
             dateTimePreset = true;
         } else {
             throw new IllegalStateException(
@@ -1278,11 +1258,7 @@ public class Controller {
 
     public DateTimeValue getCurrentDateTime() {
         if (currentDateTime==null) {
-            try {
-                currentDateTime = DateTimeValue.fromJavaDate(new Date());
-            } catch (XPathException err) {
-                throw new IllegalStateException(err);
-            }
+            currentDateTime = DateTimeValue.fromJavaDate(new Date());
         }
         return currentDateTime;
     }

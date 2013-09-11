@@ -6,12 +6,12 @@ import client.net.sf.saxon.ce.expr.instruct.AnalyzeString;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.om.*;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.tree.iter.AxisIterator;
+import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 import client.net.sf.saxon.ce.type.ItemType;
 
 /**
-* An xsl:analyze-string elements in the stylesheet. New at XSLT 2.0<BR>
-*/
+ * An xsl:analyze-string elements in the stylesheet. New at XSLT 2.0<BR>
+ */
 
 public class XSLAnalyzeString extends StyleElement {
 
@@ -22,18 +22,19 @@ public class XSLAnalyzeString extends StyleElement {
     private StyleElement nonMatching;
 
     /**
-    * Determine whether this node is an instruction.
-    * @return true - it is an instruction
-    */
+     * Determine whether this node is an instruction.
+     *
+     * @return true - it is an instruction
+     */
 
     public boolean isInstruction() {
         return true;
     }
 
     /**
-    * Determine whether this type of element is allowed to contain an xsl:fallback
-    * instruction
-    */
+     * Determine whether this type of element is allowed to contain an xsl:fallback
+     * instruction
+     */
 
     public boolean mayContainFallback() {
         return true;
@@ -42,6 +43,7 @@ public class XSLAnalyzeString extends StyleElement {
     /**
      * Determine the type of item returned by this instruction (only relevant if
      * it is an instruction).
+     *
      * @return the item type returned
      */
 
@@ -49,53 +51,23 @@ public class XSLAnalyzeString extends StyleElement {
         return getCommonChildItemType();
     }
 
-     public void prepareAttributes() throws XPathException {
-		String selectAtt = null;
-		String regexAtt = null;
-		String flagsAtt = null;
-
-		AttributeCollection atts = getAttributeList();
-
-		for (int a=0; a<atts.getLength(); a++) {
-			StructuredQName qn = atts.getStructuredQName(a);
-            String f = qn.getClarkName();
-			if (f.equals("regex")) {
-        		regexAtt = atts.getValue(a);
-			} else if (f.equals("select")) {
-        		selectAtt = atts.getValue(a);
-			} else if (f.equals("flags")) {
-        		flagsAtt = atts.getValue(a); // not trimmed, see bugzilla 4315
-        	} else {
-        		checkUnknownAttribute(qn);
-        	}
+    public void prepareAttributes() throws XPathException {
+        select = (Expression) checkAttribute("select", "e1");
+        regex = (Expression) checkAttribute("regex", "a1");
+        flags = (Expression) checkAttribute("flags", "a");
+        if (flags == null) {
+            flags = makeAttributeValueTemplate("");
         }
-
-        if (selectAtt==null) {
-            reportAbsence("select");
-            selectAtt = ".";    // for error recovery
-        }
-        select = makeExpression(selectAtt);
-
-        if (regexAtt==null) {
-            reportAbsence("regex");
-            regexAtt = "xxx";      // for error recovery
-        }
-        regex = makeAttributeValueTemplate(regexAtt);
-
-        if (flagsAtt==null) {
-            flagsAtt = "";
-        }
-        flags = makeAttributeValueTemplate(flagsAtt);
-
+        checkForUnknownAttributes();
     }
 
 
     public void validate(Declaration decl) throws XPathException {
         //checkWithinTemplate();
 
-        AxisIterator kids = iterateAxis(Axis.CHILD);
-        while(true) {
-            NodeInfo curr = (NodeInfo)kids.next();
+        UnfailingIterator kids = iterateAxis(Axis.CHILD);
+        while (true) {
+            NodeInfo curr = (NodeInfo) kids.next();
             if (curr == null) {
                 break;
             }
@@ -104,22 +76,22 @@ public class XSLAnalyzeString extends StyleElement {
             } else if (curr instanceof XSLMatchingSubstring) {
                 boolean b = curr.getLocalPart().equals("matching-substring");
                 if (b) {
-                    if (matching!=null) {
+                    if (matching != null) {
                         compileError("xsl:matching-substring element must only appear once", "XTSE0010");
                     }
-                    matching = (StyleElement)curr;
+                    matching = (StyleElement) curr;
                 } else {
-                    if (nonMatching!=null) {
+                    if (nonMatching != null) {
                         compileError("xsl:non-matching-substring element must only appear once", "XTSE0010");
                     }
-                    nonMatching = (StyleElement)curr;
+                    nonMatching = (StyleElement) curr;
                 }
             } else {
                 compileError("Only xsl:matching-substring and xsl:non-matching-substring are allowed here", "XTSE0010");
             }
         }
 
-        if (matching==null && nonMatching==null) {
+        if (matching == null && nonMatching == null) {
             compileError("At least one xsl:matching-substring or xsl:non-matching-substring element must be present",
                     "XTSE1130");
         }
@@ -144,16 +116,15 @@ public class XSLAnalyzeString extends StyleElement {
         try {
             ExpressionVisitor visitor = makeExpressionVisitor();
             return new AnalyzeString(select,
-                                     regex,
-                                     flags,
-                                     (matchingBlock==null ? null : matchingBlock.simplify(visitor)),
-                                     (nonMatchingBlock==null ? null : nonMatchingBlock.simplify(visitor)));
+                    regex,
+                    flags,
+                    (matchingBlock == null ? null : matchingBlock.simplify(visitor)),
+                    (nonMatchingBlock == null ? null : nonMatchingBlock.simplify(visitor)));
         } catch (XPathException e) {
             compileError(e);
             return null;
         }
     }
-
 
 
 }

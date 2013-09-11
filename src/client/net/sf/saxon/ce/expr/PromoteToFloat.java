@@ -1,7 +1,6 @@
 package client.net.sf.saxon.ce.expr;
 
 import client.net.sf.saxon.ce.type.BuiltInAtomicType;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.value.AtomicValue;
 import client.net.sf.saxon.ce.value.NumericValue;
@@ -23,10 +22,9 @@ public class PromoteToFloat extends NumericPromoter {
     * Determine the data type of the items returned by the expression, if possible
     * @return a value such as Type.STRING, Type.BOOLEAN, Type.NUMBER, Type.NODE,
     * or Type.ITEM (meaning not known in advance)
-     * @param th the type hierarchy cache
      */
 
-	public ItemType getItemType(TypeHierarchy th) {
+	public ItemType getItemType() {
         return BuiltInAtomicType.FLOAT;
 	}
 
@@ -39,10 +37,10 @@ public class PromoteToFloat extends NumericPromoter {
 
     protected AtomicValue promote(AtomicValue value) throws XPathException {
         if (!(value instanceof NumericValue || value instanceof UntypedAtomicValue)) {
-            typeError("Cannot promote non-numeric value to xs:float", "XPTY0004", null);
+            typeError("Cannot promote non-numeric value to xs:float", "XPTY0004");
         }
         if (value instanceof DoubleValue) {
-            typeError("Cannot promote from xs:double to xs:float", "XPTY0004", null);
+            typeError("Cannot promote from xs:double to xs:float", "XPTY0004");
         }
         return value.convert(BuiltInAtomicType.FLOAT, true).asAtomic();
     }

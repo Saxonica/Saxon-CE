@@ -1,13 +1,13 @@
 package client.net.sf.saxon.ce.style;
-import client.net.sf.saxon.ce.Configuration;
-import client.net.sf.saxon.ce.trans.Err;
 import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.expr.instruct.SlotManager;
-import client.net.sf.saxon.ce.om.*;
-import client.net.sf.saxon.ce.pattern.Pattern;
 import client.net.sf.saxon.ce.expr.sort.CodepointCollator;
 import client.net.sf.saxon.ce.lib.StringCollator;
+import client.net.sf.saxon.ce.om.Axis;
+import client.net.sf.saxon.ce.om.StructuredQName;
+import client.net.sf.saxon.ce.pattern.Pattern;
+import client.net.sf.saxon.ce.trans.Err;
 import client.net.sf.saxon.ce.trans.KeyDefinition;
 import client.net.sf.saxon.ce.trans.KeyManager;
 import client.net.sf.saxon.ce.trans.XPathException;
@@ -15,7 +15,6 @@ import client.net.sf.saxon.ce.tree.util.URI;
 import client.net.sf.saxon.ce.type.BuiltInAtomicType;
 import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.SequenceType;
-import client.net.sf.saxon.ce.value.Whitespace;
 
 
 /**
@@ -27,7 +26,6 @@ public class XSLKey extends StyleElement implements StylesheetProcedure {
     private Pattern match;
     private Expression use;
     private String collationName;
-    private StructuredQName keyName;
     SlotManager stackFrameMap;
                 // needed if variables are used
 
@@ -54,69 +52,15 @@ public class XSLKey extends StyleElement implements StylesheetProcedure {
     }
 
     public void prepareAttributes() throws XPathException {
-
-        String nameAtt = null;
-        String matchAtt = null;
-        String useAtt = null;
-
-		AttributeCollection atts = getAttributeList();
-
-		for (int a=0; a<atts.getLength(); a++) {
-			StructuredQName qn = atts.getStructuredQName(a);
-            String f = qn.getClarkName();
-			if (f.equals("name")) {
-        		nameAtt = Whitespace.trim(atts.getValue(a)) ;
-        	} else if (f.equals("use")) {
-        		useAtt = atts.getValue(a);
-        	} else if (f.equals("match")) {
-        		matchAtt = atts.getValue(a);
-        	} else if (f.equals("collation")) {
-        		collationName = Whitespace.trim(atts.getValue(a)) ;
-        	} else {
-        		checkUnknownAttribute(qn);
-        	}
-        }
-
-        if (nameAtt==null) {
-            reportAbsence("name");
-            return;
-        }
-        try {
-            keyName = makeQName(nameAtt);
-            setObjectName(keyName);
-        } catch (NamespaceException err) {
-            compileError(err.getMessage(), "XTSE0280");
-        } catch (XPathException err) {
-            compileError(err);
-        }
-
-        if (matchAtt==null) {
-            reportAbsence("match");
-            matchAtt = "*";
-        }
-        match = makePattern(matchAtt);
-
-        if (useAtt!=null) {
-            use = makeExpression(useAtt);
-        }
+        setObjectName((StructuredQName)checkAttribute("name", "q1"));
+        use = (Expression)checkAttribute("use", "e");
+        match = (Pattern)checkAttribute("match", "p1");
+        collationName = (String)checkAttribute("collation", "w");
+        checkForUnknownAttributes();
     }
 
     public StructuredQName getKeyName() {
-    	//We use null to mean "not yet evaluated"
-        try {
-        	if (getObjectName()==null) {
-        		// allow for forwards references
-        		String nameAtt = getAttributeValue("", "name");
-        		if (nameAtt != null) {
-        			setObjectName(makeQName(nameAtt));
-                }
-            }
-            return getObjectName();
-        } catch (NamespaceException err) {
-            return null;          // the errors will be picked up later
-        } catch (XPathException err) {
-            return null;
-        }
+    	return getObjectName();
     }
 
     public void validate(Declaration decl) throws XPathException {
@@ -173,13 +117,12 @@ public class XSLKey extends StyleElement implements StylesheetProcedure {
     protected void index(Declaration decl, PrincipalStylesheetModule top) throws XPathException {
         StructuredQName keyName = getKeyName();
         if (keyName != null) {
-            top.getPreparedStylesheet().getExecutable().getKeyManager().preRegisterKeyDefinition(keyName);
+            top.getExecutable().getKeyManager().preRegisterKeyDefinition(keyName);
         }
     }
 
     public Expression compile(Executable exec, Declaration decl) throws XPathException {
         StaticContext env = getStaticContext();
-        Configuration config = env.getConfiguration();
         StringCollator collator = null;
         if (collationName != null) {
             collator = getConfiguration().getNamedCollation(collationName);
@@ -224,8 +167,8 @@ public class XSLKey extends StyleElement implements StylesheetProcedure {
                 compileError(err);
             }
         }
-        final TypeHierarchy th = config.getTypeHierarchy();
-        BuiltInAtomicType useType = (BuiltInAtomicType)use.getItemType(th).getPrimitiveItemType();
+        final TypeHierarchy th = TypeHierarchy.getInstance();
+        BuiltInAtomicType useType = (BuiltInAtomicType)use.getItemType().getPrimitiveItemType();
         if (xPath10ModeIsEnabled()) {
             if (!useType.equals(BuiltInAtomicType.STRING) && !useType.equals(BuiltInAtomicType.UNTYPED_ATOMIC)) {
                 use = new AtomicSequenceConverter(use, BuiltInAtomicType.STRING);
@@ -246,7 +189,7 @@ public class XSLKey extends StyleElement implements StylesheetProcedure {
         keydef.setExecutable(getExecutable());
         keydef.setBackwardsCompatible(xPath10ModeIsEnabled());
         try {
-            km.addKeyDefinition(keyName, keydef, exec.getConfiguration());
+            km.addKeyDefinition(getObjectName(), keydef, exec.getConfiguration());
         } catch (XPathException err) {
             compileError(err);
         }

@@ -61,7 +61,7 @@ public class ArithmeticExpression extends BinaryExpression {
 
     public Expression typeCheck(ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
 
-        final TypeHierarchy th = visitor.getConfiguration().getTypeHierarchy();
+        final TypeHierarchy th = TypeHierarchy.getInstance();
 
         Expression oldOp0 = operand0;
         Expression oldOp1 = operand1;
@@ -75,7 +75,7 @@ public class ArithmeticExpression extends BinaryExpression {
         RoleLocator role0 = new RoleLocator(RoleLocator.BINARY_EXPR, Token.tokens[operator], 0);
         //role0.setSourceLocator(this);
         operand0 = TypeChecker.staticTypeCheck(operand0, atomicType, false, role0, visitor);
-        final ItemType itemType0 = operand0.getItemType(th);
+        final ItemType itemType0 = operand0.getItemType();
         if (itemType0 instanceof EmptySequenceTest) {
             return new Literal(EmptySequence.getInstance());
         }
@@ -93,7 +93,7 @@ public class ArithmeticExpression extends BinaryExpression {
         RoleLocator role1 = new RoleLocator(RoleLocator.BINARY_EXPR, Token.tokens[operator], 1);
         //role1.setSourceLocator(this);
         operand1 = TypeChecker.staticTypeCheck(operand1, atomicType, false, role1, visitor);
-        final ItemType itemType1 = operand1.getItemType(th);
+        final ItemType itemType1 = operand1.getItemType();
         if (itemType1 instanceof EmptySequenceTest) {
             return new Literal(EmptySequence.getInstance());
         }
@@ -154,9 +154,9 @@ public class ArithmeticExpression extends BinaryExpression {
 
     public static AtomicValue compute(AtomicValue value0, int operator, AtomicValue value1, XPathContext context)
             throws XPathException {
-        BuiltInAtomicType p0 = value0.getPrimitiveType();
-        BuiltInAtomicType p1 = value1.getPrimitiveType();
-        TypeHierarchy th = context.getConfiguration().getTypeHierarchy();
+        BuiltInAtomicType p0 = value0.getItemType();
+        BuiltInAtomicType p1 = value1.getItemType();
+        TypeHierarchy th = TypeHierarchy.getInstance();
 
         if (p0 == BuiltInAtomicType.UNTYPED_ATOMIC) {
             p0 = BuiltInAtomicType.DOUBLE;
@@ -199,13 +199,13 @@ public class ArithmeticExpression extends BinaryExpression {
                         break;
                     case Token.IDIV:
                         if (d1 == 0.0) {
-                            throw new XPathException("Integer division by zero", "FOAR0001", context);
+                            throw new XPathException("Integer division by zero", "FOAR0001");
                         }
                         if (Double.isNaN(d0) || Double.isInfinite(d0)) {
-                            throw new XPathException("First operand of idiv is NaN or infinity", "FOAR0002", context);
+                            throw new XPathException("First operand of idiv is NaN or infinity", "FOAR0002");
                         }
                         if (Double.isNaN(d1)) {
-                            throw new XPathException("Second operand of idiv is NaN", "FOAR0002", context);
+                            throw new XPathException("Second operand of idiv is NaN", "FOAR0002");
                         }
                         return new DoubleValue(d0 / d1).convert(BuiltInAtomicType.INTEGER, true).asAtomic();
 
@@ -234,13 +234,13 @@ public class ArithmeticExpression extends BinaryExpression {
                         break;
                     case Token.IDIV:
                         if (f1 == 0.0) {
-                            throw new XPathException("Integer division by zero", "FOAR0001", context);
+                            throw new XPathException("Integer division by zero", "FOAR0001");
                         }
                         if (Float.isNaN(f0) || Float.isInfinite(f0)) {
-                            throw new XPathException("First operand of idiv is NaN or infinity", "FOAR0002", context);
+                            throw new XPathException("First operand of idiv is NaN or infinity", "FOAR0002");
                         }
                         if (Float.isNaN(f1)) {
-                            throw new XPathException("Second operand of idiv is NaN", "FOAR0002", context);
+                            throw new XPathException("Second operand of idiv is NaN", "FOAR0002");
                         }
                         return new FloatValue(f0 / f1).convert(BuiltInAtomicType.INTEGER, true).asAtomic();
 
@@ -281,7 +281,7 @@ public class ArithmeticExpression extends BinaryExpression {
                             result = d0.remainder(d1);
                         } catch (ArithmeticException err) {
                             if (n1.compareTo(0) == 0) {
-                                throw new XPathException("Decimal modulo zero", "FOAR0001", context);
+                                throw new XPathException("Decimal modulo zero", "FOAR0001");
                             } else {
                                 throw err;
                             }
@@ -289,7 +289,7 @@ public class ArithmeticExpression extends BinaryExpression {
                         break;
                     case Token.IDIV:
                         if (d1.signum() == 0) {
-                            throw new XPathException("Integer division by zero", "FOAR0001", context);
+                            throw new XPathException("Integer division by zero", "FOAR0001");
                         }
                         BigDecimal quot = d0.divideToIntegralValue(d1);
                         return IntegerValue.decimalToInteger(quot).asAtomic();
@@ -323,7 +323,7 @@ public class ArithmeticExpression extends BinaryExpression {
                         case Token.PLUS:
                             return d0.add(d1);
                         case Token.MINUS:
-                            return d0.subtract(d1);
+                            return d0.add(d1.negate());
                         case Token.DIV:
                             return d0.divide(d1);
                     }
@@ -335,11 +335,11 @@ public class ArithmeticExpression extends BinaryExpression {
                         d1 = 1.0 / d1;
                     }
                     return ((DurationValue) value0).multiply(d1);
-                } else if (th.isSubType(p0, BuiltInAtomicType.NUMERIC) &&
-                        th.isSubType(p1, BuiltInAtomicType.DURATION) &&
-                        operator == Token.MULT) {
-                    return ((DurationValue) value1).multiply(((NumericValue) value1).getDoubleValue());
                 }
+            } else if (th.isSubType(p0, BuiltInAtomicType.NUMERIC) &&
+                    th.isSubType(p1, BuiltInAtomicType.DURATION) &&
+                    operator == Token.MULT) {
+                return ((DurationValue) value1).multiply(((NumericValue) value1).getDoubleValue());
             }
         }
         throw new XPathException("Undefined arithmetic operation: " + p0 + " " + Token.tokens[operator] + " " + p1, "XPTY0004");
@@ -348,19 +348,19 @@ public class ArithmeticExpression extends BinaryExpression {
     /**
      * Determine the data type of the expression, insofar as this is known statically
      *
-     * @param th the type hierarchy cache
      * @return the atomic type of the result of this arithmetic expression
      */
 
-    public ItemType getItemType(TypeHierarchy th) {
-        ItemType t1 = operand0.getItemType(th);
+    public ItemType getItemType() {
+        ItemType t1 = operand0.getItemType();
         if (!(t1 instanceof BuiltInAtomicType)) {
             t1 = t1.getAtomizedItemType();
         }
-        ItemType t2 = operand1.getItemType(th);
+        ItemType t2 = operand1.getItemType();
         if (!(t2 instanceof BuiltInAtomicType)) {
             t2 = t2.getAtomizedItemType();
         }
+        TypeHierarchy th = TypeHierarchy.getInstance();
         if (th.isSubType(t1, BuiltInAtomicType.NUMERIC) && th.isSubType(t2, BuiltInAtomicType.NUMERIC)) {
             return BuiltInAtomicType.NUMERIC;
         } else {
@@ -388,7 +388,6 @@ public class ArithmeticExpression extends BinaryExpression {
             return compute(v0, operator, v1, context);
         } catch (XPathException e) {
             e.maybeSetLocation(getSourceLocator());
-            e.maybeSetContext(context);
             throw e;
         }
     }

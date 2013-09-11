@@ -1,17 +1,14 @@
 package client.net.sf.saxon.ce.style;
-import client.net.sf.saxon.ce.om.StructuredQName;
-import com.google.gwt.logging.client.LogConfiguration;
-
 import client.net.sf.saxon.ce.LogController;
 import client.net.sf.saxon.ce.expr.Expression;
 import client.net.sf.saxon.ce.expr.Literal;
 import client.net.sf.saxon.ce.expr.instruct.Choose;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
-import client.net.sf.saxon.ce.om.AttributeCollection;
 import client.net.sf.saxon.ce.om.Axis;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.value.Value;
+import com.google.gwt.logging.client.LogConfiguration;
 
 
 /**
@@ -53,60 +50,10 @@ public class XSLIf extends StyleElement {
     }
 
     public void prepareAttributes() throws XPathException {
-        test = prepareTestAttribute(this);
-        if (test==null) {
-            reportAbsence("test");
-        }
+        test = (Expression)checkAttribute("test", "e1");
+        checkForUnknownAttributes();
     }
 
-    /**
-     * Process all the attributes, for an element where the only permitted attribute is "test"
-     * @param se the containing element
-     * @return the expression represented by the test attribute, or null if the attribute is absent
-     * @throws XPathException if an error is encountered
-     */
-
-    public static Expression prepareTestAttribute(StyleElement se) throws XPathException {
-
-        String testAtt=null;
-
-		AttributeCollection atts = se.getAttributeList();
-
-		for (int a=0; a<atts.getLength(); a++) {
-			StructuredQName qn = atts.getStructuredQName(a);
-            String f = qn.getClarkName();
-			if (f.equals("test")) {
-        		testAtt = atts.getValue(a);
-        	} else {
-        		se.checkUnknownAttribute(qn);
-        	}
-        }
-
-        if (testAtt==null) {
-            return null;
-        } else {
-            return se.makeExpression(testAtt);
-        }
-    }
-    
-    public static String getTestAttribute(StyleElement se) throws XPathException {
-
-        String testAtt=null;
-
-		AttributeCollection atts = se.getAttributeList();
-
-		for (int a=0; a<atts.getLength(); a++) {
-			StructuredQName qn = atts.getStructuredQName(a);
-            String f = qn.getClarkName();
-			if (f.equals("test")) {
-        		testAtt = atts.getValue(a);
-        	} else {
-        		se.checkUnknownAttribute(qn);
-        	}
-        }
-
-        return testAtt;
-    }
     public void validate(Declaration decl) throws XPathException {
         test = typeCheck(test);
     }
@@ -128,10 +75,6 @@ public class XSLIf extends StyleElement {
             try {
                 if (testVal.effectiveBooleanValue()) {
                     return compileSequenceConstructor(exec, decl, iterateAxis(Axis.CHILD));
-//                    Block block = new Block();
-//                    block.setLocationId(allocateLocationId(getSystemId(), getLineNumber()));
-//                    compileChildren(exec, block, true);
-//                    return block.simplify(getStaticContext());
                 } else {
                     return null;
                 }
@@ -149,7 +92,7 @@ public class XSLIf extends StyleElement {
 
         Choose inst = new Choose(conditions, actions);
         if (LogConfiguration.loggingIsEnabled() && LogController.traceIsEnabled()) {
-        	inst.AddTraceProperty("test", getTestAttribute(this));
+        	inst.AddTraceProperty("test", getAttributeValue("", "test"));
         }
         return inst;
     }

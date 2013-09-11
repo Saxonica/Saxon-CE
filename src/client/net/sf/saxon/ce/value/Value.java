@@ -1,7 +1,6 @@
 package client.net.sf.saxon.ce.value;
 import client.net.sf.saxon.ce.event.SequenceReceiver;
 import client.net.sf.saxon.ce.expr.ExpressionTool;
-import client.net.sf.saxon.ce.expr.StaticContext;
 import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.functions.Count;
 import client.net.sf.saxon.ce.om.Item;
@@ -14,8 +13,6 @@ import client.net.sf.saxon.ce.tree.iter.SingletonIterator;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
 import client.net.sf.saxon.ce.type.AnyItemType;
 import client.net.sf.saxon.ce.type.ItemType;
-import client.net.sf.saxon.ce.type.SchemaType;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
 
 /**
 * A value is the result of an expression but it is also an expression in its own right.
@@ -57,24 +54,15 @@ public abstract class Value
         if (value instanceof Item) {
             return (Item)value;
         } else {
-            return ((Value)value).asItem();
-        }
-    }
-
-    /**
-     * Return the value in the form of an Item
-     * @return the value in the form of an Item
-     */
-
-    public Item asItem() throws XPathException {
-        SequenceIterator iter = iterate();
-        Item item = iter.next();
-        if (item == null) {
-            return null;
-        } else if (iter.next() != null) {
-            throw new XPathException("Attempting to access a sequence as a singleton item");
-        } else {
-            return item;
+            SequenceIterator iter = ((Value)value).iterate();
+            Item item = iter.next();
+            if (item == null) {
+                return null;
+            } else if (iter.next() != null) {
+                throw new XPathException("Attempting to access a sequence as a singleton item");
+            } else {
+                return item;
+            }
         }
     }
 
@@ -98,24 +86,6 @@ public abstract class Value
     }
 
     /**
-     * Get a SequenceIterator over a ValueRepresentation
-     * @param val the value to iterate over
-     * @return the iterator
-     */
-
-    public static SequenceIterator getIterator(ValueRepresentation val) throws XPathException {
-        if (val instanceof Value) {
-            return ((Value)val).iterate();
-        } else if (val instanceof Item) {
-            return SingletonIterator.makeIterator((Item)val);
-        } else if (val == null) {
-            throw new AssertionError("Value of variable is undefined (null)");
-        } else {
-            throw new AssertionError("Unknown value representation " + val.getClass());
-        }
-    }
-
-    /**
      * Iterate over the items contained in this value.
      * @return an iterator over the sequence of items
      * @throws XPathException if a dynamic error occurs. This is possible only in the case of values
@@ -129,10 +99,9 @@ public abstract class Value
     /**
      * Determine the data type of the items in the expression, if possible
      * @return for the default implementation: AnyItemType (not known)
-     * @param th The TypeHierarchy. Can be null if the target is an AtomicValue.
      */
 
-    public ItemType getItemType(TypeHierarchy th) {
+    public ItemType getItemType() {
         return AnyItemType.getInstance();
     }
 
@@ -172,16 +141,16 @@ public abstract class Value
     }
 
     /**
-      * Process the value as an instruction, without returning any tail calls
+      * Process a value in push mode, without returning any tail calls
+      * @param iterator iterator over the value to be pushed
       * @param context The dynamic context, giving access to the current node,
       * the current variables, etc.
       */
 
-    public void process(XPathContext context) throws XPathException {
-        SequenceIterator iter = iterate();
+    public static void process(SequenceIterator iterator, XPathContext context) throws XPathException {
         SequenceReceiver out = context.getReceiver();
         while (true) {
-            Item it = iter.next();
+            Item it = iterator.next();
             if (it==null) break;
             out.append(it, NodeInfo.ALL_NAMESPACES);
         }
@@ -230,12 +199,6 @@ public abstract class Value
     }
 
     /**
-     * Constant returned by compareTo() method to indicate an indeterminate ordering between two values
-     */
-
-    public static final int INDETERMINATE_ORDERING = Integer.MIN_VALUE;
-
-    /**
      * Compare two (sequence) values for equality. This method throws an UnsupportedOperationException,
      * because it should not be used: there are too many "equality" operators that can be defined on
      * values for the concept to be meaningful.
@@ -250,32 +213,6 @@ public abstract class Value
 
     public int hashCode() {
         return 42;
-    }
-
-
-    /**
-     * Check statically that the results of the expression are capable of constructing the content
-     * of a given schema type.
-     * @param parentType The schema type
-     * @param env the static context
-     * @param whole true if this value accounts for the entire content of the containing node
-     * @throws XPathException if the expression doesn't match the required content type
-     */
-
-    public void checkPermittedContents(SchemaType parentType, StaticContext env, boolean whole) throws XPathException {
-        //return;
-    }
-
-    /**
-     * Reduce a value to its simplest form. If the value is a closure or some other form of deferred value
-     * such as a FunctionCallPackage, then it is reduced to a SequenceExtent. If it is a SequenceExtent containing
-     * a single item, then it is reduced to that item. One consequence that is exploited by class FilterExpression
-     * is that if the value is a singleton numeric value, then the result will be an instance of NumericValue
-     * @return the value in simplified form
-     */
-
-    public Value reduce() throws XPathException {
-        return this;
     }
 
 

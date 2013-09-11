@@ -1,7 +1,7 @@
 package client.net.sf.saxon.ce.value;
 
-import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.lib.StringCollator;
+import client.net.sf.saxon.ce.regex.ARegularExpression;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
 import client.net.sf.saxon.ce.type.*;
@@ -15,12 +15,19 @@ import java.math.BigInteger;
 
 public final class DayTimeDurationValue extends DurationValue implements Comparable {
 
+    public static final DayTimeDurationValue ONE_DAY = new DayTimeDurationValue(1,1,0,0,0,0);
+    public static final DayTimeDurationValue MINUS_ONE_DAY = new DayTimeDurationValue(-1,1,0,0,0,0);
+
+    private static ARegularExpression DTDdurationPattern =
+            ARegularExpression.make("-?P([0-9]+D)?(T([0-9]+H)?([0-9]+M)?([0-9]+(\\.[0-9]+)?S)?)?");
+
+
+
     /**
      * Private constructor for internal use
      */
 
     private DayTimeDurationValue() {
-        typeLabel = BuiltInAtomicType.DAY_TIME_DURATION;
     }
 
     /**
@@ -32,7 +39,7 @@ public final class DayTimeDurationValue extends DurationValue implements Compara
      */
 
     public static ConversionResult makeDayTimeDurationValue(CharSequence s) {
-        ConversionResult d = DurationValue.makeDuration(s, false, true);
+        ConversionResult d = DurationValue.makeDuration(s, DTDdurationPattern);
         if (d instanceof ValidationFailure) {
             return d;
         }
@@ -78,20 +85,6 @@ public final class DayTimeDurationValue extends DurationValue implements Compara
         if (s == 0 && microseconds == 0) {
             negative = false;
         }
-        typeLabel = BuiltInAtomicType.DAY_TIME_DURATION;
-    }
-
-    /**
-     * Create a copy of this atomic value, with a different type label
-     *
-     * @param typeLabel the type label of the new copy. The caller is responsible for checking that
-     *                  the value actually conforms to this type.
-     */
-
-    public AtomicValue copyAsSubType(BuiltInAtomicType typeLabel) {
-        DayTimeDurationValue v = DayTimeDurationValue.fromMicroseconds(getLengthInMicroseconds());
-        v.typeLabel = typeLabel;
-        return v;
     }
 
     /**
@@ -101,7 +94,7 @@ public final class DayTimeDurationValue extends DurationValue implements Compara
      * and xs:untypedAtomic. For external objects, the result is AnyAtomicType.
      */
 
-    public BuiltInAtomicType getPrimitiveType() {
+    public BuiltInAtomicType getItemType() {
         return BuiltInAtomicType.DAY_TIME_DURATION;
     }
 
@@ -289,7 +282,6 @@ public final class DayTimeDurationValue extends DurationValue implements Compara
 
     public static DayTimeDurationValue fromMicroseconds(long microseconds) throws IllegalArgumentException {
         int sign = Long.signum(microseconds);
-        // Note JDK 1.5 dependency on Long.signum()
         if (sign < 0) {
             microseconds = -microseconds;
         }
@@ -305,17 +297,13 @@ public final class DayTimeDurationValue extends DurationValue implements Compara
 
     public DurationValue multiply(double n) throws XPathException {
         if (Double.isNaN(n)) {
-            XPathException err = new XPathException("Cannot multiply/divide a duration by NaN");
-            err.setErrorCode("FOCA0005");
-            throw err;
+            throw new XPathException("Cannot multiply/divide a duration by NaN", "FOCA0005");
         }
         double m = (double)getLengthInMicroseconds();
         double product = n * m;
         if (Double.isInfinite(product) || Double.isNaN(product) ||
                 product > Long.MAX_VALUE || product < Long.MIN_VALUE) {
-            XPathException err = new XPathException("Overflow when multiplying/dividing a duration by a number");
-            err.setErrorCode("FODT0002");
-            throw err;
+            throw new XPathException("Overflow when multiplying/dividing a duration by a number", "FODT0002");
         }
         try {
             return fromMicroseconds((long)product);
@@ -323,9 +311,7 @@ public final class DayTimeDurationValue extends DurationValue implements Compara
             if (err.getCause() instanceof XPathException) {
                 throw (XPathException)err.getCause();
             } else {
-                XPathException err2 = new XPathException("Overflow when multiplying/dividing a duration by a number", err);
-                err2.setErrorCode("FODT0002");
-                throw err2;
+                throw new XPathException("Overflow when multiplying/dividing a duration by a number", "FODT0002");
             }
         }
     }
@@ -342,15 +328,11 @@ public final class DayTimeDurationValue extends DurationValue implements Compara
             BigDecimal v1 = BigDecimal.valueOf(getLengthInMicroseconds());
             BigDecimal v2 = BigDecimal.valueOf(((DayTimeDurationValue)other).getLengthInMicroseconds());
             if (v2.signum() == 0) {
-                XPathException err = new XPathException("Divide by zero (durations)");
-                err.setErrorCode("FOAR0001");
-                throw err;
+                throw new XPathException("Divide by zero (durations)", "FOAR0001");
             }
             return new DecimalValue(v1.divide(v2, 20, BigDecimal.ROUND_HALF_EVEN));
         } else {
-            XPathException err = new XPathException("Cannot divide two durations of different type");
-            err.setErrorCode("XPTY0004");
-            throw err;
+            throw new XPathException("Cannot divide two durations of different type", "XPTY0004");
         }
     }
 
@@ -364,35 +346,10 @@ public final class DayTimeDurationValue extends DurationValue implements Compara
                 return fromMicroseconds(getLengthInMicroseconds() +
                         ((DayTimeDurationValue)other).getLengthInMicroseconds());
             } catch (IllegalArgumentException e) {
-                XPathException err = new XPathException("Overflow when adding two durations");
-                err.setErrorCode("FODT0002");
-                throw err;
+                throw new XPathException("Overflow when adding two durations", "FODT0002");
             }
         } else {
-            XPathException err = new XPathException("Cannot add two durations of different type");
-            err.setErrorCode("XPTY0004");
-            throw err;
-        }
-    }
-
-    /**
-     * Subtract two dayTime-durations
-     */
-
-    public DurationValue subtract(DurationValue other) throws XPathException {
-        if (other instanceof DayTimeDurationValue) {
-            try {
-                return fromMicroseconds(getLengthInMicroseconds() -
-                        ((DayTimeDurationValue)other).getLengthInMicroseconds());
-            } catch (IllegalArgumentException e) {
-                XPathException err = new XPathException("Overflow when subtracting two durations");
-                err.setErrorCode("FODT0002");
-                throw err;
-            }
-        } else {
-            XPathException err = new XPathException("Cannot subtract two durations of different type");
-            err.setErrorCode("XPTY0004");
-            throw err;
+            throw new XPathException("Cannot add two durations of different type", "XPTY0004");
         }
     }
 
@@ -443,10 +400,10 @@ public final class DayTimeDurationValue extends DurationValue implements Compara
      * xs:duration which allow ordering comparisons in XML Schema, but not in XPath.
      * @param ordered true if an ordered comparable is needed
      * @param collator Collation used for string comparison
-     * @param context XPath dynamic context
+     * @param implicitTimezone
      */
 
-    public Object getXPathComparable(boolean ordered, StringCollator collator, XPathContext context) {
+    public Object getXPathComparable(boolean ordered, StringCollator collator, int implicitTimezone) {
         return this;
     }
 

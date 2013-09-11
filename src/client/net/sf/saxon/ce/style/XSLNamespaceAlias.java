@@ -1,9 +1,10 @@
 package client.net.sf.saxon.ce.style;
 import client.net.sf.saxon.ce.expr.Expression;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
-import client.net.sf.saxon.ce.om.*;
+import client.net.sf.saxon.ce.om.InscopeNamespaceResolver;
+import client.net.sf.saxon.ce.om.NamespaceBinding;
+import client.net.sf.saxon.ce.om.NamespaceResolver;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.value.Whitespace;
 
 
 /**
@@ -28,37 +29,18 @@ public class XSLNamespaceAlias extends StyleElement {
 
     public void prepareAttributes() throws XPathException {
 
-	    String stylesheetPrefix=null;
-	    String resultPrefix=null;
+	    String stylesheetPrefix = (String)checkAttribute("stylesheet-prefix", "w1");
+	    String resultPrefix = (String)checkAttribute("result-prefix", "w1");
+        checkForUnknownAttributes();
 
-		AttributeCollection atts = getAttributeList();
-
-		for (int a=0; a<atts.getLength(); a++) {
-			StructuredQName qn = atts.getStructuredQName(a);
-            String f = qn.getClarkName();
-			if (f.equals("stylesheet-prefix")) {
-        		stylesheetPrefix = Whitespace.trim(atts.getValue(a));
-        	} else if (f.equals("result-prefix")) {
-        		resultPrefix = Whitespace.trim(atts.getValue(a));
-        	} else {
-        		checkUnknownAttribute(qn);
-        	}
-        }
-        if (stylesheetPrefix==null) {
-            reportAbsence("stylesheet-prefix");
-            return;
-        }
         if (stylesheetPrefix.equals("#default")) {
             stylesheetPrefix="";
-        }
-        if (resultPrefix==null) {
-            reportAbsence("result-prefix");
-            return;
         }
         if (resultPrefix.equals("#default")) {
             resultPrefix="";
         }
-        stylesheetURI = getURIForPrefix(stylesheetPrefix, true);
+        NamespaceResolver resolver = new InscopeNamespaceResolver(this);
+        stylesheetURI = resolver.getURIForPrefix(stylesheetPrefix, true);
         if (stylesheetURI == null) {
             compileError("stylesheet-prefix " + stylesheetPrefix + " has not been declared", "XTSE0812");
             // recovery action
@@ -66,7 +48,7 @@ public class XSLNamespaceAlias extends StyleElement {
             resultNamespaceBinding = NamespaceBinding.DEFAULT_UNDECLARATION;
             return;
         }
-        String resultURI = getURIForPrefix(resultPrefix, true);
+        String resultURI = resolver.getURIForPrefix(resultPrefix, true);
         if (resultURI == null) {
             compileError("result-prefix " + resultPrefix + " has not been declared", "XTSE0812");
             // recovery action
@@ -75,6 +57,7 @@ public class XSLNamespaceAlias extends StyleElement {
         }
         resultNamespaceBinding = new NamespaceBinding(resultPrefix, resultURI);
     }
+
     public void validate(Declaration decl) throws XPathException {
         checkTopLevel(null);
     }

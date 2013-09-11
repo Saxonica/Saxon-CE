@@ -4,7 +4,6 @@ import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.value.AtomicValue;
 import client.net.sf.saxon.ce.value.SequenceExtent;
-import client.net.sf.saxon.ce.value.Value;
 
 /**
 * A NumericPromoter performs numeric promotion on each item in a supplied sequence.
@@ -30,8 +29,8 @@ public abstract class NumericPromoter extends UnaryExpression {
                         promote(((AtomicValue)((Literal)operand).getValue())));
             } else {
                 return Literal.makeLiteral(
-                        ((Value)SequenceExtent.makeSequenceExtent(
-                                iterate(visitor.getStaticContext().makeEarlyEvaluationContext()))).reduce());
+                        SequenceExtent.makeSequenceExtent(
+                                iterate(visitor.getStaticContext().makeEarlyEvaluationContext())));
             }
         }
         return this;

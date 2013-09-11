@@ -2,18 +2,17 @@ package client.net.sf.saxon.ce.value;
 import client.net.sf.saxon.ce.expr.ExpressionTool;
 import client.net.sf.saxon.ce.expr.LastPositionFinder;
 import client.net.sf.saxon.ce.om.*;
+import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.ArrayIterator;
 import client.net.sf.saxon.ce.tree.iter.GroundedIterator;
-import client.net.sf.saxon.ce.tree.iter.ReverseArrayIterator;
 import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
-import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.AnyItemType;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.Type;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
 
 import java.util.ArrayList;
+import java.util.LinkedList;
 import java.util.List;
 
 
@@ -147,6 +146,25 @@ public final class SequenceExtent extends Value implements GroundedValue {
     }
 
     /**
+     * Factory method to make a Value holding the supplied items in reverse order
+     * @param iter iterator over a List containing the items in the sequence
+     * @return a ValueRepresentation holding the items in the list, in reverse
+     * order of the supplied iterator
+     */
+
+    public static SequenceExtent makeReversed(SequenceIterator iter) throws XPathException {
+        LinkedList<Item> list = new LinkedList<Item>();
+        while (true) {
+            Item item = iter.next();
+            if (item == null) {
+                break;
+            }
+            list.addFirst(item);
+        }
+        return new SequenceExtent(list);
+    }
+
+    /**
      * Factory method to make a Value holding the contents of any List of items
      * @param input a List containing the items in the sequence
      * @return a ValueRepresentation holding the items in the list. If the
@@ -186,17 +204,6 @@ public final class SequenceExtent extends Value implements GroundedValue {
     }
 
     /**
-     * Reduce a value to its simplest form. If the value is a closure or some other form of deferred value
-     * such as a FunctionCallPackage, then it is reduced to a SequenceExtent. If it is a SequenceExtent containing
-     * a single item, then it is reduced to that item. One consequence that is exploited by class FilterExpression
-     * is that if the value is a singleton numeric value, then the result will be an instance of NumericValue
-     */
-
-    public Value reduce() {
-        return simplify();
-    }
-
-    /**
      * Get the number of items in the sequence
      *
      * @return the number of items in the sequence
@@ -211,10 +218,9 @@ public final class SequenceExtent extends Value implements GroundedValue {
      *
      * @return integer identifying an item type to which all the items in this
      *      sequence conform
-     * @param th the type hierarchy cache
      */
 
-    public ItemType getItemType(TypeHierarchy th) {
+    public ItemType getItemType() {
         if (itemType != null) {
             // only calculate it the first time
             return itemType;
@@ -222,13 +228,13 @@ public final class SequenceExtent extends Value implements GroundedValue {
         if (end==start) {
             itemType = AnyItemType.getInstance();
         } else {
-            itemType = Type.getItemType(value[start], th);
+            itemType = Type.getItemType(value[start]);
             for (int i=start+1; i<end; i++) {
                 if (itemType == AnyItemType.getInstance()) {
                     // make a quick exit
                     return itemType;
                 }
-                itemType = Type.getCommonSuperType(itemType, Type.getItemType(value[i], th), th);
+                itemType = Type.getCommonSuperType(itemType, Type.getItemType(value[i]));
             }
         }
         return itemType;
@@ -269,18 +275,8 @@ public final class SequenceExtent extends Value implements GroundedValue {
      *     sequence
      */
 
-    public SequenceIterator iterate() {
+    public UnfailingIterator iterate() {
         return new ArrayIterator(value, start, end);
-    }
-
-    /**
-     * Return an enumeration of this sequence in reverse order (used for reverse axes)
-     *
-     * @return an AxisIterator that processes the items in reverse order
-     */
-
-    public UnfailingIterator reverseIterate() {
-        return new ReverseArrayIterator(value, start, end);
     }
 
     /**

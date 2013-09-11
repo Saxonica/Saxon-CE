@@ -192,29 +192,6 @@ public final class Axis  {
     };
 
     /**
-     * Table giving the name of each axis as used in a generated Java program, for example "ANCESTOR_OR_SELF"
-     */
-
-    public static final String[] axisJavaName =
-    {
-        "ANCESTOR",             // ANCESTOR
-        "ANCESTOR_OR_SELF",     // ANCESTOR_OR_SELF;
-        "ATTRIBUTE",            // ATTRIBUTE;
-        "CHILD",                // CHILD;
-        "DESCENDANT",           // DESCENDANT;
-        "DESCENDANT_OR_SELF",   // DESCENDANT_OR_SELF;
-        "FOLLOWING",            // FOLLOWING;
-        "FOLLOWING_SIBLING",    // FOLLOWING_SIBLING;
-        "NAMESPACE",            // NAMESPACE;
-        "PARENT",               // PARENT;
-        "PRECEDING",            // PRECEDING;
-        "PRECEDING_SIBLING",    // PRECEDING_SIBLING;
-        "SELF",                 // SELF;
-        "PRECEDING_OR_ANCESTOR",// PRECEDING_OR_ANCESTOR;
-    };
-
-
-    /**
      * The class is never instantiated
      */
 
@@ -224,25 +201,17 @@ public final class Axis  {
     /**
      * Resolve an axis name into a symbolic constant representing the axis
      *
-     * @param name
-     * @throws XPathException
+     * @param name the axis name
+     * @throws XPathException if the axis name is unrecognized
      * @return integer value representing the named axis
      */
 
     public static byte getAxisNumber(String name) throws XPathException {
-        if (name.equals("ancestor"))                return ANCESTOR;
-        if (name.equals("ancestor-or-self"))        return ANCESTOR_OR_SELF;
-        if (name.equals("attribute"))               return ATTRIBUTE;
-        if (name.equals("child"))                   return CHILD;
-        if (name.equals("descendant"))              return DESCENDANT;
-        if (name.equals("descendant-or-self"))      return DESCENDANT_OR_SELF;
-        if (name.equals("following"))               return FOLLOWING;
-        if (name.equals("following-sibling"))       return FOLLOWING_SIBLING;
-        if (name.equals("namespace"))               return NAMESPACE;
-        if (name.equals("parent"))                  return PARENT;
-        if (name.equals("preceding"))               return PRECEDING;
-        if (name.equals("preceding-sibling"))       return PRECEDING_SIBLING;
-        if (name.equals("self"))                    return SELF;
+        for (int i=0; i<13; i++) {
+            if (axisName[i].equals(name)) {
+                return (byte)i;
+            }
+        }
         // preceding-or-ancestor cannot be used in an XPath expression
         throw new XPathException("Unknown axis name: " + name);
     }

@@ -6,7 +6,6 @@ import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.Cardinality;
 
 import java.util.ArrayList;
@@ -24,8 +23,6 @@ public class SortExpression extends Expression
     private Expression select = null;
     private SortKeyDefinition[] sortKeyDefinitions = null;
     private AtomicComparer[] comparators = null;
-        // created early if all comparators can be created statically
-        // transient because Java RuleBasedCollator is not serializable
 
     /**
      * Create a sort expression
@@ -65,35 +62,17 @@ public class SortExpression extends Expression
     }
 
     private Iterator<Expression> iterateSubExpressions(boolean includeSortKey) {
-        List list = new ArrayList(8);
+        List<Expression> list = new ArrayList<Expression>(8);
         list.add(select);
-        for (int i = 0; i < sortKeyDefinitions.length; i++) {
+        for (SortKeyDefinition skd : sortKeyDefinitions) {
             if (includeSortKey) {
-                list.add(sortKeyDefinitions[i].getSortKey());
+                list.add(skd.getSortKey());
             }
-            Expression e = sortKeyDefinitions[i].order;
-            if (e != null) {
-                list.add(e);
-            }
-            e = sortKeyDefinitions[i].caseOrder;
-            if (e != null) {
-                list.add(e);
-            }
-            e = sortKeyDefinitions[i].dataTypeExpression;
-            if (e != null) {
-                list.add(e);
-            }
-            e = sortKeyDefinitions[i].language;
-            if (e != null) {
-                list.add(e);
-            }
-            e = sortKeyDefinitions[i].collationName;
-            if (e != null) {
-                list.add(e);
-            }
-            e = sortKeyDefinitions[i].stable;
-            if (e != null) {
-                list.add(e);
+            for (int i=0; i<SortKeyDefinition.N; i++) {
+                Expression e = skd.getSortProperty(i);
+                if (e != null) {
+                    list.add(e);
+                }
             }
         }
         return list.iterator();
@@ -110,53 +89,6 @@ public class SortExpression extends Expression
 
     public boolean hasLoopingSubexpression(Expression child) {
         return isSortKey(child);
-    }
-
-    /**
-     * Replace one subexpression by a replacement subexpression
-     *
-     * @param original    the original subexpression
-     * @param replacement the replacement subexpression
-     * @return true if the original subexpression is found
-     */
-
-    public boolean replaceSubExpression(Expression original, Expression replacement) {
-        boolean found = false;
-        if (select == original) {
-            select = replacement;
-            found = true;
-        }
-        for (int i = 0; i < sortKeyDefinitions.length; i++) {
-            if (sortKeyDefinitions[i].getSortKey() == original) {
-                sortKeyDefinitions[i].setSortKey(replacement);
-                found = true;
-            }
-            if (sortKeyDefinitions[i].getOrder() == original) {
-                sortKeyDefinitions[i].setOrder(replacement);
-                found = true;
-            }
-            if (sortKeyDefinitions[i].getCaseOrder() == original) {
-                sortKeyDefinitions[i].setCaseOrder(replacement);
-                found = true;
-            }
-            if (sortKeyDefinitions[i].getDataTypeExpression() == original) {
-                sortKeyDefinitions[i].setDataTypeExpression(replacement);
-                found = true;
-            }
-            if (sortKeyDefinitions[i].getLanguage() == original) {
-                sortKeyDefinitions[i].setLanguage(replacement);
-                found = true;
-            }
-            if (sortKeyDefinitions[i].collationName == original) {
-                sortKeyDefinitions[i].collationName = replacement;
-                found = true;
-            }
-            if (sortKeyDefinitions[i].stable == original) {
-                sortKeyDefinitions[i].stable = replacement;
-                found = true;
-            }            
-        }
-        return found;
     }
 
     /**
@@ -179,11 +111,11 @@ public class SortExpression extends Expression
             adoptChildExpression(select2);
             select = select2;
         }
-        ItemType sortedItemType = select.getItemType(visitor.getConfiguration().getTypeHierarchy());
+        ItemType sortedItemType = select.getItemType();
 
         boolean allKeysFixed = true;
-        for (int i = 0; i < sortKeyDefinitions.length; i++) {
-            if (!(sortKeyDefinitions[i].isFixed())) {
+        for (SortKeyDefinition sortKeyDefinition : sortKeyDefinitions) {
+            if (!(sortKeyDefinition.isFixed())) {
                 allKeysFixed = false;
                 break;
             }
@@ -214,11 +146,11 @@ public class SortExpression extends Expression
                     comparators[i] = comp;
                 }
             }
-            if (!ExpressionTool.dependsOnFocus(sortKey)) {
-                visitor.getStaticContext().issueWarning(
-                        "Sort key will have no effect because its value does not depend on the context item",
-                        sortKey.getSourceLocator());
-            }
+//            if (!ExpressionTool.dependsOnFocus(sortKey)) {
+//                visitor.getStaticContext().issueWarning(
+//                        "Sort key will have no effect because its value does not depend on the context item",
+//                        sortKey.getSourceLocator());
+//            }
 
         }
         return this;
@@ -247,11 +179,11 @@ public class SortExpression extends Expression
             select = select2;
         }
         // optimize the sort keys
-        ItemType sortedItemType = select.getItemType(visitor.getConfiguration().getTypeHierarchy());
-        for (int i = 0; i < sortKeyDefinitions.length; i++) {
-            Expression sortKey = sortKeyDefinitions[i].getSortKey();
+        ItemType sortedItemType = select.getItemType();
+        for (SortKeyDefinition sortKeyDefinition : sortKeyDefinitions) {
+            Expression sortKey = sortKeyDefinition.getSortKey();
             sortKey = visitor.optimize(sortKey, sortedItemType);
-            sortKeyDefinitions[i].setSortKey(sortKey);
+            sortKeyDefinition.setSortKey(sortKey);
         }
         if (Cardinality.allowsMany(select.getCardinality())) {
             return this;
@@ -284,26 +216,14 @@ public class SortExpression extends Expression
             return exp;
         } else {
             select = doPromotion(select, offer);
-            for (int i = 0; i < sortKeyDefinitions.length; i++) {
-                final Expression sk2 = sortKeyDefinitions[i].getSortKey().promote(offer, parent);
-                sortKeyDefinitions[i].setSortKey(sk2);
-                if (sortKeyDefinitions[i].order != null) {
-                    sortKeyDefinitions[i].order = sortKeyDefinitions[i].order.promote(offer, parent);
-                }
-                if (sortKeyDefinitions[i].stable != null) {
-                    sortKeyDefinitions[i].stable = sortKeyDefinitions[i].stable.promote(offer, parent);
-                }
-                if (sortKeyDefinitions[i].caseOrder != null) {
-                    sortKeyDefinitions[i].caseOrder = sortKeyDefinitions[i].caseOrder.promote(offer, parent);
-                }
-                if (sortKeyDefinitions[i].dataTypeExpression != null) {
-                    sortKeyDefinitions[i].dataTypeExpression = sortKeyDefinitions[i].dataTypeExpression.promote(offer, parent);
-                }
-                if (sortKeyDefinitions[i].language != null) {
-                    sortKeyDefinitions[i].language = sortKeyDefinitions[i].language.promote(offer, parent);
-                }
-                if (sortKeyDefinitions[i].collationName != null) {
-                    sortKeyDefinitions[i].collationName = sortKeyDefinitions[i].collationName.promote(offer, parent);
+            for (SortKeyDefinition skd : sortKeyDefinitions) {
+                final Expression sk2 = skd.getSortKey().promote(offer, parent);
+                skd.setSortKey(sk2);
+                for (int i=0; i<SortKeyDefinition.N; i++) {
+                    Expression e = skd.getSortProperty(i);
+                    if (e != null) {
+                        skd.setSortProperty(i, e.promote(offer, parent));
+                    }
                 }
             }
             return this;
@@ -317,8 +237,8 @@ public class SortExpression extends Expression
      */
 
     public boolean isSortKey(Expression child) {
-        for (int i = 0; i < sortKeyDefinitions.length; i++) {
-            Expression exp = sortKeyDefinitions[i].getSortKey();
+        for (SortKeyDefinition skd : sortKeyDefinitions) {
+            Expression exp = skd.getSortKey();
             if (exp == child) {
                 return true;
             }
@@ -337,13 +257,12 @@ public class SortExpression extends Expression
     /**
      * Determine the data type of the items returned by the expression, if possible
      *
-     * @param th the type hierarchy cache
      * @return a value such as Type.STRING, Type.BOOLEAN, Type.NUMBER, Type.NODE,
      *         or Type.ITEM (meaning not known in advance)
      */
 
-    public ItemType getItemType(TypeHierarchy th) {
-        return select.getItemType(th);
+    public ItemType getItemType() {
+        return select.getItemType();
     }
 
     /**

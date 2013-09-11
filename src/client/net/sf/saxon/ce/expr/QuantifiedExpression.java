@@ -51,7 +51,7 @@ public class QuantifiedExpression extends Assignation {
 
     public Expression typeCheck(ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
 
-        final TypeHierarchy th = visitor.getConfiguration().getTypeHierarchy();
+        final TypeHierarchy th = TypeHierarchy.getInstance();
 
         // The order of events is critical here. First we ensure that the type of the
         // sequence expression is established. This is used to establish the type of the variable,
@@ -74,7 +74,7 @@ public class QuantifiedExpression extends Assignation {
         //role.setSourceLocator(this);
 //        sequence = TypeChecker.strictTypeCheck(
 //                                sequence, sequenceType, role, visitor.getStaticContext());
-        ItemType actualItemType = sequence.getItemType(th);
+        ItemType actualItemType = sequence.getItemType();
         refineTypeInformation(actualItemType,
                 StaticProperty.EXACTLY_ONE,
                 null,
@@ -83,7 +83,7 @@ public class QuantifiedExpression extends Assignation {
         //declaration = null;     // let the garbage collector take it
 
         action = visitor.typeCheck(action, contextItemType);
-        XPathException err = TypeChecker.ebvError(action, visitor.getConfiguration().getTypeHierarchy());
+        XPathException err = TypeChecker.ebvError(action);
         if (err != null) {
             err.setLocator(this.getSourceLocator());
             throw err;
@@ -198,10 +198,9 @@ public class QuantifiedExpression extends Assignation {
     /**
     * Determine the data type of the items returned by the expression
     * @return Type.BOOLEAN
-     * @param th the type hierarchy cache
      */
 
-	public ItemType getItemType(TypeHierarchy th) {
+	public ItemType getItemType() {
 	    return BuiltInAtomicType.BOOLEAN;
 	}
 

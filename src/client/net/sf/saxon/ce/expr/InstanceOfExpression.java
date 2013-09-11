@@ -71,8 +71,8 @@ public final class InstanceOfExpression extends UnaryExpression {
         // See if we can get the answer by static analysis.
 
         if (Cardinality.subsumes(targetCardinality, operand.getCardinality())) {
-            final TypeHierarchy th = visitor.getConfiguration().getTypeHierarchy();
-            int relation = th.relationship(operand.getItemType(th), targetType);
+            final TypeHierarchy th = TypeHierarchy.getInstance();
+            int relation = th.relationship(operand.getItemType(), targetType);
             if (relation == TypeHierarchy.SAME_TYPE || relation == TypeHierarchy.SUBSUMED_BY) {
                 Literal lit = Literal.makeLiteral(BooleanValue.TRUE);
                 ExpressionTool.copyLocationInfo(this, lit);
@@ -111,8 +111,8 @@ public final class InstanceOfExpression extends UnaryExpression {
             return e;
         }
         if (Cardinality.subsumes(targetCardinality, operand.getCardinality())) {
-            final TypeHierarchy th = visitor.getConfiguration().getTypeHierarchy();
-            int relation = th.relationship(operand.getItemType(th), targetType);
+            final TypeHierarchy th = TypeHierarchy.getInstance();
+            int relation = th.relationship(operand.getItemType(), targetType);
             if (relation == TypeHierarchy.SAME_TYPE || relation == TypeHierarchy.SUBSUMED_BY) {
                 return Literal.makeLiteral(BooleanValue.TRUE);
             } else if (relation == TypeHierarchy.DISJOINT) {
@@ -156,10 +156,9 @@ public final class InstanceOfExpression extends UnaryExpression {
 
     /**
      * Determine the data type of the result of the InstanceOf expression
-     * @param th  the type hierarchy cache
      */
 
-    public ItemType getItemType(TypeHierarchy th) {
+    public ItemType getItemType() {
         return BuiltInAtomicType.BOOLEAN;
     }
 

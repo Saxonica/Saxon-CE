@@ -103,6 +103,7 @@ public interface Numberer  {
 
     /**
      * Get an ordinal suffix for a particular component of a date/time.
+     *
      * @param component the component specifier from a format-dateTime picture, for
      * example "M" for the month or "D" for the day.
      * @return a string that is acceptable in the ordinal attribute of xsl:number
@@ -110,7 +111,7 @@ public interface Numberer  {
      * in German, to have the day represented as "dritte August".
      */
 
-    public String getOrdinalSuffixForDateTime(String component);
+    public String getOrdinalSuffixForDateTime(char component);
 
     /**
      * Get the name for an era (e.g. "BC" or "AD")

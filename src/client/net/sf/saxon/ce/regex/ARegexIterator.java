@@ -2,7 +2,6 @@ package client.net.sf.saxon.ce.regex;
 
 import client.net.sf.saxon.ce.event.Receiver;
 import client.net.sf.saxon.ce.expr.XPathContext;
-import client.net.sf.saxon.ce.expr.z.IntToIntHashMap;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.trans.XPathException;
@@ -30,7 +29,7 @@ public class ARegexIterator implements RegexIterator {
                                 //        matched by the regex
     private int position = 0;   // the value of XPath position()
     private int prevEnd = 0;    // the position in the input string of the end of the last match or non-match
-    private IntToIntHashMap nestingTable = null;
+    private HashMap<Integer, Integer> nestingTable = null;
                                 // evaluated on demand: a table that indicates for each captured group,
                                 // what its immediately-containing captured group is.
 
@@ -301,7 +300,7 @@ public class ARegexIterator implements RegexIterator {
      */
 
     private void computeNestingTable() {
-        nestingTable = new IntToIntHashMap(16);
+        nestingTable = new HashMap<Integer, Integer>(16);
         UnicodeString s = regex;
         int[] stack = new int[s.length()];
         int tos = 0;

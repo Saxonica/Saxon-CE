@@ -23,9 +23,9 @@ public class Lang extends SystemFunction {
     public Expression typeCheck(ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
         if (argument.length==1) {
             if (contextItemType == null) {
-                typeError("The context item for lang() is undefined", "XPDY0002", null);
+                typeError("The context item for lang() is undefined", "XPDY0002");
             } else if (contextItemType instanceof BuiltInAtomicType) {
-                typeError("The context item for lang() is not a node", "XPDY0002", null);
+                typeError("The context item for lang() is not a node", "XPDY0002");
             }
         }
         return super.typeCheck(visitor, contextItemType);
@@ -42,10 +42,10 @@ public class Lang extends SystemFunction {
         } else {
             Item current = c.getContextItem();
             if (current==null) {
-                dynamicError("The context item for lang() is undefined", "XPDY0002", c);
+                dynamicError("The context item for lang() is undefined", "XPDY0002");
             }
             if (!(current instanceof NodeInfo)) {
-                dynamicError("The context item for lang() is not a node", "XPDY0002", c);
+                dynamicError("The context item for lang() is not a node", "XPDY0002");
             }
             target = (NodeInfo)current;
         }

@@ -6,7 +6,6 @@ import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.BuiltInAtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.*;
 
 
@@ -22,11 +21,10 @@ public class Average extends Aggregate {
 
     /**
      * Determine the item type of the value returned by the function
-     * @param th the type hierarchy cache
      */
 
-    public ItemType getItemType(TypeHierarchy th) {
-        ItemType base = Atomizer.getAtomizedItemType(argument[0], false, th);
+    public ItemType getItemType() {
+        ItemType base = Atomizer.getAtomizedItemType(argument[0], false);
         if (base == BuiltInAtomicType.UNTYPED_ATOMIC) {
             return BuiltInAtomicType.DOUBLE;
         } else if (base == BuiltInAtomicType.INTEGER) {
@@ -61,7 +59,8 @@ public class Average extends Aggregate {
             while (true) {
                 AtomicValue next = (AtomicValue) iter.next();
                 if (next == null) {
-                    return ArithmeticExpression.compute(item, Token.DIV, IntegerValue.makeIntegerValue(count), context);
+
+                    return ArithmeticExpression.compute(item, Token.DIV, new IntegerValue(count), context);
                 }
                 count++;
                 if (next instanceof UntypedAtomicValue) {
@@ -90,7 +89,7 @@ public class Average extends Aggregate {
     }
 
     private void badMix(XPathContext context) throws XPathException {
-        dynamicError("Input to avg() contains invalid or mixed data types", "FORG0006", context);
+        dynamicError("Input to avg() contains invalid or mixed data types", "FORG0006");
     }
 
 

@@ -8,7 +8,6 @@ import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.SingletonIterator;
 import client.net.sf.saxon.ce.type.BuiltInAtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.BooleanValue;
 
 import java.util.Iterator;
@@ -198,10 +197,9 @@ public class PatternSponsor extends Expression {
      *
      * @return a value such as Type.STRING, Type.BOOLEAN, Type.NUMBER,
      *         Type.NODE, or Type.ITEM (meaning not known at compile time)
-     * @param th the type hierarchy cache
      */
 
-    public ItemType getItemType(TypeHierarchy th) {
+    public ItemType getItemType() {
         return BuiltInAtomicType.BOOLEAN;
     }
 
@@ -232,17 +230,6 @@ public class PatternSponsor extends Expression {
 
     public Iterator<Expression> iterateSubExpressions() {
         return pattern.iterateSubExpressions();
-    }
-
-    /**
-     * Replace one subexpression by a replacement subexpression
-     * @param original the original subexpression
-     * @param replacement the replacement subexpression
-     * @return true if the original subexpression is found
-     */
-
-    public boolean replaceSubExpression(Expression original, Expression replacement) {
-        return pattern.replaceSubExpression(original, replacement);
     }
 
 

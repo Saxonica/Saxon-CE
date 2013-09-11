@@ -3,9 +3,9 @@ import client.net.sf.saxon.ce.event.Receiver;
 import client.net.sf.saxon.ce.om.*;
 import client.net.sf.saxon.ce.pattern.NodeTest;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.tree.iter.AxisIterator;
 import client.net.sf.saxon.ce.tree.iter.EmptyIterator;
-import client.net.sf.saxon.ce.tree.iter.SingleNodeIterator;
+import client.net.sf.saxon.ce.tree.iter.SingletonIterator;
+import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.value.AtomicValue;
 import client.net.sf.saxon.ce.value.StringValue;
@@ -243,12 +243,12 @@ public final class Orphan implements NodeInfo {
     * @return a SequenceIterator that scans the nodes reached by the axis in turn.
     */
 
-    public AxisIterator iterateAxis(byte axisNumber) {
+    public UnfailingIterator iterateAxis(byte axisNumber) {
         switch (axisNumber) {
             case Axis.ANCESTOR_OR_SELF:
             case Axis.DESCENDANT_OR_SELF:
             case Axis.SELF:
-                return SingleNodeIterator.makeIterator(this);
+                return SingletonIterator.makeIterator(this);
             case Axis.ANCESTOR:
             case Axis.ATTRIBUTE:
             case Axis.CHILD:
@@ -274,7 +274,7 @@ public final class Orphan implements NodeInfo {
     * @return a SequenceIterator that scans the nodes reached by the axis in turn.
     */
 
-    public AxisIterator iterateAxis(byte axisNumber, NodeTest nodeTest) {
+    public UnfailingIterator iterateAxis(byte axisNumber, NodeTest nodeTest) {
         switch (axisNumber) {
             case Axis.ANCESTOR_OR_SELF:
             case Axis.DESCENDANT_OR_SELF:

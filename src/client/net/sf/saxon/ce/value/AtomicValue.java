@@ -1,6 +1,5 @@
 package client.net.sf.saxon.ce.value;
 
-import client.net.sf.saxon.ce.expr.StaticContext;
 import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.lib.StringCollator;
 import client.net.sf.saxon.ce.om.*;
@@ -27,9 +26,6 @@ import client.net.sf.saxon.ce.type.*;
 
 public abstract class AtomicValue extends Value implements Item, GroundedValue, ConversionResult {
 
-    protected BuiltInAtomicType typeLabel;
-
-
     /**
      * Get an object value that implements the XPath equality and ordering comparison semantics for this value.
      * If the ordered parameter is set to true, the result will be a Comparable and will support a compareTo()
@@ -39,11 +35,12 @@ public abstract class AtomicValue extends Value implements Item, GroundedValue, 
      * using the getXPathComparable() method. A context argument is supplied for use in cases where the comparison
      * semantics are context-sensitive, for example where they depend on the implicit timezone or the default
      * collation.
+     *
+     *
      * @param ordered true if an ordered comparison is required. In this case the result is null if the
      * type is unordered; in other cases the returned value will be a Comparable.
      * @param collator the collation to be used when comparing strings
-     * @param context the XPath dynamic evaluation context, used in cases where the comparison is context
-     * sensitive
+     * @param implicitTimezone the implicit timezone, needed when comparing date/time values
      * @return an Object whose equals() and hashCode() methods implement the XPath comparison semantics
      *         with respect to this atomic value. If ordered is specified, the result will either be null if
      *         no ordering is defined, or will be a Comparable
@@ -51,8 +48,7 @@ public abstract class AtomicValue extends Value implements Item, GroundedValue, 
      * is not available, for example implicit timezone
      */
 
-    public abstract Object getXPathComparable(boolean ordered, StringCollator collator, XPathContext context)
-            throws NoDynamicContextException;
+    public abstract Object getXPathComparable(boolean ordered, StringCollator collator, int implicitTimezone);
 
     /**
      * The equals() methods on atomic values is defined to follow the semantics of eq when applied
@@ -93,30 +89,6 @@ public abstract class AtomicValue extends Value implements Item, GroundedValue, 
         return (n == 0 ? this : null);
     }
 
-
-    /**
-     * Determine the data type of the items in the expression, if possible
-     *
-     * @param th The TypeHierarchy. Can be null if the target is an AtomicValue,
-     *           except in the case where it is an external JSObjectValue.
-     * @return for the default implementation: AnyItemType (not known)
-     */
-
-    public ItemType getItemType(TypeHierarchy th) {
-        return typeLabel;
-    }
-
-    /**
-     * Determine the data type of the value. This
-     * delivers the same answer as {@link #getItemType}
-     *
-     * @return for the default implementation: AnyItemType (not known)
-     */
-
-    public BuiltInAtomicType getTypeLabel() {
-        return typeLabel;
-    }
-
     /**
      * Determine the primitive type of the value. This delivers the same answer as
      * getItemType().getPrimitiveItemType(). The primitive types are
@@ -126,7 +98,7 @@ public abstract class AtomicValue extends Value implements Item, GroundedValue, 
      * @return the primitive type
      */
 
-    public abstract BuiltInAtomicType getPrimitiveType();
+    public abstract BuiltInAtomicType getItemType();
 
     /**
      * Convert a value to either (a) another primitive type, or (b) another built-in type derived
@@ -231,9 +203,8 @@ public abstract class AtomicValue extends Value implements Item, GroundedValue, 
      */
     public boolean effectiveBooleanValue() throws XPathException {
         XPathException err = new XPathException("Effective boolean value is not defined for an atomic value of type " +
-                Type.displayTypeName(this));
+                Type.displayTypeName(this), "FORG0006");
         err.setIsTypeError(true);
-        err.setErrorCode("FORG0006");
         throw err;
         // unless otherwise specified in a subclass
     }
@@ -249,21 +220,6 @@ public abstract class AtomicValue extends Value implements Item, GroundedValue, 
 
     public AtomicValue getComponent(int component) throws XPathException {
         throw new UnsupportedOperationException("Data type does not support component extraction");
-    }
-
-    /**
-     * Check statically that the results of the expression are capable of constructing the content
-     * of a given schema type.
-     *
-     * @param parentType The schema type
-     * @param env        the static context
-     * @param whole      true if this atomic value accounts for the entire content of the containing node
-     * @throws client.net.sf.saxon.ce.trans.XPathException
-     *          if the expression doesn't match the required content type
-     */
-
-    public void checkPermittedContents(SchemaType parentType, StaticContext env, boolean whole) throws XPathException {
-        //
     }
 
 
@@ -311,7 +267,7 @@ public abstract class AtomicValue extends Value implements Item, GroundedValue, 
      */
 
     public String toString() {
-        return typeLabel.toString() + " (\"" + getStringValue() + "\")";
+        return getItemType().toString() + " (\"" + getStringValue() + "\")";
     }
 
 }

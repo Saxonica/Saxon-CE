@@ -8,7 +8,6 @@ import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.Type;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.SequenceType;
 
 
@@ -33,13 +32,12 @@ public class VennExpression extends BinaryExpression {
     /**
     * Determine the data type of the items returned by this expression
     * @return the data type
-     * @param th the type hierarchy cache
      */
 
-    public final ItemType getItemType(TypeHierarchy th) {
-        final ItemType t1 = operand0.getItemType(th);
-        final ItemType t2 = operand1.getItemType(th);
-        return Type.getCommonSuperType(t1, t2, th);
+    public final ItemType getItemType() {
+        final ItemType t1 = operand0.getItemType();
+        final ItemType t2 = operand1.getItemType();
+        return Type.getCommonSuperType(t1, t2);
     }
 
     /**
@@ -175,24 +173,6 @@ public class VennExpression extends BinaryExpression {
                 break;
         }
 
-
-
-        // If both are axis expressions on the same axis, merge them
-        // ie. rewrite (axis::test1 | axis::test2) as axis::(test1 | test2)
-
-//        if (operand0 instanceof AxisExpression && operand1 instanceof AxisExpression) {
-//            final AxisExpression a1 = (AxisExpression)operand0;
-//            final AxisExpression a2 = (AxisExpression)operand1;
-//            if (a1.getAxis() == a2.getAxis()) {
-//                AxisExpression ax = new AxisExpression(a1.getAxis(),
-//                             new CombinedNodeTest(a1.getNodeTest(),
-//                                                  operator,
-//                                                  a2.getNodeTest()));
-//                ExpressionTool.copyLocationInfo(this, ax);
-//                return ax;
-//            }
-//        }
-
         // If both are path expressions starting the same way, merge them
         // i.e. rewrite (/X | /Y) as /(X|Y). This applies recursively, so that
         // /A/B/C | /A/B/D becomes /A/B/child::(C|D)
@@ -304,18 +284,8 @@ public class VennExpression extends BinaryExpression {
         if ((operand1.getSpecialProperties() & StaticProperty.ORDERED_NODESET) == 0) {
             i2 = new DocumentOrderIterator(i2, GlobalOrderComparer.getInstance());
         }
-        switch (operator) {
-            case Token.UNION:
-                return new UnionEnumeration(i1, i2,
-                                            GlobalOrderComparer.getInstance());
-            case Token.INTERSECT:
-                return new IntersectionEnumeration(i1, i2,
-                                            GlobalOrderComparer.getInstance());
-            case Token.EXCEPT:
-                return new DifferenceEnumeration(i1, i2,
-                                            GlobalOrderComparer.getInstance());
-        }
-        throw new UnsupportedOperationException();
+        return new VennIterator(i1, i2, GlobalOrderComparer.getInstance(), operator);
+
     }
 
     /**

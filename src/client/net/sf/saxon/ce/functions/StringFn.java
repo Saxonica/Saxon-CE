@@ -26,7 +26,6 @@ public class StringFn extends SystemFunction {
      */
 
     public Expression simplify(ExpressionVisitor visitor) throws XPathException {
-        useContextItemAsDefault();
         argument[0].setFlattened(true);
         return simplifyArguments(visitor);
     }
@@ -52,8 +51,8 @@ public class StringFn extends SystemFunction {
         if (e != this) {
             return e;
         }
-        TypeHierarchy th = visitor.getConfiguration().getTypeHierarchy();
-        if (th.isSubType(argument[0].getItemType(th), BuiltInAtomicType.STRING) &&
+        TypeHierarchy th = TypeHierarchy.getInstance();
+        if (th.isSubType(argument[0].getItemType(), BuiltInAtomicType.STRING) &&
                 argument[0].getCardinality() == StaticProperty.EXACTLY_ONE) {
             return argument[0];
         }
@@ -73,14 +72,14 @@ public class StringFn extends SystemFunction {
             Item arg = argument[0].evaluateItem(c);
             if (arg==null) {
                 return StringValue.EMPTY_STRING;
-            } else if (arg instanceof StringValue && ((StringValue)arg).getTypeLabel() == BuiltInAtomicType.STRING) {
+            } else if (arg instanceof StringValue && ((StringValue)arg).getItemType() == BuiltInAtomicType.STRING) {
                 return arg;
             } else {
                 return StringValue.makeStringValue(arg.getStringValue());
             }
         } catch (UnsupportedOperationException e) {
             // Cannot obtain the string value of a function item
-            typeError(e.getMessage(), "FOTY0014", c);
+            typeError(e.getMessage(), "FOTY0014");
             return null;
         }
     }

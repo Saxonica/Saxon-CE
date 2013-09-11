@@ -58,7 +58,7 @@ public class ResolveURI extends SystemFunction {
         } else {
             base = expressionBaseURI;
             if (expressionBaseURI == null) {
-                dynamicError(msgBase + "in static context of resolve-uri() is unknown", "FONS0005", context);
+                dynamicError(msgBase + "in static context of resolve-uri() is unknown", "FONS0005");
                 return null;
             }
         }
@@ -70,14 +70,14 @@ public class ResolveURI extends SystemFunction {
                 if (relativeURI.isAbsolute()) {
                     return new AnyURIValue(relative);
                 }
-                dynamicError(msgBase + "in resolve-uri(): Base URI " + Err.wrap(base) + " is not an absolute URI", "FORG0002", context);
+                dynamicError(msgBase + "in resolve-uri(): Base URI " + Err.wrap(base) + " is not an absolute URI", "FORG0002");
                 return null;
             }
             URI resolved = makeAbsolute(relative,  base);
             return new AnyURIValue(resolved.toString());
         } catch (URI.URISyntaxException err) {
             dynamicError(msgBase + "Base URI " + Err.wrap(base) + " is invalid: " + err.getMessage(),
-                    "FORG0002", context);
+                    "FORG0002");
             return null;
         }
     }

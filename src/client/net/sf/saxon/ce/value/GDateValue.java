@@ -1,9 +1,7 @@
 package client.net.sf.saxon.ce.value;
 
-import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.functions.Component;
 import client.net.sf.saxon.ce.trans.Err;
-import client.net.sf.saxon.ce.trans.NoDynamicContextException;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ConversionResult;
 import client.net.sf.saxon.ce.type.ValidationFailure;
@@ -87,10 +85,8 @@ public abstract class GDateValue extends CalendarValue {
 
 
     private static ValidationFailure badDate(String msg, CharSequence value) {
-        ValidationFailure err = new ValidationFailure(
-                "Invalid date " + Err.wrap(value, Err.VALUE) + " (" + msg + ")");
-        err.setErrorCode("FORG0001");
-        return err;
+        return new ValidationFailure(
+                "Invalid date " + Err.wrap(value, Err.VALUE) + " (" + msg + ")", "FORG0001");
     }
 
     /**
@@ -136,7 +132,7 @@ public abstract class GDateValue extends CalendarValue {
     public boolean equals(Object o) {
         if (o instanceof GDateValue) {
             GDateValue gdv = (GDateValue)o;
-            return getPrimitiveType() == gdv.getPrimitiveType() && toDateTime().equals(gdv.toDateTime());
+            return getItemType() == gdv.getItemType() && toDateTime().equals(gdv.toDateTime());
         } else {
             return false;
         }
@@ -149,31 +145,19 @@ public abstract class GDateValue extends CalendarValue {
     /**
      * Compare this value to another value of the same type, using the supplied context object
      * to get the implicit timezone if required. This method implements the XPath comparison semantics.
+     *
+     *
      * @param other the value to be compared
-     * @param context the XPath dynamic evaluation context (needed only to get the implicit timezone)
+     * @param implicitTimezone timezone to be used if there is none in the value
      * @return -1 if this value is less, 0 if equal, +1 if greater
      */
 
-    public int compareTo(CalendarValue other, XPathContext context) throws NoDynamicContextException {
-        if (getPrimitiveType() != other.getPrimitiveType()) {
+    public int compareTo(CalendarValue other, int implicitTimezone) {
+        if (getItemType() != other.getItemType()) {
             throw new ClassCastException("Cannot compare dates of different types");
             // covers, for example, comparing a gYear to a gYearMonth
         }
-        GDateValue v2 = (GDateValue)other;
-        if (getTimezoneInMinutes() == other.getTimezoneInMinutes()) {
-            // both values are in the same timezone (explicitly or implicitly)
-            if (year != v2.year) {
-                return IntegerValue.signum(year - v2.year);
-            }
-            if (month != v2.month) {
-                return IntegerValue.signum(month - v2.month);
-            }
-            if (day != v2.day) {
-                return IntegerValue.signum(day - v2.day);
-            }
-            return 0;
-        }
-        return toDateTime().compareTo(other.toDateTime(), context);
+        return toDateTime().compareTo(other.toDateTime(), implicitTimezone);
     }
 
     /**
@@ -185,6 +169,17 @@ public abstract class GDateValue extends CalendarValue {
         return new DateTimeValue(year, month, day, (byte)0, (byte)0, (byte)0, 0, getTimezoneInMinutes());
     }
 
+    /**
+     * Return a new date, time, or dateTime with the same normalized value, but
+     * in a different timezone
+     *
+     * @param tz the new timezone offset from UTC, in minutes
+     * @return the date/time in the new timezone
+     */
+    @Override
+    public CalendarValue adjustTimezone(int tz) {
+        return (DateTimeValue)toDateTime().adjustTimezone(tz).convertPrimitive(getItemType(), false);
+    }
 
     /**
     * Get a component of the value. Returns null if the timezone component is
@@ -193,15 +188,17 @@ public abstract class GDateValue extends CalendarValue {
 
     public AtomicValue getComponent(int component) throws XPathException {
         switch (component) {
-        case Component.YEAR_ALLOWING_ZERO:
-            return IntegerValue.makeIntegerValue(year);
         case Component.YEAR:
-            return IntegerValue.makeIntegerValue(year > 0 ? year : year-1);
-        case Component.MONTH:
-            return IntegerValue.makeIntegerValue(month);
-        case Component.DAY:
-            return IntegerValue.makeIntegerValue(day);
-        case Component.TIMEZONE:
+            int value = year > 0 ? year : year-1;
+
+            return new IntegerValue(value);
+            case Component.MONTH:
+
+                return new IntegerValue(month);
+            case Component.DAY:
+
+                return new IntegerValue(day);
+            case Component.TIMEZONE:
             if (hasTimezone()) {
                 return DayTimeDurationValue.fromMilliseconds(60000L * getTimezoneInMinutes());
             } else {

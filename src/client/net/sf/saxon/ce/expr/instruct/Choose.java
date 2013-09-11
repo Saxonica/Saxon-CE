@@ -1,4 +1,5 @@
 package client.net.sf.saxon.ce.expr.instruct;
+
 import client.net.sf.saxon.ce.LogController;
 import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.functions.BooleanFn;
@@ -11,7 +12,6 @@ import client.net.sf.saxon.ce.tree.iter.EmptyIterator;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.Type;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.BooleanValue;
 import client.net.sf.saxon.ce.value.Cardinality;
 import client.net.sf.saxon.ce.value.SequenceType;
@@ -23,7 +23,7 @@ import java.util.Iterator;
 /**
  * Compiled representation of an xsl:choose or xsl:if element in the stylesheet.
  * Also used for typeswitch in XQuery.
-*/
+ */
 
 public class Choose extends Instruction {
 
@@ -39,10 +39,11 @@ public class Choose extends Instruction {
 
 
     /**
-    * Construct an xsl:choose instruction
-    * @param conditions the conditions to be tested, in order
-    * @param actions the actions to be taken when the corresponding condition is true
-    */
+     * Construct an xsl:choose instruction
+     *
+     * @param conditions the conditions to be tested, in order
+     * @param actions    the actions to be taken when the corresponding condition is true
+     */
 
     public Choose(Expression[] conditions, Expression[] actions) {
         this.conditions = conditions;
@@ -50,7 +51,7 @@ public class Choose extends Instruction {
         if (conditions.length != actions.length) {
             throw new IllegalArgumentException("Choose: unequal length arguments");
         }
-        for (int i=0; i<conditions.length; i++) {
+        for (int i = 0; i < conditions.length; i++) {
             adoptChildExpression(conditions[i]);
             adoptChildExpression(actions[i]);
         }
@@ -58,39 +59,42 @@ public class Choose extends Instruction {
 
     /**
      * Make a simple conditional expression (if (condition) then (thenExp) else (elseExp)
+     *
      * @param condition the condition to be tested
-     * @param thenExp the expression to be evaluated if the condition is true
-     * @param elseExp the expression to be evaluated if the condition is false
+     * @param thenExp   the expression to be evaluated if the condition is true
+     * @param elseExp   the expression to be evaluated if the condition is false
      * @return the expression
      */
 
     public static Expression makeConditional(Expression condition, Expression thenExp, Expression elseExp) {
         if (Literal.isEmptySequence(elseExp)) {
-            Expression[] conditions = new Expression[] {condition};
-            Expression[] actions = new Expression[] {thenExp};
+            Expression[] conditions = new Expression[]{condition};
+            Expression[] actions = new Expression[]{thenExp};
             return new Choose(conditions, actions);
         } else {
-            Expression[] conditions = new Expression[] {condition, new Literal(BooleanValue.TRUE)};
-            Expression[] actions = new Expression[] {thenExp, elseExp};
+            Expression[] conditions = new Expression[]{condition, new Literal(BooleanValue.TRUE)};
+            Expression[] actions = new Expression[]{thenExp, elseExp};
             return new Choose(conditions, actions);
         }
     }
 
     /**
      * Make a simple conditional expression (if (condition) then (thenExp) else ()
+     *
      * @param condition the condition to be tested
-     * @param thenExp the expression to be evaluated if the condition is true
+     * @param thenExp   the expression to be evaluated if the condition is true
      * @return the expression
      */
 
     public static Expression makeConditional(Expression condition, Expression thenExp) {
-        Expression[] conditions = new Expression[] {condition};
-        Expression[] actions = new Expression[] {thenExp};
+        Expression[] conditions = new Expression[]{condition};
+        Expression[] actions = new Expression[]{thenExp};
         return new Choose(conditions, actions);
     }
 
     /**
      * Get the array of conditions to be tested
+     *
      * @return the array of condition expressions
      */
 
@@ -100,31 +104,32 @@ public class Choose extends Instruction {
 
     /**
      * Get the array of actions to be performed
+     *
      * @return the array of expressions to be evaluated when the corresponding condition is true
      */
 
     public Expression[] getActions() {
         return actions;
     }
-    
+
     private String[] conditionTests = null;
-    
+
     public void setConditionTests(String[] conditionTests) {
-    	this.conditionTests = conditionTests;
+        this.conditionTests = conditionTests;
     }
 
     /**
      * Simplify an expression. This performs any static optimization (by rewriting the expression
      * as a different expression).
      *
-     * @exception XPathException if an error is discovered during expression
-     *     rewriting
-     * @return the simplified expression
      * @param visitor expression visitor object
+     * @return the simplified expression
+     * @throws XPathException if an error is discovered during expression
+     *                        rewriting
      */
 
     public Expression simplify(ExpressionVisitor visitor) throws XPathException {
-        for (int i=0; i<conditions.length; i++) {
+        for (int i = 0; i < conditions.length; i++) {
             conditions[i] = visitor.simplify(conditions[i]);
             try {
                 actions[i] = visitor.simplify(actions[i]);
@@ -141,15 +146,15 @@ public class Choose extends Instruction {
     }
 
     public Expression typeCheck(ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
-        for (int i=0; i<conditions.length; i++) {
+        for (int i = 0; i < conditions.length; i++) {
             conditions[i] = visitor.typeCheck(conditions[i], contextItemType);
-            XPathException err = TypeChecker.ebvError(conditions[i], visitor.getConfiguration().getTypeHierarchy());
+            XPathException err = TypeChecker.ebvError(conditions[i]);
             if (err != null) {
                 err.setLocator(conditions[i].getSourceLocator());
                 throw err;
             }
         }
-        for (int i=0; i<actions.length; i++) {
+        for (int i = 0; i < actions.length; i++) {
             try {
                 actions[i] = visitor.typeCheck(actions[i], contextItemType);
             } catch (XPathException err) {
@@ -191,25 +196,26 @@ public class Choose extends Instruction {
      * type error if any branch is incapable of delivering a value of the required type. One reason
      * for this approach is to avoid doing dynamic type checking on a recursive function call as this
      * prevents tail-call optimization being used.
-     * @param req the required type
+     *
+     * @param req                 the required type
      * @param backwardsCompatible true if backwards compatibility mode applies
-     * @param role the role of the expression in relation to the required type
-     * @param visitor an expression visitor
+     * @param role                the role of the expression in relation to the required type
+     * @param visitor             an expression visitor
      * @return the expression after type checking (perhaps augmented with dynamic type checking code)
      * @throws XPathException if failures occur, for example if the static type of one branch of the conditional
-     * is incompatible with the required type
+     *                        is incompatible with the required type
      */
 
     public Expression staticTypeCheck(SequenceType req,
-                                             boolean backwardsCompatible,
-                                             RoleLocator role, ExpressionVisitor visitor)
-    throws XPathException {
-        for (int i=0; i<actions.length; i++) {
+                                      boolean backwardsCompatible,
+                                      RoleLocator role, ExpressionVisitor visitor)
+            throws XPathException {
+        for (int i = 0; i < actions.length; i++) {
             actions[i] = TypeChecker.staticTypeCheck(actions[i], req, backwardsCompatible, role, visitor);
         }
         // If the last condition isn't true(), then we need to consider the fall-through case, which returns
         // an empty sequence
-        if (!Literal.isConstantBoolean(conditions[conditions.length-1], true) &&
+        if (!Literal.isConstantBoolean(conditions[conditions.length - 1], true) &&
                 !Cardinality.allowsZero(req.getCardinality())) {
             String cond = (conditions.length == 1 ? "the condition is not" : "none of the conditions is");
             XPathException err = new XPathException(
@@ -223,26 +229,15 @@ public class Choose extends Instruction {
     }
 
     public Expression optimize(ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
-        for (int i=0; i<conditions.length; i++) {
+        for (int i = 0; i < conditions.length; i++) {
             conditions[i] = visitor.optimize(conditions[i], contextItemType);
             Expression ebv = BooleanFn.rewriteEffectiveBooleanValue(conditions[i], visitor, contextItemType);
             if (ebv != null && ebv != conditions[i]) {
                 conditions[i] = ebv;
                 adoptChildExpression(ebv);
             }
-            if (conditions[i] instanceof Literal &&
-                    !(((Literal)conditions[i]).getValue() instanceof BooleanValue)) {
-                final boolean b;
-                try {
-                    b = ((Literal)conditions[i]).getValue().effectiveBooleanValue();
-                } catch (XPathException err) {
-                    err.setLocator(getSourceLocator());
-                    throw err;
-                }
-                conditions[i] = new Literal(BooleanValue.get(b));
-            }
         }
-        for (int i=0; i<actions.length; i++) {
+        for (int i = 0; i < actions.length; i++) {
             try {
                 actions[i] = visitor.optimize(actions[i], contextItemType);
             } catch (XPathException err) {
@@ -278,7 +273,7 @@ public class Choose extends Instruction {
      * Mark tail-recursive calls on functions. For most expressions, this does nothing.
      *
      * @return 0 if no tail call was found; 1 if a tail call on a different function was found;
-     * 2 if a tail recursive call was found and if this call accounts for the whole of the value.
+     *         2 if a tail recursive call was found and if this call accounts for the whole of the value.
      */
 
     public int markTailFunctionCalls(StructuredQName qName, int arity) {
@@ -291,27 +286,28 @@ public class Choose extends Instruction {
 
     /**
      * Get the item type of the items returned by evaluating this instruction
+     *
      * @return the static item type of the instruction
-     * @param th Type hierarchy cache
      */
 
-    public ItemType getItemType(TypeHierarchy th) {
-        ItemType type = actions[0].getItemType(th);
-        for (int i=1; i<actions.length; i++) {
-            type = Type.getCommonSuperType(type, actions[i].getItemType(th), th);
+    public ItemType getItemType() {
+        ItemType type = actions[0].getItemType();
+        for (int i = 1; i < actions.length; i++) {
+            type = Type.getCommonSuperType(type, actions[i].getItemType());
         }
         return type;
     }
 
     /**
      * Compute the cardinality of the sequence returned by evaluating this instruction
+     *
      * @return the static cardinality
      */
 
     public int computeCardinality() {
         int card = 0;
         boolean includesTrue = false;
-        for (int i=0; i<actions.length; i++) {
+        for (int i = 0; i < actions.length; i++) {
             card = Cardinality.union(card, actions[i].getCardinality());
             if (Literal.isConstantBoolean(conditions[i], true)) {
                 includesTrue = true;
@@ -335,7 +331,7 @@ public class Choose extends Instruction {
     public int computeSpecialProperties() {
         // The special properties of a conditional are those which are common to every branch of the conditional
         int props = actions[0].getSpecialProperties();
-        for (int i=1; i<actions.length; i++) {
+        for (int i = 1; i < actions.length; i++) {
             props &= actions[i].getSpecialProperties();
         }
         return props;
@@ -349,8 +345,7 @@ public class Choose extends Instruction {
 
     public final boolean createsNewNodes() {
         for (Expression action : actions) {
-            int props = action.getSpecialProperties();
-            if ((props & StaticProperty.NON_CREATIVE) == 0) {
+            if ((action.getSpecialProperties() & StaticProperty.NON_CREATIVE) == 0) {
                 return true;
             }
         }
@@ -364,38 +359,15 @@ public class Choose extends Instruction {
      */
 
     public Iterator<Expression> iterateSubExpressions() {
-        Expression[] all = new Expression[conditions.length*2];
+        Expression[] all = new Expression[conditions.length * 2];
         System.arraycopy(conditions, 0, all, 0, conditions.length);
         System.arraycopy(actions, 0, all, conditions.length, conditions.length);
         return Arrays.asList(all).iterator();
     }
 
     /**
-     * Replace one subexpression by a replacement subexpression
-     * @param original the original subexpression
-     * @param replacement the replacement subexpression
-     * @return true if the original subexpression is found
-     */
-
-    public boolean replaceSubExpression(Expression original, Expression replacement) {
-        boolean found = false;
-        for (int i=0; i<conditions.length; i++) {
-            if (conditions[i] == original) {
-                conditions[i] = replacement;
-                found = true;
-            }
-        }
-        for (int i=0; i<actions.length; i++) {
-            if (actions[i] == original) {
-                actions[i] = replacement;
-                found = true;
-            }
-        }
-        return found;
-    }
-
-    /**
      * Handle promotion offers, that is, non-local tree rewrites.
+     *
      * @param offer The type of rewrite being offered
      * @throws XPathException
      */
@@ -406,15 +378,15 @@ public class Choose extends Instruction {
         // don't pass all promotion offers on
         if (offer.action == PromotionOffer.UNORDERED ||
                 offer.action == PromotionOffer.REPLACE_CURRENT) {
-            for (int i=0; i<conditions.length; i++) {
+            for (int i = 0; i < conditions.length; i++) {
                 conditions[i] = doPromotion(conditions[i], offer);
             }
-            for (int i=0; i<actions.length; i++) {
+            for (int i = 0; i < actions.length; i++) {
                 actions[i] = doPromotion(actions[i], offer);
             }
         } else {
             // in other cases, only the first xsl:when condition is promoted
-            conditions[0]  = doPromotion(conditions[0], offer);
+            conditions[0] = doPromotion(conditions[0], offer);
         }
     }
 
@@ -423,13 +395,14 @@ public class Choose extends Instruction {
      * The toString() method for an expression attempts to give a representation of the expression
      * in an XPath-like form, but there is no guarantee that the syntax will actually be true XPath.
      * In the case of XSLT instructions, the toString() method gives an abstracted view of the syntax
+     *
      * @return a representation of the expression as a string
      */
 
     public String toString() {
         FastStringBuffer sb = new FastStringBuffer(FastStringBuffer.SMALL);
         sb.append("if (");
-        for (int i=0; i<conditions.length; i++) {
+        for (int i = 0; i < conditions.length; i++) {
             sb.append(conditions[i].toString());
             sb.append(") then (");
             sb.append(actions[i].toString());
@@ -443,17 +416,44 @@ public class Choose extends Instruction {
     }
 
     /**
-    * Process this instruction, that is, choose an xsl:when or xsl:otherwise child
-    * and process it.
-    * @param context the dynamic context of this transformation
-    * @throws XPathException if any non-recoverable dynamic error occurs
-    * @return a TailCall, if the chosen branch ends with a call of call-template or
-    * apply-templates. It is the caller's responsibility to execute such a TailCall.
-    * If there is no TailCall, returns null.
-    */
+     * Process this instruction, that is, choose an xsl:when or xsl:otherwise child
+     * and process it.
+     *
+     * @param context the dynamic context of this transformation
+     * @return a TailCall, if the chosen branch ends with a call of call-template or
+     *         apply-templates. It is the caller's responsibility to execute such a TailCall.
+     *         If there is no TailCall, returns null.
+     * @throws XPathException if any non-recoverable dynamic error occurs
+     */
 
     public TailCall processLeavingTail(XPathContext context) throws XPathException {
-        for (int i=0; i<conditions.length; i++) {
+        int i = choose(context);
+        if (i >= 0) {
+            enterConditionTrace(i);
+            TailCall tail;
+            if (actions[i] instanceof TailCallReturner) {
+                tail = ((TailCallReturner) actions[i]).processLeavingTail(context);
+            } else {
+                actions[i].process(context);
+                tail = null;
+            }
+            leaveConditionTrace(i);
+            return tail;
+        }
+        return null;
+    }
+
+    /**
+     * Identify which of the choices to take
+     *
+     * @param context the dynamic context
+     * @return integer the index of the first choice that matches, zero-based; or -1 if none of the choices
+     *         matches
+     * @throws XPathException if evaluating a condition fails
+     */
+
+    private int choose(XPathContext context) throws XPathException {
+        for (int i = 0; i < conditions.length; i++) {
             final boolean b;
             try {
                 b = conditions[i].effectiveBooleanValue(context);
@@ -462,20 +462,12 @@ public class Choose extends Instruction {
                 throw e;
             }
             if (b) {
-            	enterConditionTrace(i);
-            	TailCall tail;
-                if (actions[i] instanceof TailCallReturner) {
-                    tail = ((TailCallReturner)actions[i]).processLeavingTail(context);
-                } else {
-                    actions[i].process(context);
-                    tail = null;
-                }
-                leaveConditionTrace(i);
-                return tail;
+                return i;
             }
         }
-        return null;
+        return -1;
     }
+
 
     /**
      * Evaluate an expression as a single item. This always returns either a single Item or
@@ -485,87 +477,52 @@ public class Choose extends Instruction {
      * this condition will be detected.
      *
      * @param context The context in which the expression is to be evaluated
-     * @exception XPathException if any dynamic error occurs evaluating the
-     *     expression
      * @return the node or atomic value that results from evaluating the
-     *     expression; or null to indicate that the result is an empty
-     *     sequence
+     *         expression; or null to indicate that the result is an empty
+     *         sequence
+     * @throws XPathException if any dynamic error occurs evaluating the
+     *                        expression
      */
 
     public Item evaluateItem(XPathContext context) throws XPathException {
-        for (int i=0; i<conditions.length; i++) {
-            final boolean b;
-            try {
-                b = conditions[i].effectiveBooleanValue(context);
-            } catch (XPathException e) {
-                e.maybeSetLocation(conditions[i].getSourceLocator());
-                throw e;
-            }
-            if (b) {
-            	enterConditionTrace(i);
-                Item result = actions[i].evaluateItem(context);
-                leaveConditionTrace(i);
-                return result;
-            }
-        }
-        return null;
+        int i = choose(context);
+        return (i < 0 ? null : actions[i].evaluateItem(context));
     }
-    
+
     /**
      * Return an Iterator to iterate over the values of a sequence. The value of every
      * expression can be regarded as a sequence, so this method is supported for all
      * expressions. This default implementation relies on the process() method: it
      * "pushes" the results of the instruction to a sequence in memory, and then
      * iterates over this in-memory sequence.
-     *
+     * <p/>
      * In principle instructions should implement a pipelined iterate() method that
      * avoids the overhead of intermediate storage.
      *
-     * @exception XPathException if any dynamic error occurs evaluating the
-     *     expression
      * @param context supplies the context for evaluation
      * @return a SequenceIterator that can be used to iterate over the result
-     *     of the expression
+     *         of the expression
+     * @throws XPathException if any dynamic error occurs evaluating the
+     *                        expression
      */
 
     public SequenceIterator iterate(XPathContext context) throws XPathException {
-        for (int i=0; i<conditions.length; i++) {
-            final boolean b;
-            try {
-                b = conditions[i].effectiveBooleanValue(context);
-            } catch (XPathException e) {
-                e.maybeSetLocation(conditions[i].getSourceLocator());
-                throw e;
-            }
-            SequenceIterator result;
-            if (b) {
-            	// for XSLIF conditionTests will always be null
-            	enterConditionTrace(i);
-                result = (actions[i]).iterate(context);
-                leaveConditionTrace(i);
+        int i = choose(context);
+        return (i < 0 ? EmptyIterator.getInstance() : actions[i].iterate(context));
+    }
 
-                return result;
-            }
-        }
-        return EmptyIterator.getInstance();
-    }
-    
     private void enterConditionTrace(int i) {
-    	if (LogConfiguration.loggingIsEnabled() && LogController.traceIsEnabled()) {
-			if(conditionTests != null) {
-	      	   XSLTTraceListener xlt = (XSLTTraceListener)LogController.getTraceListener();
-	      	   xlt.enterChooseItem(conditionTests[i]);
-	 		}
-    	}
+        if (LogConfiguration.loggingIsEnabled() && LogController.traceIsEnabled() && conditionTests != null) {
+            XSLTTraceListener xlt = (XSLTTraceListener) LogController.getTraceListener();
+            xlt.enterChooseItem(conditionTests[i]);
+        }
     }
-    
+
     private void leaveConditionTrace(int i) {
-    	if (LogConfiguration.loggingIsEnabled() && LogController.traceIsEnabled()) {
-	 	   if(conditionTests != null) {
-	      	   XSLTTraceListener xlt = (XSLTTraceListener)LogController.getTraceListener();
-	      	   xlt.leaveChooseItem(conditionTests[i]);
-		   }
-    	}
+        if (LogConfiguration.loggingIsEnabled() && LogController.traceIsEnabled() && conditionTests != null) {
+            XSLTTraceListener xlt = (XSLTTraceListener) LogController.getTraceListener();
+            xlt.leaveChooseItem(conditionTests[i]);
+        }
     }
 
 

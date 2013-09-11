@@ -159,15 +159,7 @@ public class StyleNodeFactory implements NodeFactory {
 
                 String uri = nameCode.getNamespaceURI();
                 if (NamespaceConstant.IXSL.equals(uri)) {
-                    if (localname.equals("set-attribute")) {
-                        actualElement = new IXSLSetAttribute();
-                    } else if (localname.equals("remove-attribute")) {
-                        actualElement = new IXSLRemoveAttribute();
-                    } else if (localname.equals("schedule-action")) {
-                        actualElement = new IXSLScheduleAction();
-                    } else if (localname.equals("set-property")) {
-                        actualElement = new IXSLSetProperty();
-                    }
+                    actualElement = makeIXSLElement(localname);
                 }
 
                 if (actualElement == null) {
@@ -200,13 +192,33 @@ public class StyleNodeFactory implements NodeFactory {
     }
 
     /**
+     * Make an element in the IXSL namespace
+     * @param localName the local name of the instruction
+     * @return the constructed element node
+     */
+
+    public StyleElement makeIXSLElement(String localName) {
+        if (localName.equals("set-attribute")) {
+            return new IXSLSetAttribute();
+        } else if (localName.equals("remove-attribute")) {
+            return new IXSLRemoveAttribute();
+        } else if (localName.equals("schedule-action")) {
+            return new IXSLScheduleAction();
+        } else if (localName.equals("set-property")) {
+            return new IXSLSetProperty();
+        } else {
+            return null;
+        }
+    }
+
+    /**
      * Make an XSL element node
      *
      * @param localName the node name
      * @return the constructed element node
      */
 
-    protected StyleElement makeXSLElement(String localName) {
+    public StyleElement makeXSLElement(String localName) {
         switch (localName.charAt(0)) {
             case 'a':
                 if (localName.equals("analyze-string")) {

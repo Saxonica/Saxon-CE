@@ -70,8 +70,6 @@ import java.io.Serializable;
     }
   }
 
-  /** Serialization version. */
-  static final long serialVersionUID = 1601921774685357214L;
 
   private static final byte [] fgLookupTable = new byte[128];
   
@@ -143,29 +141,16 @@ import java.io.Serializable;
       }
 
       // Add Reserved Characters
-      fgLookupTable[';'] |= RESERVED_CHARACTERS;
-      fgLookupTable['/'] |= RESERVED_CHARACTERS;
-      fgLookupTable['?'] |= RESERVED_CHARACTERS;
-      fgLookupTable[':'] |= RESERVED_CHARACTERS;
-      fgLookupTable['@'] |= RESERVED_CHARACTERS;
-      fgLookupTable['&'] |= RESERVED_CHARACTERS;
-      fgLookupTable['='] |= RESERVED_CHARACTERS;
-      fgLookupTable['+'] |= RESERVED_CHARACTERS;
-      fgLookupTable['$'] |= RESERVED_CHARACTERS;
-      fgLookupTable[','] |= RESERVED_CHARACTERS;
-      fgLookupTable['['] |= RESERVED_CHARACTERS;
-      fgLookupTable[']'] |= RESERVED_CHARACTERS;
+      final String reserved = ";/?:@&=+$,[]";
+      for (int i=0; i<reserved.length(); i++) {
+          fgLookupTable[reserved.charAt(i)] |= RESERVED_CHARACTERS;
+      }
 
       // Add Mark Characters
-      fgLookupTable['-'] |= MARK_CHARACTERS;
-      fgLookupTable['_'] |= MARK_CHARACTERS;
-      fgLookupTable['.'] |= MARK_CHARACTERS;
-      fgLookupTable['!'] |= MARK_CHARACTERS;
-      fgLookupTable['~'] |= MARK_CHARACTERS;
-      fgLookupTable['*'] |= MARK_CHARACTERS;
-      fgLookupTable['\''] |= MARK_CHARACTERS;
-      fgLookupTable['('] |= MARK_CHARACTERS;
-      fgLookupTable[')'] |= MARK_CHARACTERS;
+      final String mark = "-_.!~*'()";
+      for (int i=0; i<mark.length(); i++) {
+          fgLookupTable[mark.charAt(i)] |= MARK_CHARACTERS;
+      }
 
       // Add Scheme Characters
       fgLookupTable['+'] |= SCHEME_CHARACTERS;
@@ -173,24 +158,18 @@ import java.io.Serializable;
       fgLookupTable['.'] |= SCHEME_CHARACTERS;
 
       // Add Userinfo Characters
-      fgLookupTable[';'] |= USERINFO_CHARACTERS;
-      fgLookupTable[':'] |= USERINFO_CHARACTERS;
-      fgLookupTable['&'] |= USERINFO_CHARACTERS;
-      fgLookupTable['='] |= USERINFO_CHARACTERS;
-      fgLookupTable['+'] |= USERINFO_CHARACTERS;
-      fgLookupTable['$'] |= USERINFO_CHARACTERS;
-      fgLookupTable[','] |= USERINFO_CHARACTERS;
+      final String userinfo = ";:&=+$,";
+      for (int i=0; i<userinfo.length(); i++) {
+          fgLookupTable[userinfo.charAt(i)] |= USERINFO_CHARACTERS;
+      }
+
       
       // Add Path Characters
-      fgLookupTable[';'] |= PATH_CHARACTERS;
-      fgLookupTable['/'] |= PATH_CHARACTERS;
-      fgLookupTable[':'] |= PATH_CHARACTERS;
-      fgLookupTable['@'] |= PATH_CHARACTERS;
-      fgLookupTable['&'] |= PATH_CHARACTERS;
-      fgLookupTable['='] |= PATH_CHARACTERS;
-      fgLookupTable['+'] |= PATH_CHARACTERS;
-      fgLookupTable['$'] |= PATH_CHARACTERS;
-      fgLookupTable[','] |= PATH_CHARACTERS;
+      final String path = ";/:@&=+$,";
+      for (int i=0; i<path.length(); i++) {
+          fgLookupTable[path.charAt(i)] |= PATH_CHARACTERS;
+      }
+
   }
 
   /** Stores the scheme (usually the protocol) for this URI. */
@@ -315,126 +294,7 @@ import java.io.Serializable;
       initialize(p_base, p_uriSpec, allowNonAbsoluteURI);
   }
 
- /**
-  * Construct a new URI that does not follow the generic URI syntax.
-  * Only the scheme and scheme-specific part (stored as the path) are
-  * initialized.
-  *
-  * @param p_scheme the URI scheme (cannot be null or empty)
-  * @param p_schemeSpecificPart the scheme-specific part (cannot be
-  *                             null or empty)
-  *
-  * @exception URISyntaxException if p_scheme violates any
-  *                                  syntax rules
-  */
-  public URI(String p_scheme, String p_schemeSpecificPart)
-             throws URISyntaxException {
-    if (p_scheme == null || p_scheme.trim().length() == 0) {
-      throw new URISyntaxException(
-            "Cannot construct URI with null/empty scheme!");
-    }
-    if (p_schemeSpecificPart == null ||
-        p_schemeSpecificPart.trim().length() == 0) {
-      throw new URISyntaxException(
-          "Cannot construct URI with null/empty scheme-specific part!");
-    }
-    setScheme(p_scheme);
-    setPath(p_schemeSpecificPart);
-  }
-
- /**
-  * Construct a new URI that follows the generic URI syntax from its
-  * component parts. Each component is validated for syntax and some
-  * basic semantic checks are performed as well.  See the individual
-  * setter methods for specifics.
-  *
-  * @param p_scheme the URI scheme (cannot be null or empty)
-  * @param p_host the hostname, IPv4 address or IPv6 reference for the URI
-  * @param p_path the URI path - if the path contains '?' or '#',
-  *               then the query string and/or fragment will be
-  *               set from the path; however, if the query and
-  *               fragment are specified both in the path and as
-  *               separate parameters, an exception is thrown
-  * @param p_queryString the URI query string (cannot be specified
-  *                      if path is null)
-  * @param p_fragment the URI fragment (cannot be specified if path
-  *                   is null)
-  *
-  * @exception URISyntaxException if any of the parameters violates
-  *                                  syntax rules or semantic rules
-  */
-  public URI(String p_scheme, String p_host, String p_path,
-             String p_queryString, String p_fragment)
-         throws URISyntaxException {
-    this(p_scheme, null, p_host, -1, p_path, p_queryString, p_fragment);
-  }
-
- /**
-  * Construct a new URI that follows the generic URI syntax from its
-  * component parts. Each component is validated for syntax and some
-  * basic semantic checks are performed as well.  See the individual
-  * setter methods for specifics.
-  *
-  * @param p_scheme the URI scheme (cannot be null or empty)
-  * @param p_userinfo the URI userinfo (cannot be specified if host
-  *                   is null)
-  * @param p_host the hostname, IPv4 address or IPv6 reference for the URI
-  * @param p_port the URI port (may be -1 for "unspecified"; cannot
-  *               be specified if host is null)
-  * @param p_path the URI path - if the path contains '?' or '#',
-  *               then the query string and/or fragment will be
-  *               set from the path; however, if the query and
-  *               fragment are specified both in the path and as
-  *               separate parameters, an exception is thrown
-  * @param p_queryString the URI query string (cannot be specified
-  *                      if path is null)
-  * @param p_fragment the URI fragment (cannot be specified if path
-  *                   is null)
-  *
-  * @exception URISyntaxException if any of the parameters violates
-  *                                  syntax rules or semantic rules
-  */
-  public URI(String p_scheme, String p_userinfo,
-             String p_host, int p_port, String p_path,
-             String p_queryString, String p_fragment)
-         throws URISyntaxException {
-    if (p_scheme == null || p_scheme.trim().length() == 0) {
-      throw new URISyntaxException("Scheme is required!");
-    }
-
-    if (p_host == null) {
-      if (p_userinfo != null) {
-        throw new URISyntaxException(
-             "Userinfo may not be specified if host is not specified!");
-      }
-      if (p_port != -1) {
-        throw new URISyntaxException(
-             "Port may not be specified if host is not specified!");
-      }
-    }
-
-    if (p_path != null) {
-      if (p_path.indexOf('?') != -1 && p_queryString != null) {
-        throw new URISyntaxException(
-          "Query string cannot be specified in path and query string!");
-      }
-
-      if (p_path.indexOf('#') != -1 && p_fragment != null) {
-        throw new URISyntaxException(
-          "Fragment cannot be specified in both the path and fragment!");
-      }
-    }
-
-    setScheme(p_scheme);
-    setHost(p_host);
-    setPort(p_port);
-    setUserinfo(p_userinfo);
-    setPath(p_path);
-    setQueryString(p_queryString);
-    setFragment(p_fragment);
-  }
-
- /**
+    /**
   * Initialize all fields of this URI from another URI.
   *
   * @param p_other the URI to copy (cannot be null)
@@ -697,7 +557,7 @@ import java.io.Serializable;
    *
    * @param p_base base URI for absolutization
    */
-  public void absolutize(URI p_base) {
+  private void absolutize(URI p_base) {
 
       // check to see if this is the current doc - RFC 2396 5.2 #2
       // note that this is slightly different from the RFC spec in that
@@ -1197,7 +1057,7 @@ import java.io.Serializable;
   *
   * @return the scheme-specific part for this URI
   */
-  public String getSchemeSpecificPart() {
+  private String getSchemeSpecificPart() {
     StringBuffer schemespec = new StringBuffer();
 
     if (m_host != null || m_regAuthority != null) {
@@ -1276,69 +1136,6 @@ import java.io.Serializable;
   public String getRegBasedAuthority() {
     return m_regAuthority;
   }
-  
-  /**
-   * Get the authority for this URI.
-   * 
-   * @return the authority
-   */
-  public String getAuthority() {
-      StringBuffer authority = new StringBuffer();
-      if (m_host != null || m_regAuthority != null) {
-          authority.append("//");
-          
-          // Server based authority.
-          if (m_host != null) {
-              
-              if (m_userinfo != null) {
-                  authority.append(m_userinfo);
-                  authority.append('@');
-              }
-              
-              authority.append(m_host);
-              
-              if (m_port != -1) {
-                  authority.append(':');
-                  authority.append(m_port);
-              }
-          }
-          // Registry based authority.
-          else {
-              authority.append(m_regAuthority);
-          }
-      }
-      return authority.toString();
-  }
-
- /**
-  * Get the path for this URI (optionally with the query string and
-  * fragment).
-  *
-  * @param p_includeQueryString if true (and query string is not null),
-  *                             then a "?" followed by the query string
-  *                             will be appended
-  * @param p_includeFragment if true (and fragment is not null),
-  *                             then a "#" followed by the fragment
-  *                             will be appended
-  *
-  * @return the path for this URI possibly including the query string
-  *         and fragment
-  */
-  public String getPath(boolean p_includeQueryString,
-                        boolean p_includeFragment) {
-    StringBuffer pathString = new StringBuffer(m_path);
-
-    if (p_includeQueryString && m_queryString != null) {
-      pathString.append('?');
-      pathString.append(m_queryString);
-    }
-
-    if (p_includeFragment && m_fragment != null) {
-      pathString.append('#');
-      pathString.append(m_fragment);
-    }
-    return pathString.toString();
-  }
 
  /**
   * Get the path for this URI. Note that the value returned is the path
@@ -1381,7 +1178,7 @@ import java.io.Serializable;
   * @exception URISyntaxException if p_scheme is not a conformant
   *                                  scheme name
   */
-  public void setScheme(String p_scheme) throws URISyntaxException {
+  private void setScheme(String p_scheme) throws URISyntaxException {
     if (p_scheme == null) {
       throw new URISyntaxException(
                 "Cannot set scheme from null string!");
@@ -1391,274 +1188,6 @@ import java.io.Serializable;
     }
 
     m_scheme = p_scheme.toLowerCase();
-  }
-
- /**
-  * Set the userinfo for this URI. If a non-null value is passed in and
-  * the host value is null, then an exception is thrown.
-  *
-  * @param p_userinfo the userinfo for this URI
-  *
-  * @exception URISyntaxException if p_userinfo contains invalid
-  *                                  characters
-  */
-  public void setUserinfo(String p_userinfo) throws URISyntaxException {
-    if (p_userinfo == null) {
-      m_userinfo = null;
-      return;
-    }
-    else {
-      if (m_host == null) {
-        throw new URISyntaxException(
-                     "Userinfo cannot be set when host is null!");
-      }
-
-      // userinfo can contain alphanumerics, mark characters, escaped
-      // and ';',':','&','=','+','$',','
-      int index = 0;
-      int end = p_userinfo.length();
-      char testChar = '\0';
-      while (index < end) {
-        testChar = p_userinfo.charAt(index);
-        if (testChar == '%') {
-          if (index+2 >= end ||
-              !isHex(p_userinfo.charAt(index+1)) ||
-              !isHex(p_userinfo.charAt(index+2))) {
-            throw new URISyntaxException(
-                  "Userinfo contains invalid escape sequence!");
-          }
-        }
-        else if (!isUserinfoCharacter(testChar)) {
-          throw new URISyntaxException(
-                  "Userinfo contains invalid character:"+testChar);
-        }
-        index++;
-      }
-    }
-    m_userinfo = p_userinfo;
-  }
-
- /**
-  * <p>Set the host for this URI. If null is passed in, the userinfo
-  * field is also set to null and the port is set to -1.</p>
-  * 
-  * <p>Note: This method overwrites registry based authority if it
-  * previously existed in this URI.</p>
-  *
-  * @param p_host the host for this URI
-  *
-  * @exception URISyntaxException if p_host is not a valid IP
-  *                                  address or DNS hostname.
-  */
-  public void setHost(String p_host) throws URISyntaxException {
-    if (p_host == null || p_host.length() == 0) {
-      if (p_host != null) {
-        m_regAuthority = null;
-      }
-      m_host = p_host;
-      m_userinfo = null;
-      m_port = -1;
-      return;
-    }
-    else if (!isWellFormedAddress(p_host)) {
-      throw new URISyntaxException("Host is not a well formed address!");
-    }
-    m_host = p_host;
-    m_regAuthority = null;
-  }
-
- /**
-  * Set the port for this URI. -1 is used to indicate that the port is
-  * not specified, otherwise valid port numbers are  between 0 and 65535.
-  * If a valid port number is passed in and the host field is null,
-  * an exception is thrown.
-  *
-  * @param p_port the port number for this URI
-  *
-  * @exception URISyntaxException if p_port is not -1 and not a
-  *                                  valid port number
-  */
-  public void setPort(int p_port) throws URISyntaxException {
-    if (p_port >= 0 && p_port <= 65535) {
-      if (m_host == null) {
-        throw new URISyntaxException(
-                      "Port cannot be set when host is null!");
-      }
-    }
-    else if (p_port != -1) {
-      throw new URISyntaxException("Invalid port number!");
-    }
-    m_port = p_port;
-  }
-  
-  /**
-   * <p>Sets the registry based authority for this URI.</p>
-   * 
-   * <p>Note: This method overwrites server based authority
-   * if it previously existed in this URI.</p>
-   * 
-   * @param authority the registry based authority for this URI
-   * 
-   * @exception URISyntaxException it authority is not a
-   * well formed registry based authority
-   */
-  public void setRegBasedAuthority(String authority) 
-    throws URISyntaxException {
-
-  	if (authority == null) {
-  	  m_regAuthority = null;
-  	  return;
-  	}
-	// reg_name = 1*( unreserved | escaped | "$" | "," | 
-	//            ";" | ":" | "@" | "&" | "=" | "+" )
-  	else if (authority.length() < 1 ||
-  	  !isValidRegistryBasedAuthority(authority) ||
-  	  authority.indexOf('/') != -1) {
-      throw new URISyntaxException("Registry based authority is not well formed.");       	
-  	}
-  	m_regAuthority = authority;
-  	m_host = null;
-  	m_userinfo = null;
-  	m_port = -1;
-  }
-
- /**
-  * Set the path for this URI. If the supplied path is null, then the
-  * query string and fragment are set to null as well. If the supplied
-  * path includes a query string and/or fragment, these fields will be
-  * parsed and set as well. Note that, for URIs following the "generic
-  * URI" syntax, the path specified should start with a slash.
-  * For URIs that do not follow the generic URI syntax, this method
-  * sets the scheme-specific part.
-  *
-  * @param p_path the path for this URI (may be null)
-  *
-  * @exception URISyntaxException if p_path contains invalid
-  *                                  characters
-  */
-  public void setPath(String p_path) throws URISyntaxException {
-    if (p_path == null) {
-      m_path = null;
-      m_queryString = null;
-      m_fragment = null;
-    }
-    else {
-      initializePath(p_path, 0);
-    }
-  }
-
- /**
-  * Append to the end of the path of this URI. If the current path does
-  * not end in a slash and the path to be appended does not begin with
-  * a slash, a slash will be appended to the current path before the
-  * new segment is added. Also, if the current path ends in a slash
-  * and the new segment begins with a slash, the extra slash will be
-  * removed before the new segment is appended.
-  *
-  * @param p_addToPath the new segment to be added to the current path
-  *
-  * @exception URISyntaxException if p_addToPath contains syntax
-  *                                  errors
-  */
-  public void appendPath(String p_addToPath)
-                         throws URISyntaxException {
-    if (p_addToPath == null || p_addToPath.trim().length() == 0) {
-      return;
-    }
-
-    if (!isURIString(p_addToPath)) {
-      throw new URISyntaxException(
-              "Path contains invalid character!");
-    }
-
-    if (m_path == null || m_path.trim().length() == 0) {
-      if (p_addToPath.startsWith("/")) {
-        m_path = p_addToPath;
-      }
-      else {
-        m_path = "/" + p_addToPath;
-      }
-    }
-    else if (m_path.endsWith("/")) {
-      if (p_addToPath.startsWith("/")) {
-        m_path = m_path.concat(p_addToPath.substring(1));
-      }
-      else {
-        m_path = m_path.concat(p_addToPath);
-      }
-    }
-    else {
-      if (p_addToPath.startsWith("/")) {
-        m_path = m_path.concat(p_addToPath);
-      }
-      else {
-        m_path = m_path.concat("/" + p_addToPath);
-      }
-    }
-  }
-
- /**
-  * Set the query string for this URI. A non-null value is valid only
-  * if this is an URI conforming to the generic URI syntax and
-  * the path value is not null.
-  *
-  * @param p_queryString the query string for this URI
-  *
-  * @exception URISyntaxException if p_queryString is not null and this
-  *                                  URI does not conform to the generic
-  *                                  URI syntax or if the path is null
-  */
-  public void setQueryString(String p_queryString) throws URISyntaxException {
-    if (p_queryString == null) {
-      m_queryString = null;
-    }
-    else if (!isGenericURI()) {
-      throw new URISyntaxException(
-              "Query string can only be set for a generic URI!");
-    }
-    else if (getPath() == null) {
-      throw new URISyntaxException(
-              "Query string cannot be set when path is null!");
-    }
-    else if (!isURIString(p_queryString)) {
-      throw new URISyntaxException(
-              "Query string contains invalid character!");
-    }
-    else {
-      m_queryString = p_queryString;
-    }
-  }
-
- /**
-  * Set the fragment for this URI. A non-null value is valid only
-  * if this is a URI conforming to the generic URI syntax and
-  * the path value is not null.
-  *
-  * @param p_fragment the fragment for this URI
-  *
-  * @exception URISyntaxException if p_fragment is not null and this
-  *                                  URI does not conform to the generic
-  *                                  URI syntax or if the path is null
-  */
-  public void setFragment(String p_fragment) throws URISyntaxException {
-    if (p_fragment == null) {
-      m_fragment = null;
-    }
-    else if (!isGenericURI()) {
-      throw new URISyntaxException(
-         "Fragment can only be set for a generic URI!");
-    }
-    else if (getPath() == null) {
-      throw new URISyntaxException(
-              "Fragment cannot be set when path is null!");
-    }
-    else if (!isURIString(p_fragment)) {
-      throw new URISyntaxException(
-              "Fragment contains invalid character!");
-    }
-    else {
-      m_fragment = p_fragment;
-    }
   }
 
  /**
@@ -1713,19 +1242,6 @@ import java.io.Serializable;
     return uriSpecString.toString();
   }
 
- /**
-  * Get the indicator as to whether this URI uses the "generic URI"
-  * syntax.
-  *
-  * @return true if this URI uses the "generic URI" syntax, false
-  *         otherwise
-  */
-  public boolean isGenericURI() {
-    // presence of the host (whether valid or empty) means
-    // double-slashes which means generic uri
-    return (m_host != null);
-  }
-  
   /**
    * Returns whether this URI represents an absolute URI.
    *
@@ -1744,7 +1260,7 @@ import java.io.Serializable;
   *
   * @return true if the scheme is conformant, false otherwise
   */
-  public static boolean isConformantSchemeName(String p_scheme) {
+  private static boolean isConformantSchemeName(String p_scheme) {
     if (p_scheme == null || p_scheme.trim().length() == 0) {
       return false;
     }
@@ -1777,7 +1293,7 @@ import java.io.Serializable;
   * @return true if the string is a syntactically valid IPv4 address, 
   * IPv6 reference or hostname
   */
-  public static boolean isWellFormedAddress(String address) {
+  private static boolean isWellFormedAddress(String address) {
     if (address == null) {
       return false;
     }
@@ -1861,7 +1377,7 @@ import java.io.Serializable;
    *
    * @return true if the string is a syntactically valid IPv4 address
    */
-  public static boolean isWellFormedIPv4Address(String address) {
+  private static boolean isWellFormedIPv4Address(String address) {
       
       int addrLength = address.length();
       char testChar;
@@ -1928,7 +1444,7 @@ import java.io.Serializable;
    *
    * @return true if the string is a syntactically valid IPv6 reference
    */
-  public static boolean isWellFormedIPv6Reference(String address) {
+  private static boolean isWellFormedIPv6Reference(String address) {
 
       int addrLength = address.length();
       int index = 1;

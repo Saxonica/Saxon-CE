@@ -6,7 +6,6 @@ import client.net.sf.saxon.ce.om.ValueRepresentation;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.AnyItemType;
 import client.net.sf.saxon.ce.type.ItemType;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -77,10 +76,9 @@ public class Message extends Instruction {
     /**
      * Get the item type. To avoid spurious compile-time type errors, we falsely declare that the
      * instruction can return anything
-     * @param th the type hierarchy cache
      * @return AnyItemType
      */
-    public ItemType getItemType(TypeHierarchy th) {
+    public ItemType getItemType() {
         return AnyItemType.getInstance();
     }
 
@@ -134,29 +132,9 @@ public class Message extends Instruction {
         return list.iterator();
     }
 
-    /**
-     * Replace one subexpression by a replacement subexpression
-     * @param original the original subexpression
-     * @param replacement the replacement subexpression
-     * @return true if the original subexpression is found
-     */
-
-    public boolean replaceSubExpression(Expression original, Expression replacement) {
-        boolean found = false;
-        if (select == original) {
-            select = replacement;
-            found = true;
-        }
-        if (terminate == original) {
-            terminate = replacement;
-            found = true;
-        }
-        return found;
-    }
-    
     public TailCall processLeavingTail(XPathContext context) throws XPathException {
         ValueRepresentation content =
-                ExpressionTool.evaluate(select, ExpressionTool.ITERATE_AND_MATERIALIZE, context, 1);
+                ExpressionTool.evaluate(select, ExpressionTool.ITERATE_AND_MATERIALIZE, context);
         String message = content.getStringValue();         
         boolean abort = false;
         if (terminate != null) {
@@ -166,10 +144,7 @@ public class Message extends Instruction {
             } else if (term.equals("yes")) {
                 abort = true;
             } else {
-                XPathException e = new XPathException("The terminate attribute of xsl:message must be 'yes' or 'no'");
-                e.setXPathContext(context);
-                e.setErrorCode("XTDE0030");
-                throw e;
+                throw new XPathException("The terminate attribute of xsl:message must be 'yes' or 'no'", "XTDE0030");
             }
         }
 

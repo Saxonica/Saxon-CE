@@ -1,12 +1,14 @@
 package client.net.sf.saxon.ce.expr.instruct;
 
 import client.net.sf.saxon.ce.Controller;
-import client.net.sf.saxon.ce.expr.*;
+import client.net.sf.saxon.ce.expr.Expression;
+import client.net.sf.saxon.ce.expr.ExpressionTool;
+import client.net.sf.saxon.ce.expr.UserFunctionCall;
+import client.net.sf.saxon.ce.expr.XPathContextMajor;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.om.ValueRepresentation;
 import client.net.sf.saxon.ce.trace.Location;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.SequenceType;
 
 import java.util.Iterator;
@@ -141,18 +143,17 @@ public class UserFunction extends Procedure {
 
      /**
      * Get the type of value returned by this function
-     * @param th the type hierarchy cache
      * @return the declared result type, or the inferred result type
      * if this is more precise
      */
 
-    public SequenceType getResultType(TypeHierarchy th) {
+    public SequenceType getResultType() {
         if (resultType == SequenceType.ANY_SEQUENCE) {
             // see if we can infer a more precise result type. We don't do this if the function contains
             // calls on further functions, to prevent infinite regress.
             if (!containsUserFunctionCalls(getBody())) {
                 resultType = SequenceType.makeSequenceType(
-                        getBody().getItemType(th), getBody().getCardinality());
+                        getBody().getItemType(), getBody().getCardinality());
             }
         }
         return resultType;
@@ -219,21 +220,10 @@ public class UserFunction extends Procedure {
     }
 
     /**
-     * Ask whether this function is a memo function
-     * @return false (overridden in a subclass)
-     */
-
-    public boolean isMemoFunction() {
-        return false;
-    }
-
-
-    /**
      * Call this function to return a value.
      * @param actualArgs the arguments supplied to the function. These must have the correct
      * types required by the function signature (it is the caller's responsibility to check this).
-     * It is acceptable to supply a {@link client.net.sf.saxon.ce.value.Closure} to represent a value whose
-     * evaluation will be delayed until it is needed. The array must be the correct size to match
+     * The array must be the correct size to match
      * the number of arguments: again, it is the caller's responsibility to check this.
      * @param context This provides the run-time context for evaluating the function. It is the caller's
      * responsibility to allocate a "clean" context for the function to use; the context that is provided
@@ -254,7 +244,7 @@ public class UserFunction extends Procedure {
         context.setStackFrame(getStackFrameMap(), actualArgs);
         ValueRepresentation result;
         try {
-            result = ExpressionTool.evaluate(getBody(), evaluationMode, context, 1);
+            result = ExpressionTool.evaluate(getBody(), evaluationMode, context);
         } catch (XPathException err) {
             err.maybeSetLocation(getSourceLocator());
             throw err;
@@ -267,8 +257,7 @@ public class UserFunction extends Procedure {
       * Call this function in "push" mode, writing the results to the current output destination.
       * @param actualArgs the arguments supplied to the function. These must have the correct
       * types required by the function signature (it is the caller's responsibility to check this).
-      * It is acceptable to supply a {@link client.net.sf.saxon.ce.value.Closure} to represent a value whose
-      * evaluation will be delayed until it is needed. The array must be the correct size to match
+      * The array must be the correct size to match
       * the number of arguments: again, it is the caller's responsibility to check this.
       * @param context This provides the run-time context for evaluating the function. It is the caller's
       * responsibility to allocate a "clean" context for the function to use; the context that is provided
@@ -286,8 +275,7 @@ public class UserFunction extends Procedure {
      * application. It creates the environment needed to achieve this
      * @param actualArgs the arguments supplied to the function. These must have the correct
      * types required by the function signature (it is the caller's responsibility to check this).
-     * It is acceptable to supply a {@link client.net.sf.saxon.ce.value.Closure} to represent a value whose
-     * evaluation will be delayed until it is needed. The array must be the correct size to match
+     * The array must be the correct size to match
      * the number of arguments: again, it is the caller's responsibility to check this.
      * @param controller This provides the run-time context for evaluating the function.  This may
      * be used for a series of calls on functions defined in the same module as the XQueryExpression.

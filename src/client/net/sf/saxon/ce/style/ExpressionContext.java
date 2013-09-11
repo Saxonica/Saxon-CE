@@ -6,10 +6,7 @@ import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.functions.FunctionLibrary;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
 import client.net.sf.saxon.ce.om.*;
-import client.net.sf.saxon.ce.trans.DecimalFormatManager;
-import client.net.sf.saxon.ce.trans.Err;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.tree.util.SourceLocator;
 
 
 /**
@@ -20,7 +17,6 @@ import client.net.sf.saxon.ce.tree.util.SourceLocator;
 public class ExpressionContext implements StaticContext {
 
 	private StyleElement element;
-    private NamespaceResolver namespaceResolver = null;
 
     /**
      * Create a static context for XPath expressions in an XSLT stylesheet
@@ -57,14 +53,6 @@ public class ExpressionContext implements StaticContext {
     }
 
     /**
-    * Issue a compile-time warning
-    */
-
-    public void issueWarning(String s, SourceLocator locator) {
-        element.issueWarning(s, locator);
-    }
-
-    /**
     * Get the System ID of the entity containing the expression (used for diagnostics)
     */
 
@@ -83,86 +71,14 @@ public class ExpressionContext implements StaticContext {
     }
 
     /**
-    * Get the URI for a prefix, using this Element as the context for namespace resolution.
-    * The default namespace will not be used when the prefix is empty.
-    * @param prefix The prefix
-    * @throws XPathException if the prefix is not declared
-    */
-
-    public String getURIForPrefix(String prefix) throws XPathException {
-        String uri = element.getURIForPrefix(prefix, false);
-        if (uri == null) {
-            XPathException err = new XPathException("Undeclared namespace prefix " + Err.wrap(prefix));
-            err.setErrorCode("XPST0081");
-            err.setIsStaticError(true);
-            throw err;
-        }
-        return uri;
-    }
-
-    /**
      * Get a copy of the NamespaceResolver suitable for saving in the executable code
      * @return a NamespaceResolver
     */
 
 
     public NamespaceResolver getNamespaceResolver() {
-        return element;
+        return new InscopeNamespaceResolver(element);
     }
-
-    /**
-     * Get a DecimalFormatManager to resolve the names of decimal formats used in calls
-     * to the format-number() function.
-     * @return the decimal format manager for this static context, or null if named decimal
-     *         formats are not supported in this environment.
-     */
-
-    public DecimalFormatManager getDecimalFormatManager() {
-        return element.getPreparedStylesheet().getDecimalFormatManager();
-    }
-
-    /**
-    * Get a StructuredQName for a name, using this as the context for namespace resolution
-    * @param qname The name as written, in the form "[prefix:]localname"
-    * @param useDefault Defines the action when there is no prefix. If true, use
-    * the default namespace URI (as for element names). If false, use no namespace URI
-    * (as for attribute names).
-    * @return -1 if the name is not already present in the name pool
-    */
-
-    public StructuredQName getStructuredQName(String qname, boolean useDefault) throws XPathException {
-
-        String[] parts;
-        try {
-            parts = NameChecker.getQNameParts(qname);
-        } catch (QNameException err) {
-            throw new XPathException(err.getMessage());
-        }
-        String prefix = parts[0];
-        if (prefix.length() == 0) {
-            String uri = "";
-
-            if (useDefault) {
-                uri = getURIForPrefix(prefix);
-            }
-
-			return new StructuredQName("", uri, qname);
-
-        } else {
-
-            String uri = getURIForPrefix(prefix);
-			return new StructuredQName(prefix, uri, parts[1]);
-        }
-    }
-
-    private static StructuredQName[] errorVariables = {
-            new StructuredQName("err", NamespaceConstant.ERR, "code"),
-            new StructuredQName("err", NamespaceConstant.ERR, "description"),
-            new StructuredQName("err", NamespaceConstant.ERR, "value"),
-            new StructuredQName("err", NamespaceConstant.ERR, "module"),
-            new StructuredQName("err", NamespaceConstant.ERR, "line-number"),
-            new StructuredQName("err", NamespaceConstant.ERR, "column-number")
-    };
 
     /**
      * Bind a variable to an object that can be used to refer to it
@@ -194,28 +110,6 @@ public class ExpressionContext implements StaticContext {
 
     public FunctionLibrary getFunctionLibrary() {
         return element.getPrincipalStylesheetModule().getFunctionLibrary();
-    }
-
-    /**
-    * Determine if an extension element is available
-    * @throws XPathException if the name is invalid or the prefix is not declared
-    */
-
-    public boolean isElementAvailable(String qname) throws XPathException {
-        try {
-            String[] parts = NameChecker.getQNameParts(qname);
-            String uri;
-            if (parts[0].length() == 0) {
-                uri = getDefaultElementNamespace();
-            } else {
-                uri = getURIForPrefix(parts[0]);
-            }
-            return element.getPreparedStylesheet().getStyleNodeFactory().isElementAvailable(uri, parts[1]);
-        } catch (QNameException e) {
-            XPathException err = new XPathException("Invalid element name. " + e.getMessage());
-            err.setErrorCode("XTDE1440");
-            throw err;
-        }
     }
 
     /**

@@ -11,7 +11,6 @@ import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.pattern.NodeKindTest;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
 
 
 /**
@@ -41,10 +40,9 @@ public abstract class ElementCreator extends ParentNodeConstructor {
     /**
      * Get the item type of the value returned by this instruction
      * @return the item type
-     * @param th the type hierarchy cache
      */
 
-    public ItemType getItemType(TypeHierarchy th) {
+    public ItemType getItemType() {
         return NodeKindTest.ELEMENT;
     }
 
@@ -154,7 +152,6 @@ public abstract class ElementCreator extends ParentNodeConstructor {
 
         } catch (XPathException e) {
             e.maybeSetLocation(getSourceLocator());
-            e.maybeSetContext(context);
             throw e;
         }
     }
@@ -202,13 +199,12 @@ public abstract class ElementCreator extends ParentNodeConstructor {
             seq.close();
 
             // the constructed element is the first and only item in the sequence
-            NodeInfo result = (NodeInfo)seq.popLastItem();
+            NodeInfo result = (NodeInfo)seq.getFirstItem();
             seq.reset();
             return result;
 
         } catch (XPathException err) {
             err.maybeSetLocation(getSourceLocator());
-            err.maybeSetContext(context);
             throw err;
         }
     }

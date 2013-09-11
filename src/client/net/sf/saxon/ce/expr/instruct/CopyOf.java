@@ -54,12 +54,8 @@ public class CopyOf extends Instruction {
      */
 
     public final boolean createsNewNodes() {
-        Executable exec = getExecutable();
-        if (exec == null) {
-            return true;    // This shouldn't happen, but we err on the safe side
-        }
-        final TypeHierarchy th = exec.getConfiguration().getTypeHierarchy();
-        return !select.getItemType(th).isAtomicType();
+        final TypeHierarchy th = TypeHierarchy.getInstance();
+        return !select.getItemType().isAtomicType();
     }
 
     /**
@@ -78,8 +74,8 @@ public class CopyOf extends Instruction {
         return this;
     }
 
-    public ItemType getItemType(TypeHierarchy th) {
-        return select.getItemType(th);
+    public ItemType getItemType() {
+        return select.getItemType();
     }
 
     public int getCardinality() {
@@ -103,8 +99,8 @@ public class CopyOf extends Instruction {
     public Expression optimize(ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
         select = visitor.optimize(select, contextItemType);
         adoptChildExpression(select);
-        final TypeHierarchy th = visitor.getConfiguration().getTypeHierarchy();
-        if (select.getItemType(th).isAtomicType()) {
+        final TypeHierarchy th = TypeHierarchy.getInstance();
+        if (select.getItemType().isAtomicType()) {
             return select;
         }
         return this;
@@ -113,22 +109,6 @@ public class CopyOf extends Instruction {
 
     public Iterator<Expression> iterateSubExpressions() {
         return monoIterator(select);
-    }
-
-    /**
-     * Replace one subexpression by a replacement subexpression
-     * @param original the original subexpression
-     * @param replacement the replacement subexpression
-     * @return true if the original subexpression is found
-     */
-
-    public boolean replaceSubExpression(Expression original, Expression replacement) {
-        boolean found = false;
-        if (select == original) {
-            select = replacement;
-            found = true;
-        }
-        return found;
     }
 
     /**
@@ -175,7 +155,7 @@ public class CopyOf extends Instruction {
                         try {
                             context.getReceiver().attribute(source.getNodeName(), source.getStringValue());
                         } catch (NoOpenStartTagException err) {
-                            dynamicError(err.getMessage(), err.getErrorCodeLocalPart(), context);
+                            dynamicError(err.getMessage(), err.getErrorCodeLocalPart());
                         }
                         break;
                     case Type.TEXT:
@@ -197,7 +177,7 @@ public class CopyOf extends Instruction {
                         try {
                             source.copy(out, 0);
                         } catch (NoOpenStartTagException err) {
-                            dynamicError(err.getMessage(), err.getErrorCodeLocalPart(), context);
+                            dynamicError(err.getMessage(), err.getErrorCodeLocalPart());
                         }
                         break;
 

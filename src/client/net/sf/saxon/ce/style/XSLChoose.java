@@ -1,23 +1,22 @@
 package client.net.sf.saxon.ce.style;
-import client.net.sf.saxon.ce.om.StructuredQName;
-import com.google.gwt.logging.client.LogConfiguration;
 
 import client.net.sf.saxon.ce.LogController;
 import client.net.sf.saxon.ce.expr.Expression;
+import client.net.sf.saxon.ce.expr.ExpressionVisitor;
 import client.net.sf.saxon.ce.expr.Literal;
 import client.net.sf.saxon.ce.expr.instruct.Choose;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
-import client.net.sf.saxon.ce.om.AttributeCollection;
 import client.net.sf.saxon.ce.om.Axis;
-import client.net.sf.saxon.ce.tree.iter.AxisIterator;
 import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.trans.XPathException;
+import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.value.BooleanValue;
+import com.google.gwt.logging.client.LogConfiguration;
 
 /**
-* An xsl:choose elements in the stylesheet. <br>
-*/
+ * An xsl:choose element in the stylesheet. <br>
+ */
 
 public class XSLChoose extends StyleElement {
 
@@ -25,9 +24,10 @@ public class XSLChoose extends StyleElement {
     private int numberOfWhens = 0;
 
     /**
-    * Determine whether this node is an instruction.
-    * @return true - it is an instruction
-    */
+     * Determine whether this node is an instruction.
+     *
+     * @return true - it is an instruction
+     */
 
     public boolean isInstruction() {
         return true;
@@ -36,6 +36,7 @@ public class XSLChoose extends StyleElement {
     /**
      * Determine the type of item returned by this instruction (only relevant if
      * it is an instruction).
+     *
      * @return the item type returned
      */
 
@@ -44,57 +45,52 @@ public class XSLChoose extends StyleElement {
     }
 
     public void prepareAttributes() throws XPathException {
-		AttributeCollection atts = getAttributeList();
-		for (int a=0; a<atts.getLength(); a++) {
-			StructuredQName qn = atts.getStructuredQName(a);
-        	checkUnknownAttribute(qn);
-        }
+        checkForUnknownAttributes();
     }
 
     public void validate(Declaration decl) throws XPathException {
-        AxisIterator kids = iterateAxis(Axis.CHILD);
-        while(true) {
-            NodeInfo curr = (NodeInfo)kids.next();
+        UnfailingIterator kids = iterateAxis(Axis.CHILD);
+        while (true) {
+            NodeInfo curr = (NodeInfo) kids.next();
             if (curr == null) {
                 break;
             }
             if (curr instanceof XSLWhen) {
-                if (otherwise!=null) {
+                if (otherwise != null) {
                     otherwise.compileError("xsl:otherwise must come last", "XTSE0010");
                 }
                 numberOfWhens++;
             } else if (curr instanceof XSLOtherwise) {
-                if (otherwise!=null) {
-                    ((XSLOtherwise)curr).compileError("Only one xsl:otherwise is allowed in an xsl:choose", "XTSE0010");
+                if (otherwise != null) {
+                    ((XSLOtherwise) curr).compileError("Only one xsl:otherwise is allowed in an xsl:choose", "XTSE0010");
                 } else {
-                    otherwise = (StyleElement)curr;
+                    otherwise = (StyleElement) curr;
                 }
-            } else if (curr instanceof StyleElement) {
-                ((StyleElement)curr).compileError("Only xsl:when and xsl:otherwise are allowed here", "XTSE0010");
             } else {
-                compileError("Only xsl:when and xsl:otherwise are allowed within xsl:choose", "XTSE0010");
+                StyleElement se = (curr instanceof StyleElement ? (StyleElement)curr : this);
+                se.compileError("Only xsl:when and xsl:otherwise are allowed within xsl:choose", "XTSE0010");
             }
         }
 
-        if (numberOfWhens==0) {
+        if (numberOfWhens == 0) {
             compileError("xsl:choose must contain at least one xsl:when", "XTSE0010");
         }
     }
 
     /**
-    * Mark tail-recursive calls on templates and functions.
-    */
+     * Mark tail-recursive calls on templates and functions.
+     */
 
     public boolean markTailCalls() {
         boolean found = false;
-        AxisIterator kids = iterateAxis(Axis.CHILD);
-        while(true) {
-            NodeInfo curr = (NodeInfo)kids.next();
+        UnfailingIterator kids = iterateAxis(Axis.CHILD);
+        while (true) {
+            NodeInfo curr = (NodeInfo) kids.next();
             if (curr == null) {
                 return found;
             }
             if (curr instanceof StyleElement) {
-                found |= ((StyleElement)curr).markTailCalls();
+                found |= ((StyleElement) curr).markTailCalls();
             }
         }
     }
@@ -102,103 +98,42 @@ public class XSLChoose extends StyleElement {
 
     public Expression compile(Executable exec, Declaration decl) throws XPathException {
 
-        int entries = numberOfWhens + (otherwise==null ? 0 : 1);
+        int entries = numberOfWhens + (otherwise == null ? 0 : 1);
         Expression[] conditions = new Expression[entries];
         Expression[] actions = new Expression[entries];
         String[] conditionTests = null;
-        if (LogConfiguration.loggingIsEnabled() && LogController.traceIsEnabled()){
-        	conditionTests = new String[entries];
+        if (LogConfiguration.loggingIsEnabled() && LogController.traceIsEnabled()) {
+            conditionTests = new String[entries];
         }
 
         int w = 0;
-        AxisIterator kids = iterateAxis(Axis.CHILD);
-        while(true) {
-            NodeInfo curr = (NodeInfo)kids.next();
+        UnfailingIterator kids = iterateAxis(Axis.CHILD);
+        ExpressionVisitor visitor = makeExpressionVisitor();
+        while (true) {
+            NodeInfo curr = (NodeInfo) kids.next();
             if (curr == null) {
                 break;
             }
-            if (curr instanceof XSLWhen) {
-                conditions[w] = ((XSLWhen)curr).getCondition();
-                Expression b = ((XSLWhen)curr).compileSequenceConstructor(
+            Expression action = ((StyleElement)curr).compileSequenceConstructor(
                         exec, decl, curr.iterateAxis(Axis.CHILD));
-                if (b == null) {
-                    b = Literal.makeEmptySequence();
-                }
-                try {
-                    b = makeExpressionVisitor().simplify(b);
-                    if (LogConfiguration.loggingIsEnabled() && LogController.traceIsEnabled()) {
-                    	String test = XSLIf.getTestAttribute((XSLWhen)curr);
-                    	conditionTests[w] = test;
-                    }
-                    actions[w] = b;
-                } catch (XPathException e) {
-                    compileError(e);
-                }
-
-                // Optimize for constant conditions (true or false)
-                if (conditions[w] instanceof Literal && ((Literal)conditions[w]).getValue() instanceof BooleanValue) {
-                    if (((BooleanValue)((Literal)conditions[w]).getValue()).getBooleanValue()) {
-                        // constant true: truncate the tests here
-                        entries = w+1;
-                        break;
-                    } else {
-                        // constant false: omit this test
-                        w--;
-                        entries--;
-                    }
-                }
-                w++;
+            actions[w] = visitor.simplify(action);
+            if (curr instanceof XSLWhen) {
+                conditions[w] = ((XSLWhen) curr).getCondition();
             } else if (curr instanceof XSLOtherwise) {
                 conditions[w] = Literal.makeLiteral(BooleanValue.TRUE);
-                Expression b = ((XSLOtherwise)curr).compileSequenceConstructor(
-                        exec, decl, curr.iterateAxis(Axis.CHILD));
-                if (b == null) {
-                    b = Literal.makeEmptySequence();
-                }
-                try {
-                    b = makeExpressionVisitor().simplify(b);
-                    if (LogConfiguration.loggingIsEnabled() && LogController.traceIsEnabled()) {
-                    	conditionTests[w] = "";
-                    }                   
-                    actions[w] = b;
-                } catch (XPathException e) {
-                    compileError(e);
-                }
-                w++;
             } else {
                 // Ignore: problem has already been reported.
             }
+            if (conditionTests != null) {
+                conditionTests[w] = (curr instanceof XSLWhen ? ((XSLWhen)curr).getAttributeValue("", "test") : "");
+            }
+            w++;
         }
 
-        if (conditions.length != entries) {
-            // we've optimized some entries away
-            if (entries==0) {
-                return null; // return a no-op
-            }
-            if (entries==1 && (conditions[0] instanceof Literal) &&
-                    ((Literal)conditions[0]).getValue() instanceof BooleanValue) {
-                if (((BooleanValue)((Literal)conditions[0]).getValue()).getBooleanValue()) {
-                    // only one condition left, and it's known to be true: return the corresponding action
-                    return actions[0];
-                } else {
-                    // but if it's false, return a no-op
-                    return null;
-                }
-            }
-            Expression[] conditions2 = new Expression[entries];
-            System.arraycopy(conditions, 0, conditions2, 0, entries);
-            Expression[] actions2 = new Expression[entries];
-            System.arraycopy(actions, 0, actions2, 0, entries);
-            conditions = conditions2;
-            actions = actions2;
-        }
-        if (LogConfiguration.loggingIsEnabled() && LogController.traceIsEnabled()) {
-        	Choose ch = new Choose(conditions, actions);
-        	ch.setConditionTests(conditionTests);
-        	return ch;
-        } else {
-        	return new Choose(conditions, actions);
-        }
+        Choose ch = new Choose(conditions, actions);
+        ch.setConditionTests(conditionTests);
+        return ch;
+
     }
 
 }

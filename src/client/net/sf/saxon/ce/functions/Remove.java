@@ -4,10 +4,10 @@ import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.AtomicValue;
 import client.net.sf.saxon.ce.value.NumericValue;
 import client.net.sf.saxon.ce.value.IntegerValue;
+import com.sun.org.apache.regexp.internal.RE;
 
 /**
 * The XPath 2.0 remove() function
@@ -88,11 +88,10 @@ public class Remove extends SystemFunction {
     /**
     * Determine the data type of the items in the sequence
     * @return the type of the input sequence
-     * @param th the type hierarchy cache
      */
 
-    public ItemType getItemType(TypeHierarchy th) {
-        return argument[0].getItemType(th);
+    public ItemType getItemType() {
+        return argument[0].getItemType();
     }
 
     /**
@@ -107,85 +106,41 @@ public class Remove extends SystemFunction {
         if (pos < 1) {
             return seq;
         }
-        return new RemoveIterator(seq, pos);
+        ItemMappingFunction function = new RemoveMappingFunction(pos);
+        return new ItemMappingIterator(seq, function);
     }
 
     /**
-     * An implementation of SequenceIterator that returns all items except the one
-     * at a specified position.
+     * Mapping function to return the item unchanged except for the item at the specified position
      */
 
-    public static class RemoveIterator implements SequenceIterator, LastPositionFinder {
+    public static class RemoveMappingFunction implements ItemMappingFunction, StatefulMappingFunction {
 
-        SequenceIterator base;
-        int removePosition;
-        int position = 0;
-        Item current = null;
+        private int position = 1;
+        private int removeIndex;
 
-        public RemoveIterator(SequenceIterator base, int removePosition) {
-            this.base = base;
-            this.removePosition = removePosition;
-        }
-
-        public Item next() throws XPathException {
-            current = base.next();
-            if (current != null && base.position() == removePosition) {
-                current = base.next();
-            }
-            if (current == null) {
-                position = -1;
-            } else {
-                position++;
-            }
-            return current;
-        }
-
-        public Item current() {
-            return current;
-        }
-
-        public int position() {
-            return position;
+        public RemoveMappingFunction(int removeIndex) {
+            this.removeIndex = removeIndex;
         }
 
         /**
-         * Get the last position (that is, the number of items in the sequence). This method is
-         * non-destructive: it does not change the state of the iterator.
-         * The result is undefined if the next() method of the iterator has already returned null.
-         */
-
-        public int getLastPosition() throws XPathException {
-            if (base instanceof LastPositionFinder) {
-                int x = ((LastPositionFinder)base).getLastPosition();
-                if (removePosition >= 1 && removePosition <= x) {
-                    return x - 1;
-                } else {
-                    return x;
-                }
-            } else {
-                // This shouldn't happen, because this iterator only has the LAST_POSITION_FINDER property
-                // if the base iterator has the LAST_POSITION_FINDER property
-                throw new AssertionError("base of removeIterator is not a LastPositionFinder");
-            }
-        }
-
-        public SequenceIterator getAnother() throws XPathException {
-            return new RemoveIterator(  base.getAnother(),
-                                        removePosition);
-        }
-
-        /**
-         * Get properties of this iterator, as a bit-significant integer.
+         * Map one item to another item.
          *
-         * @return the properties of this iterator. This will be some combination of
-         *         properties such as {@link SequenceIterator#GROUNDED}, {@link SequenceIterator#LAST_POSITION_FINDER},
-         *         and {@link SequenceIterator#LOOKAHEAD}. It is always
-         *         acceptable to return the value zero, indicating that there are no known special properties.
-         *         It is acceptable for the properties of the iterator to change depending on its state.
+         * @param item The input item to be mapped.
+         * @return either the output item, or null.
          */
+        public Item mapItem(Item item) throws XPathException {
+            return (position++ == removeIndex ? null : item);
+        }
 
-        public int getProperties() {
-            return base.getProperties() & LAST_POSITION_FINDER;
+        /**
+         * Return a clone of this MappingFunction, with the state reset to its state at the beginning
+         * of the underlying iteration
+         *
+         * @return a clone of this MappingFunction
+         */
+        public StatefulMappingFunction getAnother() {
+            return new RemoveMappingFunction(removeIndex);
         }
     }
 

@@ -1,9 +1,9 @@
 package client.net.sf.saxon.ce.style;
 
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.tree.iter.AxisIterator;
 import client.net.sf.saxon.ce.om.Axis;
 import client.net.sf.saxon.ce.om.NodeInfo;
+import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 import client.net.sf.saxon.ce.value.Whitespace;
 import client.net.sf.saxon.ce.type.Type;
 
@@ -98,7 +98,7 @@ public class StylesheetModule {
         minImportPrecedence = precedence;
         StyleElement previousElement = sourceElement;
 
-        AxisIterator kids = sourceElement.iterateAxis(Axis.CHILD);
+        UnfailingIterator kids = sourceElement.iterateAxis(Axis.CHILD);
 
         while (true) {
             NodeInfo child = (NodeInfo) kids.next();

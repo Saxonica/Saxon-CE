@@ -1,12 +1,12 @@
 package client.net.sf.saxon.ce.value;
 
-import client.net.sf.saxon.ce.Configuration;
-import client.net.sf.saxon.ce.expr.XPathContext;
-import client.net.sf.saxon.ce.expr.sort.CodepointCollator;
 import client.net.sf.saxon.ce.lib.StringCollator;
 import client.net.sf.saxon.ce.trans.Err;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.type.*;
+import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.ConversionResult;
+import client.net.sf.saxon.ce.type.StringToDouble;
+import client.net.sf.saxon.ce.type.ValidationFailure;
 
 /**
 * An Untyped Atomic value. This inherits from StringValue for implementation convenience, even
@@ -27,7 +27,6 @@ public class UntypedAtomicValue extends StringValue {
 
     public UntypedAtomicValue(CharSequence value) {
         this.value = (value==null ? "" : value);
-        typeLabel = BuiltInAtomicType.UNTYPED_ATOMIC;
     }
 
     /**
@@ -37,7 +36,7 @@ public class UntypedAtomicValue extends StringValue {
      * and xs:untypedAtomic. For external objects, the result is AnyAtomicType.
      */
 
-    public BuiltInAtomicType getPrimitiveType() {
+    public BuiltInAtomicType getItemType() {
         return BuiltInAtomicType.UNTYPED_ATOMIC;
     }
 
@@ -68,7 +67,7 @@ public class UntypedAtomicValue extends StringValue {
             try {
                 return toDouble();
             } catch (XPathException e) {
-                return new ValidationFailure(e);
+                return new ValidationFailure(e.getMessage());
             }
         } else {
             return super.convertPrimitive(requiredType, validate);
@@ -102,7 +101,7 @@ public class UntypedAtomicValue extends StringValue {
      * @throws ClassCastException if the value cannot be cast to the type of the other operand
     */
 
-    public int compareTo(AtomicValue other, StringCollator collator, XPathContext context) {
+    public int compareTo(AtomicValue other, StringCollator collator) {
         if (other instanceof NumericValue) {
             if (doubleValue == null) {
                 try {
@@ -117,13 +116,10 @@ public class UntypedAtomicValue extends StringValue {
         } else if (other instanceof StringValue) {
             return collator.compareStrings(getStringValue(), other.getStringValue());
         } else {
-            final Configuration config = context.getConfiguration();
-            final TypeHierarchy th = config.getTypeHierarchy();
-            ConversionResult result =
-                    convert((BuiltInAtomicType)other.getItemType(th), true);
+            ConversionResult result = convert(other.getItemType(), true);
             if (result instanceof ValidationFailure) {
                 throw new ClassCastException("Cannot convert untyped atomic value '" + getStringValue()
-                        + "' to type " + other.getItemType(th));
+                        + "' to type " + other.getItemType());
             }
             return ((Comparable) result).compareTo(other);
 

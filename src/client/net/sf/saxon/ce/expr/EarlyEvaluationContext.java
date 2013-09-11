@@ -345,7 +345,7 @@ public class EarlyEvaluationContext implements XPathContext {
      */
 
     public int getImplicitTimezone() throws NoDynamicContextException{
-        throw new NoDynamicContextException("implicit-timezone");
+        return config.getImplicitTimezone();
     }
 
 

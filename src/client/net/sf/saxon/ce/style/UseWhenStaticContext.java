@@ -8,12 +8,9 @@ import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.functions.*;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
 import client.net.sf.saxon.ce.lib.StringCollator;
-import client.net.sf.saxon.ce.om.NameChecker;
 import client.net.sf.saxon.ce.om.NamespaceResolver;
-import client.net.sf.saxon.ce.om.QNameException;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.sxpath.AbstractStaticContext;
-import client.net.sf.saxon.ce.trans.DecimalFormatManager;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.SourceLocator;
 import client.net.sf.saxon.ce.type.BuiltInAtomicType;
@@ -66,14 +63,6 @@ public class UseWhenStaticContext extends AbstractStaticContext implements Stati
     }
 
     /**
-     * Issue a compile-time warning
-     */
-
-    public void issueWarning(String s, SourceLocator locator) {
-        getConfiguration().issueWarning(s);
-    }
-
-    /**
      * Get the System ID of the container of the expression. This is the containing
      * entity (file) and is therefore useful for diagnostics. Use getBaseURI() to get
      * the base URI, which may be different.
@@ -92,25 +81,6 @@ public class UseWhenStaticContext extends AbstractStaticContext implements Stati
 
     public int getContainerGranularity() {
         return 1;
-    }
-
-    /**
-     * Get the URI for a namespace prefix. The default namespace is NOT used
-     * when the prefix is empty.
-     *
-     * @param prefix The prefix
-     * @throws client.net.sf.saxon.ce.trans.XPathException
-     *          if the prefix is not declared
-     */
-
-    public String getURIForPrefix(String prefix) throws XPathException {
-        String uri = namespaceContext.getURIForPrefix(prefix, false);
-        if (uri == null) {
-            XPathException err = new XPathException("Namespace prefix '" + prefix + "' has not been declared");
-            err.setErrorCode("XTDE0290");
-            throw err;
-        }
-        return uri;
     }
 
     /**
@@ -193,40 +163,6 @@ public class UseWhenStaticContext extends AbstractStaticContext implements Stati
 
     public NamespaceResolver getNamespaceResolver() {
         return namespaceContext;
-    }
-
-    /**
-     * Get a DecimalFormatManager to resolve the names of decimal formats used in calls
-     * to the format-number() function.
-     * @return the decimal format manager for this static context, or null if named decimal
-     *         formats are not supported in this environment.
-     */
-
-    public DecimalFormatManager getDecimalFormatManager() {
-        return null;
-    }
-
-    /**
-    * Determine if an extension element is available
-    * @throws client.net.sf.saxon.ce.trans.XPathException if the name is invalid or the prefix is not declared
-    */
-
-    public boolean isElementAvailable(String qname) throws XPathException {
-        try {
-            String[] parts = NameChecker.getQNameParts(qname);
-            String uri;
-            if (parts[0].length() == 0) {
-                uri = getDefaultElementNamespace();
-            } else {
-                uri = getURIForPrefix(parts[0]);
-            }
-            StyleNodeFactory factory = new StyleNodeFactory(getConfiguration());
-            return factory.isElementAvailable(uri, parts[1]);
-        } catch (QNameException e) {
-            XPathException err = new XPathException("Invalid element name. " + e.getMessage());
-            err.setErrorCode("XTDE1440");
-            throw err;
-        }
     }
 
 }

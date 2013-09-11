@@ -130,18 +130,12 @@ public class BuiltInAtomicType extends BuiltInType implements SchemaType, ItemTy
 
     public boolean matchesItem(Item item, boolean allowURIPromotion, Configuration config) {
         if (item instanceof AtomicValue) {
-            AtomicValue value = (AtomicValue)item;
-            // Try to match primitive types first
-            if (value.getPrimitiveType() == this) {
-                return true;
-            }
-            BuiltInAtomicType type = value.getTypeLabel();
+            ItemType type = ((AtomicValue)item).getItemType();
             if (type == this) {
                 return true;
             }
-            final TypeHierarchy th = config.getTypeHierarchy();
-            boolean ok = th.isSubType(type, this);
-            if (ok) {
+            final TypeHierarchy th = TypeHierarchy.getInstance();
+            if (th.isSubType(type, this)) {
                 return true;
             }
             if (allowURIPromotion && this == STRING && th.isSubType(type, BuiltInAtomicType.ANY_URI)) {
@@ -193,14 +187,6 @@ public class BuiltInAtomicType extends BuiltInType implements SchemaType, ItemTy
         return this;
     }
 
-    /**
-     * Test whether this is the same type as another type.
-     */
-
-    public boolean isSameType(SchemaType other) {
-        return other == this;
-    }
-
     public String toString() {
         return getDisplayName();
     }
@@ -216,33 +202,12 @@ public class BuiltInAtomicType extends BuiltInType implements SchemaType, ItemTy
     }
 
     /**
-     * Ask whether this type is an ID type. This is defined to be any simple type
-     * who typed value may contain atomic values of type xs:ID: that is, it includes types derived
-     * from ID by restriction, list, or union. Note that for a node to be treated
-     * as an ID, its typed value must be a *single* atomic value of type ID; the type of the
-     * node, however, can still allow a list.
-     */
-
-    public boolean isIdType() {
-        return false;   // xs:ID is not recognized by a basic XSLT processor
-    }
-
-    /**
-     * Ask whether this type is an IDREF or IDREFS type. This is defined to be any simple type
-     * who typed value may contain atomic values of type xs:IDREF: that is, it includes types derived
-     * from IDREF or IDREFS by restriction, list, or union
-     */
-
-    public boolean isIdRefType() {
-        return false;  // xs:IDREF is not recognized by a basic XSLT processor
-    }
-
-    /**
      * Internal factory method to create a BuiltInAtomicType. There is one instance for each of the
      * built-in atomic types
      *
      * @param localName The name of the type within the XSD namespace
      * @param baseType    The base type from which this type is derived
+     * @param ordered True if an ordering relationship is defined for this type
      * @return the newly constructed built in atomic type
      */
     private static BuiltInAtomicType makeAtomicType(String localName, SchemaType baseType, boolean ordered) {

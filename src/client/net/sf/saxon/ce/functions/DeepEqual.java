@@ -4,7 +4,7 @@ import client.net.sf.saxon.ce.expr.sort.GenericAtomicComparer;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
 import client.net.sf.saxon.ce.om.*;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.tree.iter.AxisIterator;
+import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 import client.net.sf.saxon.ce.tree.util.Navigator;
 import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.value.AtomicValue;
@@ -36,7 +36,6 @@ public class DeepEqual extends CollatingFunction {
             return BooleanValue.get(deepEquals(op1, op2, collator));
         } catch (XPathException e) {
             e.maybeSetLocation(getSourceLocator());
-            e.maybeSetContext(context);
             throw e;
         }
     }
@@ -130,8 +129,8 @@ public class DeepEqual extends CollatingFunction {
                 if (!n1.getNodeName().equals(n2.getNodeName())) {
                     return false;
                 }
-                AxisIterator a1 = n1.iterateAxis(Axis.ATTRIBUTE);
-                AxisIterator a2 = n2.iterateAxis(Axis.ATTRIBUTE);
+                UnfailingIterator a1 = n1.iterateAxis(Axis.ATTRIBUTE);
+                UnfailingIterator a2 = n2.iterateAxis(Axis.ATTRIBUTE);
                 if (Count.count(a1.getAnother()) != Count.count(a2)) {
                     return false;
                 }
@@ -151,8 +150,8 @@ public class DeepEqual extends CollatingFunction {
 
                 // fall through
             case Type.DOCUMENT:
-                AxisIterator c1 = n1.iterateAxis(Axis.CHILD);
-                AxisIterator c2 = n2.iterateAxis(Axis.CHILD);
+                UnfailingIterator c1 = n1.iterateAxis(Axis.CHILD);
+                UnfailingIterator c2 = n2.iterateAxis(Axis.CHILD);
                 while (true) {
                     NodeInfo d1 = (NodeInfo)c1.next();
                     while (d1 != null && isIgnorable(d1))  {

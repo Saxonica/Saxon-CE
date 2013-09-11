@@ -8,9 +8,6 @@ import client.net.sf.saxon.ce.functions.FunctionLibrary;
 import client.net.sf.saxon.ce.functions.FunctionLibraryList;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
 import client.net.sf.saxon.ce.trans.DecimalFormatManager;
-import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.tree.util.SourceLocator;
-import client.net.sf.saxon.ce.value.DecimalValue;
 
 /**
  * An abstract and configurable implementation of the StaticContext interface,
@@ -31,8 +28,6 @@ public abstract class AbstractStaticContext implements StaticContext {
     private String defaultElementNamespace = NamespaceConstant.NULL;
     private DecimalFormatManager decimalFormatManager = null;
     private boolean backwardsCompatible = false;
-    private DecimalValue xpathLanguageLevel = DecimalValue.TWO;
-    private boolean schemaAware = false;
     protected boolean usingDefaultFunctionLibrary;
 
     /**
@@ -50,25 +45,6 @@ public abstract class AbstractStaticContext implements StaticContext {
 
     public Configuration getConfiguration() {
         return config;
-    }
-
-    /**
-     * Say whether this static context is schema-aware
-     * @param aware true if this static context is schema-aware
-     */
-
-    public void setSchemaAware(boolean aware) {
-        schemaAware = aware;
-    }
-
-    /**
-     * Get the host language (XSLT, XQuery, XPath) used to implement the code in this container
-     *
-     * @return the value {@link client.net.sf.saxon.ce.Configuration#XPATH}
-     */
-
-    private int getHostLanguage() {
-        return Configuration.XPATH;
     }
 
     /**
@@ -126,16 +102,6 @@ public abstract class AbstractStaticContext implements StaticContext {
 
     public String getDefaultCollationName() {
         return NamespaceConstant.CODEPOINT_COLLATION_URI;
-    }
-
-    /**
-     * Issue a compile-time warning. This method is used during XPath expression compilation to
-     * output warning conditions. The default implementation writes the message to the
-     * error listener registered with the Configuration.
-    */
-
-    public void issueWarning(String s, SourceLocator locator) {
-        config.issueWarning(s);
     }
 
     /**
@@ -228,22 +194,6 @@ public abstract class AbstractStaticContext implements StaticContext {
 
     public void setDecimalFormatManager(DecimalFormatManager manager) {
         this.decimalFormatManager = manager;
-    }
-
-    /**
-     * Get a DecimalFormatManager to resolve the names of decimal formats used in calls
-     * to the format-number() function.
-     * @return the decimal format manager for this static context, or null if no named decimal
-     *         formats are available in this environment.
-     * @since 9.2
-     */
-
-    public DecimalFormatManager getDecimalFormatManager() {
-        return decimalFormatManager;
-    }
-
-    public boolean isElementAvailable(String qname) throws XPathException {
-        return false;
     }
 
 }

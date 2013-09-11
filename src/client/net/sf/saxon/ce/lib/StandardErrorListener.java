@@ -1,8 +1,6 @@
 package client.net.sf.saxon.ce.lib;
 
-import client.net.sf.saxon.ce.expr.instruct.Instruction;
 import client.net.sf.saxon.ce.om.StructuredQName;
-import client.net.sf.saxon.ce.style.StyleElement;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.SourceLocator;
 import com.google.gwt.logging.client.LogConfiguration;
@@ -154,9 +152,6 @@ public class StandardErrorListener implements ErrorListener{
             if (err.getCause() instanceof XPathException) {
                 err = (XPathException)err.getCause();
                 loc = err.getLocator();
-            } else if (err.getCause() instanceof XPathException) {
-                err = (XPathException)err.getCause();
-                loc = err.getLocator();
             } else {
                 return "";
             }
@@ -210,7 +205,6 @@ public class StandardErrorListener implements ErrorListener{
         	} else if (code.startsWith("XPTY")) {
         		code = code.substring(4);
         		int q = Integer.parseInt(code);
-        		String suffix = " must match its declared type";
         		switch (q) {
         			case 4:
         				codeText = " The expression value is not consistent with the context in which it appears";
@@ -298,21 +292,6 @@ public class StandardErrorListener implements ErrorListener{
         }
 
         return message;
-    }
-
-    /**
-     * Extract a name identifying the instruction at which an error occurred
-     *
-     * @param inst    the provider of information
-     * @return the name of the containing instruction or expression, in user-meaningful terms
-     */
-
-    private static String getInstructionName(Instruction inst) {
-        if (inst.getSourceLocator() instanceof StyleElement) {
-            return ((StyleElement)inst.getSourceLocator()).getDisplayName();
-        } else {
-            return null;
-        }
     }
 
     /**

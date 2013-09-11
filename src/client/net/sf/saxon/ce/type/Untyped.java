@@ -26,16 +26,6 @@ public final class Untyped extends BuiltInType implements SchemaType {
     }
 
     /**
-     * Test whether this is the same type as another type. They are considered to be the same type
-     * if they are derived from the same type definition in the original XML representation (which
-     * can happen when there are multiple includes of the same file)
-     */
-
-    public boolean isSameType(SchemaType other) {
-        return (other instanceof Untyped);
-    }
-
-    /**
      * Returns the base type that this type inherits from.
      * If this type is a Simpletype that is a built in primitive type then null is returned.
      *
@@ -55,38 +45,6 @@ public final class Untyped extends BuiltInType implements SchemaType {
 
     public static Untyped getInstance() {
         return theInstance;
-    }
-
-    /**
-     * Test whether this SchemaType is an atomic type
-     *
-     * @return true if this SchemaType is an atomic type
-     */
-
-    public boolean isAtomicType() {
-        return false;
-    }
-
-    /**
-     * Ask whether this type is an ID type. This is defined to be any simple type
-     * who typed value may contain atomic values of type xs:ID: that is, it includes types derived
-     * from ID by restriction, list, or union. Note that for a node to be treated
-     * as an ID, its typed value must be a *single* atomic value of type ID; the type of the
-     * node, however, can still allow a list.
-     */
-
-    public boolean isIdType() {
-        return false;
-    }
-
-    /**
-     * Ask whether this type is an IDREF or IDREFS type. This is defined to be any simple type
-     * who typed value may contain atomic values of type xs:IDREF: that is, it includes types derived
-     * from IDREF or IDREFS by restriction, list, or union
-     */
-
-    public boolean isIdRefType() {
-        return false;
     }
 
 }

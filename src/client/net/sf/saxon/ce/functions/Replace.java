@@ -34,7 +34,7 @@ public class Replace extends SystemFunction {
         CharSequence replacement = arg2.getStringValue();
         String msg = checkReplacement(replacement);
         if (msg != null) {
-            dynamicError(msg, "FORX0004", c);
+            dynamicError(msg, "FORX0004");
         }
 
         AtomicValue arg1 = (AtomicValue) argument[1].evaluateItem(c);
@@ -54,7 +54,7 @@ public class Replace extends SystemFunction {
             if (re.matches("")) {
                 dynamicError(
                         "The regular expression in replace() must not be one that matches a zero-length string",
-                        "FORX0003", c);
+                        "FORX0003");
             }
             String input = arg0.getStringValue();
             CharSequence res = re.replace(input, replacement);
@@ -62,7 +62,6 @@ public class Replace extends SystemFunction {
         } catch (XPathException err) {
             XPathException de = new XPathException(err);
             de.setErrorCode("FORX0002");
-            de.setXPathContext(c);
             de.maybeSetLocation(getSourceLocator());
             throw de;
         }

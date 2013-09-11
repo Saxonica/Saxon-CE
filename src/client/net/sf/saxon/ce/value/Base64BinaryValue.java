@@ -1,6 +1,5 @@
 package client.net.sf.saxon.ce.value;
 
-import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.lib.StringCollator;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
@@ -35,7 +34,6 @@ public class Base64BinaryValue extends AtomicValue {
             throw err;
         }
         binaryValue = decoder.getByteArray();
-        typeLabel = BuiltInAtomicType.BASE64_BINARY;
     }
 
 
@@ -46,10 +44,9 @@ public class Base64BinaryValue extends AtomicValue {
 
     public Base64BinaryValue(byte[] value) {
         binaryValue = value;
-        typeLabel = BuiltInAtomicType.BASE64_BINARY;
     }
 
-    public BuiltInAtomicType getPrimitiveType() {
+    public BuiltInAtomicType getItemType() {
         return BuiltInAtomicType.BASE64_BINARY;
     }
 
@@ -69,10 +66,7 @@ public class Base64BinaryValue extends AtomicValue {
         } else if (requiredType == BuiltInAtomicType.HEX_BINARY) {
             return new HexBinaryValue(binaryValue);
         } else {
-            ValidationFailure err = new ValidationFailure("Cannot convert base64Binary to " +
-                                     requiredType.getDisplayName());
-            err.setErrorCode("XPTY0004");
-            return err;
+            return new ValidationFailure("Cannot convert base64Binary to " + requiredType.getDisplayName(), "XPTY0004");
         }
     }
 
@@ -100,11 +94,10 @@ public class Base64BinaryValue extends AtomicValue {
      * @param ordered true if an ordered comparison is required. In this case the result is null if the
      *                type is unordered; in other cases the returned value will be a Comparable.
      * @param collator
-     * @param context the XPath dynamic evaluation context, used in cases where the comparison is context
-*                sensitive @return an Object whose equals() and hashCode() methods implement the XPath comparison semantics
+     * @param implicitTimezone
      */
 
-    public Object getXPathComparable(boolean ordered, StringCollator collator, XPathContext context) {
+    public Object getXPathComparable(boolean ordered, StringCollator collator, int implicitTimezone) {
         return (ordered ? null : this);
     }
 

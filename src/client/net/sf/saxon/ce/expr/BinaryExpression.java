@@ -142,26 +142,6 @@ public abstract class BinaryExpression extends Expression {
         return Arrays.asList((new Expression[]{operand0, operand1})).iterator();
     }
 
-    /**
-     * Replace one subexpression by a replacement subexpression
-     * @param original the original subexpression
-     * @param replacement the replacement subexpression
-     * @return true if the original subexpression is found
-     */
-
-    public boolean replaceSubExpression(Expression original, Expression replacement) {
-        boolean found = false;
-        if (operand0 == original) {
-            operand0 = replacement;
-            found = true;
-        }
-        if (operand1 == original) {
-            operand1 = replacement;
-            found = true;
-        }
-        return found;
-    }
-
 
     /**
      * Get the operator

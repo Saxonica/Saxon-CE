@@ -66,8 +66,8 @@ public final class AtomicSequenceConverter extends UnaryExpression {
 
     public Expression typeCheck(ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
         operand = visitor.typeCheck(operand, contextItemType);
-        final TypeHierarchy th = visitor.getConfiguration().getTypeHierarchy();
-        if (th.isSubType(operand.getItemType(th), requiredItemType)) {
+        final TypeHierarchy th = TypeHierarchy.getInstance();
+        if (th.isSubType(operand.getItemType(), requiredItemType)) {
             return operand;
         } else if (!Cardinality.allowsMany(operand.getCardinality())) {
             CastExpression cast = new CastExpression(operand, requiredItemType,
@@ -119,10 +119,9 @@ public final class AtomicSequenceConverter extends UnaryExpression {
     * Determine the data type of the items returned by the expression, if possible
     * @return a value such as Type.STRING, Type.BOOLEAN, Type.NUMBER, Type.NODE,
     * or Type.ITEM (meaning not known in advance)
-     * @param th the type hierarchy cache
      */
 
-	public ItemType getItemType(TypeHierarchy th) {
+	public ItemType getItemType() {
 	    return requiredItemType;
 	}
 

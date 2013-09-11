@@ -22,12 +22,11 @@ import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.trans.update.DeleteAction;
 import client.net.sf.saxon.ce.trans.update.InsertAction;
 import client.net.sf.saxon.ce.trans.update.PendingUpdateList;
-import client.net.sf.saxon.ce.tree.iter.AxisIterator;
-import client.net.sf.saxon.ce.tree.iter.SingleNodeIterator;
+import client.net.sf.saxon.ce.tree.iter.SingletonIterator;
+import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 import client.net.sf.saxon.ce.tree.util.URI;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.Type;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
 import com.google.gwt.dom.client.Document;
 import com.google.gwt.dom.client.Node;
 import com.google.gwt.logging.client.LogConfiguration;
@@ -156,12 +155,11 @@ public class ResultDocument extends Instruction  {
 
     /**
      * Get the item type of the items returned by evaluating this instruction
-     * @param th the type hierarchy cache
      * @return the static item type of the instruction. This is empty: the result-document instruction
      *         returns nothing.
      */
 
-    public ItemType getItemType(TypeHierarchy th) {
+    public ItemType getItemType() {
         return EmptySequenceTest.getInstance();
     }
 
@@ -185,26 +183,6 @@ public class ResultDocument extends Instruction  {
     }
 
     /**
-     * Replace one subexpression by a replacement subexpression
-     * @param original    the original subexpression
-     * @param replacement the replacement subexpression
-     * @return true if the original subexpression is found
-     */
-
-    public boolean replaceSubExpression(Expression original, Expression replacement) {
-        boolean found = false;
-        if (content == original) {
-            content = replacement;
-            found = true;
-        }
-        if (href == original) {
-            href = replacement;
-            found = true;
-        }
-        return found;
-    }
-    
-    /**
      * Return a valid URI - event if base URI is not set
      */
     public static String getValidAbsoluteURI(Controller controller, String href) throws XPathException {
@@ -227,7 +205,7 @@ public class ResultDocument extends Instruction  {
             String method = methodExpression.evaluateAsString(context).toString();
             StructuredQName methodQ;
             if (method.indexOf(':') >= 0)  {
-                methodQ = StructuredQName.fromLexicalQName(method, false, nsResolver);
+                methodQ = StructuredQName.fromLexicalQName(method, "", nsResolver);
             } else {
                 methodQ = new StructuredQName("", "", method);
             }
@@ -261,9 +239,6 @@ public class ResultDocument extends Instruction  {
         } else if (hrefValue.startsWith("?select=")) {
             String select = hrefValue.substring(8);
             AbstractStaticContext env = new AbstractStaticContext() {
-                public String getURIForPrefix(String prefix) throws XPathException {
-                    return null;
-                }
 
                 public Expression bindVariable(StructuredQName qName) throws XPathException {
                     return null;
@@ -325,7 +300,7 @@ public class ResultDocument extends Instruction  {
             	contextNodeName = (contextNodeName.equals("")? "" : " context node: " + contextNodeName);
             }
 
-            AxisIterator iterator = SingleNodeIterator.makeIterator(contextItem);
+            UnfailingIterator iterator = SingletonIterator.makeIterator(contextItem);
             iterator.next(); // position on the single item
             c3.setCurrentIterator(iterator);
             SequenceIterator iter = expr.iterate(c3);
@@ -368,7 +343,6 @@ public class ResultDocument extends Instruction  {
             content.process(c2);
             out.endDocument();
         } catch (XPathException err) {
-            err.setXPathContext(context);
             err.maybeSetLocation(getSourceLocator());
             throw err;
         }
@@ -394,11 +368,11 @@ public class ResultDocument extends Instruction  {
         Controller controller = context.getController();
 
             if (controller.getDocumentPool().find(documentKey.toString()) != null) {
-                dynamicError("Cannot write to a URI that has already been read: " + documentKey.toString(), "XTRE1500", context);
+                dynamicError("Cannot write to a URI that has already been read: " + documentKey.toString(), "XTRE1500");
             }
             
             if (!controller.checkUniqueOutputDestination(documentKey)) {
-                dynamicError("Cannot write more than one result document to the same URI: " + documentKey.toString(),"XTDE1490" ,context);
+                dynamicError("Cannot write more than one result document to the same URI: " + documentKey.toString(),"XTDE1490");
             } else {
             	controller.addToResultDocumentPool(documentKey, doc);
                 //controller.addUnavailableOutputDestination(documentKey);

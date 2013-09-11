@@ -1,6 +1,5 @@
 package client.net.sf.saxon.ce.expr.sort;
 
-import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.lib.StringCollator;
 import client.net.sf.saxon.ce.value.AtomicValue;
 
@@ -27,18 +26,6 @@ public class ComparableAtomicValueComparer implements AtomicComparer {
 
     public StringCollator getCollator() {
         return null;
-    }
-
-    /**
-     * Supply the dynamic context in case this is needed for the comparison
-     *
-     * @param context the dynamic evaluation context
-     * @return either the original AtomicComparer, or a new AtomicComparer in which the context
-     *         is known. The original AtomicComparer is not modified
-     */
-
-    public AtomicComparer provideContext(XPathContext context) {
-        return this;
     }
 
     /**

@@ -129,15 +129,6 @@ public class ExpressionVisitor {
     }
 
     /**
-     * Issue a warning message
-     * @param message the message
-     */
-
-    public void issueWarning(String message, SourceLocator locator) {
-        staticContext.issueWarning(message, locator);
-    }
-
-    /**
      * Create a dynamic context suitable for early evaluation of constant subexpressions
      */
 

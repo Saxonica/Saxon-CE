@@ -1,7 +1,6 @@
 package client.net.sf.saxon.ce.expr;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.SequenceExtent;
 import client.net.sf.saxon.ce.value.Value;
 
@@ -114,22 +113,6 @@ public abstract class UnaryExpression extends Expression {
         return monoIterator(operand);
     }
 
-    /**
-      * Replace one subexpression by a replacement subexpression
-      * @param original the original subexpression
-      * @param replacement the replacement subexpression
-      * @return true if the original subexpression is found
-      */
-
-     public boolean replaceSubExpression(Expression original, Expression replacement) {
-         boolean found = false;
-         if (operand == original) {
-             operand = replacement;
-             found = true;
-         }
-                 return found;
-     }
-
 
     /**
     * Get the static properties of this expression (other than its type). The result is
@@ -154,11 +137,10 @@ public abstract class UnaryExpression extends Expression {
      * implementation for unary expressions returns the item type of the operand
      * @return the item type of the items in the result sequence, insofar as this
      * is known statically.
-     * @param th the type hierarchy cache
      */
 
-    public ItemType getItemType(TypeHierarchy th) {
-        return operand.getItemType(th);
+    public ItemType getItemType() {
+        return operand.getItemType();
     }
 
     /**

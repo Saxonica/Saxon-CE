@@ -6,10 +6,7 @@ import client.net.sf.saxon.ce.om.*;
 import client.net.sf.saxon.ce.pattern.AnyNodeTest;
 import client.net.sf.saxon.ce.pattern.NodeTest;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.tree.iter.AxisIterator;
-import client.net.sf.saxon.ce.tree.iter.EmptyIterator;
-import client.net.sf.saxon.ce.tree.iter.NodeListIterator;
-import client.net.sf.saxon.ce.tree.iter.PrependIterator;
+import client.net.sf.saxon.ce.tree.iter.*;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
 import client.net.sf.saxon.ce.tree.util.NamespaceIterator;
 import client.net.sf.saxon.ce.tree.util.Navigator;
@@ -236,7 +233,7 @@ public class NamespaceNode implements NodeInfo {
      * @see client.net.sf.saxon.ce.om.Axis
      */
 
-    public AxisIterator iterateAxis(byte axisNumber) {
+    public UnfailingIterator iterateAxis(byte axisNumber) {
         return iterateAxis(axisNumber, AnyNodeTest.getInstance());
     }
 
@@ -255,7 +252,7 @@ public class NamespaceNode implements NodeInfo {
      * @see client.net.sf.saxon.ce.om.Axis
      */
 
-    public AxisIterator iterateAxis(byte axisNumber, NodeTest nodeTest) {
+    public UnfailingIterator iterateAxis(byte axisNumber, NodeTest nodeTest) {
         switch (axisNumber) {
             case Axis.ANCESTOR:
                 return element.iterateAxis(Axis.ANCESTOR_OR_SELF, nodeTest);
@@ -408,8 +405,8 @@ public class NamespaceNode implements NodeInfo {
      * @return an iterator over the namespace nodes that satisfy the test
      */
 
-    public static AxisIterator makeIterator(final NodeInfo element, NodeTest test) {
-        List<NamespaceNode> nodes = new ArrayList();
+    public static UnfailingIterator makeIterator(final NodeInfo element, NodeTest test) {
+        List<NamespaceNode> nodes = new ArrayList<NamespaceNode>();
         Iterator<NamespaceBinding> bindings = NamespaceIterator.iterateNamespaces(element);
         int position = 0;
         while (bindings.hasNext()) {
@@ -422,7 +419,7 @@ public class NamespaceNode implements NodeInfo {
         if (test.matches(node)) {
             nodes.add(node);
         }
-        return new NodeListIterator(nodes);
+        return new ListIterator(nodes);
     }
 
 

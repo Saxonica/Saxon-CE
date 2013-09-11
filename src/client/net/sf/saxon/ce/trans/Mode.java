@@ -10,7 +10,6 @@ import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.pattern.*;
 import client.net.sf.saxon.ce.style.StylesheetModule;
-import client.net.sf.saxon.ce.tree.util.Navigator;
 import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.value.Whitespace;
 import com.google.gwt.core.client.JavaScriptObject;
@@ -30,7 +29,6 @@ public class Mode  {
 
     public static final int UNNAMED_MODE = -1;
     public static final int NAMED_MODE = -3;
-    public static final int STRIPPER_MODE = -4;
 
     public static final StructuredQName ALL_MODES =
             new StructuredQName("saxon", NamespaceConstant.SAXON, "_omniMode");
@@ -54,20 +52,18 @@ public class Mode  {
     private Rule mostRecentRule;
     private int mostRecentModuleHash;
     private boolean isDefault;
-    private boolean isStripper;
     private boolean hasRules = false;
     private StructuredQName modeName;
     private int stackFrameSlotsNeeded = 0;
 
     /**
      * Default constructor - creates a Mode containing no rules
-     * @param usage one of {@link #UNNAMED_MODE}, {@link #NAMED_MODE}, {@link #STRIPPER_MODE}
+     * @param usage one of {@link #UNNAMED_MODE}, {@link #NAMED_MODE}
      * @param modeName the name of the mode
      */
 
     public Mode(int usage, StructuredQName modeName) {
         isDefault = (usage == UNNAMED_MODE);
-        isStripper = (usage == STRIPPER_MODE);
         this.modeName = modeName;
     }
 
@@ -80,7 +76,6 @@ public class Mode  {
 
     public Mode(Mode omniMode, StructuredQName modeName) {
         isDefault = false;
-        isStripper = false;
         this.modeName = modeName;
         if (omniMode != null) {
             documentRuleChain =
@@ -449,7 +444,7 @@ public class Mode  {
                 } else if (rank == 0) {
                     // this rule has the same precedence and priority as the matching rule already found
                     if (head.isAlwaysMatches() || head.getPattern().matches(node, context)) {
-                        reportAmbiguity(node, bestRule, head, context);
+                        // reportAmbiguity(node, bestRule, head, context);
                         // choose whichever one comes last (assuming the error wasn't fatal)
                         bestRule = (bestRule.getSequence() > head.getSequence() ? bestRule : head);
                         break;
@@ -560,7 +555,7 @@ public class Mode  {
                     } else if (rank == 0) {
                         // this rule has the same precedence and priority as the matching rule already found
                         if (head.isAlwaysMatches() || head.getPattern().matches(node, context)) {
-                            reportAmbiguity(node, bestRule, head, context);
+                            // reportAmbiguity(node, bestRule, head, context);
                             // choose whichever one comes last (assuming the error wasn't fatal)
                             bestRule = (bestRule.getSequence() > head.getSequence() ? bestRule : head);
                             break;
@@ -625,54 +620,54 @@ public class Mode  {
         return getRule(node, context, filter);
     }
 
-    /**
-     * Report an ambiguity, that is, the situation where two rules of the same
-     * precedence and priority match the same node
-     *
-     * @param node The node that matches two or more rules
-     * @param r1   The first rule that the node matches
-     * @param r2   The second rule that the node matches
-     * @param c    The controller for the transformation
-     */
+//    /**
+//     * Report an ambiguity, that is, the situation where two rules of the same
+//     * precedence and priority match the same node
+//     *
+//     * @param node The node that matches two or more rules
+//     * @param r1   The first rule that the node matches
+//     * @param r2   The second rule that the node matches
+//     * @param c    The controller for the transformation
+//     */
 
-    private void reportAmbiguity(NodeInfo node, Rule r1, Rule r2, XPathContext c)
-            throws XPathException {
-        // don't report an error if the conflict is between two branches of the same Union pattern
-        if (r1.getAction() == r2.getAction() && r1.getSequence() == r2.getSequence()) {
-            return;
-        }
-        String path;
-        String errorCode = "XTRE0540";
-
-        if (isStripper) {
-            // don't report an error if the conflict is between strip-space and strip-space, or
-            // preserve-space and preserve-space
-            if (r1.getAction().equals(r2.getAction())) {
-                return;
-            }
-            errorCode = "XTRE0270";
-            path = "xsl:strip-space";
-        } else {
-            path = Navigator.getPath(node);
-        }
-
-        Pattern pat1 = r1.getPattern();
-        Pattern pat2 = r2.getPattern();
-
-        String message;
-        if (r1.getAction() == r2.getAction()) {
-            message = "Ambiguous rule match for " + path + ". " +
-                "Matches \"" + showPattern(pat1) + "\" in " + pat1.getSystemId() +
-                ", a rule which appears in the stylesheet more than once, because the containing module was included more than once";
-        } else {
-            message = "Ambiguous rule match for " + path + '\n' +
-                "Matches both \"" + showPattern(pat1) +
-                "\nand \"" + showPattern(pat2);
-        }
-
-        XPathException err = new XPathException(message, errorCode);
-        c.getController().recoverableError(err);
-    }
+//    private void reportAmbiguity(NodeInfo node, Rule r1, Rule r2, XPathContext c)
+//            throws XPathException {
+//        // don't report an error if the conflict is between two branches of the same Union pattern
+//        if (r1.getAction() == r2.getAction() && r1.getSequence() == r2.getSequence()) {
+//            return;
+//        }
+//        String path;
+//        String errorCode = "XTRE0540";
+//
+//        if (isStripper) {
+//            // don't report an error if the conflict is between strip-space and strip-space, or
+//            // preserve-space and preserve-space
+//            if (r1.getAction().equals(r2.getAction())) {
+//                return;
+//            }
+//            errorCode = "XTRE0270";
+//            path = "xsl:strip-space";
+//        } else {
+//            path = Navigator.getPath(node);
+//        }
+//
+//        Pattern pat1 = r1.getPattern();
+//        Pattern pat2 = r2.getPattern();
+//
+//        String message;
+//        if (r1.getAction() == r2.getAction()) {
+//            message = "Ambiguous rule match for " + path + ". " +
+//                "Matches \"" + showPattern(pat1) + "\" in " + pat1.getSystemId() +
+//                ", a rule which appears in the stylesheet more than once, because the containing module was included more than once";
+//        } else {
+//            message = "Ambiguous rule match for " + path + '\n' +
+//                "Matches both \"" + showPattern(pat1) +
+//                "\nand \"" + showPattern(pat2);
+//        }
+//
+//        XPathException err = new XPathException(message, errorCode);
+//        c.getController().recoverableError(err);
+//    }
 
     private static String showPattern(Pattern p) {
         // Complex patterns can be laid out with lots of whitespace, which looks messy in the error message

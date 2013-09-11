@@ -5,7 +5,7 @@ package client.net.sf.saxon.ce.tree.util;
 * This class defines properties of the UTF-8 character encoding
 */
 
-public final class UTF8CharacterSet {
+public abstract class UTF8CharacterSet {
 
     /**
      * Private constructor to force the singular instance to be used
@@ -57,53 +57,6 @@ public final class UTF8CharacterSet {
             return 3;
         }
     }
-
-    /**
-     * Decode a UTF8 character
-     * @param in array of bytes representing a single UTF-8 encoded character
-     * @param used number of bytes in the array that are actually used
-     * @return the Unicode codepoint of this character
-     * @throws IllegalArgumentException if the byte sequence is not a valid UTF-8 representation
-     */
-
-    public static int decodeUTF8(byte[] in, int used) throws IllegalArgumentException {
-        int bottom = 0;
-        for (int i=1; i<used; i++) {
-            if ((in[i] & 0xc0) != 0x80) {
-                throw new IllegalArgumentException("Byte " + (i+1) + " in UTF-8 sequence has wrong top bits");
-            }
-            bottom = (bottom<<6) + (in[i] & 0x3f);
-        }
-        if ((in[0] & 0x80) == 0) {
-            // single byte sequence 0xxxxxxx
-            if (used == 1) {
-                return in[0];
-            } else {
-                throw new IllegalArgumentException("UTF8 single byte expected");
-            }
-        } else if ((in[0] & 0xe0) == 0xc0) {
-            // two byte sequence
-            if (used != 2) {
-                throw new IllegalArgumentException("UTF8 sequence of two bytes expected");
-            }
-            return ((in[0] & 0x1f) << 6) + bottom;
-        } else if ((in[0] & 0xf0) == 0xe0) {
-            // three byte sequence
-            if (used != 3) {
-                throw new IllegalArgumentException("UTF8 sequence of three bytes expected");
-            }
-            return ((in[0] & 0x0f) << 12) + bottom;
-        } else if ((in[0] & 0xf8) == 0xf8) {
-            // four-byte sequence 11110uuu 10uuzzzz 10yyyyyy 10xxxxxx
-            if (used != 4) {
-                throw new IllegalArgumentException("UTF8 sequence of four bytes expected");
-            }
-            return ((in[0] & 0x07) << 24) + bottom;
-        } else {
-            throw new IllegalArgumentException("UTF8 invalid first byte");
-        }
-    }
-
 
 }
 

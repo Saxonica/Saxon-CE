@@ -13,8 +13,10 @@ public class IXSLSetAttribute extends XSLAttribute {
 
     @Override
     public Expression compile(Executable exec, Declaration decl) throws XPathException {
+        // We compile the instruction exactly as if it were an xsl:attribute instruction, to create
+        // an AttributeCreator instruction; then we wrap this in a SetAttribute instruction to modify its effect
         Expression constructor = super.compile(exec, decl);
-        return new SetAttribute((AttributeCreator)constructor);
+        return new SetAttribute((AttributeCreator)constructor, SetAttribute.SET);
     }
 }
 

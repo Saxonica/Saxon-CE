@@ -49,30 +49,11 @@ public class Err {
         int len = cs.length();
         for (int i=0; i<len; i++) {
             char c = cs.charAt(i);
-            switch (c) {
-                case '\n':
-                    sb.append("\\n");
-                    break;
-                case '\t':
-                    sb.append("\\t");
-                    break;
-                case '\r':
-                    sb.append("\\r");
-                    break;
-//                case '\\':
-//                    sb.append("\\\\");
-//                    break;
-                default:
-                    if (c < 32 || c > 255) {
-                        sb.append("\\u");
-                        String hex = Integer.toHexString(c);
-                        while (hex.length() < 4) {
-                            hex = "0" + hex;
-                        }
-                        sb.append(hex);
-                    } else {
-                        sb.append(c);
-                    }
+            if (c < 32 || c > 255) {
+                sb.append("\\u");
+                sb.append(Integer.toHexString(c));
+            } else {
+                sb.append(c);
             }
         }
         String s;

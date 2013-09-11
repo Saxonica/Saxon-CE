@@ -6,7 +6,7 @@ import client.net.sf.saxon.ce.om.Axis;
 import client.net.sf.saxon.ce.om.DocumentInfo;
 import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.pattern.NodeKindTest;
-import client.net.sf.saxon.ce.tree.iter.AxisIterator;
+import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 import client.net.sf.saxon.ce.tree.util.Navigator;
 
 import java.util.HashMap;
@@ -35,14 +35,6 @@ public class SpaceStrippedDocument extends SpaceStrippedNode implements Document
         docWrapper = this;
         this.stripper = stripper;
         preservesSpace = findPreserveSpace(doc);
-    }
-
-    /**
-     * Create a wrapped node within this document
-     */
-
-    public SpaceStrippedNode wrap(NodeInfo node) {
-        return makeWrapper(node, this, null);
     }
 
     /**
@@ -84,7 +76,7 @@ public class SpaceStrippedDocument extends SpaceStrippedNode implements Document
      */
 
     private static boolean findPreserveSpace(DocumentInfo doc) {
-        AxisIterator iter = doc.iterateAxis(Axis.DESCENDANT, NodeKindTest.ELEMENT);
+        UnfailingIterator iter = doc.iterateAxis(Axis.DESCENDANT, NodeKindTest.ELEMENT);
         while (true) {
             NodeInfo node = (NodeInfo)iter.next();
             if (node == null) {

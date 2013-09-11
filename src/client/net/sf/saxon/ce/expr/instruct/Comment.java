@@ -4,7 +4,6 @@ import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.pattern.NodeKindTest;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
 
 
 /**
@@ -19,7 +18,7 @@ public final class Comment extends SimpleNodeConstructor {
 
     public Comment() {}
 
-    public ItemType getItemType(TypeHierarchy th) {
+    public ItemType getItemType() {
         return NodeKindTest.COMMENT;
     }
 

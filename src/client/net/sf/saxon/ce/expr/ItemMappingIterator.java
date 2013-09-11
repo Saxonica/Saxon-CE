@@ -14,7 +14,7 @@ import client.net.sf.saxon.ce.trans.XPathException;
  * output item.
  */
 
-public final class ItemMappingIterator implements SequenceIterator, LastPositionFinder {
+public class ItemMappingIterator implements SequenceIterator, LastPositionFinder {
 
     private SequenceIterator base;
     private ItemMappingFunction action;
@@ -48,28 +48,6 @@ public final class ItemMappingIterator implements SequenceIterator, LastPosition
         this.base = base;
         this.action = action;
         this.oneToOne = oneToOne;
-    }
-
-    /**
-     * Say whether this ItemMappingIterator is one-to-one: that is, for every input item, there is
-     * always exactly one output item. The default is false.
-     * @param oneToOne true if this iterator is one-to-one
-     * @throws XPathException
-     */
-
-    public void setOneToOne(boolean oneToOne) {
-        this.oneToOne = oneToOne;
-    }
-
-    /**
-     * Ask whether this ItemMappingIterator is one-to-one: that is, for every input item, there is
-     * always exactly one output item. The default is false.
-     * @return true if this iterator is one-to-one
-     * @throws XPathException
-     */
-
-    public boolean isOneToOne() {
-        return oneToOne;
     }
 
     public Item next() throws XPathException {

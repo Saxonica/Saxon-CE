@@ -26,12 +26,12 @@ public class ParentNodeExpression extends SingleNodeExpression {
     public NodeInfo getNode(XPathContext context) throws XPathException {
         Item item = context.getContextItem();
         if (item==null) {
-            dynamicError("The context item is not set", "XPDY0002", context);
+            dynamicError("The context item is not set", "XPDY0002");
         }
         if (item instanceof NodeInfo) {
             return ((NodeInfo)item).getParent();
         } else {
-            dynamicError("The context item for the parent axis (..) is not a node", "XPTY0020", context);
+            dynamicError("The context item for the parent axis (..) is not a node", "XPTY0020");
             return null;
         }
     }
