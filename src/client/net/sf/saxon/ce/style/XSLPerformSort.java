@@ -2,14 +2,10 @@ package client.net.sf.saxon.ce.style;
 import client.net.sf.saxon.ce.expr.Expression;
 import client.net.sf.saxon.ce.expr.Literal;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
-import client.net.sf.saxon.ce.om.*;
 import client.net.sf.saxon.ce.expr.sort.SortExpression;
 import client.net.sf.saxon.ce.expr.sort.SortKeyDefinition;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 import client.net.sf.saxon.ce.type.ItemType;
-import client.net.sf.saxon.ce.type.Type;
-import client.net.sf.saxon.ce.value.Whitespace;
 
 
 /**
@@ -70,24 +66,7 @@ public class XSLPerformSort extends StyleElement {
 
         if (select != null) {
             // if there is a select attribute, check that there are no children other than xsl:sort and xsl:fallback
-            UnfailingIterator kids = iterateAxis(Axis.CHILD);
-            while (true) {
-                NodeInfo child = (NodeInfo)kids.next();
-                if (child == null) {
-                    break;
-                }
-                if (child instanceof XSLSort || child instanceof XSLFallback) {
-                    // no action
-                } else if (child.getNodeKind() == Type.TEXT && !Whitespace.isWhite(child.getStringValue())) {
-                        // with xml:space=preserve, white space nodes may still be there
-                    compileError("Within xsl:perform-sort, significant text must not appear if there is a select attribute",
-                            "XTSE1040");
-                } else {
-                    ((StyleElement)child).compileError(
-                            "Within xsl:perform-sort, child instructions are not allowed if there is a select attribute",
-                            "XTSE1040");
-                }
-            }
+            onlyAllow("fallback", "sort");
         }
         select = typeCheck(select);
     }
@@ -97,7 +76,7 @@ public class XSLPerformSort extends StyleElement {
         if (select != null) {
             return new SortExpression(select, sortKeys);
         } else {
-            Expression body = compileSequenceConstructor(exec, decl, iterateAxis(Axis.CHILD));
+            Expression body = compileSequenceConstructor(exec, decl);
             if (body == null) {
                 body = Literal.makeEmptySequence();
             }

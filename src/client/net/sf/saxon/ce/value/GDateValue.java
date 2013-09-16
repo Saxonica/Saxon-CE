@@ -178,7 +178,7 @@ public abstract class GDateValue extends CalendarValue {
      */
     @Override
     public CalendarValue adjustTimezone(int tz) {
-        return (DateTimeValue)toDateTime().adjustTimezone(tz).convertPrimitive(getItemType(), false);
+        return (DateTimeValue)toDateTime().adjustTimezone(tz).convert(getItemType());
     }
 
     /**

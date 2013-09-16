@@ -1,14 +1,16 @@
 package client.net.sf.saxon.ce.expr.instruct;
 
 import client.net.sf.saxon.ce.expr.*;
-import client.net.sf.saxon.ce.om.*;
+import client.net.sf.saxon.ce.om.Item;
+import client.net.sf.saxon.ce.om.SequenceIterator;
+import client.net.sf.saxon.ce.om.StructuredQName;
+import client.net.sf.saxon.ce.om.Sequence;
 import client.net.sf.saxon.ce.pattern.EmptySequenceTest;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.EmptyIterator;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.value.SequenceType;
 
-import java.util.Collections;
 import java.util.Iterator;
 
 /**
@@ -28,7 +30,6 @@ public abstract class GeneralVariable extends Instruction implements Binding {
     protected StructuredQName variableQName;
     SequenceType requiredType;
     protected int slotNumber;
-    protected int referenceCount = 10;
     protected int evaluationMode = ExpressionTool.UNDECIDED;
 
     /**
@@ -125,15 +126,6 @@ public abstract class GeneralVariable extends Instruction implements Binding {
         } else {
             properties &= ~TUNNEL;
         }
-    }
-
-    /**
-     * Set the nominal number of references to this variable
-     * @param refCount the nominal number of references
-     */
-
-    public void setReferenceCount(int refCount) {
-        referenceCount = refCount;
     }
 
     /**
@@ -258,7 +250,7 @@ public abstract class GeneralVariable extends Instruction implements Binding {
         SequenceType r = requiredType;
         if (r != null && select != null) {
             // check that the expression is consistent with the required type
-            select = TypeChecker.staticTypeCheck(select, requiredType, false, role, visitor);
+            select = TypeChecker.staticTypeCheck(select, requiredType, false, role);
         }
     }
 
@@ -312,7 +304,7 @@ public abstract class GeneralVariable extends Instruction implements Binding {
      * @return the result of evaluating the variable
     */
 
-    public ValueRepresentation getSelectValue(XPathContext context) throws XPathException {
+    public Sequence getSelectValue(XPathContext context) throws XPathException {
         if (select==null) {
             throw new AssertionError("*** No select expression!!");
             // The value of the variable is a sequence of nodes and/or atomic values
@@ -350,11 +342,7 @@ public abstract class GeneralVariable extends Instruction implements Binding {
 
 
     public Iterator<Expression> iterateSubExpressions() {
-        if (select != null) {
-            return monoIterator(select);
-        } else {
-            return Collections.EMPTY_LIST.iterator();
-        }
+        return nonNullChildren(select);
     }
 
 

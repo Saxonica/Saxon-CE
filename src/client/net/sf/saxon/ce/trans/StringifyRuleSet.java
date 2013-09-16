@@ -8,6 +8,7 @@ import client.net.sf.saxon.ce.expr.instruct.TailCall;
 import client.net.sf.saxon.ce.om.Axis;
 import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.om.SequenceIterator;
+import client.net.sf.saxon.ce.pattern.AnyNodeTest;
 import client.net.sf.saxon.ce.tree.util.SourceLocator;
 import client.net.sf.saxon.ce.type.Type;
 
@@ -48,7 +49,7 @@ public class StringifyRuleSet implements BuiltInRuleSet {
         switch(node.getNodeKind()) {
             case Type.DOCUMENT:
             case Type.ELEMENT:
-                SequenceIterator iter = node.iterateAxis(Axis.CHILD);
+                SequenceIterator iter = node.iterateAxis(Axis.CHILD, AnyNodeTest.getInstance());
                 XPathContextMajor c2 = context.newContext();
 	            TailCall tc = ApplyTemplates.applyTemplates(
                         iter, context.getCurrentMode(), parameters, tunnelParams, c2, sourceLocator);

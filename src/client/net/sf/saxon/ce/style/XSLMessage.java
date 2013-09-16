@@ -4,7 +4,6 @@ import client.net.sf.saxon.ce.expr.StringLiteral;
 import client.net.sf.saxon.ce.expr.instruct.Block;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.expr.instruct.Message;
-import client.net.sf.saxon.ce.om.Axis;
 import client.net.sf.saxon.ce.trans.XPathException;
 
 
@@ -50,7 +49,7 @@ public final class XSLMessage extends StyleElement {
     }
 
     public Expression compile(Executable exec, Declaration decl) throws XPathException {
-        Expression b = compileSequenceConstructor(exec, decl, iterateAxis(Axis.CHILD));
+        Expression b = compileSequenceConstructor(exec, decl);
         if (b != null) {
             if (select == null) {
                 select = b;

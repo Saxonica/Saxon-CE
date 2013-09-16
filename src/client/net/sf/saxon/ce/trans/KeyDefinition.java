@@ -1,14 +1,12 @@
 package client.net.sf.saxon.ce.trans;
 
-import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.expr.Expression;
 import client.net.sf.saxon.ce.expr.instruct.Procedure;
-import client.net.sf.saxon.ce.expr.instruct.SlotManager;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
 import client.net.sf.saxon.ce.lib.StringCollator;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.pattern.Pattern;
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.AtomicType;
 
 /**
   * Corresponds to a single xsl:key declaration.<P>
@@ -19,7 +17,7 @@ public class KeyDefinition extends Procedure {
 
     private Pattern match;                // the match pattern
     private Expression use;
-    private BuiltInAtomicType useType;    // the type of the values returned by the atomized use expression
+    private AtomicType useType;    // the type of the values returned by the atomized use expression
     private StringCollator collation;     // the collating sequence, when type=string
     private String collationName;         // the collation URI
     private boolean backwardsCompatible = false;
@@ -38,7 +36,6 @@ public class KeyDefinition extends Procedure {
     */
 
     public KeyDefinition(Pattern match, Expression use, String collationName, StringCollator collation) {
-        setHostLanguage(Configuration.XSLT);
         this.match = match;
         this.use = use;
         setBody(use);
@@ -51,7 +48,7 @@ public class KeyDefinition extends Procedure {
      * @param itemType the primitive type of the indexed values
      */
 
-    public void setIndexedItemType(BuiltInAtomicType itemType) {
+    public void setIndexedItemType(AtomicType itemType) {
         useType = itemType;
     }
 
@@ -60,9 +57,9 @@ public class KeyDefinition extends Procedure {
      * @return the primitive item type of the indexed values
      */
 
-    public BuiltInAtomicType getIndexedItemType() {
+    public AtomicType getIndexedItemType() {
         if (useType == null) {
-            return BuiltInAtomicType.ANY_ATOMIC;
+            return AtomicType.ANY_ATOMIC;
         } else {
             return useType;
         }
@@ -114,11 +111,11 @@ public class KeyDefinition extends Procedure {
      * Set the map of local variables needed while evaluating the "use" expression
      */
 
-    public void setStackFrameMap(SlotManager map) {
-        if (map != null && map.getNumberOfVariables() > 0) {
-            super.setStackFrameMap(map);
-        }
-    }
+//    public void setStackFrameMap(SlotManager map) {
+//        if (map != null && map.getNumberOfVariables() > 0) {
+//            super.setStackFrameMap(map);
+//        }
+//    }
 
     /**
     * Get the match pattern for the key definition

@@ -3,12 +3,10 @@ package client.net.sf.saxon.ce.style;
 import client.net.sf.saxon.ce.expr.Expression;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
-import client.net.sf.saxon.ce.om.Axis;
-import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.RuleManager;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
+import client.net.sf.saxon.ce.tree.linked.NodeImpl;
 import client.net.sf.saxon.ce.type.Type;
 
 /**
@@ -149,23 +147,20 @@ public class XSLStylesheet extends StyleElement {
             compileError(getDisplayName() + " must be the outermost element", "XTSE0010");
         }
 
-        UnfailingIterator kids = iterateAxis(Axis.CHILD);
-        while(true) {
-            NodeInfo curr = (NodeInfo)kids.next();
-            if (curr == null) break;
-            if (curr.getNodeKind() == Type.TEXT ||
-                    (curr instanceof StyleElement && ((StyleElement)curr).isDeclaration()) ||
-                    curr instanceof DataElement) {
+        for (NodeImpl child: allChildren()) {
+            if (child.getNodeKind() == Type.TEXT ||
+                    (child instanceof StyleElement && ((StyleElement)child).isDeclaration()) ||
+                    child instanceof DataElement) {
                 // all is well
-            } else if (!NamespaceConstant.XSLT.equals(curr.getURI()) && !"".equals(curr.getURI())) {
+            } else if (!NamespaceConstant.XSLT.equals(child.getURI()) && !"".equals(child.getURI())) {
                 // elements in other namespaces are allowed and ignored
-            } else if (curr instanceof AbsentExtensionElement && ((StyleElement)curr).forwardsCompatibleModeIsEnabled()) {
+            } else if (child instanceof AbsentExtensionElement && ((StyleElement)child).forwardsCompatibleModeIsEnabled()) {
                 // this is OK: an unknown XSLT element is allowed in forwards compatibility mode
-            } else if (NamespaceConstant.XSLT.equals(curr.getURI())) {
-                ((StyleElement)curr).compileError("Element " + curr.getDisplayName() +
+            } else if (NamespaceConstant.XSLT.equals(child.getURI())) {
+                ((StyleElement)child).compileError("Element " + child.getDisplayName() +
                         " must not appear directly within " + getDisplayName(), "XTSE0010");
             } else {
-                ((StyleElement)curr).compileError("Element " + curr.getDisplayName() +
+                ((StyleElement)child).compileError("Element " + child.getDisplayName() +
                         " must not appear directly within " + getDisplayName() +
                         " because it is not in a namespace", "XTSE0130");
             }
@@ -185,17 +180,12 @@ public class XSLStylesheet extends StyleElement {
     public void processAllAttributes() throws XPathException {
         processDefaultCollationAttribute("");
         prepareAttributes();
-        UnfailingIterator iter = iterateAxis(Axis.CHILD);
-        while (true) {
-            NodeInfo node = (NodeInfo)iter.next();
-            if (node == null) {
-                break;
-            }
-            if (node instanceof StyleElement) {
+        for (NodeImpl child: allChildren()) {
+            if (child instanceof StyleElement) {
                 try {
-                    ((StyleElement) node).processAllAttributes();
+                    ((StyleElement) child).processAllAttributes();
                 } catch (XPathException err) {
-                    ((StyleElement) node).compileError(err);
+                    ((StyleElement) child).compileError(err);
                 }
             }
         }

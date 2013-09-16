@@ -1,5 +1,8 @@
 package client.net.sf.saxon.ce.expr;
 
+import client.net.sf.saxon.ce.om.SequenceIterator;
+import client.net.sf.saxon.ce.trans.XPathException;
+
 /**
  * MappingFunction is an interface that must be satisfied by an object passed to a
  * MappingIterator. StatefulMappingFunction is a sub-interface representing a mapping
@@ -13,9 +16,10 @@ public interface StatefulMappingFunction {
      * Return a clone of this MappingFunction, with the state reset to its state at the beginning
      * of the underlying iteration
      * @return a clone of this MappingFunction
+     * @param newBaseIterator the cloned iterator to which the mapping function will be applied
      */
 
-    public StatefulMappingFunction getAnother();
+    public StatefulMappingFunction getAnother(SequenceIterator newBaseIterator) throws XPathException;
 
 }
 

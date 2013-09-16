@@ -1,7 +1,7 @@
 package client.net.sf.saxon.ce.expr.sort;
 import client.net.sf.saxon.ce.lib.StringCollator;
 import client.net.sf.saxon.ce.trans.NoDynamicContextException;
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.value.AtomicValue;
 import client.net.sf.saxon.ce.value.CalendarValue;
@@ -47,23 +47,23 @@ public class GenericAtomicComparer implements AtomicComparer {
      */
 
     public static AtomicComparer makeAtomicComparer(
-            BuiltInAtomicType type0, BuiltInAtomicType type1, StringCollator collator, int implicitTimezone) {
+            AtomicType type0, AtomicType type1, StringCollator collator, int implicitTimezone) {
         if (type0 == type1) {
-            if (type0 == BuiltInAtomicType.DATE_TIME ||
-                    type0 == BuiltInAtomicType.DATE ||
-                    type0 == BuiltInAtomicType.TIME ||
-                    type0 == BuiltInAtomicType.G_DAY ||
-                    type0 == BuiltInAtomicType.G_MONTH ||
-                    type0 == BuiltInAtomicType.G_MONTH_DAY ||
-                    type0 == BuiltInAtomicType.G_YEAR ||
-                    type0 == BuiltInAtomicType.G_YEAR_MONTH) {
+            if (type0 == AtomicType.DATE_TIME ||
+                    type0 == AtomicType.DATE ||
+                    type0 == AtomicType.TIME ||
+                    type0 == AtomicType.G_DAY ||
+                    type0 == AtomicType.G_MONTH ||
+                    type0 == AtomicType.G_MONTH_DAY ||
+                    type0 == AtomicType.G_YEAR ||
+                    type0 == AtomicType.G_YEAR_MONTH) {
                 return new CalendarValueComparer(implicitTimezone);
-            } else if (type0 == BuiltInAtomicType.BOOLEAN ||
-                    type0 == BuiltInAtomicType.DAY_TIME_DURATION ||
-                    type0 == BuiltInAtomicType.YEAR_MONTH_DURATION ||
-                    type0 == BuiltInAtomicType.BASE64_BINARY ||
-                    type0 == BuiltInAtomicType.HEX_BINARY ||
-                    type0 == BuiltInAtomicType.QNAME) {
+            } else if (type0 == AtomicType.BOOLEAN ||
+                    type0 == AtomicType.DAY_TIME_DURATION ||
+                    type0 == AtomicType.YEAR_MONTH_DURATION ||
+                    type0 == AtomicType.BASE64_BINARY ||
+                    type0 == AtomicType.HEX_BINARY ||
+                    type0 == AtomicType.QNAME) {
                 return ComparableAtomicValueComparer.getInstance();
             }
         }
@@ -72,12 +72,12 @@ public class GenericAtomicComparer implements AtomicComparer {
             return ComparableAtomicValueComparer.getInstance();
         }
 
-        if ((type0 == BuiltInAtomicType.STRING ||
-                type0 == BuiltInAtomicType.UNTYPED_ATOMIC ||
-                type0 == BuiltInAtomicType.ANY_URI) &&
-            (type1 == BuiltInAtomicType.STRING ||
-                type1 == BuiltInAtomicType.UNTYPED_ATOMIC ||
-                type1 == BuiltInAtomicType.ANY_URI)) {
+        if ((type0 == AtomicType.STRING ||
+                type0 == AtomicType.UNTYPED_ATOMIC ||
+                type0 == AtomicType.ANY_URI) &&
+            (type1 == AtomicType.STRING ||
+                type1 == AtomicType.UNTYPED_ATOMIC ||
+                type1 == AtomicType.ANY_URI)) {
             if (collator instanceof CodepointCollator) {
                 return CodepointCollatingComparer.getInstance();
             } else {

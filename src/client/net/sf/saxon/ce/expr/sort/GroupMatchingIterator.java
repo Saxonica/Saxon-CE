@@ -57,10 +57,6 @@ public abstract class GroupMatchingIterator implements  GroupIterator {
         return position;
     }
 
-    public int getProperties() {
-        return 0;
-    }
-
 
 }
 

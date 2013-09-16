@@ -4,7 +4,7 @@ import client.net.sf.saxon.ce.event.SequenceReceiver;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.om.SequenceIterator;
-import client.net.sf.saxon.ce.om.ValueRepresentation;
+import client.net.sf.saxon.ce.om.Sequence;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.value.*;
@@ -35,7 +35,7 @@ public class Literal extends Expression {
      * @return the Literal
      */
 
-    public static Literal makeLiteral(ValueRepresentation value) {
+    public static Literal makeLiteral(Sequence value) {
         if (value instanceof StringValue) {
             return new StringLiteral((StringValue)value);
         } else {

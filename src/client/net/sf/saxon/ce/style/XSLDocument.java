@@ -3,7 +3,6 @@ import client.net.sf.saxon.ce.expr.Expression;
 import client.net.sf.saxon.ce.expr.Literal;
 import client.net.sf.saxon.ce.expr.instruct.DocumentInstr;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
-import client.net.sf.saxon.ce.om.Axis;
 import client.net.sf.saxon.ce.trans.XPathException;
 
 /**
@@ -45,7 +44,7 @@ public class XSLDocument extends StyleElement {
     public Expression compile(Executable exec, Declaration decl) throws XPathException {
 
         DocumentInstr inst = new DocumentInstr(false, null, getBaseURI());
-        Expression b = compileSequenceConstructor(exec, decl, iterateAxis(Axis.CHILD));
+        Expression b = compileSequenceConstructor(exec, decl);
         if (b == null) {
             b = Literal.makeEmptySequence();
         }

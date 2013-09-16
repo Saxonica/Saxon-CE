@@ -5,7 +5,7 @@ import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.expr.instruct.ValueOf;
 import client.net.sf.saxon.ce.pattern.NodeKindTest;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.Cardinality;
@@ -75,8 +75,8 @@ public final class XSLValueOf extends XSLLeafNodeConstructor {
             if (Cardinality.allowsMany(select.getCardinality())) {
                 select = new FirstItemExpression(select);
             }
-            if (!th.isSubType(select.getItemType(), BuiltInAtomicType.STRING)) {
-                select = new AtomicSequenceConverter(select, BuiltInAtomicType.STRING);
+            if (!th.isSubType(select.getItemType(), AtomicType.STRING)) {
+                select = new AtomicSequenceConverter(select, AtomicType.STRING);
             }
         } else {
             if (separator == null) {

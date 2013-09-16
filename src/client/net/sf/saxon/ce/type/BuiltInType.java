@@ -7,7 +7,7 @@ import java.util.HashMap;
  * that is, the types defined in the "xs" namespace.
  *
  * <p>Previously called BuiltInSchemaFactory; but its original function has largely been moved to the two
- * classes {@link BuiltInAtomicType}
+ * classes {@link AtomicType}
  */
 
 public class BuiltInType  {
@@ -38,7 +38,7 @@ public class BuiltInType  {
         if (st == null) {
             // this means the method has been called before doing the static initialization of BuiltInAtomicType
             // or BuiltInListType. So force it now
-            if (BuiltInAtomicType.DOUBLE == null) {
+            if (AtomicType.DOUBLE == null) {
                 // no action, except to force the initialization to run
             }
             st = lookup.get(localName);

@@ -4,6 +4,7 @@ import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.expr.instruct.WithParam;
 import client.net.sf.saxon.ce.om.Axis;
 import client.net.sf.saxon.ce.om.Item;
+import client.net.sf.saxon.ce.pattern.NodeKindTest;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 
@@ -27,7 +28,7 @@ public class XSLWithParam extends XSLGeneralVariable {
 
         // Check for duplicate parameter names
 
-        UnfailingIterator iter = iterateAxis(Axis.PRECEDING_SIBLING);
+        UnfailingIterator iter = iterateAxis(Axis.PRECEDING_SIBLING, NodeKindTest.ELEMENT);
         while (true) {
             Item prev = iter.next();
             if (prev == null) {

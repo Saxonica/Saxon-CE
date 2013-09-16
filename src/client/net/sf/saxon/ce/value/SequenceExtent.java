@@ -21,11 +21,8 @@ import java.util.List;
  * by allocating memory to each item in the sequence.
  */
 
-public final class SequenceExtent extends Value implements GroundedValue {
+public final class SequenceExtent extends Value {
     transient private Item[] value;
-    private int start = 0;  // zero-based offset of the start
-    private int end;        // the 0-based index of the first item that is NOT included
-                            // If start=0 this is the length of the sequence
     private ItemType itemType = null;   // memoized
 
 //    private static int instances = 0;
@@ -39,36 +36,6 @@ public final class SequenceExtent extends Value implements GroundedValue {
 
     public SequenceExtent(Item[] items) {
         value = items;
-        end = items.length;
-    }
-
-    /**
-     * Construct a SequenceExtent from part of an array of items
-     * @param value The array
-     * @param start zero-based offset of the first item in the array
-     * that is to be included in the new SequenceExtent
-     * @param length The number of items in the new SequenceExtent
-     */
-
-    public SequenceExtent(Item[] value, int start, int length) {
-        this.value = value;
-        this.start = start;
-        end = this.start + length;
-    }
-
-
-    /**
-     * Construct a SequenceExtent as a view of another SequenceExtent
-     * @param ext The existing SequenceExtent
-     * @param start zero-based offset of the first item in the existing SequenceExtent
-     * that is to be included in the new SequenceExtent
-     * @param length The number of items in the new SequenceExtent
-     */
-
-    public SequenceExtent(SequenceExtent ext, int start, int length) {
-        value = ext.value;
-        this.start = ext.start + start;
-        end = this.start + length;
     }
 
     /**
@@ -81,7 +48,6 @@ public final class SequenceExtent extends Value implements GroundedValue {
     public SequenceExtent(List<? extends Item> list) {
         Item[] array = new Item[list.size()];
         value = list.toArray(array);
-        end = value.length;
     }
 
     /**
@@ -95,8 +61,12 @@ public final class SequenceExtent extends Value implements GroundedValue {
      */
 
     public SequenceExtent(SequenceIterator iter) throws XPathException {
-        if ((iter.getProperties() & SequenceIterator.LAST_POSITION_FINDER) == 0) {
-            List list = new ArrayList(20);
+        int allocated = -1;
+        if (iter instanceof LastPositionFinder) {
+            allocated = ((LastPositionFinder)iter).getLastPosition();
+        }
+        if (allocated == -1) {
+            List<Item> list = new ArrayList<Item>(20);
             while (true) {
                 Item it = iter.next();
                 if (it == null) {
@@ -105,11 +75,9 @@ public final class SequenceExtent extends Value implements GroundedValue {
                 list.add(it);
             }
             Item[] array = new Item[list.size()];
-            value = (Item[])list.toArray(array);
-            end = value.length;
+            value = list.toArray(array);
         } else {
-            end = ((LastPositionFinder)iter).getLastPosition();
-            value = new Item[end];
+            value = new Item[allocated];
             int i = 0;
             while (true) {
                 Item it = iter.next();
@@ -128,11 +96,15 @@ public final class SequenceExtent extends Value implements GroundedValue {
      * sequence is empty the result will be an instance of {@link EmptySequence}. If it is of length
      * one, the result will be an {@link Item}. In all other cases, it will be an instance of
      * {@link SequenceExtent}.
+     * @throws XPathException if a dynamic error occurs while evaluating the iterator
      */
 
-    public static ValueRepresentation makeSequenceExtent(SequenceIterator iter) throws XPathException {
-        if ((iter.getProperties() & SequenceIterator.GROUNDED) != 0) {
-            return ((GroundedIterator)iter).materialize();
+    public static Sequence makeSequenceExtent(SequenceIterator iter) throws XPathException {
+        if (iter instanceof GroundedIterator) {
+            Value value = ((GroundedIterator)iter).materialize();
+            if (value != null) {
+                return value;
+            }
         }
         Value extent = new SequenceExtent(iter);
         int len = extent.getLength();
@@ -150,6 +122,7 @@ public final class SequenceExtent extends Value implements GroundedValue {
      * @param iter iterator over a List containing the items in the sequence
      * @return a ValueRepresentation holding the items in the list, in reverse
      * order of the supplied iterator
+     * @throws XPathException if an error occurs evaluating the sequence
      */
 
     public static SequenceExtent makeReversed(SequenceIterator iter) throws XPathException {
@@ -173,7 +146,7 @@ public final class SequenceExtent extends Value implements GroundedValue {
      * {@link SequenceExtent}.
      */
 
-    public static ValueRepresentation makeSequenceExtent(List<Item> input) throws XPathException {
+    public static Sequence makeSequenceExtent(List<Item> input) throws XPathException {
         int len = input.size();
         if (len==0) {
             return EmptySequence.getInstance();
@@ -210,7 +183,7 @@ public final class SequenceExtent extends Value implements GroundedValue {
      */
 
     public int getLength() {
-        return end - start;
+        return value.length;
     }
 
     /**
@@ -225,17 +198,13 @@ public final class SequenceExtent extends Value implements GroundedValue {
             // only calculate it the first time
             return itemType;
         }
-        if (end==start) {
-            itemType = AnyItemType.getInstance();
-        } else {
-            itemType = Type.getItemType(value[start]);
-            for (int i=start+1; i<end; i++) {
-                if (itemType == AnyItemType.getInstance()) {
-                    // make a quick exit
-                    return itemType;
-                }
-                itemType = Type.getCommonSuperType(itemType, Type.getItemType(value[i]));
+        itemType = Type.getItemType(value[0]);
+        for (int i=1; i<value.length; i++) {
+            if (itemType == AnyItemType.getInstance()) {
+                // make a quick exit
+                return itemType;
             }
+            itemType = Type.getCommonSuperType(itemType, Type.getItemType(value[i]));
         }
         return itemType;
     }
@@ -244,14 +213,14 @@ public final class SequenceExtent extends Value implements GroundedValue {
      * Get the n'th item in the sequence (starting with 0 as the first item)
      *
      * @param n the position of the required item
-     * @return the n'th item in the sequence
+     * @return the n'th item in the sequence, zero-based, or null if n is out of range
      */
 
     public Item itemAt(int n) {
         if (n<0 || n>=getLength()) {
             return null;
         } else {
-            return value[start+n];
+            return value[n];
         }
     }
 
@@ -263,9 +232,9 @@ public final class SequenceExtent extends Value implements GroundedValue {
      */
 
     public void swap(int a, int b) {
-        Item temp = value[start+a];
-        value[start+a] = value[start+b];
-        value[start+b] = temp;
+        Item temp = value[a];
+        value[a] = value[b];
+        value[b] = temp;
     }
 
     /**
@@ -276,7 +245,7 @@ public final class SequenceExtent extends Value implements GroundedValue {
      */
 
     public UnfailingIterator iterate() {
-        return new ArrayIterator(value, start, end);
+        return new ArrayIterator(value);
     }
 
     /**
@@ -287,58 +256,23 @@ public final class SequenceExtent extends Value implements GroundedValue {
         int len = getLength();
         if (len == 0) {
             return false;
-        } else if (value[start] instanceof NodeInfo) {
+        } else if (value[0] instanceof NodeInfo) {
             return true;
         } else if (len > 1) {
             // this is a type error - reuse the error messages
             return ExpressionTool.effectiveBooleanValue(iterate());
         } else {
-            return ((AtomicValue)value[start]).effectiveBooleanValue();
+            return ((AtomicValue)value[0]).effectiveBooleanValue();
         }
     }
 
-
-    /**
-     * Get a subsequence of the value
-     *
-     * @param start  the index of the first item to be included in the result, counting from zero.
-     *               A negative value is taken as zero. If the value is beyond the end of the sequence, an empty
-     *               sequence is returned
-     * @param length the number of items to be included in the result. Specify Integer.MAX_VALUE to
-     *               get the subsequence up to the end of the base sequence. If the value is negative, an empty sequence
-     *               is returned. If the value goes off the end of the sequence, the result returns items up to the end
-     *               of the sequence
-     * @return the required subsequence. If min is
-     */
-
-    public GroundedValue subsequence(int start, int length) {
-        int newStart;
-        if (start < 0) {
-            start = 0;
-        } else if (start >= end) {
-            return EmptySequence.getInstance();
-        }
-        newStart = this.start + start;
-        int newEnd;
-        if (length == Integer.MAX_VALUE) {
-            newEnd = end;
-        } else if (length < 0) {
-            return EmptySequence.getInstance();
-        } else {
-            newEnd = newStart + length;
-            if (newEnd > end) {
-                newEnd = end;
-            }
-        }
-        return new SequenceExtent(value, newStart, newEnd - newStart);
-    }
 
     public String toString() {
         FastStringBuffer fsb = new FastStringBuffer(FastStringBuffer.SMALL);
         fsb.append('(');
-        for (int i=start; i<end; i++) {
+        for (int i=0; i<value.length; i++) {
             fsb.append(value[i].toString());
-            if (i != end-1) {
+            if (i != value.length-1) {
                 fsb.append(", ");
             }
         }

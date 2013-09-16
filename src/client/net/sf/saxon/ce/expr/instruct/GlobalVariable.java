@@ -5,7 +5,7 @@ import client.net.sf.saxon.ce.expr.Container;
 import client.net.sf.saxon.ce.expr.ExpressionTool;
 import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.expr.XPathContextMajor;
-import client.net.sf.saxon.ce.om.ValueRepresentation;
+import client.net.sf.saxon.ce.om.Sequence;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.SingletonIterator;
 import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
@@ -17,7 +17,7 @@ import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 public class GlobalVariable extends GeneralVariable implements Container {
 
     private Executable executable;
-    private SlotManager stackFrameMap = null;
+    private int numberOfSlots = 0;
 
     /**
      * Create a global variable
@@ -57,12 +57,12 @@ public class GlobalVariable extends GeneralVariable implements Container {
     /**
      * The expression that initializes a global variable may itself use local variables.
      * In this case a stack frame needs to be allocated while evaluating the global variable
-     * @param map The stack frame map for local variables used while evaluating this global
+     * @param numberOfSlots The space needed for local variables used while evaluating this global
      * variable.
      */
 
-    public void setContainsLocals(SlotManager map) {
-        this.stackFrameMap = map;
+    public void setContainsLocals(int numberOfSlots) {
+        this.numberOfSlots = numberOfSlots;
     }
 
     /**
@@ -92,7 +92,7 @@ public class GlobalVariable extends GeneralVariable implements Container {
      * of the element otherwise, either as a tree or as a sequence
     */
 
-    public ValueRepresentation getSelectValue(XPathContext context) throws XPathException {
+    public Sequence getSelectValue(XPathContext context) throws XPathException {
         if (select==null) {
             throw new AssertionError("*** No select expression for global variable $" +
                     getVariableQName().getDisplayName() + "!!");
@@ -102,8 +102,8 @@ public class GlobalVariable extends GeneralVariable implements Container {
                     SingletonIterator.makeIterator(c2.getController().getContextForGlobalVariables());
             initialNode.next();
             c2.setCurrentIterator(initialNode);
-            if (stackFrameMap != null) {
-                c2.openStackFrame(stackFrameMap);
+            if (numberOfSlots != 0) {
+                c2.openStackFrame(numberOfSlots);
             }
             return ExpressionTool.evaluate(select, evaluationMode, c2);
         }
@@ -113,11 +113,11 @@ public class GlobalVariable extends GeneralVariable implements Container {
     * Evaluate the variable
     */
 
-    public ValueRepresentation evaluateVariable(XPathContext context) throws XPathException {
+    public Sequence evaluateVariable(XPathContext context) throws XPathException {
         final Controller controller = context.getController();
         final Bindery b = controller.getBindery();
 
-        final ValueRepresentation v = b.getGlobalVariable(getSlotNumber());
+        final Sequence v = b.getGlobalVariable(getSlotNumber());
 
         if (v != null) {
             return v;
@@ -133,7 +133,7 @@ public class GlobalVariable extends GeneralVariable implements Container {
      * @throws XPathException if evaluation fails
      */
 
-    protected ValueRepresentation actuallyEvaluate(XPathContext context) throws XPathException {
+    protected Sequence actuallyEvaluate(XPathContext context) throws XPathException {
         final Controller controller = context.getController();
         final Bindery b = controller.getBindery();
         try {
@@ -145,7 +145,7 @@ public class GlobalVariable extends GeneralVariable implements Container {
                 return b.getGlobalVariable(getSlotNumber());
             }
 
-            ValueRepresentation value = getSelectValue(context);
+            Sequence value = getSelectValue(context);
             return b.saveGlobalVariableValue(this, value);
 
         } catch (XPathException err) {

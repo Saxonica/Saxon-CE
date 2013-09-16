@@ -1,23 +1,17 @@
 package client.net.sf.saxon.ce.style;
 
-import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.LogController;
 import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
-import client.net.sf.saxon.ce.expr.instruct.SlotManager;
 import client.net.sf.saxon.ce.expr.instruct.UserFunction;
 import client.net.sf.saxon.ce.expr.instruct.UserFunctionParameter;
-import client.net.sf.saxon.ce.om.Axis;
-import client.net.sf.saxon.ce.om.Item;
-import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
+import client.net.sf.saxon.ce.tree.linked.NodeImpl;
 import client.net.sf.saxon.ce.value.SequenceType;
 import com.google.gwt.logging.client.LogConfiguration;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 /**
@@ -30,13 +24,13 @@ public class XSLFunction extends StyleElement implements StylesheetProcedure {
 
     private boolean prepared = false;
     private SequenceType resultType;
-    private SlotManager stackFrameMap;
+    //private SlotManager stackFrameMap;
     private boolean override = true;
     private int numberOfArguments = -1;  // -1 means not yet known
     private UserFunction compiledFunction;
 
     // List of UserFunctionCall objects that reference this XSLFunction
-    List references = new ArrayList(10);
+    List<UserFunctionCall> references = new ArrayList<UserFunctionCall>(10);
 
     /**
      * Method called by UserFunctionCall to register the function call for
@@ -152,16 +146,15 @@ public class XSLFunction extends StyleElement implements StylesheetProcedure {
     */
 
     public void fixupReferences() throws XPathException {
-        Iterator iter = references.iterator();
-        while (iter.hasNext()) {
-            ((UserFunctionCall)iter.next()).setStaticType(resultType);
+        for (UserFunctionCall reference : references) {
+            (reference).setStaticType(resultType);
         }
         super.fixupReferences();
     }
 
     public void validate(Declaration decl) throws XPathException {
 
-        stackFrameMap = new SlotManager();
+        //stackFrameMap = new SlotManager();
 
         // check the element is at the top level of the stylesheet
 
@@ -199,7 +192,7 @@ public class XSLFunction extends StyleElement implements StylesheetProcedure {
      */
 
     private void compileAsExpression(Executable exec, Declaration decl) throws XPathException {
-        Expression exp = compileSequenceConstructor(exec, decl, iterateAxis(Axis.CHILD));
+        Expression exp = compileSequenceConstructor(exec, decl);
         if (exp == null) {
             exp = Literal.makeEmptySequence();
         } else {
@@ -215,13 +208,11 @@ public class XSLFunction extends StyleElement implements StylesheetProcedure {
         }
 
         UserFunction fn = new UserFunction();
-        fn.setHostLanguage(Configuration.XSLT);
         fn.setBody(exp);
         fn.setFunctionName(getObjectName());
         setParameterDefinitions(fn);
         fn.setResultType(getResultType());
         fn.setSourceLocator(this);
-        fn.setStackFrameMap(stackFrameMap);
         fn.setExecutable(exec);
         compiledFunction = fn;
         fixupInstruction(fn);
@@ -241,7 +232,7 @@ public class XSLFunction extends StyleElement implements StylesheetProcedure {
                 RoleLocator role =
                         new RoleLocator(RoleLocator.FUNCTION_RESULT, getObjectName().getDisplayName(), 0);
                 role.setErrorCode("XTTE0780");
-                exp2 = TypeChecker.staticTypeCheck(exp2, resultType, false, role, visitor);
+                exp2 = TypeChecker.staticTypeCheck(exp2, resultType, false, role);
             }
         } catch (XPathException err) {
             err.maybeSetLocation(this);
@@ -263,7 +254,6 @@ public class XSLFunction extends StyleElement implements StylesheetProcedure {
             compileError(err);
         }
 
-        allocateSlots(exp2);
         if (exp2 != exp) {
             compiledFunction.setBody(exp2);
         }
@@ -274,6 +264,7 @@ public class XSLFunction extends StyleElement implements StylesheetProcedure {
             compiledFunction.setBody(new TailCallLoop(compiledFunction));
         }
 
+        compiledFunction.allocateSlots(getNumberOfArguments());
         compiledFunction.computeEvaluationMode();
 
     }
@@ -288,12 +279,9 @@ public class XSLFunction extends StyleElement implements StylesheetProcedure {
     throws XPathException {
         ExpressionVisitor visitor = makeExpressionVisitor();
         try {
-            Iterator iter = references.iterator();
-            while (iter.hasNext()) {
-                UserFunctionCall call = ((UserFunctionCall)iter.next());
+            for (UserFunctionCall call : references) {
                 call.setFunction(compiledFunction);
                 call.checkFunctionCall(compiledFunction, visitor);
-                call.computeArgumentEvaluationModes();
             }
         } catch (XPathException err) {
             compileError(err);
@@ -305,9 +293,9 @@ public class XSLFunction extends StyleElement implements StylesheetProcedure {
      * @return the associated Procedure object
      */
 
-    public SlotManager getSlotManager() {
-        return stackFrameMap;
-    }
+//    public SlotManager getSlotManager() {
+//        return stackFrameMap;
+//    }
 
     /**
      * Get the type of value returned by this function
@@ -326,9 +314,7 @@ public class XSLFunction extends StyleElement implements StylesheetProcedure {
     public int getNumberOfArguments() {
         if (numberOfArguments == -1) {
             numberOfArguments = 0;
-            UnfailingIterator kids = iterateAxis(Axis.CHILD);
-            while (true) {
-                Item child = kids.next();
+            for (NodeImpl child: allChildren()) {
                 if (child instanceof XSLParam) {
                     numberOfArguments++;
                 } else {
@@ -348,21 +334,14 @@ public class XSLFunction extends StyleElement implements StylesheetProcedure {
         UserFunctionParameter[] params = new UserFunctionParameter[getNumberOfArguments()];
         fn.setParameterDefinitions(params);
         int count = 0;
-        UnfailingIterator kids = iterateAxis(Axis.CHILD);
-        while (true) {
-            NodeInfo node = (NodeInfo)kids.next();
-            if (node == null) {
-                return;
-            }
-            if (node instanceof XSLParam) {
+        for (NodeImpl child: allChildren()) {
+            if (child instanceof XSLParam) {
                 UserFunctionParameter param = new UserFunctionParameter();
                 params[count++] = param;
-                param.setRequiredType(((XSLParam)node).getRequiredType());
-                param.setVariableQName(((XSLParam)node).getVariableQName());
-                param.setSlotNumber(((XSLParam)node).getSlotNumber());
-                ((XSLParam)node).fixupBinding(param);
-                int refs = ExpressionTool.getReferenceCount(fn.getBody(), param, false);
-                param.setReferenceCount(refs);
+                param.setRequiredType(((XSLParam)child).getRequiredType());
+                param.setVariableQName(((XSLParam)child).getVariableQName());
+                param.setSlotNumber(((XSLParam)child).getSlotNumber());
+                ((XSLParam)child).fixupBinding(param);
             }
         }
     }

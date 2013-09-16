@@ -61,8 +61,8 @@ public class AnyItemType implements ItemType {
         return this;
     }
 
-    public BuiltInAtomicType getAtomizedItemType() {
-        return BuiltInAtomicType.ANY_ATOMIC;
+    public AtomicType getAtomizedItemType() {
+        return AtomicType.ANY_ATOMIC;
     }
 
     public String toString() {

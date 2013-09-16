@@ -3,7 +3,7 @@ import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.expr.sort.GlobalOrderComparer;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.value.BooleanValue;
 import client.net.sf.saxon.ce.value.SequenceType;
@@ -39,11 +39,11 @@ public final class IdentityComparison extends BinaryExpression {
 
         RoleLocator role0 = new RoleLocator(RoleLocator.BINARY_EXPR, Token.tokens[operator], 0);
         operand0 = TypeChecker.staticTypeCheck(
-                operand0, SequenceType.OPTIONAL_NODE, false, role0, visitor);
+                operand0, SequenceType.OPTIONAL_NODE, false, role0);
 
         RoleLocator role1 = new RoleLocator(RoleLocator.BINARY_EXPR, Token.tokens[operator], 1);
         operand1 = TypeChecker.staticTypeCheck(
-                operand1, SequenceType.OPTIONAL_NODE, false, role1, visitor);
+                operand1, SequenceType.OPTIONAL_NODE, false, role1);
         return this;
     }
 
@@ -101,7 +101,7 @@ public final class IdentityComparison extends BinaryExpression {
      */
 
     public ItemType getItemType() {
-        return BuiltInAtomicType.BOOLEAN;
+        return AtomicType.BOOLEAN;
     }
 
 

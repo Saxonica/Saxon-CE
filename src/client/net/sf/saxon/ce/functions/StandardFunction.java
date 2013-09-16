@@ -4,7 +4,7 @@ import client.net.sf.saxon.ce.expr.StaticProperty;
 import client.net.sf.saxon.ce.pattern.AnyNodeTest;
 import client.net.sf.saxon.ce.pattern.NodeKindTest;
 import client.net.sf.saxon.ce.type.AnyItemType;
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.value.EmptySequence;
 import client.net.sf.saxon.ce.value.SequenceType;
@@ -119,33 +119,33 @@ public abstract class StandardFunction {
                     } else if (it.equals("E")) {
                         t = NodeKindTest.ELEMENT;
                     } else if (it.equals("a")) {
-                        t = BuiltInAtomicType.ANY_ATOMIC;
+                        t = AtomicType.ANY_ATOMIC;
                     } else if (it.equals("i")) {
-                        t = BuiltInAtomicType.INTEGER;
+                        t = AtomicType.INTEGER;
                     } else if (it.equals("d")) {
-                        t = BuiltInAtomicType.DOUBLE;
+                        t = AtomicType.DOUBLE;
                     } else if (it.equals("dec")) {
-                        t = BuiltInAtomicType.DECIMAL;
+                        t = AtomicType.DECIMAL;
                     } else if (it.equals("n")) {
-                        t = BuiltInAtomicType.NUMERIC;
+                        t = AtomicType.NUMERIC;
                     } else if (it.equals("s")) {
-                        t = BuiltInAtomicType.STRING;
+                        t = AtomicType.STRING;
                     } else if (it.equals("b")) {
-                        t = BuiltInAtomicType.BOOLEAN;
+                        t = AtomicType.BOOLEAN;
                     } else if (it.equals("dt")) {
-                        t = BuiltInAtomicType.DATE_TIME;
+                        t = AtomicType.DATE_TIME;
                     } else if (it.equals("dat")) {
-                        t = BuiltInAtomicType.DATE;
+                        t = AtomicType.DATE;
                     } else if (it.equals("tim")) {
-                        t = BuiltInAtomicType.TIME;
+                        t = AtomicType.TIME;
                     } else if (it.equals("dur")) {
-                        t = BuiltInAtomicType.DURATION;
+                        t = AtomicType.DURATION;
                     } else if (it.equals("dtd")) {
-                        t = BuiltInAtomicType.DAY_TIME_DURATION;
+                        t = AtomicType.DAY_TIME_DURATION;
                     } else if (it.equals("q")) {
-                        t = BuiltInAtomicType.QNAME;
+                        t = AtomicType.QNAME;
                     } else if (it.equals("u")) {
-                        t = BuiltInAtomicType.ANY_URI;
+                        t = AtomicType.ANY_URI;
                     } else {
                         throw new IllegalArgumentException(it);
                     }

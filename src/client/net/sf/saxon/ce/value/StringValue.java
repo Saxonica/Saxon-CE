@@ -5,7 +5,7 @@ import client.net.sf.saxon.ce.trans.Err;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
 import client.net.sf.saxon.ce.tree.util.UTF16CharacterSet;
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ConversionResult;
 import client.net.sf.saxon.ce.type.StringToDouble;
 import client.net.sf.saxon.ce.type.ValidationFailure;
@@ -64,8 +64,8 @@ public class StringValue extends AtomicValue {
      * and xs:untypedAtomic. For external objects, the result is AnyAtomicType.
      */
 
-    public BuiltInAtomicType getItemType() {
-        return BuiltInAtomicType.STRING;
+    public AtomicType getItemType() {
+        return AtomicType.STRING;
     }
 
     /**
@@ -96,17 +96,15 @@ public class StringValue extends AtomicValue {
      * Convert a value to another primitive data type, with control over how validation is
      * handled.
      *
+     *
      * @param requiredType type code of the required atomic type. This must not be a namespace-sensitive type.
-     * @param validate     true if validation is required. If set to false, the caller guarantees that
-     *                     the value is valid for the target data type, and that further validation is therefore not required.
-     *                     Note that a validation failure may be reported even if validation was not requested.
      * @return the result of the conversion, if successful. If unsuccessful, the value returned
      *         will be a ValidationErrorValue. The caller must check for this condition. No exception is thrown, instead
      *         the exception will be encapsulated within the ErrorValue.
      */
 
-    public ConversionResult convertPrimitive(BuiltInAtomicType requiredType, boolean validate) {
-        if (requiredType == BuiltInAtomicType.STRING || requiredType == BuiltInAtomicType.ANY_ATOMIC) {
+    public ConversionResult convert(AtomicType requiredType) {
+        if (requiredType == AtomicType.STRING || requiredType == AtomicType.ANY_ATOMIC) {
             return this;
         }
         return convertStringToBuiltInType(value, requiredType);
@@ -123,59 +121,59 @@ public class StringValue extends AtomicValue {
      *         the exception will be encapsulated within the ValidationFailure.
      */
 
-    public static ConversionResult convertStringToBuiltInType(CharSequence value, BuiltInAtomicType requiredType) {
+    public static ConversionResult convertStringToBuiltInType(CharSequence value, AtomicType requiredType) {
         try {
-            if (requiredType == BuiltInAtomicType.BOOLEAN) {
+            if (requiredType == AtomicType.BOOLEAN) {
                 return BooleanValue.fromString(value);
-            } else if (requiredType == BuiltInAtomicType.NUMERIC || requiredType == BuiltInAtomicType.DOUBLE) {
+            } else if (requiredType == AtomicType.NUMERIC || requiredType == AtomicType.DOUBLE) {
                 try {
                     double dbl = StringToDouble.stringToNumber(value);
                     return new DoubleValue(dbl);
                 } catch (NumberFormatException err) {
                     return new ValidationFailure("Cannot convert string to double: " + value.toString(), "FORG0001");
                 }
-            } else if (requiredType == BuiltInAtomicType.INTEGER) {
+            } else if (requiredType == AtomicType.INTEGER) {
                 return IntegerValue.stringToInteger(value);
-            } else if (requiredType == BuiltInAtomicType.DECIMAL) {
+            } else if (requiredType == AtomicType.DECIMAL) {
                 return DecimalValue.makeDecimalValue(value);
-            } else if (requiredType == BuiltInAtomicType.FLOAT) {
+            } else if (requiredType == AtomicType.FLOAT) {
                 try {
                     float flt = (float) StringToDouble.stringToNumber(value);
                     return new FloatValue(flt);
                 } catch (NumberFormatException err) {
                     return new ValidationFailure("Cannot convert string to float: " + value.toString(), "FORG0001");
                 }
-            } else if (requiredType == BuiltInAtomicType.DATE) {
+            } else if (requiredType == AtomicType.DATE) {
                 return DateValue.makeDateValue(value);
-            } else if (requiredType == BuiltInAtomicType.DATE_TIME) {
+            } else if (requiredType == AtomicType.DATE_TIME) {
                 return DateTimeValue.makeDateTimeValue(value);
-            } else if (requiredType == BuiltInAtomicType.TIME) {
+            } else if (requiredType == AtomicType.TIME) {
                 return TimeValue.makeTimeValue(value);
-            } else if (requiredType == BuiltInAtomicType.G_YEAR) {
+            } else if (requiredType == AtomicType.G_YEAR) {
                 return GYearValue.makeGYearValue(value);
-            } else if (requiredType == BuiltInAtomicType.G_YEAR_MONTH) {
+            } else if (requiredType == AtomicType.G_YEAR_MONTH) {
                 return GYearMonthValue.makeGYearMonthValue(value);
-            } else if (requiredType == BuiltInAtomicType.G_MONTH) {
+            } else if (requiredType == AtomicType.G_MONTH) {
                 return GMonthValue.makeGMonthValue(value);
-            } else if (requiredType == BuiltInAtomicType.G_MONTH_DAY) {
+            } else if (requiredType == AtomicType.G_MONTH_DAY) {
                 return GMonthDayValue.makeGMonthDayValue(value);
-            } else if (requiredType == BuiltInAtomicType.G_DAY) {
+            } else if (requiredType == AtomicType.G_DAY) {
                 return GDayValue.makeGDayValue(value);
-            } else if (requiredType == BuiltInAtomicType.DURATION) {
+            } else if (requiredType == AtomicType.DURATION) {
                 return DurationValue.makeDuration(value);
-            } else if (requiredType == BuiltInAtomicType.YEAR_MONTH_DURATION) {
+            } else if (requiredType == AtomicType.YEAR_MONTH_DURATION) {
                 return YearMonthDurationValue.makeYearMonthDurationValue(value);
-            } else if (requiredType == BuiltInAtomicType.DAY_TIME_DURATION) {
+            } else if (requiredType == AtomicType.DAY_TIME_DURATION) {
                 return DayTimeDurationValue.makeDayTimeDurationValue(value);
-            } else if (requiredType == BuiltInAtomicType.UNTYPED_ATOMIC || requiredType == BuiltInAtomicType.ANY_ATOMIC) {
+            } else if (requiredType == AtomicType.UNTYPED_ATOMIC || requiredType == AtomicType.ANY_ATOMIC) {
                 return new UntypedAtomicValue(value);
-            } else if (requiredType == BuiltInAtomicType.STRING) {
+            } else if (requiredType == AtomicType.STRING) {
                 return makeStringValue(value);
-            } else if (requiredType == BuiltInAtomicType.ANY_URI) {
+            } else if (requiredType == AtomicType.ANY_URI) {
                 return new AnyURIValue(value);
-            } else if (requiredType == BuiltInAtomicType.HEX_BINARY) {
+            } else if (requiredType == AtomicType.HEX_BINARY) {
                 return new HexBinaryValue(value);
-            } else if (requiredType == BuiltInAtomicType.BASE64_BINARY) {
+            } else if (requiredType == AtomicType.BASE64_BINARY) {
                 return new Base64BinaryValue(value);
             } else {
                 return new ValidationFailure("Cannot convert string to type " + Err.wrap(requiredType.getDisplayName()), "XPTY0004");

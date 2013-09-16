@@ -90,23 +90,9 @@ public final class MappingIterator implements SequenceIterator {
     public SequenceIterator getAnother() throws XPathException {
         SequenceIterator newBase = base.getAnother();
         MappingFunction newAction = action instanceof StatefulMappingFunction ?
-                (MappingFunction)((StatefulMappingFunction)action).getAnother() :
+                (MappingFunction)((StatefulMappingFunction)action).getAnother(null) :
                 action;
         return new MappingIterator(newBase, newAction);
-    }
-
-    /**
-     * Get properties of this iterator, as a bit-significant integer.
-     *
-     * @return the properties of this iterator. This will be some combination of
-     *         properties such as {@link SequenceIterator#GROUNDED}, {@link SequenceIterator#LAST_POSITION_FINDER},
-     *         and {@link SequenceIterator#LOOKAHEAD}. It is always
-     *         acceptable to return the value zero, indicating that there are no known special properties.
-     *         It is acceptable for the properties of the iterator to change depending on its state.
-     */
-
-    public int getProperties() {
-        return 0;
     }
 
 }

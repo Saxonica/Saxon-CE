@@ -33,10 +33,11 @@ public class SortedGroupIterator extends SortedIterator implements GroupIterator
      */
 
     protected void buildArray() throws XPathException {
-        int allocated;
-        if ((base.getProperties() & SequenceIterator.LAST_POSITION_FINDER) != 0) {
+        int allocated = -1;
+        if (base instanceof LastPositionFinder) {
             allocated = ((LastPositionFinder)base).getLastPosition();
-        } else {
+        }
+        if (allocated == -1) {
             allocated = 100;
         }
 

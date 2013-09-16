@@ -19,7 +19,6 @@ import client.net.sf.saxon.ce.value.Cardinality;
 import client.net.sf.saxon.ce.value.EmptySequence;
 import client.net.sf.saxon.ce.value.SequenceType;
 
-import java.util.Arrays;
 import java.util.Iterator;
 
 /**
@@ -147,7 +146,7 @@ public class SlashExpression extends Expression
         RoleLocator role0 = new RoleLocator(RoleLocator.BINARY_EXPR, "/", 0);
         role0.setErrorCode("XPTY0019");
         setStartExpression(
-                TypeChecker.staticTypeCheck(start2, SequenceType.NODE_SEQUENCE, false, role0, visitor));
+                TypeChecker.staticTypeCheck(start2, SequenceType.NODE_SEQUENCE, false, role0));
 
         // Now check the second operand
 
@@ -281,7 +280,7 @@ public class SlashExpression extends Expression
      */
 
     public Iterator<Expression> iterateSubExpressions() {
-        return Arrays.asList((new Expression[]{start, step})).iterator();
+        return nonNullChildren(start, step);
     }
 
     /**

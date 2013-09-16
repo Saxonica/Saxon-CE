@@ -1,10 +1,13 @@
 package client.net.sf.saxon.ce.functions;
 import client.net.sf.saxon.ce.expr.*;
+import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.SequenceIterator;
-import client.net.sf.saxon.ce.tree.iter.EmptyIterator;
 import client.net.sf.saxon.ce.trans.XPathException;
+import client.net.sf.saxon.ce.tree.iter.EmptyIterator;
 import client.net.sf.saxon.ce.type.ItemType;
-import client.net.sf.saxon.ce.value.*;
+import client.net.sf.saxon.ce.value.DoubleValue;
+import client.net.sf.saxon.ce.value.IntegerValue;
+import client.net.sf.saxon.ce.value.NumericValue;
 
 /**
 * Implements the XPath 2.0 subsequence()  function
@@ -121,7 +124,59 @@ public class Subsequence extends SystemFunction {
             }
             lend = rend.intValue();
         }
-        return SubsequenceIterator.make(seq, lstart, lend);
+        return makeIterator(seq, lstart, lend);
+    }
+
+    /**
+     * Static factory method. Creates a SubsequenceIterator, unless for example the base Iterator is an
+     * ArrayIterator, in which case it optimizes by creating a new ArrayIterator directly over the
+     * underlying array. This optimization is important when doing recursion over a node-set using
+     * repeated calls of $nodes[position()>1]
+     * @param base   An iteration of the items to be filtered
+     * @param min    The position of the first item to be included (base 1)
+     * @param max    The position of the last item to be included (base 1).  May be Integer.MAX_VALUE
+     * @return an iterator over the requested subsequence
+     * @throws XPathException (probably can't happen)
+    */
+
+    public static SequenceIterator makeIterator(SequenceIterator base, int min, int max) throws XPathException {
+        return new ItemMappingIterator(base, new SubsequenceMappingFunction(base, min, max));
+    }
+
+    private static class SubsequenceMappingFunction implements ItemMappingFunction, StatefulMappingFunction {
+        private SequenceIterator base;
+        private int min;
+        private int max;
+        public SubsequenceMappingFunction(SequenceIterator base, int min, int max) {
+            this.base = base;
+            this.min = min;
+            this.max = max;
+        }
+
+        /**
+         * Map one item to another item.
+         *
+         * @param item The input item to be mapped.
+         * @return either the output item, or null.
+         */
+        public Item mapItem(Item item) throws ItemMappingIterator.EarlyExitException {
+            int position = base.position();
+            if (position > max) {
+                throw new ItemMappingIterator.EarlyExitException();
+            }
+            return (position >= min ? item : null);
+        }
+
+        /**
+         * Return a clone of this MappingFunction, with the state reset to its state at the beginning
+         * of the underlying iteration
+         *
+         * @return a clone of this MappingFunction
+         * @param newBaseIterator the cloned SequenceIterator to which the new mapping function will be applied
+         */
+        public StatefulMappingFunction getAnother(SequenceIterator newBaseIterator) throws XPathException {
+            return new SubsequenceMappingFunction(newBaseIterator, min, max);
+        }
     }
 
 }

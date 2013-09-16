@@ -15,7 +15,6 @@ import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.value.EmptySequence;
 
-import java.util.Arrays;
 import java.util.Iterator;
 
 /**
@@ -117,7 +116,7 @@ public class Copy extends ElementCreator {
       */
 
     public Iterator<Expression> iterateSubExpressions() {
-        return Arrays.asList((new Expression[]{select, content})).iterator();
+        return nonNullChildren(select, content);
     }
 
     /**

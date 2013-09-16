@@ -50,12 +50,6 @@ public final class Axis  {
      */
     public static final byte SELF               = 12;
 
-    // preceding-or-ancestor axis gives all preceding nodes including ancestors,
-    // in reverse document order
-
-    /** Constant representing the preceding-or-ancestor axis. This axis is used internally by the xsl:number implementation, it returns the union of the preceding axis and the ancestor axis.
-     */
-    public static final byte PRECEDING_OR_ANCESTOR = 13;
 
     /**
      * Table indicating the principal node type of each axis
@@ -76,7 +70,6 @@ public final class Axis  {
         Type.ELEMENT,       // PRECEDING;
         Type.ELEMENT,       // PRECEDING_SIBLING;
         Type.ELEMENT,       // SELF;
-        Type.ELEMENT,       // PRECEDING_OR_ANCESTOR;
     };
 
     /**
@@ -98,7 +91,6 @@ public final class Axis  {
         false,          // PRECEDING;
         false,          // PRECEDING_SIBLING;
         true,           // SELF;
-        false,          // PRECEDING_OR_ANCESTOR;
     };
 
     /**
@@ -120,7 +112,6 @@ public final class Axis  {
 //        true,           // PRECEDING;
 //        true,           // PRECEDING_SIBLING;
 //        true,           // SELF;
-//        true,           // PRECEDING_OR_ANCESTOR;
 //    };
 
     /**
@@ -143,7 +134,6 @@ public final class Axis  {
         false,          // PRECEDING;
         true,           // PRECEDING_SIBLING;
         true,           // SELF;
-        false,          // PRECEDING_OR_ANCESTOR;
     };
 
     /**
@@ -166,7 +156,6 @@ public final class Axis  {
         false,          // PRECEDING;
         false,          // PRECEDING_SIBLING;
         true,           // SELF;
-        false,          // PRECEDING_OR_ANCESTOR;
     };
 
     /**
@@ -188,7 +177,6 @@ public final class Axis  {
         "preceding",            // PRECEDING;
         "preceding-sibling",    // PRECEDING_SIBLING;
         "self",                 // SELF;
-        "preceding-or-ancestor",// PRECEDING_OR_ANCESTOR;
     };
 
     /**

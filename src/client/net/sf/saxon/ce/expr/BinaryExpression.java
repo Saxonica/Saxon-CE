@@ -5,7 +5,6 @@ import client.net.sf.saxon.ce.value.Cardinality;
 import client.net.sf.saxon.ce.value.Value;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -139,7 +138,7 @@ public abstract class BinaryExpression extends Expression {
     */
 
     public Iterator<Expression> iterateSubExpressions() {
-        return Arrays.asList((new Expression[]{operand0, operand1})).iterator();
+        return nonNullChildren(operand0, operand1);
     }
 
 

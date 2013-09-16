@@ -4,7 +4,6 @@ import client.net.sf.saxon.ce.expr.Expression;
 import client.net.sf.saxon.ce.expr.Literal;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.expr.instruct.ResultDocument;
-import client.net.sf.saxon.ce.om.Axis;
 import client.net.sf.saxon.ce.om.InscopeNamespaceResolver;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.XPathException;
@@ -106,9 +105,6 @@ public class XSLResultDocument extends StyleElement {
     }
 
     public void validate(Declaration decl) throws XPathException {
-        if (href != null && !getConfiguration().isAllowExternalFunctions()) {
-            compileError("xsl:result-document is disabled when extension functions are disabled");
-        }
         href = typeCheck(href);
         methodExpression = typeCheck(methodExpression);
 
@@ -120,7 +116,7 @@ public class XSLResultDocument extends StyleElement {
 
         ResultDocument inst = new ResultDocument(href, methodExpression, getBaseURI(), new InscopeNamespaceResolver(this));
 
-        Expression b = compileSequenceConstructor(exec, decl, iterateAxis(Axis.CHILD));
+        Expression b = compileSequenceConstructor(exec, decl);
         if (b == null) {
             b = new Literal(EmptySequence.getInstance());
         }

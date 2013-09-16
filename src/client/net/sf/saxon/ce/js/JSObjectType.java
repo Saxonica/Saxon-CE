@@ -31,7 +31,7 @@ public class JSObjectType implements ItemType {
         return AnyItemType.getInstance();
     }
 
-    public BuiltInAtomicType getAtomizedItemType() {
+    public AtomicType getAtomizedItemType() {
         return null;
     }
 }

@@ -197,10 +197,10 @@ public class Choose extends Instruction {
      * for this approach is to avoid doing dynamic type checking on a recursive function call as this
      * prevents tail-call optimization being used.
      *
+     *
      * @param req                 the required type
      * @param backwardsCompatible true if backwards compatibility mode applies
      * @param role                the role of the expression in relation to the required type
-     * @param visitor             an expression visitor
      * @return the expression after type checking (perhaps augmented with dynamic type checking code)
      * @throws XPathException if failures occur, for example if the static type of one branch of the conditional
      *                        is incompatible with the required type
@@ -208,10 +208,10 @@ public class Choose extends Instruction {
 
     public Expression staticTypeCheck(SequenceType req,
                                       boolean backwardsCompatible,
-                                      RoleLocator role, ExpressionVisitor visitor)
+                                      RoleLocator role)
             throws XPathException {
         for (int i = 0; i < actions.length; i++) {
-            actions[i] = TypeChecker.staticTypeCheck(actions[i], req, backwardsCompatible, role, visitor);
+            actions[i] = TypeChecker.staticTypeCheck(actions[i], req, backwardsCompatible, role);
         }
         // If the last condition isn't true(), then we need to consider the fall-through case, which returns
         // an empty sequence

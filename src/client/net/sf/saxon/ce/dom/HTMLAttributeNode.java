@@ -2,6 +2,7 @@ package client.net.sf.saxon.ce.dom;
 
 import client.net.sf.saxon.ce.event.Receiver;
 import client.net.sf.saxon.ce.om.*;
+import client.net.sf.saxon.ce.pattern.AnyNodeTest;
 import client.net.sf.saxon.ce.pattern.NodeTest;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.*;
@@ -88,13 +89,13 @@ public class HTMLAttributeNode implements NodeInfo {
         return element;
     }
 
-    public UnfailingIterator iterateAxis(byte axisNumber) {
+    private UnfailingIterator iterateAxis0(byte axisNumber) {
         switch (axisNumber) {
             case Axis.ANCESTOR:
-                return element.iterateAxis(Axis.ANCESTOR_OR_SELF);
+                return element.iterateAxis(Axis.ANCESTOR_OR_SELF, AnyNodeTest.getInstance());
 
             case Axis.ANCESTOR_OR_SELF:
-                return new PrependIterator(this, element.iterateAxis(Axis.ANCESTOR_OR_SELF));
+                return new PrependIterator(this, element.iterateAxis(Axis.ANCESTOR_OR_SELF, AnyNodeTest.getInstance()));
 
             case Axis.ATTRIBUTE:
                 return EmptyIterator.getInstance();
@@ -129,16 +130,14 @@ public class HTMLAttributeNode implements NodeInfo {
             case Axis.SELF:
                 return SingletonIterator.makeIterator(this);
 
-            case Axis.PRECEDING_OR_ANCESTOR:
-                return new Navigator.PrecedingEnumeration(this, true);
-
             default:
                 throw new IllegalArgumentException("Unknown axis number " + axisNumber);
         }
     }
 
     public UnfailingIterator iterateAxis(byte axisNumber, NodeTest nodeTest) {
-        return new Navigator.AxisFilter(iterateAxis(axisNumber), nodeTest);
+
+        return Navigator.newAxisFilter(iterateAxis0(axisNumber), nodeTest);
     }
 
     public NodeInfo getRoot() {
@@ -172,6 +171,15 @@ public class HTMLAttributeNode implements NodeInfo {
 
     public AtomicValue getTypedValue() {
         return new UntypedAtomicValue(value);
+    }
+
+    /**
+     * Get the index position of this node among its siblings (starting from 0)
+     *
+     * @return 0 for the first child, 1 for the second child, etc.
+     */
+    public int getSiblingPosition() {
+        return 1;
     }
 }
 

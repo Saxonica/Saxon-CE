@@ -10,7 +10,7 @@ import client.net.sf.saxon.ce.lib.NamespaceConstant;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.om.StructuredQName;
-import client.net.sf.saxon.ce.om.ValueRepresentation;
+import client.net.sf.saxon.ce.om.Sequence;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.EmptyIterator;
 import client.net.sf.saxon.ce.tree.iter.JsArrayIterator;
@@ -216,7 +216,7 @@ public class IXSLFunction extends FunctionCall {
         return (out == null) ? -1 : out;
     }-*/;
 
-    public static Object convertToJavaScript(ValueRepresentation val) throws XPathException {
+    public static Object convertToJavaScript(Sequence val) throws XPathException {
         if (val == null || val instanceof EmptySequence) {
             return null;
         }
@@ -246,7 +246,7 @@ public class IXSLFunction extends FunctionCall {
         }
     }
 
-    private static JavaScriptObject convertSequenceToArray(ValueRepresentation val, int seqLength) throws XPathException {
+    private static JavaScriptObject convertSequenceToArray(Sequence val, int seqLength) throws XPathException {
         JavaScriptObject jsItems = jsArray(seqLength);
         SequenceIterator iterator = Value.asIterator(val);
         int i = 0;
@@ -305,13 +305,13 @@ public class IXSLFunction extends FunctionCall {
                 return evaluateJsFunction(script, context);
 
             } else if (localName.equals("call")) {
-                ValueRepresentation itemVal = (ValueRepresentation) argument[0].evaluateItem(context);
+                Sequence itemVal = (Sequence) argument[0].evaluateItem(context);
                 JavaScriptObject target = (JavaScriptObject) convertToJavaScript(itemVal);
                 if (target != null) {
                     String method = argument[1].evaluateAsString(context).toString();
                     JavaScriptObject jsArgs = jsArray(argument.length - 2);
                     for (int i = 2; i < argument.length; i++) {
-                        ValueRepresentation val = SequenceExtent.makeSequenceExtent(argument[i].iterate(context));
+                        Sequence val = SequenceExtent.makeSequenceExtent(argument[i].iterate(context));
                         jsSetArrayItem(jsArgs, i - 2, convertToJavaScript(val));
                     }
                     // Issue: if following throws an exception - GWT doesn't always allow it to be caught - it's rethrown
@@ -345,7 +345,7 @@ public class IXSLFunction extends FunctionCall {
                     throw (new XPathException("JavaScriptException in ixsl:call(): Call target object is null or undefined"));
                 }
             } else if (localName.equals("get")) {
-                ValueRepresentation itemVal = (ValueRepresentation) argument[0].evaluateItem(context);
+                Item itemVal = argument[0].evaluateItem(context);
                 JavaScriptObject target = (JavaScriptObject) convertToJavaScript(itemVal);
                 if (target != null) {
                     String property = argument[1].evaluateAsString(context).toString();

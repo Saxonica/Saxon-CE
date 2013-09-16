@@ -1,10 +1,8 @@
 package client.net.sf.saxon.ce.style;
 import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
-import client.net.sf.saxon.ce.expr.instruct.SlotManager;
 import client.net.sf.saxon.ce.expr.sort.CodepointCollator;
 import client.net.sf.saxon.ce.lib.StringCollator;
-import client.net.sf.saxon.ce.om.Axis;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.pattern.Pattern;
 import client.net.sf.saxon.ce.trans.Err;
@@ -12,7 +10,7 @@ import client.net.sf.saxon.ce.trans.KeyDefinition;
 import client.net.sf.saxon.ce.trans.KeyManager;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.URI;
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.SequenceType;
 
@@ -26,8 +24,6 @@ public class XSLKey extends StyleElement implements StylesheetProcedure {
     private Pattern match;
     private Expression use;
     private String collationName;
-    SlotManager stackFrameMap;
-                // needed if variables are used
 
     @Override
     public boolean isDeclaration() {
@@ -41,14 +37,6 @@ public class XSLKey extends StyleElement implements StylesheetProcedure {
 
     public boolean mayContainSequenceConstructor() {
         return true;
-    }
-
-    /**
-     * Get the Procedure object that looks after any local variables declared in the content constructor
-     */
-
-    public SlotManager getSlotManager() {
-        return stackFrameMap;
     }
 
     public void prepareAttributes() throws XPathException {
@@ -65,7 +53,6 @@ public class XSLKey extends StyleElement implements StylesheetProcedure {
 
     public void validate(Declaration decl) throws XPathException {
 
-        stackFrameMap = new SlotManager();
         checkTopLevel(null);
         if (use!=null) {
             // the value can be supplied as a content constructor in place of a use expression
@@ -78,8 +65,8 @@ public class XSLKey extends StyleElement implements StylesheetProcedure {
                 //role.setSourceLocator(new ExpressionLocation(this));
                 use = TypeChecker.staticTypeCheck(
                                 use,
-                                SequenceType.makeSequenceType(BuiltInAtomicType.ANY_ATOMIC, StaticProperty.ALLOWS_ZERO_OR_MORE),
-                                false, role, makeExpressionVisitor());
+                                SequenceType.makeSequenceType(AtomicType.ANY_ATOMIC, StaticProperty.ALLOWS_ZERO_OR_MORE),
+                                false, role);
             } catch (XPathException err) {
                 compileError(err);
             }
@@ -141,7 +128,7 @@ public class XSLKey extends StyleElement implements StylesheetProcedure {
         }
 
         if (use==null) {
-            Expression body = compileSequenceConstructor(exec, decl, iterateAxis(Axis.CHILD));
+            Expression body = compileSequenceConstructor(exec, decl);
 
             try {
                 ExpressionVisitor visitor = makeExpressionVisitor();
@@ -157,8 +144,8 @@ public class XSLKey extends StyleElement implements StylesheetProcedure {
                 //role.setSourceLocator(new ExpressionLocation(this));
                 use = TypeChecker.staticTypeCheck(
                                 use,
-                                SequenceType.makeSequenceType(BuiltInAtomicType.ANY_ATOMIC, StaticProperty.ALLOWS_ZERO_OR_MORE),
-                                false, role, makeExpressionVisitor());
+                                SequenceType.makeSequenceType(AtomicType.ANY_ATOMIC, StaticProperty.ALLOWS_ZERO_OR_MORE),
+                                false, role);
                 // Do a further check that the use expression makes sense in the context of the match pattern
                 use = makeExpressionVisitor().typeCheck(use, match.getNodeTest());
 
@@ -168,26 +155,25 @@ public class XSLKey extends StyleElement implements StylesheetProcedure {
             }
         }
         final TypeHierarchy th = TypeHierarchy.getInstance();
-        BuiltInAtomicType useType = (BuiltInAtomicType)use.getItemType().getPrimitiveItemType();
+        AtomicType useType = (AtomicType)use.getItemType().getPrimitiveItemType();
         if (xPath10ModeIsEnabled()) {
-            if (!useType.equals(BuiltInAtomicType.STRING) && !useType.equals(BuiltInAtomicType.UNTYPED_ATOMIC)) {
-                use = new AtomicSequenceConverter(use, BuiltInAtomicType.STRING);
-                useType = BuiltInAtomicType.STRING;
+            if (!useType.equals(AtomicType.STRING) && !useType.equals(AtomicType.UNTYPED_ATOMIC)) {
+                use = new AtomicSequenceConverter(use, AtomicType.STRING);
+                useType = AtomicType.STRING;
             }
         }
-        allocateSlots(use);
-        int slots = match.allocateSlots(getStaticContext(), stackFrameMap, 0);
+        int slots = match.allocateSlots(0);
         allocatePatternSlots(slots);
-        //allocateSlots(new PatternSponsor(match));
 
 
         KeyManager km = getExecutable().getKeyManager();
         KeyDefinition keydef = new KeyDefinition(match, use, collationName, collator);
         keydef.setIndexedItemType(useType);
-        keydef.setStackFrameMap(stackFrameMap);
+        //keydef.setStackFrameMap(stackFrameMap);
         keydef.setSourceLocator(this);
         keydef.setExecutable(getExecutable());
         keydef.setBackwardsCompatible(xPath10ModeIsEnabled());
+        keydef.allocateSlots(0);
         try {
             km.addKeyDefinition(getObjectName(), keydef, exec.getConfiguration());
         } catch (XPathException err) {

@@ -10,7 +10,7 @@ import client.net.sf.saxon.ce.functions.FunctionLibraryList;
 import client.net.sf.saxon.ce.om.CopyOptions;
 import client.net.sf.saxon.ce.om.DocumentInfo;
 import client.net.sf.saxon.ce.om.StructuredQName;
-import client.net.sf.saxon.ce.om.ValueRepresentation;
+import client.net.sf.saxon.ce.om.Sequence;
 import client.net.sf.saxon.ce.style.*;
 import client.net.sf.saxon.ce.trans.*;
 import client.net.sf.saxon.ce.tree.linked.DocumentImpl;
@@ -19,7 +19,6 @@ import client.net.sf.saxon.ce.value.DecimalValue;
 
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 
 /**
  * A compiled stylesheet or a query in executable form.
@@ -38,7 +37,7 @@ public class Executable {
     private KeyManager keyManager;
 
     // the map of slots used for global variables and params
-    private SlotManager globalVariableMap;
+    private int numberOfGlobals;
 
     // list of functions available in the static context
     private FunctionLibraryList functionLibrary;
@@ -117,6 +116,9 @@ public class Executable {
      */
 
     public StripSpaceRules getStripperRules() {
+        if (stripperRules == null) {
+            stripperRules = new StripSpaceRules();
+        }
         return stripperRules;
     }
 
@@ -134,16 +136,12 @@ public class Executable {
     }
 
     /**
-     * Get the global variable map
-     *
-     * @return the SlotManager defining the allocation of slots to global variables
+     * Allocate a slot number for a global variable
+     * @return the allocated slot number
      */
 
-    public SlotManager getGlobalVariableMap() {
-        if (globalVariableMap == null) {
-            globalVariableMap = new SlotManager();
-        }
-        return globalVariableMap;
+    public int allocateGlobalVariableSlot() {
+        return numberOfGlobals++;
     }
 
     /**
@@ -152,7 +150,7 @@ public class Executable {
      */
 
     public void initializeBindery(Bindery bindery) {
-        bindery.allocateGlobals(getGlobalVariableMap());
+        bindery.allocateGlobals(numberOfGlobals);
     }
 
     /**
@@ -173,19 +171,14 @@ public class Executable {
      * @throws XPathException if there is a required parameter for which no value has been supplied
      */
 
-    public void checkAllRequiredParamsArePresent(HashMap<StructuredQName, ValueRepresentation> params) throws XPathException {
+    public void checkAllRequiredParamsArePresent(HashMap<StructuredQName, Sequence> params) throws XPathException {
         if (requiredParams == null) {
             return;
         }
-        Iterator<StructuredQName> iter = requiredParams.iterator();
-        while (iter.hasNext()) {
-            StructuredQName req = iter.next();
+        for (StructuredQName req : requiredParams) {
             if (params == null || !params.containsKey(req)) {
- //           if (params == null || params.get(req) == null) {
-                XPathException err = new XPathException("No value supplied for required parameter " +
-                        req.getDisplayName());
-                err.setErrorCode("XTDE0050");
-                throw err;
+                throw new XPathException("No value supplied for required parameter " +
+                        req.getDisplayName(), "XTDE0050");
             }
         }
     }
@@ -361,7 +354,7 @@ public class Executable {
         }
 
         PrincipalStylesheetModule psm = new PrincipalStylesheetModule(top, 0);
-        psm.setPreparedStylesheet(this);
+        psm.setExecutable(this);
         psm.setVersion(top.getAttributeValue("", "version"));
         psm.createFunctionLibrary();
         setFunctionLibrary(psm.getFunctionLibrary());

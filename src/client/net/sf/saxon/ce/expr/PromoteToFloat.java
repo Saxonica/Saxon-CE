@@ -1,6 +1,6 @@
 package client.net.sf.saxon.ce.expr;
 
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.value.AtomicValue;
 import client.net.sf.saxon.ce.value.NumericValue;
@@ -25,7 +25,7 @@ public class PromoteToFloat extends NumericPromoter {
      */
 
 	public ItemType getItemType() {
-        return BuiltInAtomicType.FLOAT;
+        return AtomicType.FLOAT;
 	}
 
 
@@ -42,7 +42,7 @@ public class PromoteToFloat extends NumericPromoter {
         if (value instanceof DoubleValue) {
             typeError("Cannot promote from xs:double to xs:float", "XPTY0004");
         }
-        return value.convert(BuiltInAtomicType.FLOAT, true).asAtomic();
+        return value.convert(AtomicType.FLOAT).asAtomic();
     }
 }
 

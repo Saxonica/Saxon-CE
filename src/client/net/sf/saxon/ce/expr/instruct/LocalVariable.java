@@ -1,6 +1,6 @@
 package client.net.sf.saxon.ce.expr.instruct;
 import client.net.sf.saxon.ce.expr.XPathContext;
-import client.net.sf.saxon.ce.om.ValueRepresentation;
+import client.net.sf.saxon.ce.om.Sequence;
 import client.net.sf.saxon.ce.trans.XPathException;
 
 /**
@@ -26,7 +26,7 @@ public class LocalVariable extends GeneralVariable {
     * Evaluate the variable
     */
 
-   public ValueRepresentation evaluateVariable(XPathContext c) throws XPathException {
+   public Sequence evaluateVariable(XPathContext c) throws XPathException {
        throw new UnsupportedOperationException("LocalVariable");
 //       return c.evaluateLocalVariable(getSlotNumber());
    }

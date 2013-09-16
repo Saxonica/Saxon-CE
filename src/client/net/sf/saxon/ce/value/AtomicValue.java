@@ -24,7 +24,7 @@ import client.net.sf.saxon.ce.type.*;
  * @author Michael H. Kay
  */
 
-public abstract class AtomicValue extends Value implements Item, GroundedValue, ConversionResult {
+public abstract class AtomicValue extends Value implements Item, ConversionResult {
 
     /**
      * Get an object value that implements the XPath equality and ordering comparison semantics for this value.
@@ -98,43 +98,21 @@ public abstract class AtomicValue extends Value implements Item, GroundedValue, 
      * @return the primitive type
      */
 
-    public abstract BuiltInAtomicType getItemType();
+    public abstract AtomicType getItemType();
 
     /**
      * Convert a value to either (a) another primitive type, or (b) another built-in type derived
      * from the current primitive type, with control over how validation is
      * handled.
      *
+     *
      * @param requiredType the required atomic type. This must either be a primitive type, or a built-in
      *                     type derived from the same primitive type as this atomic value.
-     * @param validate     true if validation is required. If set to false, the caller guarantees that
-     *                     the value is valid for the target data type, and that further validation
-     *                     is therefore not required.
-     *                     Note that a validation failure may be reported even if validation was not requested.
      * @return the result of the conversion, if successful. If unsuccessful, the value returned
      *         will be a ValidationFailure. The caller must check for this condition. No exception is thrown, instead
      *         the exception information will be encapsulated within the ValidationFailure.
      */
-    protected abstract ConversionResult convertPrimitive(
-            BuiltInAtomicType requiredType, boolean validate);
-
-    /**
-     * Convert the value to a given type. The result of the conversion will be
-     * an atomic value of the required type. This method works where the target
-     * type is a built-in atomic type and also where it is a user-defined atomic
-     * type.
-     *
-     * @param targetType the type to which the value is to be converted. This must not be a namespace-sensitive type
-     *                   such as QName or NOTATION.
-     * @param validate   true if validation is required, false if the caller already knows that the
-     *                   value is valid
-     * @return the value after conversion if successful; or a {@link ValidationFailure} if conversion failed. The
-     *         caller must check for this condition. Validation may fail even if validation was not requested.
-     */
-    
-    public final ConversionResult convert(BuiltInAtomicType targetType, boolean validate) {
-    	return convertPrimitive((BuiltInAtomicType)targetType, validate);  
-    }
+    public abstract ConversionResult convert(AtomicType requiredType);
 
     /**
      * Test whether the value is the special value NaN
@@ -238,27 +216,6 @@ public abstract class AtomicValue extends Value implements Item, GroundedValue, 
         return this;
     }
 
-
-    /**
-     * Get a subsequence of the value
-     *
-     * @param start  the index of the first item to be included in the result, counting from zero.
-     *               A negative value is taken as zero. If the value is beyond the end of the sequence, an empty
-     *               sequence is returned
-     * @param length the number of items to be included in the result. Specify Integer.MAX_VALUE to
-     *               get the subsequence up to the end of the base sequence. If the value is negative, an empty sequence
-     *               is returned. If the value goes off the end of the sequence, the result returns items up to the end
-     *               of the sequence
-     * @return the required subsequence. If min is
-     */
-
-    public GroundedValue subsequence(int start, int length) {
-        if (start <= 0 && start + length > 0) {
-            return this;
-        } else {
-            return EmptySequence.getInstance();
-        }
-    }
 
     /**
      * Get string value. In general toString() for an atomic value displays the value as it would be

@@ -4,7 +4,7 @@ import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.tree.iter.SingletonIterator;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.AtomicValue;
@@ -159,7 +159,7 @@ public final class InstanceOfExpression extends UnaryExpression {
      */
 
     public ItemType getItemType() {
-        return BuiltInAtomicType.BOOLEAN;
+        return AtomicType.BOOLEAN;
     }
 
     /**

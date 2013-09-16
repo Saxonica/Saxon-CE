@@ -81,12 +81,12 @@ public interface Receiver  {
      * zero represents the empty prefix (that is, the default namespace). A URI code of zero represents
      * a URI of "", that is, a namespace undeclaration.
      * @param properties The most important property is REJECT_DUPLICATES. If this property is set, the
- * namespace declaration will be rejected if it conflicts with a previous declaration of the same
- * prefix. If the property is not set, the namespace declaration will be ignored if it conflicts
- * with a previous declaration. This reflects the fact that when copying a tree, namespaces for child
- * elements are emitted before the namespaces of their parent element. Unfortunately this conflicts
- * with the XSLT rule for complex content construction, where the recovery action in the event of
- * conflicts is to take the namespace that comes last. XSLT therefore doesn't recover from this error:
+     * namespace declaration will be rejected if it conflicts with a previous declaration of the same
+     * prefix. If the property is not set, the namespace declaration will be ignored if it conflicts
+     * with a previous declaration. This reflects the fact that when copying a tree, namespaces for child
+     * elements are emitted before the namespaces of their parent element. Unfortunately this conflicts
+     * with the XSLT rule for complex content construction, where the recovery action in the event of
+     * conflicts is to take the namespace that comes last. XSLT therefore doesn't recover from this error:
      */
 
     public void namespace(NamespaceBinding nsBinding, int properties) throws XPathException;

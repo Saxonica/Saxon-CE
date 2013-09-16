@@ -114,15 +114,15 @@ public class NodeKindTest extends NodeTest {
             case Type.ELEMENT:
                 return AnyType.getInstance();
             case Type.ATTRIBUTE:
-                return BuiltInAtomicType.UNTYPED_ATOMIC;
+                return AtomicType.UNTYPED_ATOMIC;
             case Type.COMMENT:
-                return BuiltInAtomicType.STRING;
+                return AtomicType.STRING;
             case Type.TEXT:
-                return BuiltInAtomicType.UNTYPED_ATOMIC;
+                return AtomicType.UNTYPED_ATOMIC;
             case Type.PROCESSING_INSTRUCTION:
-                return BuiltInAtomicType.STRING;
+                return AtomicType.STRING;
             case Type.NAMESPACE:
-                return BuiltInAtomicType.STRING;
+                return AtomicType.STRING;
             default:
                 throw new AssertionError("Unknown node kind");
         }
@@ -133,22 +133,22 @@ public class NodeKindTest extends NodeTest {
      * Return AnyType if there are no restrictions. The default implementation returns AnyType.
      */
 
-    public BuiltInAtomicType getAtomizedItemType() {
+    public AtomicType getAtomizedItemType() {
         switch (kind) {
             case Type.DOCUMENT:
-                return BuiltInAtomicType.UNTYPED_ATOMIC;
+                return AtomicType.UNTYPED_ATOMIC;
             case Type.ELEMENT:
-                return BuiltInAtomicType.ANY_ATOMIC;
+                return AtomicType.ANY_ATOMIC;
             case Type.ATTRIBUTE:
-                return BuiltInAtomicType.ANY_ATOMIC;
+                return AtomicType.ANY_ATOMIC;
             case Type.COMMENT:
-                return BuiltInAtomicType.STRING;
+                return AtomicType.STRING;
             case Type.TEXT:
-                return BuiltInAtomicType.UNTYPED_ATOMIC;
+                return AtomicType.UNTYPED_ATOMIC;
             case Type.PROCESSING_INSTRUCTION:
-                return BuiltInAtomicType.STRING;
+                return AtomicType.STRING;
             case Type.NAMESPACE:
-                return BuiltInAtomicType.STRING;
+                return AtomicType.STRING;
             default:
                 throw new AssertionError("Unknown node kind");
         }

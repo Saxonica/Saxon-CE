@@ -77,17 +77,12 @@ public class HTMLDocumentWrapper extends HTMLNodeWrapper implements DocumentInfo
         // need to determine whether HTML, XHTML or neither so as to control case of node names
         // and distinguish other XML/HTML behaviours - like SelectID
         try {
-            UnfailingIterator iter = this.iterateAxis(Axis.CHILD);
+            UnfailingIterator iter = this.iterateAxis(Axis.CHILD, NodeKindTest.ELEMENT);
             while (true) {
                 NodeInfo n = (NodeInfo)iter.next();
                 if (n == null) {
                 	break;
-                } else if (n.getNodeKind() == Type.ELEMENT) {
-//                	String uri = n.getURI();
-//                	if (uri != null && uri.length() > 0) {
-//	                	htmlType = (uri.equals(NamespaceConstant.XHTML))? DocType.XHTML : DocType.NONHTML;
-//	                	return;
-//                	}
+                } else  {
                 	String rawLocal = ((HTMLNodeWrapper)n).getRawLocalName().toLowerCase();
                 	if (rawLocal.equals("html")) {
                 		NamespaceBinding[] nb = n.getDeclaredNamespaces(null);

@@ -354,11 +354,7 @@ public class TraceExpression extends Instruction implements InstructionInfo {
 
     /*@NotNull*/
     public Iterator<Expression> iterateSubExpressions() {
-        return new MonoIterator(child);
-    }
-
-    public Expression getChildExpression() {
-        return child;
+        return nonNullChildren(child);
     }
 
     /**

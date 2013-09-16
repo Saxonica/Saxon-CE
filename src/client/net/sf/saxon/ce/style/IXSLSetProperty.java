@@ -1,14 +1,10 @@
 package client.net.sf.saxon.ce.style;
 
 import client.net.sf.saxon.ce.expr.Expression;
-import client.net.sf.saxon.ce.expr.StringLiteral;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.expr.instruct.SetProperty;
 import client.net.sf.saxon.ce.js.IXSLFunction;
-import client.net.sf.saxon.ce.om.AttributeCollection;
-import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.value.Whitespace;
 
 public class IXSLSetProperty extends StyleElement {
 	
@@ -36,37 +32,13 @@ public class IXSLSetProperty extends StyleElement {
 
 	@Override
 	protected void prepareAttributes() throws XPathException {
-        String objectAtt = null;
-        String selectAtt = null;
-        String nameAtt = null;
-		AttributeCollection atts = getAttributeList();
+        targetObject = (Expression)checkAttribute("object", "e");
+        select = (Expression)checkAttribute("select", "e");
+        name = (Expression)checkAttribute("select", "a");
+        checkForUnknownAttributes();
 
-		for (int a=0; a<atts.getLength(); a++) {
-			StructuredQName qn = atts.getStructuredQName(a);
-            String f = qn.getClarkName();
-			if (f.equals("object")) {
-        		objectAtt = Whitespace.trim(atts.getValue(a));
-            } else if (f.equals("select")) {
-                selectAtt = atts.getValue(a);
-            } else if (f.equals("name")) {
-                nameAtt = atts.getValue(a);
-            } else {
-        		checkUnknownAttribute(qn);
-        	}
-        }
-
-        select = makeExpression(selectAtt);
-        targetObject = (objectAtt != null)?
-        	makeExpression(objectAtt) : new IXSLFunction("window", new Expression[0]);
-
-
-        name = makeAttributeValueTemplate(nameAtt);
-        // check nameatt?
-        if (name instanceof StringLiteral) {
-            String t = ((StringLiteral)name).getStringValue();
-            if (t.length() == 0) {
-                compileError("name must be a JavaScript property name - or names separated by '.'");
-            }
+        if (targetObject == null) {
+            targetObject = new IXSLFunction("window", new Expression[0]);
         }
 		
 	}
@@ -75,8 +47,7 @@ public class IXSLSetProperty extends StyleElement {
 	public Expression compile(Executable exec, Declaration decl)
 			throws XPathException {
 
-        SetProperty inst = new SetProperty(targetObject, select, name);
-        return inst;
+        return new SetProperty(targetObject, select, name);
 	}
 
 }

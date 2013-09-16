@@ -351,8 +351,8 @@ public class ExpressionParser {
                 case Token.CASTABLE_AS:
                     nextToken();
                     expect(Token.NAME);
-                    BuiltInAtomicType at = getAtomicType(t.currentTokenValue);
-                    if (at == BuiltInAtomicType.ANY_ATOMIC) {
+                    AtomicType at = getAtomicType(t.currentTokenValue);
+                    if (at == AtomicType.ANY_ATOMIC) {
                         grumble("No value is castable to xs:anyAtomicType", "XPST0080");
                     }
                     nextToken();
@@ -489,9 +489,9 @@ public class ExpressionParser {
         return StructuredQName.fromLexicalQName(lexicalName, defaultURI, env.getNamespaceResolver());
     }
 
-    private Expression makeSingleTypeExpression(Expression lhs, int operator, BuiltInAtomicType type, boolean allowEmpty)
+    private Expression makeSingleTypeExpression(Expression lhs, int operator, AtomicType type, boolean allowEmpty)
     throws XPathException {
-        if (type == BuiltInAtomicType.QNAME && lhs instanceof StringLiteral) {
+        if (type == AtomicType.QNAME && lhs instanceof StringLiteral) {
             try {
                 String source = ((StringLiteral) lhs).getStringValue();
                 makeStructuredQName(source, "");
@@ -640,12 +640,12 @@ public class ExpressionParser {
      * @throws XPathException if the QName is invalid or if no atomic type of that
      * name exists as a built-in type or a type in an imported schema
      */
-    private BuiltInAtomicType getAtomicType(String qname) throws XPathException {
+    private AtomicType getAtomicType(String qname) throws XPathException {
         StructuredQName name = makeStructuredQName(qname, env.getDefaultElementNamespace());
         if (name.getNamespaceURI().equals(NamespaceConstant.SCHEMA)) {
             BuiltInType t = BuiltInType.getSchemaType(name.getLocalName());
-            if (t instanceof BuiltInAtomicType) {
-                return (BuiltInAtomicType)t;
+            if (t instanceof AtomicType) {
+                return (AtomicType)t;
             }
         }
         grumble("Unknown atomic type " + qname, "XPST0051");
@@ -1271,7 +1271,7 @@ public class ExpressionParser {
                             result = EmptySequenceTest.getInstance();
                         }
                         if (primaryType == Type.ATTRIBUTE &&
-                                !(schemaType == BuiltInAtomicType.ANY_ATOMIC || schemaType == BuiltInAtomicType.UNTYPED_ATOMIC)) {
+                                !(schemaType == AtomicType.ANY_ATOMIC || schemaType == AtomicType.UNTYPED_ATOMIC)) {
                             result = EmptySequenceTest.getInstance();
                         }
                         nextToken();
@@ -1393,7 +1393,7 @@ public class ExpressionParser {
         }
         //  A QName constructor function must be evaluated now, while we know the namespace context
         if (fcall instanceof CastExpression &&
-                fcall.getItemType() == BuiltInAtomicType.QNAME &&
+                fcall.getItemType() == AtomicType.QNAME &&
                 arguments[0] instanceof StringLiteral) {
             try {
                 AtomicValue av = CastExpression.castStringToQName(((StringLiteral)arguments[0]).getStringValue(),

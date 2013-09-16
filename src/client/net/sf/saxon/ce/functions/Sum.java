@@ -8,7 +8,7 @@ import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.SourceLocator;
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.value.*;
@@ -26,12 +26,12 @@ public class Sum extends Aggregate {
 
     public ItemType getItemType() {
         ItemType base = Atomizer.getAtomizedItemType(argument[0], false);
-        if (base.equals(BuiltInAtomicType.UNTYPED_ATOMIC)) {
-            base = BuiltInAtomicType.DOUBLE;
+        if (base.equals(AtomicType.UNTYPED_ATOMIC)) {
+            base = AtomicType.DOUBLE;
         }
         if (Cardinality.allowsZero(argument[0].getCardinality())) {
             if (argument.length == 1) {
-                return Type.getCommonSuperType(base, BuiltInAtomicType.INTEGER);
+                return Type.getCommonSuperType(base, AtomicType.INTEGER);
             } else {
                 return Type.getCommonSuperType(base, argument[1].getItemType());
             }
@@ -77,7 +77,7 @@ public class Sum extends Aggregate {
         }
         if (sum instanceof UntypedAtomicValue) {
             try {
-                sum = sum.convert(BuiltInAtomicType.DOUBLE, true).asAtomic();
+                sum = sum.convert(AtomicType.DOUBLE).asAtomic();
             } catch (XPathException e) {
                 e.maybeSetLocation(location);
                 throw e;
@@ -90,7 +90,7 @@ public class Sum extends Aggregate {
                     return sum;
                 }
                 if (next instanceof UntypedAtomicValue) {
-                    next = next.convert(BuiltInAtomicType.DOUBLE, true).asAtomic();
+                    next = next.convert(AtomicType.DOUBLE).asAtomic();
                 } else if (!(next instanceof NumericValue)) {
                     throw new XPathException("Input to sum() contains a mix of numeric and non-numeric values", "FORG0006", location);
                 }

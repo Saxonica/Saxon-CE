@@ -275,7 +275,7 @@ public class LiteralResultElement extends StyleElement {
         FixedElement inst = new FixedElement(resultNameCode, bindings, inheritNamespaces);
 
         inst.setBaseURI(getBaseURI());
-        Expression content = compileSequenceConstructor(exec, decl, iterateAxis(Axis.CHILD));
+        Expression content = compileSequenceConstructor(exec, decl);
 
         if (numberOfAttributes > 0) {
             for (int i=attributeNames.length - 1; i>=0; i--) {

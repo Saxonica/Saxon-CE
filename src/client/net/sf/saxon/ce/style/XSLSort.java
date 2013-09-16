@@ -6,7 +6,6 @@ import client.net.sf.saxon.ce.expr.sort.CodepointCollator;
 import client.net.sf.saxon.ce.expr.sort.SortKeyDefinition;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
 import client.net.sf.saxon.ce.lib.StringCollator;
-import client.net.sf.saxon.ce.om.Axis;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.URI;
 import client.net.sf.saxon.ce.type.ItemType;
@@ -121,7 +120,7 @@ public class XSLSort extends StyleElement {
                 //role.setSourceLocator(new ExpressionLocation(this));
                 select = TypeChecker.staticTypeCheck(select,
                                 SequenceType.ATOMIC_SEQUENCE,
-                                false, role, makeExpressionVisitor());
+                                false, role);
             } catch (XPathException err) {
                 compileError(err);
             }
@@ -155,7 +154,7 @@ public class XSLSort extends StyleElement {
 
     public Expression compile(Executable exec, Declaration decl) throws XPathException {
         if (select == null) {
-            Expression b = compileSequenceConstructor(exec, decl, iterateAxis(Axis.CHILD));
+            Expression b = compileSequenceConstructor(exec, decl);
             if (b == null) {
                 b = new Literal(EmptySequence.getInstance());
             }

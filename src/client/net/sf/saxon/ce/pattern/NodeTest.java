@@ -117,9 +117,9 @@ public abstract class NodeTest implements ItemType {
      * of this type is atomized (assuming that atomization succeeds)
      */
 
-    public BuiltInAtomicType getAtomizedItemType() {
+    public AtomicType getAtomizedItemType() {
         // This is overridden for a ContentTypeTest
-        return BuiltInAtomicType.ANY_ATOMIC;
+        return AtomicType.ANY_ATOMIC;
     }
 
     /**

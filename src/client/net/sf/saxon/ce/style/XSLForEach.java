@@ -5,7 +5,6 @@ import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.expr.instruct.ForEach;
 import client.net.sf.saxon.ce.expr.sort.SortExpression;
 import client.net.sf.saxon.ce.expr.sort.SortKeyDefinition;
-import client.net.sf.saxon.ce.om.Axis;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.value.Cardinality;
@@ -83,7 +82,7 @@ public class XSLForEach extends StyleElement {
             sortedSequence = new SortExpression(select, sortKeys);
         }
 
-        Expression block = compileSequenceConstructor(exec, decl, iterateAxis(Axis.CHILD));
+        Expression block = compileSequenceConstructor(exec, decl);
         if (block == null) {
             // body of for-each is empty: it's a no-op.
             return Literal.makeEmptySequence();

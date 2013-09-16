@@ -1,5 +1,5 @@
 package client.net.sf.saxon.ce.expr.instruct;
-import client.net.sf.saxon.ce.om.ValueRepresentation;
+import client.net.sf.saxon.ce.om.Sequence;
 
 /**
  * A ParameterSet is a set of parameters supplied when calling a template.
@@ -9,7 +9,7 @@ import client.net.sf.saxon.ce.om.ValueRepresentation;
 
 public class ParameterSet {
 	private int[] keys;
-    private ValueRepresentation[] values;
+    private Sequence[] values;
     private boolean[] typeChecked;
     private int used = 0;
 
@@ -29,7 +29,7 @@ public class ParameterSet {
 
     public ParameterSet(int capacity) {
         keys = new int[capacity];
-        values = new ValueRepresentation[capacity];
+        values = new Sequence[capacity];
         typeChecked = new boolean[capacity];
     }
 
@@ -52,7 +52,7 @@ public class ParameterSet {
      * @param checked True if the caller has done static type checking against the required type
      */
 
-    public void put (int id, ValueRepresentation value, boolean checked) {
+    public void put (int id, Sequence value, boolean checked) {
         for (int i=0; i<used; i++) {
             if (keys[i] == id) {
                 values[i] = value;
@@ -64,7 +64,7 @@ public class ParameterSet {
             int newlength = (used<=5 ? 10 : used*2);
         	int[] newkeys = new int[newlength];
             boolean[] newChecked = new boolean[newlength];
-            ValueRepresentation[] newvalues = new ValueRepresentation[newlength];
+            Sequence[] newvalues = new Sequence[newlength];
             System.arraycopy(values, 0, newvalues, 0, used);
             System.arraycopy(keys, 0, newkeys, 0, used);
             System.arraycopy(typeChecked, 0, newChecked, 0, used);
@@ -96,7 +96,7 @@ public class ParameterSet {
      * Get the value of the parameter at a given index
      */
 
-    public ValueRepresentation getValue(int index) {
+    public Sequence getValue(int index) {
         return values[index];
     }
 

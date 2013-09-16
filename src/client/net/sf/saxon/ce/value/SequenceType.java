@@ -9,7 +9,7 @@ import client.net.sf.saxon.ce.pattern.EmptySequenceTest;
 import client.net.sf.saxon.ce.pattern.NodeKindTest;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.AnyItemType;
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
 
 import java.util.HashMap;
@@ -55,7 +55,7 @@ public final class SequenceType {
      */
 
     public static final SequenceType SINGLE_ATOMIC =
-            makeSequenceType(BuiltInAtomicType.ANY_ATOMIC,
+            makeSequenceType(AtomicType.ANY_ATOMIC,
                     StaticProperty.EXACTLY_ONE);
 
     /**
@@ -63,14 +63,14 @@ public final class SequenceType {
      */
 
     public static final SequenceType OPTIONAL_ATOMIC =
-            makeSequenceType(BuiltInAtomicType.ANY_ATOMIC,
+            makeSequenceType(AtomicType.ANY_ATOMIC,
                     StaticProperty.ALLOWS_ZERO_OR_ONE);
     /**
      * A type that allows zero or more atomic values
      */
 
     public static final SequenceType ATOMIC_SEQUENCE =
-            makeSequenceType(BuiltInAtomicType.ANY_ATOMIC,
+            makeSequenceType(AtomicType.ANY_ATOMIC,
                     StaticProperty.ALLOWS_ZERO_OR_MORE);
 
     /**
@@ -78,13 +78,13 @@ public final class SequenceType {
      */
 
     public static final SequenceType SINGLE_STRING =
-            makeSequenceType(BuiltInAtomicType.STRING, StaticProperty.EXACTLY_ONE);
+            makeSequenceType(AtomicType.STRING, StaticProperty.EXACTLY_ONE);
 
     public static final SequenceType OPTIONAL_STRING =
-            makeSequenceType(BuiltInAtomicType.STRING, StaticProperty.ALLOWS_ZERO_OR_ONE);
+            makeSequenceType(AtomicType.STRING, StaticProperty.ALLOWS_ZERO_OR_ONE);
 
     public static final SequenceType STRING_SEQUENCE =
-            makeSequenceType(BuiltInAtomicType.STRING, StaticProperty.ALLOWS_ZERO_OR_MORE);
+            makeSequenceType(AtomicType.STRING, StaticProperty.ALLOWS_ZERO_OR_MORE);
 
 
     /**
@@ -92,7 +92,7 @@ public final class SequenceType {
      */
 
     public static final SequenceType SINGLE_UNTYPED_ATOMIC =
-            makeSequenceType(BuiltInAtomicType.UNTYPED_ATOMIC, StaticProperty.EXACTLY_ONE);
+            makeSequenceType(AtomicType.UNTYPED_ATOMIC, StaticProperty.EXACTLY_ONE);
 
 
     /**
@@ -100,13 +100,13 @@ public final class SequenceType {
      */
 
     public static final SequenceType OPTIONAL_INTEGER =
-            makeSequenceType(BuiltInAtomicType.INTEGER, StaticProperty.ALLOWS_ZERO_OR_ONE);
+            makeSequenceType(AtomicType.INTEGER, StaticProperty.ALLOWS_ZERO_OR_ONE);
 
     public static final SequenceType SINGLE_INTEGER =
-            makeSequenceType(BuiltInAtomicType.INTEGER, StaticProperty.EXACTLY_ONE);
+            makeSequenceType(AtomicType.INTEGER, StaticProperty.EXACTLY_ONE);
 
     public static final SequenceType INTEGER_SEQUENCE =
-            makeSequenceType(BuiltInAtomicType.INTEGER, StaticProperty.ALLOWS_ZERO_OR_MORE);
+            makeSequenceType(AtomicType.INTEGER, StaticProperty.ALLOWS_ZERO_OR_MORE);
 
 
     /**
@@ -114,7 +114,7 @@ public final class SequenceType {
      */
 
     public static final SequenceType OPTIONAL_NUMERIC =
-            makeSequenceType(BuiltInAtomicType.NUMERIC,
+            makeSequenceType(AtomicType.NUMERIC,
                     StaticProperty.ALLOWS_ZERO_OR_ONE);
 
     /**
@@ -145,58 +145,58 @@ public final class SequenceType {
      */
 
     public static final SequenceType NUMERIC_SEQUENCE =
-            makeSequenceType(BuiltInAtomicType.NUMERIC, StaticProperty.ALLOWS_ZERO_OR_MORE);
+            makeSequenceType(AtomicType.NUMERIC, StaticProperty.ALLOWS_ZERO_OR_MORE);
 
     public static final SequenceType OPTIONAL_BOOLEAN =
-            makeSequenceType(BuiltInAtomicType.BOOLEAN, StaticProperty.ALLOWS_ZERO_OR_ONE);
+            makeSequenceType(AtomicType.BOOLEAN, StaticProperty.ALLOWS_ZERO_OR_ONE);
 
     public static final SequenceType SINGLE_BOOLEAN =
-            makeSequenceType(BuiltInAtomicType.BOOLEAN, StaticProperty.EXACTLY_ONE);
+            makeSequenceType(AtomicType.BOOLEAN, StaticProperty.EXACTLY_ONE);
 
     public static final SequenceType OPTIONAL_DATE =
-            makeSequenceType(BuiltInAtomicType.DATE, StaticProperty.ALLOWS_ZERO_OR_ONE);
+            makeSequenceType(AtomicType.DATE, StaticProperty.ALLOWS_ZERO_OR_ONE);
 
     public static final SequenceType SINGLE_DATE =
-            makeSequenceType(BuiltInAtomicType.DATE, StaticProperty.EXACTLY_ONE);
+            makeSequenceType(AtomicType.DATE, StaticProperty.EXACTLY_ONE);
 
     public static final SequenceType OPTIONAL_DATE_TIME =
-            makeSequenceType(BuiltInAtomicType.DATE_TIME, StaticProperty.ALLOWS_ZERO_OR_ONE);
+            makeSequenceType(AtomicType.DATE_TIME, StaticProperty.ALLOWS_ZERO_OR_ONE);
 
     public static final SequenceType SINGLE_DATE_TIME =
-            makeSequenceType(BuiltInAtomicType.DATE_TIME, StaticProperty.EXACTLY_ONE);
+            makeSequenceType(AtomicType.DATE_TIME, StaticProperty.EXACTLY_ONE);
 
     public static final SequenceType OPTIONAL_TIME =
-            makeSequenceType(BuiltInAtomicType.TIME, StaticProperty.ALLOWS_ZERO_OR_ONE);
+            makeSequenceType(AtomicType.TIME, StaticProperty.ALLOWS_ZERO_OR_ONE);
 
     public static final SequenceType SINGLE_TIME =
-            makeSequenceType(BuiltInAtomicType.TIME, StaticProperty.EXACTLY_ONE);
+            makeSequenceType(AtomicType.TIME, StaticProperty.EXACTLY_ONE);
 
     public static final SequenceType OPTIONAL_DURATION =
-            makeSequenceType(BuiltInAtomicType.DURATION, StaticProperty.ALLOWS_ZERO_OR_ONE);
+            makeSequenceType(AtomicType.DURATION, StaticProperty.ALLOWS_ZERO_OR_ONE);
 
     public static final SequenceType OPTIONAL_DAY_TIME_DURATION =
-            makeSequenceType(BuiltInAtomicType.DAY_TIME_DURATION, StaticProperty.ALLOWS_ZERO_OR_ONE);
+            makeSequenceType(AtomicType.DAY_TIME_DURATION, StaticProperty.ALLOWS_ZERO_OR_ONE);
 
     public static final SequenceType SINGLE_DAY_TIME_DURATION =
-            makeSequenceType(BuiltInAtomicType.DAY_TIME_DURATION, StaticProperty.EXACTLY_ONE);
+            makeSequenceType(AtomicType.DAY_TIME_DURATION, StaticProperty.EXACTLY_ONE);
 
     public static final SequenceType OPTIONAL_ANY_URI =
-            makeSequenceType(BuiltInAtomicType.ANY_URI, StaticProperty.ALLOWS_ZERO_OR_ONE);
+            makeSequenceType(AtomicType.ANY_URI, StaticProperty.ALLOWS_ZERO_OR_ONE);
 
     public static final SequenceType SINGLE_ANY_URI =
-            makeSequenceType(BuiltInAtomicType.ANY_URI, StaticProperty.EXACTLY_ONE);
+            makeSequenceType(AtomicType.ANY_URI, StaticProperty.EXACTLY_ONE);
 
     public static final SequenceType OPTIONAL_QNAME =
-            makeSequenceType(BuiltInAtomicType.QNAME, StaticProperty.ALLOWS_ZERO_OR_ONE);
+            makeSequenceType(AtomicType.QNAME, StaticProperty.ALLOWS_ZERO_OR_ONE);
 
     public static final SequenceType OPTIONAL_DECIMAL =
-            makeSequenceType(BuiltInAtomicType.DECIMAL, StaticProperty.ALLOWS_ZERO_OR_ONE);
+            makeSequenceType(AtomicType.DECIMAL, StaticProperty.ALLOWS_ZERO_OR_ONE);
 
     public static final SequenceType SINGLE_QNAME =
-            makeSequenceType(BuiltInAtomicType.QNAME, StaticProperty.EXACTLY_ONE);
+            makeSequenceType(AtomicType.QNAME, StaticProperty.EXACTLY_ONE);
 
     public static final SequenceType SINGLE_DOUBLE =
-            makeSequenceType(BuiltInAtomicType.DOUBLE, StaticProperty.EXACTLY_ONE);
+            makeSequenceType(AtomicType.DOUBLE, StaticProperty.EXACTLY_ONE);
 
 
     /**
@@ -233,7 +233,7 @@ public final class SequenceType {
 
     public static SequenceType makeSequenceType(ItemType primaryType, int cardinality) {
 
-        if (!(primaryType instanceof BuiltInAtomicType)) {
+        if (!(primaryType instanceof AtomicType)) {
             return new SequenceType(primaryType, cardinality);
         }
 

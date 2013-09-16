@@ -43,7 +43,7 @@ public class DocumentNodeTest extends NodeTest {
         if (node.getNodeKind() != Type.DOCUMENT) {
             return false;
         }
-        UnfailingIterator iter = node.iterateAxis(Axis.CHILD);
+        UnfailingIterator iter = node.iterateAxis(Axis.CHILD, AnyNodeTest.getInstance());
         // The match is true if there is exactly one element node child, no text node
         // children, and the element node matches the element test.
         boolean found = false;

@@ -8,7 +8,7 @@ import client.net.sf.saxon.ce.functions.SystemFunction;
 import client.net.sf.saxon.ce.lib.StringCollator;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.value.*;
@@ -87,25 +87,25 @@ public final class ValueComparison extends BinaryExpression implements Compariso
         final SequenceType optionalAtomic = SequenceType.OPTIONAL_ATOMIC;
 
         RoleLocator role0 = new RoleLocator(RoleLocator.BINARY_EXPR, Token.tokens[operator], 0);
-        operand0 = TypeChecker.staticTypeCheck(operand0, optionalAtomic, false, role0, visitor);
+        operand0 = TypeChecker.staticTypeCheck(operand0, optionalAtomic, false, role0);
 
         RoleLocator role1 = new RoleLocator(RoleLocator.BINARY_EXPR, Token.tokens[operator], 1);
-        operand1 = TypeChecker.staticTypeCheck(operand1, optionalAtomic, false, role1, visitor);
+        operand1 = TypeChecker.staticTypeCheck(operand1, optionalAtomic, false, role1);
 
-        BuiltInAtomicType t0 = operand0.getItemType().getAtomizedItemType();
-        BuiltInAtomicType t1 = operand1.getItemType().getAtomizedItemType();
+        AtomicType t0 = operand0.getItemType().getAtomizedItemType();
+        AtomicType t1 = operand1.getItemType().getAtomizedItemType();
 
-        BuiltInAtomicType p0 = (BuiltInAtomicType)t0.getPrimitiveItemType();
-        if (p0.equals(BuiltInAtomicType.UNTYPED_ATOMIC)) {
-            p0 = BuiltInAtomicType.STRING;
+        AtomicType p0 = (AtomicType)t0.getPrimitiveItemType();
+        if (p0.equals(AtomicType.UNTYPED_ATOMIC)) {
+            p0 = AtomicType.STRING;
         }
-        BuiltInAtomicType p1 = (BuiltInAtomicType)t1.getPrimitiveItemType();
-        if (p1.equals(BuiltInAtomicType.UNTYPED_ATOMIC)) {
-            p1 = BuiltInAtomicType.STRING;
+        AtomicType p1 = (AtomicType)t1.getPrimitiveItemType();
+        if (p1.equals(AtomicType.UNTYPED_ATOMIC)) {
+            p1 = AtomicType.STRING;
         }
 
         needsRuntimeCheck =
-                p0.equals(BuiltInAtomicType.ANY_ATOMIC) || p1.equals(BuiltInAtomicType.ANY_ATOMIC);
+                p0.equals(AtomicType.ANY_ATOMIC) || p1.equals(AtomicType.ANY_ATOMIC);
 
         if (!needsRuntimeCheck && !Type.isComparable(p0, p1, Token.isOrderedOperator(operator))) {
             boolean opt0 = Cardinality.allowsZero(operand0.getCardinality());
@@ -321,7 +321,7 @@ public final class ValueComparison extends BinaryExpression implements Compariso
      */
 
     public ItemType getItemType() {
-        return BuiltInAtomicType.BOOLEAN;
+        return AtomicType.BOOLEAN;
     }
 
 

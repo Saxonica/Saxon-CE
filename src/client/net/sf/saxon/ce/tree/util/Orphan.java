@@ -4,7 +4,6 @@ import client.net.sf.saxon.ce.om.*;
 import client.net.sf.saxon.ce.pattern.NodeTest;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.EmptyIterator;
-import client.net.sf.saxon.ce.tree.iter.SingletonIterator;
 import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.value.AtomicValue;
@@ -23,7 +22,7 @@ import client.net.sf.saxon.ce.value.UntypedAtomicValue;
  * @author Michael H. Kay
  */
 
-public final class Orphan implements NodeInfo {
+public class Orphan implements NodeInfo {
 
     private int kind;
     private StructuredQName qName = null;
@@ -180,6 +179,15 @@ public final class Orphan implements NodeInfo {
     }
 
     /**
+     * Get the index position of this node among its siblings (starting from 0)
+     *
+     * @return 0 for the first child, 1 for the second child, etc.
+     */
+    public int getSiblingPosition() {
+        return 1;
+    }
+
+    /**
     * Return the string value of the node.
     * @return the string value of the node
     */
@@ -237,35 +245,6 @@ public final class Orphan implements NodeInfo {
         return null;
     }
 
-    /**
-    * Return an iteration over the nodes reached by the given axis from this node
-    * @param axisNumber the axis to be searched, e.g. Axis.CHILD or Axis.ANCESTOR
-    * @return a SequenceIterator that scans the nodes reached by the axis in turn.
-    */
-
-    public UnfailingIterator iterateAxis(byte axisNumber) {
-        switch (axisNumber) {
-            case Axis.ANCESTOR_OR_SELF:
-            case Axis.DESCENDANT_OR_SELF:
-            case Axis.SELF:
-                return SingletonIterator.makeIterator(this);
-            case Axis.ANCESTOR:
-            case Axis.ATTRIBUTE:
-            case Axis.CHILD:
-            case Axis.DESCENDANT:
-            case Axis.FOLLOWING:
-            case Axis.FOLLOWING_SIBLING:
-            case Axis.NAMESPACE:
-            case Axis.PARENT:
-            case Axis.PRECEDING:
-            case Axis.PRECEDING_SIBLING:
-            case Axis.PRECEDING_OR_ANCESTOR:
-                return EmptyIterator.getInstance();
-            default:
-                 throw new IllegalArgumentException("Unknown axis number " + axisNumber);
-        }
-    }
-
 
     /**
     * Return an iteration over the nodes reached by the given axis from this node
@@ -290,7 +269,6 @@ public final class Orphan implements NodeInfo {
             case Axis.PARENT:
             case Axis.PRECEDING:
             case Axis.PRECEDING_SIBLING:
-            case Axis.PRECEDING_OR_ANCESTOR:
                 return EmptyIterator.getInstance();
             default:
                  throw new IllegalArgumentException("Unknown axis number " + axisNumber);

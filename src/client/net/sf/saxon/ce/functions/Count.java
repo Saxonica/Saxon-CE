@@ -37,15 +37,17 @@ public class Count extends Aggregate {
      */
 
     public static int count(SequenceIterator iter) throws XPathException {
-        if ((iter.getProperties() & SequenceIterator.LAST_POSITION_FINDER) != 0) {
-            return ((LastPositionFinder)iter).getLastPosition();
-        } else {
-            int n = 0;
-            while (iter.next() != null) {
-                n++;
-            }
-            return n;
+        int count = -1;
+        if (iter instanceof LastPositionFinder) {
+            count = ((LastPositionFinder)iter).getLastPosition();
         }
+        if (count == -1) {
+            count = 0;
+            while (iter.next() != null) {
+                count++;
+            }
+        }
+        return count;
     }
 
 }

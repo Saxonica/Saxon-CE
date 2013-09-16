@@ -15,10 +15,10 @@ import client.net.sf.saxon.ce.om.Item;
  * the class NodeTest, are also Patterns as used in XSLT.
  *
  * <p>Saxon assumes that apart from {@link AnyItemType} (which corresponds to <code>item()</item>
- * and matches anything), every ItemType will be either a {@link BuiltInAtomicType}, or a
+ * and matches anything), every ItemType will be either a {@link AtomicType}, or a
  *  {@link client.net.sf.saxon.ce.pattern.NodeTest}. User-defined implementations of ItemType must therefore extend one of those
  * three classes/interfaces.</p>
- * @see BuiltInAtomicType
+ * @see AtomicType
  * @see client.net.sf.saxon.ce.pattern.NodeTest
 */
 
@@ -77,7 +77,7 @@ public interface ItemType  {
      * of this type is atomized
      */
 
-    public BuiltInAtomicType getAtomizedItemType();
+    public AtomicType getAtomizedItemType();
 
 }
 

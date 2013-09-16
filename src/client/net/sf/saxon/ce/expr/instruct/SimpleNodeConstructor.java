@@ -10,7 +10,7 @@ import client.net.sf.saxon.ce.pattern.NodeTest;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.SingletonIterator;
 import client.net.sf.saxon.ce.tree.util.Orphan;
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.Cardinality;
@@ -122,7 +122,7 @@ public abstract class SimpleNodeConstructor extends Instruction {
             select = visitor.typeCheck(select, contextItemType);
             if (select instanceof ValueOf) {
                 Expression valSelect = ((ValueOf)select).getContentExpression();
-                if (th.isSubType(valSelect.getItemType(), BuiltInAtomicType.STRING) &&
+                if (th.isSubType(valSelect.getItemType(), AtomicType.STRING) &&
                         !Cardinality.allowsMany(valSelect.getCardinality())) {
                     select = valSelect;
                 }
@@ -132,12 +132,12 @@ public abstract class SimpleNodeConstructor extends Instruction {
             if (select instanceof StringFn) {
                 StringFn fn = (StringFn)select;
                 Expression arg = fn.getArguments()[0];
-                if (arg.getItemType() == BuiltInAtomicType.UNTYPED_ATOMIC && !Cardinality.allowsMany(arg.getCardinality())) {
+                if (arg.getItemType() == AtomicType.UNTYPED_ATOMIC && !Cardinality.allowsMany(arg.getCardinality())) {
                     select = arg;    
                 }
-            } else if (select instanceof CastExpression && ((CastExpression)select).getTargetType() == BuiltInAtomicType.STRING) {
+            } else if (select instanceof CastExpression && ((CastExpression)select).getTargetType() == AtomicType.STRING) {
                 Expression arg = ((CastExpression)select).getBaseExpression();
-                if (arg.getItemType() == BuiltInAtomicType.UNTYPED_ATOMIC && !Cardinality.allowsMany(arg.getCardinality())) {
+                if (arg.getItemType() == AtomicType.UNTYPED_ATOMIC && !Cardinality.allowsMany(arg.getCardinality())) {
                     select = arg;
                 }
             }
@@ -153,7 +153,7 @@ public abstract class SimpleNodeConstructor extends Instruction {
     }
 
     public Iterator<Expression> iterateSubExpressions() {
-        return monoIterator(select);
+        return nonNullChildren(select);
     }
 
     /**

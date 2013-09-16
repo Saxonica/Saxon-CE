@@ -108,7 +108,7 @@ public abstract class ParentNodeConstructor extends Instruction {
       */
 
     public Iterator<Expression> iterateSubExpressions() {
-        return monoIterator(content);
+        return nonNullChildren(content);
     }
 
 

@@ -7,7 +7,7 @@ import client.net.sf.saxon.ce.expr.StaticContext;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.BuiltInType;
 
 /**
@@ -77,14 +77,14 @@ public class ConstructorFunctionLibrary implements FunctionLibrary {
                 throw new XPathException("A constructor function must have exactly one argument");
             }
             BuiltInType type = BuiltInType.getSchemaType(localName);
-            if (type==null || type == BuiltInAtomicType.ANY_ATOMIC) {
+            if (type==null || type == AtomicType.ANY_ATOMIC) {
                 XPathException err = new XPathException("Unknown constructor function: {" + uri + '}' + localName);
                 err.setErrorCode("XPST0017");
                 err.setIsStaticError(true);
                 throw err;
             }
 
-            Expression cast = new CastExpression(arguments[0], (BuiltInAtomicType)type, true);
+            Expression cast = new CastExpression(arguments[0], (AtomicType)type, true);
             cast.setContainer(container);
             return cast;
         }

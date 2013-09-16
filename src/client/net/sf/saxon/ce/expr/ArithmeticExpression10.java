@@ -4,7 +4,7 @@ import client.net.sf.saxon.ce.functions.NumberFn;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.pattern.EmptySequenceTest;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.value.*;
 
@@ -43,10 +43,10 @@ public class ArithmeticExpression10 extends BinaryExpression {
         SequenceType atomicType = SequenceType.OPTIONAL_ATOMIC;
 
         RoleLocator role0 = new RoleLocator(RoleLocator.BINARY_EXPR, Token.tokens[operator], 0);
-        operand0 = TypeChecker.staticTypeCheck(operand0, atomicType, true, role0, visitor);
+        operand0 = TypeChecker.staticTypeCheck(operand0, atomicType, true, role0);
 
         RoleLocator role1 = new RoleLocator(RoleLocator.BINARY_EXPR, Token.tokens[operator], 1);
-        operand1 = TypeChecker.staticTypeCheck(operand1, atomicType, true, role1, visitor);
+        operand1 = TypeChecker.staticTypeCheck(operand1, atomicType, true, role1);
 
         ItemType itemType0 = operand0.getItemType();
         if (itemType0 instanceof EmptySequenceTest) {
@@ -94,7 +94,7 @@ public class ArithmeticExpression10 extends BinaryExpression {
      */
 
     public ItemType getItemType() {
-        return BuiltInAtomicType.ANY_ATOMIC;  // type is not known statically
+        return AtomicType.ANY_ATOMIC;  // type is not known statically
     }
 
     /**
@@ -119,10 +119,10 @@ public class ArithmeticExpression10 extends BinaryExpression {
         if (value instanceof DoubleValue) {
             return (DoubleValue)value;
         }
-        BuiltInAtomicType type = value.getItemType();
-        if (type == BuiltInAtomicType.INTEGER || type == BuiltInAtomicType.UNTYPED_ATOMIC ||
-                type == BuiltInAtomicType.DECIMAL || type == BuiltInAtomicType.FLOAT ||
-                type == BuiltInAtomicType.BOOLEAN || type == BuiltInAtomicType.STRING) {
+        AtomicType type = value.getItemType();
+        if (type == AtomicType.INTEGER || type == AtomicType.UNTYPED_ATOMIC ||
+                type == AtomicType.DECIMAL || type == AtomicType.FLOAT ||
+                type == AtomicType.BOOLEAN || type == AtomicType.STRING) {
             return NumberFn.convert(value);
         } else {
             throw new XPathException("Invalid operand type for arithmetic: " + type, "XPTY0004");

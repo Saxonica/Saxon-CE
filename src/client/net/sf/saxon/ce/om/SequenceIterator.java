@@ -93,37 +93,6 @@ public interface SequenceIterator {
 
     public SequenceIterator getAnother() throws XPathException;
 
-    /**
-     * Get properties of this iterator, as a bit-significant integer.
-     * @return the properties of this iterator. This will be some combination of
-     * properties such as {@link #GROUNDED}, {@link #LAST_POSITION_FINDER}. It is always
-     * acceptable to return the value zero, indicating that there are no known special properties.
-     * It is acceptable for the properties of the iterator to change depending on its state.
-     * @since 8.6
-     */
-
-    public int getProperties();
-
-    /**
-     * Property value: the iterator is "grounded". This means that (a) the
-     * iterator must be an instance of {@link client.net.sf.saxon.ce.tree.iter.GroundedIterator}, and (b) the
-     * implementation of the materialize() method must be efficient (in particular,
-     * it should not involve the creation of new objects)
-     */
-
-    public static final int GROUNDED = 1;
-
-    /**
-     * Property value: the iterator knows the number of items that it will deliver.
-     * This means that (a) the iterator must be an instance of {@link client.net.sf.saxon.ce.expr.LastPositionFinder},
-     * and (b) the implementation of the getLastPosition() method must be efficient (in particular,
-     * it should take constant time, rather than time proportional to the length of the sequence)
-     */
-
-    public static final int LAST_POSITION_FINDER = 1<<1;
-
-
-
 }
 
 

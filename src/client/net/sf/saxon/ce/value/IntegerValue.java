@@ -1,7 +1,7 @@
 package client.net.sf.saxon.ce.value;
 
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ConversionResult;
 import client.net.sf.saxon.ce.type.ValidationFailure;
 
@@ -44,7 +44,7 @@ public class IntegerValue extends DecimalValue {
     public IntegerValue(BigDecimal value) {
         super(value);
         if (value.scale()!=0 && value.compareTo(value.setScale(0, BigDecimal.ROUND_DOWN)) != 0) {
-            throw new IllegalArgumentException("non-integral");
+            throw new IllegalArgumentException("Non-integral value " + value);
         }
     }
     
@@ -79,8 +79,8 @@ public class IntegerValue extends DecimalValue {
      * and xs:untypedAtomic. For external objects, the result is AnyAtomicType.
      */
 
-    public BuiltInAtomicType getItemType() {
-        return BuiltInAtomicType.INTEGER;
+    public AtomicType getItemType() {
+        return AtomicType.INTEGER;
     }
 
     /**

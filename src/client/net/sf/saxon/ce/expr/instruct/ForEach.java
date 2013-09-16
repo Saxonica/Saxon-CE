@@ -152,7 +152,6 @@ public class ForEach extends Instruction implements ContextMappingFunction {
         return this;
     }
 
-
     /**
      * Compute the dependencies of an expression, as the union of the
      * dependencies of its subexpressions. (This is overridden for path expressions
@@ -191,7 +190,7 @@ public class ForEach extends Instruction implements ContextMappingFunction {
      */
 
     public Iterator<Expression> iterateSubExpressions() {
-        return Arrays.asList((new Expression[]{select, action})).iterator();
+        return nonNullChildren(select, action);
     }
 
     /**

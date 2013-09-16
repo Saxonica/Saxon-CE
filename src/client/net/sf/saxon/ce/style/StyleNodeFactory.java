@@ -270,11 +270,12 @@ public class StyleNodeFactory implements NodeFactory {
                 if (localName.equals("if")) {
                     return new XSLIf();
                 } else if (localName.equals("import")) {
-                    return new XSLImport();
+                    return new XSLGeneralIncorporate();
                 } else if (localName.equals("import-schema")) {
                     return new XSLImportSchema();
                 } else if (localName.equals("include")) {
-                    return new XSLInclude();
+                    return new XSLGeneralIncorporate() {
+                    };
                 }
             case 'k':
                 if (localName.equals("key")) {
@@ -294,7 +295,7 @@ public class StyleNodeFactory implements NodeFactory {
                 } else if (localName.equals("number")) {
                     return new XSLNumber();
                 } else if (localName.equals("namespace")) {
-                    return new XSLNamespace();
+                    return new XSLMinorNodeConstructor();
                 } else if (localName.equals("namespace-alias")) {
                     return new XSLNamespaceAlias();
                 }
@@ -314,7 +315,7 @@ public class StyleNodeFactory implements NodeFactory {
                 } else if (localName.equals("preserve-space")) {
                     return new XSLPreserveSpace();
                 } else if (localName.equals("processing-instruction")) {
-                    return new XSLProcessingInstruction();
+                    return new XSLMinorNodeConstructor();
                 }
             case 'r':
                 if (localName.equals("result-document")) {

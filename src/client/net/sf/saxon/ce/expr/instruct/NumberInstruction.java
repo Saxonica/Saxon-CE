@@ -254,7 +254,7 @@ public class NumberInstruction extends Expression {
     }
 
     public ItemType getItemType() {
-        return BuiltInAtomicType.STRING;
+        return AtomicType.STRING;
     }
 
     public int computeCardinality() {
@@ -327,14 +327,14 @@ public class NumberInstruction extends Expression {
                     }
                     num = num.round();
                     if (num.signum() >= 0) {
-                        long i = ((NumericValue)num.convert(BuiltInAtomicType.INTEGER, true).asAtomic()).intValue();
+                        long i = ((NumericValue)num.convert(AtomicType.INTEGER).asAtomic()).intValue();
                         vec.add(Long.valueOf(i));
                     } else {
                         if (num.compareTo(IntegerValue.ZERO) < 0) {
                             throw new XPathException("The numbers to be formatted must not be negative");
                             // thrown to be caught
                         }
-                        long i = ((NumericValue)num.convert(BuiltInAtomicType.INTEGER, true).asAtomic()).intValue();
+                        long i = ((NumericValue)num.convert(AtomicType.INTEGER).asAtomic()).intValue();
                         vec.add(Long.valueOf(i));
                     }
                 } catch (XPathException err) {
@@ -364,7 +364,7 @@ public class NumberInstruction extends Expression {
             }
 
             if (level == SIMPLE) {
-                value = Navigator.getNumberSimple(source, context);
+                value = Navigator.getNumberSimple(source);
             } else if (level == SINGLE) {
                 value = Navigator.getNumberSingle(source, count, from, context);
                 if (value == 0) {

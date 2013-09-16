@@ -1,12 +1,6 @@
 package client.net.sf.saxon.ce.tree.linked;
 import client.net.sf.saxon.ce.om.NodeInfo;
-import client.net.sf.saxon.ce.pattern.AnyNodeTest;
-import client.net.sf.saxon.ce.pattern.NodeTest;
-import client.net.sf.saxon.ce.tree.iter.ArrayIterator;
-import client.net.sf.saxon.ce.tree.iter.EmptyIterator;
-import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
-import client.net.sf.saxon.ce.tree.util.Navigator;
 
 /**
   * ParentNodeImpl is an implementation of a non-leaf node (specifically, an Element node
@@ -63,25 +57,20 @@ abstract class ParentNodeImpl extends NodeImpl {
         return (children!=null);
     }
 
-    /**
-     * Get an enumeration of the children of this node
-     * @param test A NodeTest to be satisfied by the child nodes, or null
-     * if all child node are to be returned
-     * @return an iterator over the children of this node
-    */
+    private final static NodeImpl[] EMPTY_NODE_LIST = new NodeImpl[0];
 
-    protected final UnfailingIterator enumerateChildren(NodeTest test) {
+    /**
+     * Get all children of this node, as an array
+     * @return an array containing all the children
+     */
+
+    public final NodeImpl[] allChildren() {
         if (children==null) {
-            return EmptyIterator.getInstance();
+            return EMPTY_NODE_LIST;
         } else if (children instanceof NodeImpl) {
-            return Navigator.filteredSingleton((NodeImpl)children, test);
+            return new NodeImpl[]{(NodeImpl)children};
         } else {
-            ArrayIterator allChildren = new ArrayIterator((NodeImpl[])children);
-            if (test == null || test instanceof AnyNodeTest) {
-                return allChildren;
-            } else {
-                return new Navigator.AxisFilter(allChildren, test);
-            }
+            return (NodeImpl[])children;
         }
     }
 

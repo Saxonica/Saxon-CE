@@ -18,15 +18,15 @@ import java.util.HashMap;
 
 public final class CastExpression extends UnaryExpression  {
 
-    private BuiltInAtomicType targetType;
-    private BuiltInAtomicType targetPrimitiveType;
+    private AtomicType targetType;
+    private AtomicType targetPrimitiveType;
     private boolean allowEmpty = false;
     private boolean upcast = false;
 
-    static HashMap<BuiltInAtomicType, BuiltInAtomicType[]> castingTable =
-            new HashMap<BuiltInAtomicType, BuiltInAtomicType[]>(25);
+    static HashMap<AtomicType, AtomicType[]> castingTable =
+            new HashMap<AtomicType, AtomicType[]>(25);
 
-    static void addAllowedCasts(BuiltInAtomicType source, BuiltInAtomicType[] target) {
+    static void addAllowedCasts(AtomicType source, AtomicType[] target) {
         castingTable.put(source, target);
     }
 
@@ -35,68 +35,68 @@ public final class CastExpression extends UnaryExpression  {
      */
 
     static {
-        final BuiltInAtomicType uat = BuiltInAtomicType.UNTYPED_ATOMIC;
-        final BuiltInAtomicType str = BuiltInAtomicType.STRING;
-        final BuiltInAtomicType flt = BuiltInAtomicType.FLOAT;
-        final BuiltInAtomicType dbl = BuiltInAtomicType.DOUBLE;
-        final BuiltInAtomicType dec = BuiltInAtomicType.DECIMAL;
-        final BuiltInAtomicType ing = BuiltInAtomicType.INTEGER;
-        final BuiltInAtomicType dur = BuiltInAtomicType.DURATION;
-        final BuiltInAtomicType ymd = BuiltInAtomicType.YEAR_MONTH_DURATION;
-        final BuiltInAtomicType dtd = BuiltInAtomicType.DAY_TIME_DURATION;
-        final BuiltInAtomicType dtm = BuiltInAtomicType.DATE_TIME;
-        final BuiltInAtomicType tim = BuiltInAtomicType.TIME;
-        final BuiltInAtomicType dat = BuiltInAtomicType.DATE;
-        final BuiltInAtomicType gym = BuiltInAtomicType.G_YEAR_MONTH;
-        final BuiltInAtomicType gyr = BuiltInAtomicType.G_YEAR;
-        final BuiltInAtomicType gmd = BuiltInAtomicType.G_MONTH_DAY;
-        final BuiltInAtomicType gdy = BuiltInAtomicType.G_DAY;
-        final BuiltInAtomicType gmo = BuiltInAtomicType.G_MONTH;
-        final BuiltInAtomicType boo = BuiltInAtomicType.BOOLEAN;
-        final BuiltInAtomicType b64 = BuiltInAtomicType.BASE64_BINARY;
-        final BuiltInAtomicType hxb = BuiltInAtomicType.HEX_BINARY;
-        final BuiltInAtomicType uri = BuiltInAtomicType.ANY_URI;
-        final BuiltInAtomicType qnm = BuiltInAtomicType.QNAME;
+        final AtomicType uat = AtomicType.UNTYPED_ATOMIC;
+        final AtomicType str = AtomicType.STRING;
+        final AtomicType flt = AtomicType.FLOAT;
+        final AtomicType dbl = AtomicType.DOUBLE;
+        final AtomicType dec = AtomicType.DECIMAL;
+        final AtomicType ing = AtomicType.INTEGER;
+        final AtomicType dur = AtomicType.DURATION;
+        final AtomicType ymd = AtomicType.YEAR_MONTH_DURATION;
+        final AtomicType dtd = AtomicType.DAY_TIME_DURATION;
+        final AtomicType dtm = AtomicType.DATE_TIME;
+        final AtomicType tim = AtomicType.TIME;
+        final AtomicType dat = AtomicType.DATE;
+        final AtomicType gym = AtomicType.G_YEAR_MONTH;
+        final AtomicType gyr = AtomicType.G_YEAR;
+        final AtomicType gmd = AtomicType.G_MONTH_DAY;
+        final AtomicType gdy = AtomicType.G_DAY;
+        final AtomicType gmo = AtomicType.G_MONTH;
+        final AtomicType boo = AtomicType.BOOLEAN;
+        final AtomicType b64 = AtomicType.BASE64_BINARY;
+        final AtomicType hxb = AtomicType.HEX_BINARY;
+        final AtomicType uri = AtomicType.ANY_URI;
+        final AtomicType qnm = AtomicType.QNAME;
 
-        final BuiltInAtomicType[] t01 = {uat, str, flt, dbl, dec, ing, dur, ymd, dtd, dtm, tim, dat,
+        final AtomicType[] t01 = {uat, str, flt, dbl, dec, ing, dur, ymd, dtd, dtm, tim, dat,
                           gym, gyr, gmd, gdy, gmo, boo, b64, hxb, uri};
         addAllowedCasts(uat, t01);
-        final BuiltInAtomicType[] t02 = {uat, str, flt, dbl, dec, ing, dur, ymd, dtd, dtm, tim, dat,
+        final AtomicType[] t02 = {uat, str, flt, dbl, dec, ing, dur, ymd, dtd, dtm, tim, dat,
                           gym, gyr, gmd, gdy, gmo, boo, b64, hxb, uri, qnm};
         addAllowedCasts(str, t02);
-        final BuiltInAtomicType[] t03 = {uat, str, flt, dbl, dec, ing, boo};
+        final AtomicType[] t03 = {uat, str, flt, dbl, dec, ing, boo};
         addAllowedCasts(flt, t03);
         addAllowedCasts(dbl, t03);
         addAllowedCasts(dec, t03);
         addAllowedCasts(ing, t03);
-        final BuiltInAtomicType[] t04 = {uat, str, dur, ymd, dtd};
+        final AtomicType[] t04 = {uat, str, dur, ymd, dtd};
         addAllowedCasts(dur, t04);
         addAllowedCasts(ymd, t04);
         addAllowedCasts(dtd, t04);
-        final BuiltInAtomicType[] t05 = {uat, str, dtm, tim, dat, gym, gyr, gmd, gdy, gmo};
+        final AtomicType[] t05 = {uat, str, dtm, tim, dat, gym, gyr, gmd, gdy, gmo};
         addAllowedCasts(dtm, t05);
-        final BuiltInAtomicType[] t06 = {uat, str, tim};
+        final AtomicType[] t06 = {uat, str, tim};
         addAllowedCasts(tim, t06);
-        final BuiltInAtomicType[] t07 = {uat, str, dtm, dat, gym, gyr, gmd, gdy, gmo};
+        final AtomicType[] t07 = {uat, str, dtm, dat, gym, gyr, gmd, gdy, gmo};
         addAllowedCasts(dat, t07);
-        final BuiltInAtomicType[] t08 = {uat, str, gym};
+        final AtomicType[] t08 = {uat, str, gym};
         addAllowedCasts(gym, t08);
-        final BuiltInAtomicType[] t09 = {uat, str, gyr};
+        final AtomicType[] t09 = {uat, str, gyr};
         addAllowedCasts(gyr, t09);
-        final BuiltInAtomicType[] t10 = {uat, str, gmd};
+        final AtomicType[] t10 = {uat, str, gmd};
         addAllowedCasts(gmd, t10);
-        final BuiltInAtomicType[] t11 = {uat, str, gdy};
+        final AtomicType[] t11 = {uat, str, gdy};
         addAllowedCasts(gdy, t11);
-        final BuiltInAtomicType[] t12 = {uat, str, gmo};
+        final AtomicType[] t12 = {uat, str, gmo};
         addAllowedCasts(gmo, t12);
-        final BuiltInAtomicType[] t13 = {uat, str, flt, dbl, dec, ing, boo};
+        final AtomicType[] t13 = {uat, str, flt, dbl, dec, ing, boo};
         addAllowedCasts(boo, t13);
-        final BuiltInAtomicType[] t14 = {uat, str, b64, hxb};
+        final AtomicType[] t14 = {uat, str, b64, hxb};
         addAllowedCasts(b64, t14);
         addAllowedCasts(hxb, t14);
-        final BuiltInAtomicType[] t15 = {uat, str, uri};
+        final AtomicType[] t15 = {uat, str, uri};
         addAllowedCasts(uri, t15);
-        final BuiltInAtomicType[] t16 = {uat, str, qnm};
+        final AtomicType[] t16 = {uat, str, qnm};
         addAllowedCasts(qnm, t16);
     }
 
@@ -108,18 +108,18 @@ public final class CastExpression extends UnaryExpression  {
      * or "M" (casting allowed but may fail for some values)
      */
 
-    public static boolean isPossibleCast(BuiltInAtomicType source, BuiltInAtomicType target) {
-        if (source == BuiltInAtomicType.ANY_ATOMIC) {
+    public static boolean isPossibleCast(AtomicType source, AtomicType target) {
+        if (source == AtomicType.ANY_ATOMIC) {
             return true;
         }
-        if (source == BuiltInAtomicType.NUMERIC) {
-            source = BuiltInAtomicType.DOUBLE;
+        if (source == AtomicType.NUMERIC) {
+            source = AtomicType.DOUBLE;
         }
-        BuiltInAtomicType[] targets = castingTable.get(source);
+        AtomicType[] targets = castingTable.get(source);
         if (targets == null) {
             return false;
         }
-        for (BuiltInAtomicType t : targets) {
+        for (AtomicType t : targets) {
             if (t == target) {
                 return true;
             }
@@ -135,11 +135,11 @@ public final class CastExpression extends UnaryExpression  {
      * an empty sequence as output. If false, an empty sequence is a type error.
      */
 
-    public CastExpression(Expression source, BuiltInAtomicType target, boolean allowEmpty) {
+    public CastExpression(Expression source, AtomicType target, boolean allowEmpty) {
         super(source);
         this.allowEmpty = allowEmpty;
         targetType = target;
-        targetPrimitiveType = (BuiltInAtomicType)target.getPrimitiveItemType();
+        targetPrimitiveType = (AtomicType)target.getPrimitiveItemType();
         adoptChildExpression(source);
     }
 
@@ -148,7 +148,7 @@ public final class CastExpression extends UnaryExpression  {
      * @return the target type
      */
 
-    public BuiltInAtomicType getTargetType() {
+    public AtomicType getTargetType() {
         return targetType;
     }
 
@@ -172,11 +172,11 @@ public final class CastExpression extends UnaryExpression  {
 
     public Expression typeCheck(ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
         operand = visitor.typeCheck(operand, contextItemType);
-        SequenceType atomicType = SequenceType.makeSequenceType(BuiltInAtomicType.ANY_ATOMIC, getCardinality());
+        SequenceType atomicType = SequenceType.makeSequenceType(AtomicType.ANY_ATOMIC, getCardinality());
 
         RoleLocator role = new RoleLocator(RoleLocator.TYPE_OP, "cast as", 0);
         //role.setSourceLocator(this);
-        operand = TypeChecker.staticTypeCheck(operand, atomicType, false, role, visitor);
+        operand = TypeChecker.staticTypeCheck(operand, atomicType, false, role);
 
         final TypeHierarchy th = TypeHierarchy.getInstance();
         ItemType sourceType = operand.getItemType();
@@ -209,7 +209,7 @@ public final class CastExpression extends UnaryExpression  {
             }
         }
         if (sourceType != EmptySequenceTest.getInstance()) {
-            BuiltInAtomicType p = sourceType.getAtomizedItemType();
+            AtomicType p = sourceType.getAtomizedItemType();
             if (!isPossibleCast(p, targetType)) {
                 typeError("Casting from " + sourceType + " to " + targetType +
                         " can never succeed", "XPTY0004");
@@ -242,10 +242,10 @@ public final class CastExpression extends UnaryExpression  {
             return e2;
         }
         // Eliminate pointless casting between untypedAtomic and string
-        if (targetType == BuiltInAtomicType.UNTYPED_ATOMIC) {
+        if (targetType == AtomicType.UNTYPED_ATOMIC) {
             if (operand instanceof StringFn) {
                 Expression e = ((StringFn)operand).getArguments()[0];
-                if (e.getItemType() instanceof BuiltInAtomicType && e.getCardinality() == StaticProperty.EXACTLY_ONE) {
+                if (e.getItemType() instanceof AtomicType && e.getCardinality() == StaticProperty.EXACTLY_ONE) {
                     operand = e;
                 }
             }
@@ -254,7 +254,7 @@ public final class CastExpression extends UnaryExpression  {
         if (operand instanceof StringFn) {
             Expression e = ((StringFn)operand).getArguments()[0];
             ItemType et = e.getItemType();
-            if (et instanceof BuiltInAtomicType &&
+            if (et instanceof AtomicType &&
                     e.getCardinality() == StaticProperty.EXACTLY_ONE &&
                     th.isSubType(et, targetType)) {
                 return e;
@@ -263,10 +263,10 @@ public final class CastExpression extends UnaryExpression  {
         // avoid converting anything to untypedAtomic and then back again
         if (operand instanceof CastExpression) {
             ItemType it = ((CastExpression)operand).targetType;
-            if (th.isSubType(it, BuiltInAtomicType.STRING) || th.isSubType(it, BuiltInAtomicType.UNTYPED_ATOMIC)) {
+            if (th.isSubType(it, AtomicType.STRING) || th.isSubType(it, AtomicType.UNTYPED_ATOMIC)) {
                 Expression e = ((CastExpression)operand).getBaseExpression();
                 ItemType et = e.getItemType();
-                if (et instanceof BuiltInAtomicType &&
+                if (et instanceof AtomicType &&
                         e.getCardinality() == StaticProperty.EXACTLY_ONE &&
                         th.isSubType(et, targetType)) {
                     return e;
@@ -323,9 +323,9 @@ public final class CastExpression extends UnaryExpression  {
         }
         if (upcast) {
             // When casting to a supertype of the original type, we can bypass validation
-            return (AtomicValue)value.convert(targetPrimitiveType, false);
+            return (AtomicValue)value.convert(targetPrimitiveType);
         }
-        ConversionResult result = value.convert(targetType, true);
+        ConversionResult result = value.convert(targetType);
         if (result instanceof ValidationFailure) {
             ValidationFailure err = (ValidationFailure)result;
             StructuredQName code = err.getErrorCodeQName();

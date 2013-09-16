@@ -164,7 +164,7 @@ public class XSLNumber extends StyleElement {
                 role.setErrorCode("XTTE1000");
                 select = TypeChecker.staticTypeCheck(select,
                                             SequenceType.SINGLE_NODE,
-                                            false, role, makeExpressionVisitor());
+                                            false, role);
             } catch (XPathException err) {
                 compileError(err);
             }

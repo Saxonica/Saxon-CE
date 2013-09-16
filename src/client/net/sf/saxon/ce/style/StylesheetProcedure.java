@@ -1,6 +1,5 @@
 package client.net.sf.saxon.ce.style;
 
-import client.net.sf.saxon.ce.expr.instruct.SlotManager;
 import client.net.sf.saxon.ce.trans.XPathException;
 
 /**
@@ -10,14 +9,6 @@ import client.net.sf.saxon.ce.trans.XPathException;
  */
 
 public interface StylesheetProcedure {
-
-    /**
-     * Get the SlotManager associated with this stylesheet construct. The SlotManager contains the
-     * information needed to manage the local stack frames used by run-time instances of the code.
-     * @return the associated SlotManager object
-     */
-
-    public SlotManager getSlotManager();
 
     /**
      * Optimize the stylesheet construct

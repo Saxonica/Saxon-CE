@@ -147,10 +147,8 @@ public class RoleLocator  {
      */
 
     public String composeErrorMessage(ItemType requiredItemType, ItemType suppliedItemType) {
-        return "Required item type of " + getMessage() +
-                     " is " + requiredItemType.toString() +
-                     "; supplied value has item type " +
-                     suppliedItemType.toString();
+        return composeRequiredMessage(requiredItemType) +
+                     "; supplied value has item type " + suppliedItemType.toString();
     }
 
     /**

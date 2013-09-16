@@ -11,7 +11,6 @@ import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.value.SequenceType;
 import client.net.sf.saxon.ce.value.Whitespace;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 
 /**
@@ -62,7 +61,7 @@ public class ProcessingInstruction extends SimpleNodeConstructor {
 
         RoleLocator role = new RoleLocator(RoleLocator.INSTRUCTION, "processing-instruction/name", 0);
         //role.setSourceLocator(this);
-        name = TypeChecker.staticTypeCheck(name, SequenceType.SINGLE_STRING, false, role, visitor);
+        name = TypeChecker.staticTypeCheck(name, SequenceType.SINGLE_STRING, false, role);
         adoptChildExpression(name);
 
     }
@@ -72,12 +71,7 @@ public class ProcessingInstruction extends SimpleNodeConstructor {
     }
 
     public Iterator<Expression> iterateSubExpressions() {
-        ArrayList list = new ArrayList(6);
-        if (select != null) {
-            list.add(select);
-        }
-        list.add(name);
-        return list.iterator();
+        return nonNullChildren(select, name);
     }
 
 

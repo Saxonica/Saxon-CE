@@ -203,43 +203,43 @@ public abstract class Type  {
      * @return true if the types are comparable, as defined by the rules of the "eq" operator
      */
 
-    public static boolean isComparable(BuiltInAtomicType t1, BuiltInAtomicType t2, boolean ordered) {
+    public static boolean isComparable(AtomicType t1, AtomicType t2, boolean ordered) {
         if (t1 == t2) {
             return true;
         }
-        if (t1.equals(BuiltInAtomicType.ANY_ATOMIC) || t2.equals(BuiltInAtomicType.ANY_ATOMIC)) {
+        if (t1.equals(AtomicType.ANY_ATOMIC) || t2.equals(AtomicType.ANY_ATOMIC)) {
             return true; // meaning we don't actually know at this stage
         }
-        if (t1.equals(BuiltInAtomicType.UNTYPED_ATOMIC)) {
-            t1 = BuiltInAtomicType.STRING;
+        if (t1.equals(AtomicType.UNTYPED_ATOMIC)) {
+            t1 = AtomicType.STRING;
         }
-        if (t2.equals(BuiltInAtomicType.UNTYPED_ATOMIC)) {
-            t2 = BuiltInAtomicType.STRING;
+        if (t2.equals(AtomicType.UNTYPED_ATOMIC)) {
+            t2 = AtomicType.STRING;
         }
-        if (t1.equals(BuiltInAtomicType.ANY_URI)) {
-            t1 = BuiltInAtomicType.STRING;
+        if (t1.equals(AtomicType.ANY_URI)) {
+            t1 = AtomicType.STRING;
         }
-        if (t2.equals(BuiltInAtomicType.ANY_URI)) {
-            t2 = BuiltInAtomicType.STRING;
+        if (t2.equals(AtomicType.ANY_URI)) {
+            t2 = AtomicType.STRING;
         }
         if (t1.isPrimitiveNumeric()) {
-            t1 = BuiltInAtomicType.NUMERIC;
+            t1 = AtomicType.NUMERIC;
         }
         if (t2.isPrimitiveNumeric()) {
-            t2 = BuiltInAtomicType.NUMERIC;
+            t2 = AtomicType.NUMERIC;
         }
         if (!ordered) {
-            if (t1.equals(BuiltInAtomicType.DAY_TIME_DURATION)) {
-                t1 = BuiltInAtomicType.DURATION;
+            if (t1.equals(AtomicType.DAY_TIME_DURATION)) {
+                t1 = AtomicType.DURATION;
             }
-            if (t2.equals(BuiltInAtomicType.DAY_TIME_DURATION)) {
-                t2 = BuiltInAtomicType.DURATION;
+            if (t2.equals(AtomicType.DAY_TIME_DURATION)) {
+                t2 = AtomicType.DURATION;
             }
-            if (t1.equals(BuiltInAtomicType.YEAR_MONTH_DURATION)) {
-                t1 = BuiltInAtomicType.DURATION;
+            if (t1.equals(AtomicType.YEAR_MONTH_DURATION)) {
+                t1 = AtomicType.DURATION;
             }
-            if (t2.equals(BuiltInAtomicType.YEAR_MONTH_DURATION)) {
-                t2 = BuiltInAtomicType.DURATION;
+            if (t2.equals(AtomicType.YEAR_MONTH_DURATION)) {
+                t2 = AtomicType.DURATION;
             }
         }
         return t1 == t2;
@@ -257,11 +257,11 @@ public abstract class Type  {
      * @return true if the types are comparable, as defined by the rules of the "eq" operator
      */
 
-    public static boolean isGenerallyComparable(BuiltInAtomicType t1, BuiltInAtomicType t2, boolean ordered) {
-        return t1.equals(BuiltInAtomicType.ANY_ATOMIC)
-                || t2.equals(BuiltInAtomicType.ANY_ATOMIC)
-                || t1.equals(BuiltInAtomicType.UNTYPED_ATOMIC)
-                || t2.equals(BuiltInAtomicType.UNTYPED_ATOMIC)
+    public static boolean isGenerallyComparable(AtomicType t1, AtomicType t2, boolean ordered) {
+        return t1.equals(AtomicType.ANY_ATOMIC)
+                || t2.equals(AtomicType.ANY_ATOMIC)
+                || t1.equals(AtomicType.UNTYPED_ATOMIC)
+                || t2.equals(AtomicType.UNTYPED_ATOMIC)
                 || isComparable(t1, t2, ordered);
     }
 

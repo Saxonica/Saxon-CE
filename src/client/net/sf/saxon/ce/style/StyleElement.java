@@ -16,6 +16,7 @@ import client.net.sf.saxon.ce.trans.Err;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 import client.net.sf.saxon.ce.tree.linked.ElementImpl;
+import client.net.sf.saxon.ce.tree.linked.NodeImpl;
 import client.net.sf.saxon.ce.tree.util.NamespaceIterator;
 import client.net.sf.saxon.ce.tree.util.Navigator;
 import client.net.sf.saxon.ce.tree.util.SourceLocator;
@@ -197,16 +198,10 @@ public abstract class StyleElement extends ElementImpl
      */
 
     protected ItemType getCommonChildItemType() {
-        final TypeHierarchy th = TypeHierarchy.getInstance();
         ItemType t = EmptySequenceTest.getInstance();
-        UnfailingIterator children = iterateAxis(Axis.CHILD);
-        while (true) {
-            NodeInfo next = (NodeInfo)children.next();
-            if (next == null) {
-                return t;
-            }
-            if (next instanceof StyleElement) {
-                ItemType ret = ((StyleElement)next).getReturnedItemType();
+        for (NodeImpl child : allChildren()) {
+            if (child instanceof StyleElement) {
+                ItemType ret = ((StyleElement)child).getReturnedItemType();
                 if (ret != null) {
                     t = Type.getCommonSuperType(t, ret);
                 }
@@ -217,6 +212,7 @@ public abstract class StyleElement extends ElementImpl
                 return t;       // no point looking any further
             }
         }
+        return t;
     }
 
     /**
@@ -236,16 +232,6 @@ public abstract class StyleElement extends ElementImpl
 
     protected boolean mayContainSequenceConstructor() {
         return false;
-    }
-
-    /**
-     * Determine whether this type of element is allowed to contain an xsl:fallback
-     * instruction. Note that this is only relevant if the element is an instruction.
-     * @return true if this element is allowed to contain an xsl:fallback
-     */
-
-    protected boolean mayContainFallback() {
-        return mayContainSequenceConstructor();
     }
 
     /**
@@ -329,12 +315,7 @@ public abstract class StyleElement extends ElementImpl
         }
         getStaticContext();
         processAttributes();
-        UnfailingIterator kids = iterateAxis(Axis.CHILD);
-        while (true) {
-            NodeInfo child = (NodeInfo)kids.next();
-            if (child == null) {
-                return;
-            }
+        for (NodeImpl child : allChildren()) {
             if (child instanceof StyleElement) {
                 ((StyleElement)child).processAllAttributes();
             }
@@ -438,7 +419,7 @@ public abstract class StyleElement extends ElementImpl
      *                        that is not permitted on the containing element
      */
 
-    protected void checkUnknownAttribute(StructuredQName nc) throws XPathException {
+    private void checkUnknownAttribute(StructuredQName nc) throws XPathException {
 
         if (forwardsCompatibleModeIsEnabled()) {
             // then unknown attributes are permitted and ignored
@@ -487,18 +468,14 @@ public abstract class StyleElement extends ElementImpl
 
     protected StyleElement getLastChildInstruction() {
         StyleElement last = null;
-        UnfailingIterator kids = iterateAxis(Axis.CHILD);
-        while (true) {
-            NodeInfo child = (NodeInfo)kids.next();
-            if (child == null) {
-                return last;
-            }
+        for (NodeImpl child : allChildren()) {
             if (child instanceof StyleElement) {
                 last = (StyleElement)child;
             } else {
                 last = null;
             }
         }
+        return last;
     }
 
     /**
@@ -933,19 +910,19 @@ public abstract class StyleElement extends ElementImpl
      * @param exp the XPath expression for which slots are to be allocated
      */
 
-    public void allocateSlots(Expression exp) {
-        SlotManager slotManager = getContainingSlotManager();
-        int firstSlot = slotManager.getNumberOfVariables();
-        int highWater = ExpressionTool.allocateSlots(exp, firstSlot, slotManager);
-        if (highWater > firstSlot) {
-            slotManager.setNumberOfVariables(highWater);
-            // This algorithm is not very efficient because it never reuses
-            // a slot when a variable goes out of scope. But at least it is safe.
-            // Note that range variables within XPath expressions need to maintain
-            // a slot until the instruction they are part of finishes, e.g. in
-            // xsl:for-each.
-        }
-    }
+//    public void allocateSlots(Expression exp) {
+//        SlotManager slotManager = getContainingSlotManager();
+//        int firstSlot = slotManager.getNumberOfVariables();
+//        int highWater = ExpressionTool.allocateSlots(exp, firstSlot);
+//        if (highWater > firstSlot) {
+//            slotManager.setNumberOfVariables(highWater);
+//            // This algorithm is not very efficient because it never reuses
+//            // a slot when a variable goes out of scope. But at least it is safe.
+//            // Note that range variables within XPath expressions need to maintain
+//            // a slot until the instruction they are part of finishes, e.g. in
+//            // xsl:for-each.
+//        }
+//    }
 
     /**
      * Allocate space for range variables within predicates in the match pattern. The xsl:template
@@ -1026,12 +1003,7 @@ public abstract class StyleElement extends ElementImpl
      */
 
     public void fixupReferences() throws XPathException {
-        UnfailingIterator kids = iterateAxis(Axis.CHILD);
-        while (true) {
-            NodeInfo child = (NodeInfo)kids.next();
-            if (child == null) {
-                return;
-            }
+        for (NodeImpl child : allChildren()) {
             if (child instanceof StyleElement) {
                 ((StyleElement)child).fixupReferences();
             }
@@ -1044,21 +1016,20 @@ public abstract class StyleElement extends ElementImpl
      *         or null if there is no such containing Function, Template etc.
      */
 
-    public SlotManager getContainingSlotManager() {
-        NodeInfo node = this;
-        while (true) {
-            NodeInfo next = node.getParent();
-            if (next instanceof XSLStylesheet) {
-                if (node instanceof StylesheetProcedure) {
-                    return ((StylesheetProcedure)node).getSlotManager();
-                } else {
-                    return null;
-                }
-            }
-            node = next;
-        }
-    }
-
+//    public SlotManager getContainingSlotManager() {
+//        NodeInfo node = this;
+//        while (true) {
+//            NodeInfo next = node.getParent();
+//            if (next instanceof XSLStylesheet) {
+//                if (node instanceof StylesheetProcedure) {
+//                    return ((StylesheetProcedure)node).getSlotManager();
+//                } else {
+//                    return null;
+//                }
+//            }
+//            node = next;
+//        }
+//    }
 
     /**
      * Recursive walk through the stylesheet to validate all nodes
@@ -1078,12 +1049,7 @@ public abstract class StyleElement extends ElementImpl
                 compileError(validationError);
             } else if (reportingCircumstances == REPORT_UNLESS_FALLBACK_AVAILABLE) {
                 boolean hasFallback = false;
-                UnfailingIterator kids = iterateAxis(Axis.CHILD);
-                while (true) {
-                    NodeInfo child = (NodeInfo)kids.next();
-                    if (child == null) {
-                        break;
-                    }
+                for (NodeImpl child : allChildren()) {
                     if (child instanceof XSLFallback) {
                         hasFallback = true;
                         ((XSLFallback)child).validateSubtree(decl);
@@ -1113,12 +1079,7 @@ public abstract class StyleElement extends ElementImpl
 
     protected void validateChildren(Declaration decl) throws XPathException {
         boolean containsInstructions = mayContainSequenceConstructor();
-        UnfailingIterator kids = iterateAxis(Axis.CHILD);
-        while (true) {
-            NodeInfo child = (NodeInfo)kids.next();
-            if (child == null) {
-                break;
-            }
+        for (NodeImpl child : allChildren()) {
             if (child instanceof StyleElement) {
                 if (containsInstructions && !((StyleElement)child).isInstruction()
                         && !isPermittedChild((StyleElement)child)) {
@@ -1168,14 +1129,9 @@ public abstract class StyleElement extends ElementImpl
      */
 
     protected void checkSortComesFirst(boolean sortRequired) throws XPathException {
-        UnfailingIterator kids = iterateAxis(Axis.CHILD);
         boolean sortFound = false;
         boolean nonSortFound = false;
-        while (true) {
-            NodeInfo child = (NodeInfo)kids.next();
-            if (child == null) {
-                break;
-            }
+        for (NodeImpl child : allChildren()) {
             if (child instanceof XSLSort) {
                 if (nonSortFound) {
                     ((XSLSort)child).compileError("Within " + getDisplayName() +
@@ -1221,6 +1177,28 @@ public abstract class StyleElement extends ElementImpl
     }
 
     /**
+     * Validate the children against a list of allowed local names
+     * @param localName the allowed local names, which must be in alphabetical order
+     * @throws XPathException
+     */
+
+    public void onlyAllow(String... localName) throws XPathException {
+        for (NodeImpl child : allChildren()) {
+            if (Arrays.binarySearch(localName, child.getLocalPart()) >= 0) {
+                // OK;
+            } else if (child.getNodeKind() == Type.TEXT) {
+                    // with xml:space=preserve, white space nodes may still be there
+                if (!Whitespace.isWhite(child.getStringValue())) {
+                    compileError("No character data is allowed within " + getDisplayName(), "XTSE0010");
+                }
+            } else {
+                compileError("Child element " + child.getDisplayName() +
+                        " is not allowed as a child of " + getDisplayName(), "XTSE0010");
+            }
+        }
+    }
+
+    /**
      * Convenience method to report the absence of a mandatory attribute
      * @param attribute the name of the attribute whose absence is to be reported
      * @throws XPathException if the attribute is missing
@@ -1249,13 +1227,13 @@ public abstract class StyleElement extends ElementImpl
      * subordinate instructions to the parent instruction on the execution tree.
      * @param exec          the Executable
      * @param decl          the Declaration of the containing top-level stylesheet element
-     * @param iter          Iterator over the children. This is used in the case where there are children
-*                      that are not part of the sequence constructor, for example the xsl:sort children of xsl:for-each;
-*                      the iterator can be positioned past such elements.
      */
 
-    public Expression compileSequenceConstructor(Executable exec, Declaration decl,
-                                                 SequenceIterator iter)
+    public Expression compileSequenceConstructor(Executable exec, Declaration decl) throws XPathException {
+        return compileSequenceConstructor(exec, decl, iterateAxis(Axis.CHILD, AnyNodeTest.getInstance()));
+    }
+
+    private Expression compileSequenceConstructor(Executable exec, Declaration decl, SequenceIterator iter)
             throws XPathException {
 
         List<Expression> contents = new ArrayList<Expression>(10);
@@ -1267,7 +1245,7 @@ public abstract class StyleElement extends ElementImpl
             }
             if (node.getNodeKind() == Type.TEXT) {
                 // handle literal text nodes by generating an xsl:value-of instruction
-                UnfailingIterator lookahead = node.iterateAxis(Axis.FOLLOWING_SIBLING);
+                UnfailingIterator lookahead = node.iterateAxis(Axis.FOLLOWING_SIBLING, AnyNodeTest.getInstance());
                 NodeInfo sibling = (NodeInfo)lookahead.next();
                 if (!(sibling instanceof XSLParam || sibling instanceof XSLSort)) {
                     // The test for XSLParam and XSLSort is to eliminate whitespace nodes that have been retained
@@ -1316,7 +1294,6 @@ public abstract class StyleElement extends ElementImpl
                         }
                     }
                 }
-
 
             } else if (node instanceof StyleElement) {
                 StyleElement snode = (StyleElement)node;
@@ -1393,16 +1370,11 @@ public abstract class StyleElement extends ElementImpl
         // process any xsl:fallback children; if there are none,
         // generate code to report the original failure reason
         Expression fallback = null;
-        UnfailingIterator kids = instruction.iterateAxis(Axis.CHILD);
-        while (true) {
-            NodeInfo child = (NodeInfo)kids.next();
-            if (child == null) {
-                break;
-            }
+        for (NodeImpl child : allChildren()) {
             if (child instanceof XSLFallback) {
                 //fallback.setLocationId(allocateLocationId(getSystemId(), child.getLineNumber()));
                 //((XSLFallback)child).compileChildren(exec, fallback, true);
-                Expression b = ((XSLFallback)child).compileSequenceConstructor(exec, decl, child.iterateAxis(Axis.CHILD));
+                Expression b = ((XSLFallback)child).compileSequenceConstructor(exec, decl);
                 if (b == null) {
                     b = Literal.makeEmptySequence();
                 }
@@ -1418,8 +1390,6 @@ public abstract class StyleElement extends ElementImpl
             return fallback;
         } else {
             return new ErrorExpression(instruction.validationError);
-//            compileError(instruction.validationError);
-//            return EmptySequence.getInstance();
         }
 
     }
@@ -1435,12 +1405,7 @@ public abstract class StyleElement extends ElementImpl
         // handle sort keys if any
 
         int numberOfSortKeys = 0;
-        UnfailingIterator kids = iterateAxis(Axis.CHILD);
-        while (true) {
-            Item child = kids.next();
-            if (child == null) {
-                break;
-            }
+        for (NodeImpl child : allChildren()) {
             if (child instanceof XSLSort) {
                 ((XSLSort)child).compile(getExecutable(), decl);
                 if (numberOfSortKeys != 0 && ((XSLSort)child).getStable() != null) {
@@ -1452,13 +1417,8 @@ public abstract class StyleElement extends ElementImpl
 
         if (numberOfSortKeys > 0) {
             SortKeyDefinition[] keys = new SortKeyDefinition[numberOfSortKeys];
-            kids = iterateAxis(Axis.CHILD);
             int k = 0;
-            while (true) {
-                NodeInfo child = (NodeInfo)kids.next();
-                if (child == null) {
-                    break;
-                }
+            for (NodeImpl child : allChildren()) {
                 if (child instanceof XSLSort) {
                     keys[k++] = ((XSLSort)child).getSortKeyDefinition().simplify(makeExpressionVisitor());
                 }
@@ -1478,13 +1438,14 @@ public abstract class StyleElement extends ElementImpl
      * @param list an empty list to hold the list of XSLAttributeSet elements in the stylesheet tree.
      *             Or null, if these are not required.
      * @return an array of AttributeList instructions representing the compiled attribute sets
+     * @throws XPathException if, for example, an attribute set name is an invalid QName
      */
 
     protected AttributeSet[] getAttributeSets(String use, List<Declaration> list)
             throws XPathException {
 
         if (list == null) {
-            list = new ArrayList(4);
+            list = new ArrayList<Declaration>(4);
         }
         PrincipalStylesheetModule psm = getPrincipalStylesheetModule();
         for (String asetname : Whitespace.tokenize(use)) {
@@ -1525,38 +1486,20 @@ public abstract class StyleElement extends ElementImpl
 
     protected WithParam[] getWithParamInstructions(Executable exec, Declaration decl, boolean tunnel, Expression caller)
             throws XPathException {
-        int count = 0;
-        UnfailingIterator kids = iterateAxis(Axis.CHILD);
-        while (true) {
-            NodeInfo child = (NodeInfo)kids.next();
-            if (child == null) {
-                break;
-            }
-            if (child instanceof XSLWithParam) {
-                XSLWithParam wp = (XSLWithParam)child;
-                if (wp.isTunnelParam() == tunnel) {
-                    count++;
-                }
-            }
-        }
-        WithParam[] array = new WithParam[count];
-        count = 0;
-        kids = iterateAxis(Axis.CHILD);
-        while (true) {
-            NodeInfo child = (NodeInfo)kids.next();
-            if (child == null) {
-                return array;
-            }
+        List<WithParam> params = new ArrayList<WithParam>();
+        for (NodeImpl child : allChildren()) {
             if (child instanceof XSLWithParam) {
                 XSLWithParam wp = (XSLWithParam)child;
                 if (wp.isTunnelParam() == tunnel) {
                     WithParam p = (WithParam)wp.compile(exec, decl);
                     ExpressionTool.copyLocationInfo(caller, p);
-                    array[count++] = p;
+                    params.add(p);
                 }
 
             }
         }
+        WithParam[] array = new WithParam[params.size()];
+        return params.toArray(array);
     }
 
     /**
@@ -1663,7 +1606,7 @@ public abstract class StyleElement extends ElementImpl
 
         // first search for a local variable declaration
         if (!isTopLevel()) {
-            UnfailingIterator preceding = curr.iterateAxis(Axis.PRECEDING_SIBLING);
+            UnfailingIterator preceding = curr.iterateAxis(Axis.PRECEDING_SIBLING, NodeKindTest.ELEMENT);
             while (true) {
                 curr = (NodeInfo)preceding.next();
                 while (curr == null) {
@@ -1676,7 +1619,7 @@ public abstract class StyleElement extends ElementImpl
                     if (curr.getParent() instanceof XSLStylesheet) {
                         break;   // top level
                     }
-                    preceding = curr.iterateAxis(Axis.PRECEDING_SIBLING);
+                    preceding = curr.iterateAxis(Axis.PRECEDING_SIBLING, NodeKindTest.ELEMENT);
                     curr = (NodeInfo)preceding.next();
                 }
                 if (curr.getParent() instanceof XSLStylesheet) {
@@ -1744,7 +1687,7 @@ public abstract class StyleElement extends ElementImpl
 
     public Iterator<String> getProperties() {
         List<String> list = new ArrayList<String>(10);
-        UnfailingIterator it = iterateAxis(Axis.ATTRIBUTE);
+        UnfailingIterator it = iterateAxis(Axis.ATTRIBUTE, AnyNodeTest.getInstance());
         while (true) {
             NodeInfo a = (NodeInfo)it.next();
             if (a == null) {

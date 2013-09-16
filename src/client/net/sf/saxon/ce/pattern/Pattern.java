@@ -2,11 +2,13 @@ package client.net.sf.saxon.ce.pattern;
 
 import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
-import client.net.sf.saxon.ce.expr.instruct.SlotManager;
 import client.net.sf.saxon.ce.om.*;
 import client.net.sf.saxon.ce.style.StyleElement;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.tree.iter.*;
+import client.net.sf.saxon.ce.tree.iter.EmptyIterator;
+import client.net.sf.saxon.ce.tree.iter.PrependIterator;
+import client.net.sf.saxon.ce.tree.iter.SingletonIterator;
+import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 import client.net.sf.saxon.ce.tree.util.SourceLocator;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.Type;
@@ -144,12 +146,10 @@ public abstract class Pattern implements Container, SourceLocator {
 
    /**
      * Allocate slots to any variables used within the pattern
-     * @param env the static context in the XSLT stylesheet
-     * @param slotManager the slot manager representing the stack frame for local variables
-     * @param nextFree the next slot that is free to be allocated @return the next slot that is free to be allocated
-     */
+    * @param nextFree the next slot that is free to be allocated @return the next slot that is free to be allocated
+    */
 
-    public int allocateSlots(StaticContext env, SlotManager slotManager, int nextFree) {
+    public int allocateSlots(int nextFree) {
         return nextFree;
     }
 
@@ -261,7 +261,7 @@ public abstract class Pattern implements Container, SourceLocator {
                 UnfailingIterator allElements = doc.iterateAxis(Axis.DESCENDANT, NodeKindTest.ELEMENT);
                 MappingFunction atts = new MappingFunction() {
                     public SequenceIterator map(Item item) {
-                        return ((NodeInfo)item).iterateAxis(Axis.ATTRIBUTE);
+                        return ((NodeInfo)item).iterateAxis(Axis.ATTRIBUTE, AnyNodeTest.getInstance());
                     }
                 };
                 SequenceIterator allAttributes = new MappingIterator(allElements, atts);
@@ -293,10 +293,10 @@ public abstract class Pattern implements Container, SourceLocator {
                 return new ItemMappingIterator(allChildren, test);
             }
             case Type.NODE: {
-                UnfailingIterator allChildren = doc.iterateAxis(Axis.DESCENDANT);
+                UnfailingIterator allChildren = doc.iterateAxis(Axis.DESCENDANT, AnyNodeTest.getInstance());
                 MappingFunction attsOrSelf = new MappingFunction() {
                     public SequenceIterator map(Item item) {
-                        return new PrependIterator((NodeInfo)item, ((NodeInfo)item).iterateAxis(Axis.ATTRIBUTE));
+                        return new PrependIterator((NodeInfo)item, ((NodeInfo)item).iterateAxis(Axis.ATTRIBUTE, AnyNodeTest.getInstance()));
                     }
                 };
                 SequenceIterator attributesOrSelf = new MappingIterator(allChildren, attsOrSelf);

@@ -270,7 +270,7 @@ public final class PathExpression extends SlashExpression implements ContextMapp
         //role0.setSourceLocator(this);
         role0.setErrorCode("XPTY0019");
         setStartExpression(
-                TypeChecker.staticTypeCheck(start, SequenceType.NODE_SEQUENCE, false, role0, visitor));
+                TypeChecker.staticTypeCheck(start, SequenceType.NODE_SEQUENCE, false, role0));
 
         // Now check the second operand
 

@@ -31,7 +31,6 @@ import com.google.gwt.dom.client.Document;
 import com.google.gwt.dom.client.Node;
 import com.google.gwt.logging.client.LogConfiguration;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.logging.Logger;
 
@@ -171,15 +170,7 @@ public class ResultDocument extends Instruction  {
      */
 
     public Iterator<Expression> iterateSubExpressions() {
-        ArrayList list = new ArrayList(6);
-        list.add(content);
-        if (href != null) {
-            list.add(href);
-        }
-        if (methodExpression != null) {
-            list.add(methodExpression);
-        }
-        return list.iterator();
+        return nonNullChildren(content, href, methodExpression);
     }
 
     /**
@@ -253,15 +244,12 @@ public class ResultDocument extends Instruction  {
                 }
 
             };
-            ExpressionVisitor visitor = new ExpressionVisitor();
-            visitor.setConfiguration(context.getConfiguration());
-            visitor.setExecutable(new Executable(context.getConfiguration()));
-            visitor.setStaticContext(env);
+            ExpressionVisitor visitor = ExpressionVisitor.make(env, new Executable(context.getConfiguration()));
             env.setConfiguration(context.getConfiguration());
             Container container = (StyleElement)getSourceLocator();
             Expression expr = null;
             try {
-            expr = ExpressionTool.make(select, env, container, 0, Token.EOF, getSourceLocator());
+                expr = ExpressionTool.make(select, env, container, 0, Token.EOF, getSourceLocator());
             } catch (Exception e) {
             	// occurs if expression contains references to variables etc. within the dynamic context
             	throw new XPathException("Error on evaluating (in static context) result-document href: " + hrefValue);

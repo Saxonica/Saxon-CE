@@ -4,7 +4,7 @@ import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.expr.instruct.SimpleNodeConstructor;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.StringValue;
@@ -52,7 +52,7 @@ public class StringFn extends SystemFunction {
             return e;
         }
         TypeHierarchy th = TypeHierarchy.getInstance();
-        if (th.isSubType(argument[0].getItemType(), BuiltInAtomicType.STRING) &&
+        if (th.isSubType(argument[0].getItemType(), AtomicType.STRING) &&
                 argument[0].getCardinality() == StaticProperty.EXACTLY_ONE) {
             return argument[0];
         }
@@ -72,7 +72,7 @@ public class StringFn extends SystemFunction {
             Item arg = argument[0].evaluateItem(c);
             if (arg==null) {
                 return StringValue.EMPTY_STRING;
-            } else if (arg instanceof StringValue && ((StringValue)arg).getItemType() == BuiltInAtomicType.STRING) {
+            } else if (arg instanceof StringValue && ((StringValue)arg).getItemType() == AtomicType.STRING) {
                 return arg;
             } else {
                 return StringValue.makeStringValue(arg.getStringValue());

@@ -58,7 +58,7 @@ public class NumberFn extends SystemFunction  {
             return DoubleValue.NaN;
         }
         if (arg0 instanceof BooleanValue || arg0 instanceof NumericValue) {
-            ConversionResult result = ((AtomicValue)arg0).convert(BuiltInAtomicType.DOUBLE, true);
+            ConversionResult result = ((AtomicValue)arg0).convert(AtomicType.DOUBLE);
             if (result instanceof ValidationFailure) {
                 return DoubleValue.NaN;
             } else {
@@ -89,7 +89,7 @@ public class NumberFn extends SystemFunction  {
                 return DoubleValue.NaN;
             }
             if (value instanceof BooleanValue || value instanceof NumericValue) {
-                ConversionResult result = value.convert(BuiltInAtomicType.DOUBLE, true);
+                ConversionResult result = value.convert(AtomicType.DOUBLE);
                 if (result instanceof ValidationFailure) {
                     return DoubleValue.NaN;
                 } else {

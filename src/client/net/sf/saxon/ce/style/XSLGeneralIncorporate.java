@@ -12,11 +12,11 @@ import client.net.sf.saxon.ce.tree.util.URI;
 
 
 /**
-* Abstract class to represent xsl:include or xsl:import element in the stylesheet. <br>
+* Class to represent xsl:include or xsl:import element in the stylesheet. <br>
 * The xsl:include and xsl:import elements have mandatory attribute href
 */
 
-public abstract class XSLGeneralIncorporate extends StyleElement {
+public class XSLGeneralIncorporate extends StyleElement {
 
     private String href;
 
@@ -29,15 +29,7 @@ public abstract class XSLGeneralIncorporate extends StyleElement {
     @Override
     public boolean isDeclaration() {
         return true;
-    }    
-
-
-    /**
-    * isImport() returns true if this is an xsl:import declaration rather than an xsl:include
-     * @return true if this is an xsl:import declaration, false if it is an xsl:include
-    */
-
-    public abstract boolean isImport();
+    }
 
     public void prepareAttributes() throws XPathException {
         href = (String)checkAttribute("href", "w1");
@@ -50,7 +42,7 @@ public abstract class XSLGeneralIncorporate extends StyleElement {
 
     public void validateInstruction() throws XPathException {
         checkEmpty();
-        checkTopLevel(isImport() ? "XTSE0190" : "XTSE0170");
+        checkTopLevel(getLocalPart().equals("import") ? "XTSE0190" : "XTSE0170");
     }
 
     /**
@@ -93,8 +85,7 @@ public abstract class XSLGeneralIncorporate extends StyleElement {
                 String fragment = null;
                 int hash = relative.indexOf('#');
                 if (hash == 0 || relative.length() == 0) {
-                    compileError("A stylesheet cannot " + getLocalPart() + " itself",
-                                    (this instanceof XSLInclude ? "XTSE0180" : "XTSE0210"));
+                    reportCycle();
                     return null;
                 } else if (hash == relative.length() - 1) {
                     relative = relative.substring(0, hash);
@@ -121,8 +112,7 @@ public abstract class XSLGeneralIncorporate extends StyleElement {
                 if (source != null) {
                     while(anc!=null) {
                         if (source.equals(anc.getSourceElement().getSystemId())) {
-                            compileError("A stylesheet cannot " + getLocalPart() + " itself",
-                                    (this instanceof XSLInclude ? "XTSE0180" : "XTSE0210"));
+                            reportCycle();
                             return null;
                         }
                         anc = anc.getImporter();
@@ -182,6 +172,11 @@ public abstract class XSLGeneralIncorporate extends StyleElement {
             compileError(err);
             return null;
         }
+    }
+
+    private void reportCycle() throws XPathException {
+        compileError("A stylesheet cannot " + getLocalPart() + " itself",
+                        (getLocalPart().equals("include") ? "XTSE0180" : "XTSE0210"));
     }
 
     public Expression compile(Executable exec, Declaration decl) throws XPathException {

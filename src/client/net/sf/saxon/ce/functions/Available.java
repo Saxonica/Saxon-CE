@@ -49,7 +49,7 @@ public class Available extends SystemFunction {
      */
     @Override
     public boolean effectiveBooleanValue(XPathContext context) throws XPathException {
-        String lexicalQName = ((Literal)argument[0]).getValue().getStringValue();
+        String lexicalQName = argument[0].evaluateAsString(context).toString();
         switch(operation) {
             case ELEMENT_AVAILABLE: {
                 StructuredQName qName = StructuredQName.fromLexicalQName(

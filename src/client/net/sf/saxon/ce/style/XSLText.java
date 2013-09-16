@@ -3,11 +3,9 @@ import client.net.sf.saxon.ce.expr.Expression;
 import client.net.sf.saxon.ce.expr.Literal;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.expr.instruct.ValueOf;
-import client.net.sf.saxon.ce.om.Axis;
-import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.pattern.NodeKindTest;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
+import client.net.sf.saxon.ce.tree.linked.NodeImpl;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.value.StringValue;
 
@@ -36,13 +34,9 @@ public class XSLText extends XSLLeafNodeConstructor {
 
     public void validate(Declaration decl) throws XPathException {
 
-        UnfailingIterator kids = iterateAxis(Axis.CHILD);
         value = StringValue.EMPTY_STRING;
-        while(true) {
-            Item child = kids.next();
-            if (child == null) {
-                break;
-            } else if (child instanceof StyleElement) {
+        for (NodeImpl child: allChildren()) {
+            if (child instanceof StyleElement) {
                 ((StyleElement)child).compileError("xsl:text must not contain child elements", "XTSE0010");
                 return;
             } else {

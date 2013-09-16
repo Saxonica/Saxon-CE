@@ -44,7 +44,7 @@ public final class DayTimeDurationValue extends DurationValue implements Compara
             return d;
         }
         DurationValue dv = (DurationValue)d;
-        return dv.convertPrimitive(BuiltInAtomicType.DAY_TIME_DURATION, false);
+        return dv.convert(AtomicType.DAY_TIME_DURATION);
     }
 
     /**
@@ -94,8 +94,8 @@ public final class DayTimeDurationValue extends DurationValue implements Compara
      * and xs:untypedAtomic. For external objects, the result is AnyAtomicType.
      */
 
-    public BuiltInAtomicType getItemType() {
-        return BuiltInAtomicType.DAY_TIME_DURATION;
+    public AtomicType getItemType() {
+        return AtomicType.DAY_TIME_DURATION;
     }
 
     /**

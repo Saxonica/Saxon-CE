@@ -36,7 +36,6 @@ public abstract class Expression {
     protected int staticProperties = -1;
     protected SourceLocator sourceLocator = null;
     private Container container;
-    private int[] slotsUsed;
     private ArrayList<String[]> traceProperties;
 
     /**
@@ -142,18 +141,18 @@ public abstract class Expression {
      * Static type checking of some expressions is delegated to the expression itself, by calling
      * this method. The default implementation of the method throws UnsupportedOperationException.
      * If there is a non-default implementation, then implementsStaticTypeCheck() will return true
+     *
      * @param req the required type
      * @param backwardsCompatible true if backwards compatibility mode applies
      * @param role the role of the expression in relation to the required type
-     * @param visitor an expression visitor
      * @return the expression after type checking (perhaps augmented with dynamic type checking code)
      * @throws XPathException if failures occur, for example if the static type of one branch of the conditional
      * is incompatible with the required type
      */
 
     public Expression staticTypeCheck(SequenceType req,
-                                             boolean backwardsCompatible,
-                                             RoleLocator role, ExpressionVisitor visitor)
+                                      boolean backwardsCompatible,
+                                      RoleLocator role)
     throws XPathException {
         throw new UnsupportedOperationException("staticTypeCheck");
     }
@@ -291,12 +290,19 @@ public abstract class Expression {
     }
 
     /**
-     * Utility method to return an iterator over a singleton child expression
+     * Utility method to return an iterator over specific child expressions
      */
 
-    protected Iterator<Expression> monoIterator(Expression child) {
-        return Arrays.asList(child).iterator();
+    protected Iterator<Expression> nonNullChildren(Expression... children) {
+        List<Expression> list = new ArrayList<Expression>(children.length);
+        for (Expression child : children) {
+            if (child != null) {
+                list.add(child);
+            }
+        }
+        return list.iterator();
     }
+
 
     /**
      * Given an expression that is an immediate child of this expression, test whether

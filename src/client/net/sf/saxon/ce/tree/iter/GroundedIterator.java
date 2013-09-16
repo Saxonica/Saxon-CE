@@ -1,8 +1,7 @@
 package client.net.sf.saxon.ce.tree.iter;
 
-import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.om.SequenceIterator;
-import client.net.sf.saxon.ce.om.GroundedValue;
+import client.net.sf.saxon.ce.value.Value;
 
 /**
  * This interface is an extension to the SequenceIterator interface; it represents
@@ -14,12 +13,12 @@ import client.net.sf.saxon.ce.om.GroundedValue;
 public interface GroundedIterator extends SequenceIterator {
 
     /**
-     * Return a GroundedValue containing all the items in the sequence returned by this
-     * SequenceIterator. This should be an "in-memory" value, not a Closure.
-     * @return the corresponding Value
+     * Return a Value containing all the items in the sequence returned by this
+     * SequenceIterator. This should involve no computation, and throws no errors.
+     * @return the corresponding Value, or null if the value is not known
      */
 
-    public GroundedValue materialize() throws XPathException;
+    public Value materialize();
 }
 
 

@@ -3,7 +3,7 @@ package client.net.sf.saxon.ce.expr.instruct;
 import client.net.sf.saxon.ce.expr.Binding;
 import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.om.StructuredQName;
-import client.net.sf.saxon.ce.om.ValueRepresentation;
+import client.net.sf.saxon.ce.om.Sequence;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.value.SequenceType;
 
@@ -15,10 +15,6 @@ public class UserFunctionParameter implements Binding {
     private SequenceType requiredType;
     private StructuredQName variableQName;
     private int slotNumber;
-    private int referenceCount = 999;
-        // The initial value is deliberately set to indicate "many" so that it will be assumed a parameter
-        // is referenced repeatedly until proved otherwise
-    private boolean isIndexed = false;
 
     /**
      * Create a UserFunctionParameter
@@ -92,53 +88,13 @@ public class UserFunctionParameter implements Binding {
     }
 
     /**
-     * Set the (nominal) number of references within the function body to this parameter, where a reference
-     * inside a loop is counted as multiple references
-     * @param count the nominal number of references
-     */
-
-    public void setReferenceCount(int count) {
-        referenceCount = count;
-    }
-
-    /**
-     * Get the (nominal) number of references within the function body to this parameter, where a reference
-     * inside a loop is counted as multiple references
-     * @return the nominal number of references
-     */
-
-    public int getReferenceCount() {
-        return referenceCount;
-    }
-
-    /**
-     * Indicate that this parameter requires (or does not require) support for indexing
-     * @param indexed true if support for indexing is required. This will be set if the parameter
-     * is used in a filter expression such as $param[@a = 17]
-     */
-
-    public void setIndexedVariable(boolean indexed) {
-        isIndexed = indexed;
-    }
-
-    /**
-     * Ask whether this parameter requires support for indexing
-     * @return true if support for indexing is required. This will be set if the parameter
-     * is used in a filter expression such as $param[@a = 17]
-     */
-
-    public boolean isIndexedVariable() {
-        return isIndexed;
-    }
-
-    /**
      * Evaluate this function parameter
      * @param context the XPath dynamic context
      * @return the value of the parameter
      * @throws XPathException if an error occurs
      */
 
-    public ValueRepresentation evaluateVariable(XPathContext context) throws XPathException {
+    public Sequence evaluateVariable(XPathContext context) throws XPathException {
         return context.evaluateLocalVariable(slotNumber);
     }
 

@@ -1,12 +1,11 @@
 package client.net.sf.saxon.ce.expr.instruct;
 
-import client.net.sf.saxon.ce.Controller;
 import client.net.sf.saxon.ce.expr.Expression;
 import client.net.sf.saxon.ce.expr.ExpressionTool;
 import client.net.sf.saxon.ce.expr.UserFunctionCall;
 import client.net.sf.saxon.ce.expr.XPathContextMajor;
 import client.net.sf.saxon.ce.om.StructuredQName;
-import client.net.sf.saxon.ce.om.ValueRepresentation;
+import client.net.sf.saxon.ce.om.Sequence;
 import client.net.sf.saxon.ce.trace.Location;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.value.SequenceType;
@@ -16,7 +15,7 @@ import java.util.Iterator;
 /**
  * This object represents the compiled form of a user-written function
  * (the source can be either an XSLT stylesheet function or an XQuery function).
- *
+ * <p/>
  * <p>It is assumed that type-checking, of both the arguments and the results,
  * has been handled at compile time. That is, the expression supplied as the body
  * of the function must be wrapped in code to check or convert the result to the
@@ -28,9 +27,9 @@ public class UserFunction extends Procedure {
 
     private StructuredQName functionName;
     private boolean tailCalls = false;
-            // indicates that the function contains tail calls, not necessarily recursive ones.
+    // indicates that the function contains tail calls, not necessarily recursive ones.
     private boolean tailRecursive = false;
-            // indicates that the function contains tail calls on itself
+    // indicates that the function contains tail calls on itself
     private UserFunctionParameter[] parameterDefinitions;
     private SequenceType resultType;
     protected int evaluationMode = ExpressionTool.UNDECIDED;
@@ -39,10 +38,12 @@ public class UserFunction extends Procedure {
      * Create a user-defined function (the body must be added later)
      */
 
-    public UserFunction() {}
+    public UserFunction() {
+    }
 
     /**
      * Set the function name
+     *
      * @param name the function name
      */
 
@@ -52,6 +53,7 @@ public class UserFunction extends Procedure {
 
     /**
      * Get the function name
+     *
      * @return the function name, as a StructuredQName
      */
 
@@ -63,7 +65,6 @@ public class UserFunction extends Procedure {
     /**
      * Get a name identifying the object of the expression, for example a function name, template name,
      * variable name, key name, element name, etc. This is used only where the name is known statically.
-     *
      */
 
     public StructuredQName getObjectName() {
@@ -76,17 +77,18 @@ public class UserFunction extends Procedure {
 
     public void computeEvaluationMode() {
         if (tailRecursive) {
-                // If this function contains tail calls, we evaluate it eagerly, because
-                // the caller needs to know whether a tail call was returned or not: if we
-                // return a Closure, the tail call escapes into the wild and can reappear anywhere...
+            // If this function contains tail calls, we evaluate it eagerly, because
+            // the caller needs to know whether a tail call was returned or not: if we
+            // return a Closure, the tail call escapes into the wild and can reappear anywhere...
             evaluationMode = ExpressionTool.eagerEvaluationMode(getBody());
         } else {
             evaluationMode = ExpressionTool.lazyEvaluationMode(getBody());
         }
     }
 
-     /**
+    /**
      * Set the definitions of the declared parameters for this function
+     *
      * @param params an array of parameter definitions
      */
 
@@ -96,6 +98,7 @@ public class UserFunction extends Procedure {
 
     /**
      * Get the definitions of the declared parameters for this function
+     *
      * @return an array of parameter definitions
      */
 
@@ -105,6 +108,7 @@ public class UserFunction extends Procedure {
 
     /**
      * Set the declared result type of the function
+     *
      * @param resultType the declared return type
      */
 
@@ -114,7 +118,8 @@ public class UserFunction extends Procedure {
 
     /**
      * Indicate whether the function contains a tail call
-     * @param tailCalls true if the function contains a tail call (on any function)
+     *
+     * @param tailCalls          true if the function contains a tail call (on any function)
      * @param recursiveTailCalls true if the function contains a tail call (on itself)
      */
 
@@ -125,6 +130,7 @@ public class UserFunction extends Procedure {
 
     /**
      * Determine whether the function contains tail calls (on this or other functions)
+     *
      * @return true if the function contains tail calls
      */
 
@@ -134,6 +140,7 @@ public class UserFunction extends Procedure {
 
     /**
      * Determine whether the function contains a tail call, calling itself
+     *
      * @return true if the function contains a directly-recursive tail call
      */
 
@@ -141,10 +148,11 @@ public class UserFunction extends Procedure {
         return tailRecursive;
     }
 
-     /**
+    /**
      * Get the type of value returned by this function
+     *
      * @return the declared result type, or the inferred result type
-     * if this is more precise
+     *         if this is more precise
      */
 
     public SequenceType getResultType() {
@@ -161,6 +169,7 @@ public class UserFunction extends Procedure {
 
     /**
      * Get the declared result type
+     *
      * @return the declared result type
      */
 
@@ -170,6 +179,7 @@ public class UserFunction extends Procedure {
 
     /**
      * Determine whether a given expression contains calls on user-defined functions
+     *
      * @param exp the expression to be tested
      * @return true if the expression contains calls to user functions.
      */
@@ -180,7 +190,7 @@ public class UserFunction extends Procedure {
         }
         Iterator i = exp.iterateSubExpressions();
         while (i.hasNext()) {
-            Expression e = (Expression)i.next();
+            Expression e = (Expression) i.next();
             if (containsUserFunctionCalls(e)) {
                 return true;
             }
@@ -190,6 +200,7 @@ public class UserFunction extends Procedure {
 
     /**
      * Get the required types of an argument to this function
+     *
      * @param n identifies the argument in question, starting at 0
      * @return a SequenceType object, indicating the required type of the argument
      */
@@ -200,6 +211,7 @@ public class UserFunction extends Procedure {
 
     /**
      * Get the evaluation mode. The evaluation mode will be computed if this has not already been done
+     *
      * @return the computed evaluation mode
      */
 
@@ -212,6 +224,7 @@ public class UserFunction extends Procedure {
 
     /**
      * Get the arity of this function
+     *
      * @return the number of arguments
      */
 
@@ -221,17 +234,18 @@ public class UserFunction extends Procedure {
 
     /**
      * Call this function to return a value.
+     *
      * @param actualArgs the arguments supplied to the function. These must have the correct
-     * types required by the function signature (it is the caller's responsibility to check this).
-     * The array must be the correct size to match
-     * the number of arguments: again, it is the caller's responsibility to check this.
-     * @param context This provides the run-time context for evaluating the function. It is the caller's
-     * responsibility to allocate a "clean" context for the function to use; the context that is provided
-     * will be overwritten by the function.
+     *                   types required by the function signature (it is the caller's responsibility to check this).
+     *                   The array must be the correct size to match
+     *                   the number of arguments: again, it is the caller's responsibility to check this.
+     * @param context    This provides the run-time context for evaluating the function. It is the caller's
+     *                   responsibility to allocate a "clean" context for the function to use; the context that is provided
+     *                   will be overwritten by the function.
      * @return a Value representing the result of the function.
      */
 
-    public ValueRepresentation call(ValueRepresentation[] actualArgs, XPathContextMajor context)
+    public Sequence call(Sequence[] actualArgs, XPathContextMajor context)
             throws XPathException {
 
         if (evaluationMode == ExpressionTool.UNDECIDED) {
@@ -241,8 +255,8 @@ public class UserFunction extends Procedure {
 
         // Otherwise evaluate the function
 
-        context.setStackFrame(getStackFrameMap(), actualArgs);
-        ValueRepresentation result;
+        context.setStackFrame(getNumberOfSlots(), actualArgs);
+        Sequence result;
         try {
             result = ExpressionTool.evaluate(getBody(), evaluationMode, context);
         } catch (XPathException err) {
@@ -254,38 +268,23 @@ public class UserFunction extends Procedure {
     }
 
     /**
-      * Call this function in "push" mode, writing the results to the current output destination.
-      * @param actualArgs the arguments supplied to the function. These must have the correct
-      * types required by the function signature (it is the caller's responsibility to check this).
-      * The array must be the correct size to match
-      * the number of arguments: again, it is the caller's responsibility to check this.
-      * @param context This provides the run-time context for evaluating the function. It is the caller's
-      * responsibility to allocate a "clean" context for the function to use; the context that is provided
-      * will be overwritten by the function.
-      */
-
-     public void process(ValueRepresentation[] actualArgs, XPathContextMajor context)
-             throws XPathException {
-         context.setStackFrame(getStackFrameMap(), actualArgs);
-         getBody().process(context);
-     }
-
-    /**
-     * Call this function. This method allows an XQuery function to be called directly from a Java
-     * application. It creates the environment needed to achieve this
+     * Call this function in "push" mode, writing the results to the current output destination.
+     *
      * @param actualArgs the arguments supplied to the function. These must have the correct
-     * types required by the function signature (it is the caller's responsibility to check this).
-     * The array must be the correct size to match
-     * the number of arguments: again, it is the caller's responsibility to check this.
-     * @param controller This provides the run-time context for evaluating the function.  This may
-     * be used for a series of calls on functions defined in the same module as the XQueryExpression.
-     * @return a Value representing the result of the function.
+     *                   types required by the function signature (it is the caller's responsibility to check this).
+     *                   The array must be the correct size to match
+     *                   the number of arguments: again, it is the caller's responsibility to check this.
+     * @param context    This provides the run-time context for evaluating the function. It is the caller's
+     *                   responsibility to allocate a "clean" context for the function to use; the context that is provided
+     *                   will be overwritten by the function.
      */
 
-    public ValueRepresentation call(ValueRepresentation[] actualArgs, Controller controller) throws XPathException {
-        return call(actualArgs, controller.newXPathContext());
+    public void process(Sequence[] actualArgs, XPathContextMajor context)
+            throws XPathException {
+        context.setStackFrame(getNumberOfSlots(), actualArgs);
+        getBody().process(context);
     }
-    
+
     public StructuredQName getConstructType() {
         return Location.FUNCTION;
     }

@@ -1,13 +1,12 @@
 package client.net.sf.saxon.ce.expr;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.value.AtomicValue;
 import client.net.sf.saxon.ce.value.BooleanValue;
 import client.net.sf.saxon.ce.value.NumericValue;
 
-import java.util.Arrays;
 import java.util.Iterator;
 
 /**
@@ -96,7 +95,7 @@ public class IntegerRangeTest extends Expression {
      */
 
     public ItemType getItemType() {
-        return BuiltInAtomicType.BOOLEAN;
+        return AtomicType.BOOLEAN;
     }
 
     /**
@@ -116,8 +115,7 @@ public class IntegerRangeTest extends Expression {
      */
 
     public Iterator<Expression> iterateSubExpressions() {
-        Expression[] e = {value, min, max};
-        return Arrays.asList(e).iterator();
+        return nonNullChildren(value, min, max);
     }
 
     /**

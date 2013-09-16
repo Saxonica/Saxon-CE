@@ -3,14 +3,15 @@ package client.net.sf.saxon.ce.trans;
 import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.Controller;
 import client.net.sf.saxon.ce.expr.*;
-import client.net.sf.saxon.ce.expr.instruct.SlotManager;
 import client.net.sf.saxon.ce.expr.sort.LocalOrderComparer;
 import client.net.sf.saxon.ce.lib.StringCollator;
 import client.net.sf.saxon.ce.om.*;
 import client.net.sf.saxon.ce.pattern.Pattern;
-import client.net.sf.saxon.ce.tree.iter.*;
+import client.net.sf.saxon.ce.tree.iter.EmptyIterator;
 import client.net.sf.saxon.ce.tree.iter.ListIterator;
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.tree.iter.SingletonIterator;
+import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.value.AtomicValue;
 import client.net.sf.saxon.ce.value.DoubleValue;
@@ -70,9 +71,9 @@ public class KeyManager {
     private class IndexId {
 
         public StructuredQName keyName;
-        public BuiltInAtomicType primitiveType;
+        public AtomicType primitiveType;
 
-        public IndexId(StructuredQName keyName, BuiltInAtomicType primitiveType) {
+        public IndexId(StructuredQName keyName, AtomicType primitiveType) {
             this.keyName = keyName;
             this.primitiveType = primitiveType;
         }
@@ -145,8 +146,8 @@ public class KeyManager {
             for (int i=0; i<v.size(); i++) {
                 KeyDefinition kd = (KeyDefinition)v.get(i);
                 kd.setBackwardsCompatible(true);
-                if (!kd.getBody().getItemType().equals(BuiltInAtomicType.STRING)) {
-                    Expression exp = new AtomicSequenceConverter(kd.getBody(), BuiltInAtomicType.STRING);
+                if (!kd.getBody().getItemType().equals(AtomicType.STRING)) {
+                    Expression exp = new AtomicSequenceConverter(kd.getBody(), AtomicType.STRING);
                     kd.setBody(exp);
                 }
             }
@@ -176,8 +177,8 @@ public class KeyManager {
     */
 
     private synchronized HashMap buildIndex(KeyDefinitionSet keySet,
-                                            BuiltInAtomicType itemType,
-                                            Set<BuiltInAtomicType> foundItemTypes,
+                                            AtomicType itemType,
+                                            Set<AtomicType> foundItemTypes,
                                             DocumentInfo doc,
                                             XPathContext context) throws XPathException {
 
@@ -209,21 +210,17 @@ public class KeyManager {
     private void constructIndex(    DocumentInfo doc,
                                     HashMap<Object, List<NodeInfo>> index,
                                     KeyDefinition keydef,
-                                    BuiltInAtomicType soughtItemType,
-                                    Set<BuiltInAtomicType> foundItemTypes,
+                                    AtomicType soughtItemType,
+                                    Set<AtomicType> foundItemTypes,
                                     XPathContext context,
                                     boolean isFirst) throws XPathException {
         //System.err.println("build index for doc " + doc.getDocumentNumber());
         Pattern match = keydef.getMatch();
 
-        //NodeInfo curr;
         XPathContextMajor xc = context.newContext();
 
         // The use expression (or sequence constructor) may contain local variables.
-        SlotManager map = keydef.getStackFrameMap();
-        if (map != null) {
-            xc.openStackFrame(map);
-        }
+        xc.openStackFrame(keydef.getNumberOfSlots());
 
         SequenceIterator iter = match.selectNodes(doc, xc);
         while (true) {
@@ -250,8 +247,8 @@ public class KeyManager {
     */
 
     private void processKeyNode(    NodeInfo curr,
-                                    BuiltInAtomicType soughtItemType,
-                                    Set<BuiltInAtomicType> foundItemTypes,
+                                    AtomicType soughtItemType,
+                                    Set<AtomicType> foundItemTypes,
                                     KeyDefinition keydef,
                                     HashMap<Object, List<NodeInfo>> index,
                                     XPathContext xc,
@@ -278,7 +275,7 @@ public class KeyManager {
             if (item == null) {
                 break;
             }
-            BuiltInAtomicType actualItemType = item.getItemType();
+            AtomicType actualItemType = item.getItemType();
             if (foundItemTypes != null) {
                 foundItemTypes.add(actualItemType);
             }
@@ -289,9 +286,9 @@ public class KeyManager {
             }
             Object val;
 
-            if (soughtItemType.equals(BuiltInAtomicType.UNTYPED_ATOMIC) ||
-                    soughtItemType.equals(BuiltInAtomicType.STRING) ||
-                    soughtItemType.equals(BuiltInAtomicType.ANY_URI)) {
+            if (soughtItemType.equals(AtomicType.UNTYPED_ATOMIC) ||
+                    soughtItemType.equals(AtomicType.STRING) ||
+                    soughtItemType.equals(AtomicType.ANY_URI)) {
                 // If the supplied key value is untyped atomic, we build an index using the
                 // actual type returned by the use expression
                 // If the supplied key value is a string, there is no match unless the use expression
@@ -307,7 +304,7 @@ public class KeyManager {
                     break;
                 }
                 try {
-                    AtomicValue av = item.convert(soughtItemType, true).asAtomic();
+                    AtomicValue av = item.convert(soughtItemType).asAtomic();
                     val = av.getXPathComparable(false, collation, tz);
                 } catch (XPathException err) {
                     // ignore values that can't be converted to the required type
@@ -395,15 +392,15 @@ public class KeyManager {
         
         if (keySet.isBackwardsCompatible()) {
             // if backwards compatibility is in force, treat all values as strings
-            soughtValue = soughtValue.convert(BuiltInAtomicType.STRING, true).asAtomic();
+            soughtValue = soughtValue.convert(AtomicType.STRING).asAtomic();
         } else {
             // If the key value is numeric, promote it to a double
             // TODO: this could result in two decimals comparing equal because they convert to the same double
 
-            BuiltInAtomicType itemType = soughtValue.getItemType();
-            if (itemType.equals(BuiltInAtomicType.INTEGER) ||
-                    itemType.equals(BuiltInAtomicType.DECIMAL) ||
-                    itemType.equals(BuiltInAtomicType.FLOAT)) {
+            AtomicType itemType = soughtValue.getItemType();
+            if (itemType.equals(AtomicType.INTEGER) ||
+                    itemType.equals(AtomicType.DECIMAL) ||
+                    itemType.equals(AtomicType.FLOAT)) {
                 soughtValue = new DoubleValue(((NumericValue)soughtValue).getDoubleValue());
             }
         }
@@ -414,13 +411,13 @@ public class KeyManager {
         // includes a type that is not comparable to the soughtValue. In practice we only need a maximum
         // of two indexes: one for the sought item type, and one for untypedAtomic.
 
-        HashSet<BuiltInAtomicType> foundItemTypes = null;
+        HashSet<AtomicType> foundItemTypes = null;
         AtomicValue value = soughtValue;
 
         // No special action needed for anyURI to string promotion (it just seems to work: tests idky44, 45)
 
         int keySetNumber = keySet.getKeySetNumber();
-        BuiltInAtomicType itemType = value.getItemType();
+        AtomicType itemType = value.getItemType();
         HashMap index;
 
         Object indexObject = getIndex(doc, keyName, itemType);
@@ -440,9 +437,9 @@ public class KeyManager {
             putIndex(doc, keyName, itemType, index, context);
             if (foundItemTypes != null) {
                 // build indexes for each item type actually found
-                for (Iterator<BuiltInAtomicType> f = foundItemTypes.iterator(); f.hasNext();) {
-                    BuiltInAtomicType t = f.next();
-                    if (!t.equals(BuiltInAtomicType.STRING)) {
+                for (Iterator<AtomicType> f = foundItemTypes.iterator(); f.hasNext();) {
+                    AtomicType t = f.next();
+                    if (!t.equals(AtomicType.STRING)) {
                         putIndex(doc, keyName, t, "Under Construction", context);
                         index = buildIndex(keySet, t, null, doc, context);
                         putIndex(doc, keyName, t, index, context);
@@ -477,7 +474,7 @@ public class KeyManager {
                         HashMap index2 = (HashMap) indexObject2;
                         // NOTE: we've been known to encounter a null index2 here, but it doesn't seem possible
                         if (!index2.isEmpty()) {
-                            value = soughtValue.convert(indexId.primitiveType, true).asAtomic();
+                            value = soughtValue.convert(indexId.primitiveType).asAtomic();
                             ArrayList nodes = (ArrayList) index2.get(getCollationKey(value, indexId.primitiveType, collation, context));
                             if (nodes != null) {
                                 if (result == null) {
@@ -498,12 +495,12 @@ public class KeyManager {
         }
     }
 
-    private static Object getCollationKey(AtomicValue value, BuiltInAtomicType itemType,
+    private static Object getCollationKey(AtomicValue value, AtomicType itemType,
                                           StringCollator collation, XPathContext context) throws XPathException {
         Object val;
-        if (itemType.equals(BuiltInAtomicType.STRING) ||
-                itemType.equals(BuiltInAtomicType.UNTYPED_ATOMIC) ||
-                itemType.equals(BuiltInAtomicType.ANY_URI)) {
+        if (itemType.equals(AtomicType.STRING) ||
+                itemType.equals(AtomicType.UNTYPED_ATOMIC) ||
+                itemType.equals(AtomicType.ANY_URI)) {
             if (collation==null) {
                 val = value.getStringValue();
             } else {
@@ -533,7 +530,7 @@ public class KeyManager {
     */
 
     private synchronized void putIndex(DocumentInfo doc, StructuredQName keyName,
-                                       BuiltInAtomicType itemType, Object index, XPathContext context) {
+                                       AtomicType itemType, Object index, XPathContext context) {
         if (docIndexes==null) {
             // it's transient, so it will be null when reloading a compiled stylesheet
             docIndexes = new HashMap<DocumentInfo, HashMap<IndexId, Object>>(10);
@@ -567,7 +564,7 @@ public class KeyManager {
      * @return either an index (as a HashMap), or the String "under construction", or null
     */
 
-    private synchronized Object getIndex(DocumentInfo doc, StructuredQName keyName, BuiltInAtomicType itemType) {
+    private synchronized Object getIndex(DocumentInfo doc, StructuredQName keyName, AtomicType itemType) {
         if (docIndexes==null) {
             // it's transient, so it will be null when reloading a compiled stylesheet
             docIndexes = new HashMap<DocumentInfo, HashMap<IndexId, Object>>(10);

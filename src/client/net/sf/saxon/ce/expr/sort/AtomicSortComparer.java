@@ -2,7 +2,7 @@ package client.net.sf.saxon.ce.expr.sort;
 import client.net.sf.saxon.ce.lib.StringCollator;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.NoDynamicContextException;
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.value.AtomicValue;
 import client.net.sf.saxon.ce.value.StringValue;
@@ -37,20 +37,20 @@ public class AtomicSortComparer implements AtomicComparer {
      * @return a suitable AtomicComparer
      */
 
-    public static AtomicComparer makeSortComparer(StringCollator collator, BuiltInAtomicType itemType, int implicitTimezone) {
-        if (itemType == BuiltInAtomicType.STRING ||
-                itemType == BuiltInAtomicType.UNTYPED_ATOMIC ||
-                itemType == BuiltInAtomicType.ANY_URI) {
+    public static AtomicComparer makeSortComparer(StringCollator collator, AtomicType itemType, int implicitTimezone) {
+        if (itemType == AtomicType.STRING ||
+                itemType == AtomicType.UNTYPED_ATOMIC ||
+                itemType == AtomicType.ANY_URI) {
             if (collator instanceof CodepointCollator) {
                 return CodepointCollatingComparer.getInstance();
             } else {
                 return new CollatingAtomicComparer(collator);
             }
-        } else if (itemType == BuiltInAtomicType.INTEGER || itemType == BuiltInAtomicType.DECIMAL ||
-                    itemType == BuiltInAtomicType.DOUBLE || itemType == BuiltInAtomicType.FLOAT ||
-                    itemType == BuiltInAtomicType.NUMERIC) {
+        } else if (itemType == AtomicType.INTEGER || itemType == AtomicType.DECIMAL ||
+                    itemType == AtomicType.DOUBLE || itemType == AtomicType.FLOAT ||
+                    itemType == AtomicType.NUMERIC) {
                 return ComparableAtomicValueComparer.getInstance();
-        } else if (itemType == BuiltInAtomicType.DATE_TIME || itemType == BuiltInAtomicType.DATE || itemType == BuiltInAtomicType.TIME) {
+        } else if (itemType == AtomicType.DATE_TIME || itemType == AtomicType.DATE || itemType == AtomicType.TIME) {
                 return new CalendarValueComparer(implicitTimezone);
         } else {
             // use the general-purpose comparer that handles all types
@@ -59,7 +59,7 @@ public class AtomicSortComparer implements AtomicComparer {
 
     }
 
-    protected AtomicSortComparer(StringCollator collator, BuiltInAtomicType itemType, int implicitTimezone) {
+    protected AtomicSortComparer(StringCollator collator, AtomicType itemType, int implicitTimezone) {
         this.collator = collator;
         if (collator == null) {
             this.collator = CodepointCollator.getInstance();

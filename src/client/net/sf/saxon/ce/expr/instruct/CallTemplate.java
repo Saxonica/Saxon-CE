@@ -51,11 +51,11 @@ public class CallTemplate extends Instruction {
                         WithParam[] tunnelParams ) {
         this.actualParams = actualParams;
         this.tunnelParams = tunnelParams;
-        for (int i=0; i<actualParams.length; i++) {
-            adoptChildExpression(actualParams[i]);
+        for (WithParam actualParam : actualParams) {
+            adoptChildExpression(actualParam);
         }
-        for (int i=0; i<tunnelParams.length; i++) {
-            adoptChildExpression(tunnelParams[i]);
+        for (WithParam tunnelParam : tunnelParams) {
+            adoptChildExpression(tunnelParam);
         }
     }
 
@@ -91,7 +91,7 @@ public class CallTemplate extends Instruction {
                     SequenceType req = lp.getRequiredType();
                     RoleLocator role = new RoleLocator(RoleLocator.PARAM, wp.getVariableQName().getDisplayName(), p);
                     Expression select = TypeChecker.staticTypeCheck(
-                            wp.getSelectExpression(), req, backwards, role, visitor);
+                            wp.getSelectExpression(), req, backwards, role);
                     wp.setSelectExpression(select);
                     wp.setTypeChecked(true);
                 }
@@ -159,7 +159,7 @@ public class CallTemplate extends Instruction {
      */
 
     public Iterator<Expression> iterateSubExpressions() {
-        ArrayList list = new ArrayList(10);
+        ArrayList<Expression> list = new ArrayList<Expression>(10);
         WithParam.getXPathExpressions(actualParams, list);
         WithParam.getXPathExpressions(tunnelParams, list);
         return list.iterator();
@@ -187,7 +187,7 @@ public class CallTemplate extends Instruction {
 
         Template t = getTargetTemplate();
         XPathContextMajor c2 = context.newContext();
-        c2.openStackFrame(t.getStackFrameMap());
+        c2.openStackFrame(t.getNumberOfSlots());
         c2.setLocalParameters(assembleParams(context, actualParams));
         c2.setTunnelParameters(assembleTunnelParams(context, tunnelParams));
 
@@ -231,7 +231,8 @@ public class CallTemplate extends Instruction {
         }
 
         // clear all the local variables: they are no longer needed
-        Arrays.fill(context.getStackFrame().getStackFrameValues(), null);
+        Arrays.fill(context.getStackFrame(), null);
+        // TODO: this is fine for tail calls, but not so good for ixsl:schedule-action.
 
         return new CallTemplatePackage(target, params, tunnels, context);
     }
@@ -288,6 +289,10 @@ public class CallTemplate extends Instruction {
             this.evaluationContext = evaluationContext;
         }
 
+        public void setEvaluationContext(XPathContext evaluationContext) {
+            this.evaluationContext = evaluationContext;
+        }
+
         /**
         * Process the template call encapsulated by this package.
         * @return another TailCall. This will never be the original call, but it may be the next
@@ -305,7 +310,7 @@ public class CallTemplate extends Instruction {
             XPathContextMajor c2 = evaluationContext.newContext();
             c2.setLocalParameters(params);
             c2.setTunnelParameters(tunnelParams);
-            c2.openStackFrame(target.getStackFrameMap());
+            c2.openStackFrame(target.getNumberOfSlots());
 
             // System.err.println("Tail call on template");
 

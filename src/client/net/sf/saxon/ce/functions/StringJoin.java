@@ -31,6 +31,7 @@ public class StringJoin extends SystemFunction {
     }
 
     private Expression simplifySingleton() {
+        // important because we generate calls on string-join() e.g. for attribute value templates
         int card = argument[0].getCardinality();
         if (!Cardinality.allowsMany(card)) {
             if (Cardinality.allowsZero(card)) {
@@ -45,7 +46,7 @@ public class StringJoin extends SystemFunction {
     public Item evaluateItem(XPathContext c) throws XPathException {
 
         // This rather tortuous code is designed to ensure that we don't evaluate the
-        // separator argument unless there are at least two items in the sequence.
+        // separator argument or allocate a buffer unless there are at least two items in the sequence.
 
         SequenceIterator iter = argument[0].iterate(c);
         Item it = iter.next();
@@ -64,29 +65,17 @@ public class StringJoin extends SystemFunction {
         sb.append(first);
 
         // Type checking ensures that the separator is not an empty sequence
-        if (argument.length == 1) {
-            sb.append(it.getStringValue());
-            while (true) {
-                it = iter.next();
-                if (it == null) {
-                    return StringValue.makeStringValue(sb.condense());
-                }
-                sb.append(it.getStringValue());
-            }
+        CharSequence sep = argument[1].evaluateItem(c).getStringValue();
+        sb.append(sep);
+        sb.append(it.getStringValue());
 
-        } else {
-            CharSequence sep = argument[1].evaluateItem(c).getStringValue();
+        while (true) {
+            it = iter.next();
+            if (it == null) {
+                return StringValue.makeStringValue(sb.condense());
+            }
             sb.append(sep);
             sb.append(it.getStringValue());
-
-            while (true) {
-                it = iter.next();
-                if (it == null) {
-                    return StringValue.makeStringValue(sb.condense());
-                }
-                sb.append(sep);
-                sb.append(it.getStringValue());
-            }
         }
     }
 

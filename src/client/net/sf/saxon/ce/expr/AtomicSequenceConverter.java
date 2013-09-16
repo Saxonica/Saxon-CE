@@ -2,7 +2,7 @@ package client.net.sf.saxon.ce.expr;
 
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.SequenceIterator;
-import client.net.sf.saxon.ce.om.ValueRepresentation;
+import client.net.sf.saxon.ce.om.Sequence;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.*;
 import client.net.sf.saxon.ce.value.AtomicValue;
@@ -17,9 +17,9 @@ import client.net.sf.saxon.ce.value.Value;
 
 public final class AtomicSequenceConverter extends UnaryExpression {
 
-    private BuiltInAtomicType requiredItemType;
+    private AtomicType requiredItemType;
 
-    private BuiltInAtomicType requiredPrimitiveType;
+    private AtomicType requiredPrimitiveType;
 
     /**
     * Constructor
@@ -29,10 +29,10 @@ public final class AtomicSequenceConverter extends UnaryExpression {
     * using the rules for "cast as".
     */
 
-    public AtomicSequenceConverter(Expression sequence, BuiltInAtomicType requiredItemType) {
+    public AtomicSequenceConverter(Expression sequence, AtomicType requiredItemType) {
         super(sequence);
         this.requiredItemType = requiredItemType;
-        requiredPrimitiveType = (BuiltInAtomicType)requiredItemType.getPrimitiveItemType();
+        requiredPrimitiveType = (AtomicType)requiredItemType.getPrimitiveItemType();
         ExpressionTool.copyLocationInfo(sequence, this);
     }
 
@@ -41,7 +41,7 @@ public final class AtomicSequenceConverter extends UnaryExpression {
      * @return the required primitive type
      */
 
-    public BuiltInAtomicType getRequiredPrimitiveType() {
+    public AtomicType getRequiredPrimitiveType() {
         return requiredPrimitiveType;
     }
 
@@ -53,7 +53,7 @@ public final class AtomicSequenceConverter extends UnaryExpression {
      public Expression simplify(ExpressionVisitor visitor) throws XPathException {
         operand = visitor.simplify(operand);
         if (operand instanceof Literal) {
-            ValueRepresentation val = SequenceExtent.makeSequenceExtent(
+            Sequence val = SequenceExtent.makeSequenceExtent(
                     iterate(visitor.getStaticContext().makeEarlyEvaluationContext()));
             return Literal.makeLiteral(Value.asValue(val));
         }
@@ -97,7 +97,7 @@ public final class AtomicSequenceConverter extends UnaryExpression {
         SequenceIterator base = operand.iterate(context);
         ItemMappingFunction converter = new ItemMappingFunction() {
             public Item mapItem(Item item) throws XPathException {
-                return ((AtomicValue)item).convert(requiredPrimitiveType, true).asAtomic();
+                return ((AtomicValue)item).convert(requiredPrimitiveType).asAtomic();
             }
         };
         return new ItemMappingIterator(base, converter, true);
@@ -112,7 +112,7 @@ public final class AtomicSequenceConverter extends UnaryExpression {
         Item item = operand.evaluateItem(context);
         if (item==null) return null;
         return ((AtomicValue)item).convert(
-                requiredPrimitiveType, true).asAtomic();
+                requiredPrimitiveType).asAtomic();
     }
 
     /**

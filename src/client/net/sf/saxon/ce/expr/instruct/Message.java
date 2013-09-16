@@ -2,15 +2,16 @@ package client.net.sf.saxon.ce.expr.instruct;
 
 import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.lib.StandardErrorListener;
-import client.net.sf.saxon.ce.om.ValueRepresentation;
+import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.AnyItemType;
 import client.net.sf.saxon.ce.type.ItemType;
+import client.net.sf.saxon.ce.value.SequenceExtent;
+import client.net.sf.saxon.ce.value.Value;
 
-import java.util.ArrayList;
 import java.util.Iterator;
-import java.util.logging.Logger;
 import java.util.logging.Level;
+import java.util.logging.Logger;
 
 
 /**
@@ -122,20 +123,13 @@ public class Message extends Instruction {
      */
 
     public Iterator<Expression> iterateSubExpressions() {
-        ArrayList list = new ArrayList(2);
-        if (select != null) {
-            list.add(select);
-        }
-        if (terminate != null) {
-            list.add(terminate);
-        }
-        return list.iterator();
+        return nonNullChildren(select, terminate);
     }
 
     public TailCall processLeavingTail(XPathContext context) throws XPathException {
-        ValueRepresentation content =
-                ExpressionTool.evaluate(select, ExpressionTool.ITERATE_AND_MATERIALIZE, context);
-        String message = content.getStringValue();         
+        SequenceIterator iter = select.iterate(context);
+        Value extent = Value.asValue(SequenceExtent.makeSequenceExtent(iter));
+        String message = extent.getStringValue();
         boolean abort = false;
         if (terminate != null) {
             String term = terminate.evaluateAsString(context).toString();

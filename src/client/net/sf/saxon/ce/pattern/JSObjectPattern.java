@@ -6,7 +6,7 @@ import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.expr.Expression;
 import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.js.IXSLFunction;
-import client.net.sf.saxon.ce.om.ValueRepresentation;
+import client.net.sf.saxon.ce.om.Sequence;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.Type;
 
@@ -36,7 +36,7 @@ public class JSObjectPattern extends NodeSetPattern {
      * local variable to cache value so it can be used for a match test
      */
     public JavaScriptObject evaluate(XPathContext context) throws XPathException{
-			ValueRepresentation valueRep = (ValueRepresentation)expression.evaluateItem(context);
+			Sequence valueRep = (Sequence)expression.evaluateItem(context);
 			val = (JavaScriptObject)IXSLFunction.convertToJavaScript(valueRep);
 			return val;
     }

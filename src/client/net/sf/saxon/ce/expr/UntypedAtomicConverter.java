@@ -14,9 +14,9 @@ import client.net.sf.saxon.ce.value.*;
  * a sequence to a specified type
  */
 
-public final class UntypedAtomicConverter extends UnaryExpression {
+public final class UntypedAtomicConverter extends UnaryExpression implements ItemMappingFunction {
 
-    private BuiltInAtomicType requiredItemType;
+    private AtomicType requiredItemType;
     private boolean allConverted;
     private boolean singleton = false;
     private RoleLocator role;
@@ -33,30 +33,12 @@ public final class UntypedAtomicConverter extends UnaryExpression {
      * @param role             Diagnostic information for use if conversion fails
      */
 
-    public UntypedAtomicConverter(Expression sequence, BuiltInAtomicType requiredItemType, boolean allConverted, RoleLocator role) {
+    public UntypedAtomicConverter(Expression sequence, AtomicType requiredItemType, boolean allConverted, RoleLocator role) {
         super(sequence);
         this.requiredItemType = requiredItemType;
         this.allConverted = allConverted;
         this.role = role;
         ExpressionTool.copyLocationInfo(sequence, this);
-    }
-
-    /**
-     * Get the item type to which untyped atomic items must be converted
-     * @return the required item type
-     */
-
-    public ItemType getRequiredItemType() {
-        return requiredItemType;
-    }
-
-    /**
-     * Determine whether all items are to be converted, or only the subset that are untypedAtomic
-     * @return true if all items are to be converted
-     */
-
-    public boolean areAllItemsConverted() {
-        return allConverted;
     }
 
     /**
@@ -87,16 +69,15 @@ public final class UntypedAtomicConverter extends UnaryExpression {
      */
 
     public Expression typeCheck(ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
-        if (allConverted && requiredItemType == BuiltInAtomicType.QNAME) {
+        if (allConverted && requiredItemType == AtomicType.QNAME) {
             typeError("Cannot convert untypedAtomic values to QNames", "XPTY0004");
         }
         operand = visitor.typeCheck(operand, contextItemType);
         if (operand instanceof Literal) {
             return Literal.makeLiteral(
-                    ((Value)SequenceExtent.makeSequenceExtent(
-                            iterate(visitor.getStaticContext().makeEarlyEvaluationContext()))));
+                    SequenceExtent.makeSequenceExtent(
+                            iterate(visitor.getStaticContext().makeEarlyEvaluationContext())));
         }
-        final TypeHierarchy th = TypeHierarchy.getInstance();
         ItemType type = operand.getItemType();
         if (type instanceof NodeTest) {
             return this;
@@ -106,8 +87,8 @@ public final class UntypedAtomicConverter extends UnaryExpression {
         // If we're atomizing a node that always returns an untyped atomic value, and then converting
         // the untyped atomic value to a string, then we might as well take the string value of the node
         if (operand instanceof Atomizer &&
-                type.equals(BuiltInAtomicType.UNTYPED_ATOMIC) &&
-                requiredItemType == BuiltInAtomicType.STRING &&
+                type.equals(AtomicType.UNTYPED_ATOMIC) &&
+                requiredItemType == AtomicType.STRING &&
                 ((Atomizer)operand).getBaseExpression().getItemType() instanceof NodeTest) {
             Expression nodeExp = ((Atomizer)operand).getBaseExpression();
             if (nodeExp.getCardinality() != StaticProperty.EXACTLY_ONE) {
@@ -130,8 +111,8 @@ public final class UntypedAtomicConverter extends UnaryExpression {
                 return fn;
             }
         }
-        if (type.equals(BuiltInAtomicType.ANY_ATOMIC) || type instanceof AnyItemType ||
-                type.equals(BuiltInAtomicType.UNTYPED_ATOMIC)) {
+        if (type.equals(AtomicType.ANY_ATOMIC) || type instanceof AnyItemType ||
+                type.equals(AtomicType.UNTYPED_ATOMIC)) {
             return this;
         }
         // the sequence can't contain any untyped atomic values, so there's no need for a converter
@@ -164,10 +145,10 @@ public final class UntypedAtomicConverter extends UnaryExpression {
         // (This happens when xsl:value-of is used unnecessarily)
         if (operand instanceof CastExpression) {
             ItemType it = ((CastExpression)operand).getTargetType();
-            if (th.isSubType(it, BuiltInAtomicType.UNTYPED_ATOMIC)) {
+            if (th.isSubType(it, AtomicType.UNTYPED_ATOMIC)) {
                 Expression e = ((CastExpression)operand).getBaseExpression();
                 ItemType et = e.getItemType();
-                if (et instanceof BuiltInAtomicType && th.isSubType(et, requiredItemType)) {
+                if (et instanceof AtomicType && th.isSubType(et, requiredItemType)) {
                     return e;
                 }
             }
@@ -192,34 +173,36 @@ public final class UntypedAtomicConverter extends UnaryExpression {
 
     public SequenceIterator iterate(final XPathContext context) throws XPathException {
         SequenceIterator base = operand.iterate(context);
-        return new ItemMappingIterator(base, getMappingFunction(context), true);
+        return new ItemMappingIterator(base, this, true);
     }
 
     /**
-     * Get the mapping function that converts untyped atomic values to the required type
-     * @param context  the dynamic evaluation context for the conversion
+     * The mapping function that converts untyped atomic values to the required type
      * @return the mapping function
      */
 
-    public ItemMappingFunction getMappingFunction(final XPathContext context) {
-        return new ItemMappingFunction() {
-            public Item mapItem(Item item) throws XPathException {
-                if (item instanceof UntypedAtomicValue) {
-                    ConversionResult val = ((UntypedAtomicValue)item).convert(requiredItemType, true);
-                    if (val instanceof ValidationFailure) {
-                        String msg = role.composeRequiredMessage(requiredItemType);
-                        msg += ". " + ((ValidationFailure)val).getMessage();
-                        XPathException err = new XPathException(msg);
-                        err.setErrorCode(role.getErrorCode());
-                        err.setLocator(UntypedAtomicConverter.this.getSourceLocator());
-                        throw err;
-                    }
-                    return (AtomicValue)val;
-                } else {
-                    return item;
-                }
-            }
-        };
+
+    public Item mapItem(Item item) throws XPathException {
+        if (item instanceof UntypedAtomicValue) {
+            ConversionResult val = convertItem((UntypedAtomicValue) item);
+            return (AtomicValue)val;
+        } else {
+            return item;
+        }
+    }
+
+
+    private ConversionResult convertItem(UntypedAtomicValue item) throws XPathException {
+        ConversionResult val = item.convert(requiredItemType);
+        if (val instanceof ValidationFailure) {
+            String msg = role.composeRequiredMessage(requiredItemType);
+            msg += ". " + ((ValidationFailure)val).getMessage();
+            XPathException err = new XPathException(msg);
+            err.setErrorCode(role.getErrorCode());
+            err.setLocator(this.getSourceLocator());
+            throw err;
+        }
+        return val;
     }
 
     /**
@@ -230,19 +213,8 @@ public final class UntypedAtomicConverter extends UnaryExpression {
         Item item = operand.evaluateItem(context);
         if (item == null) {
             return null;
-        }
-        if (item instanceof UntypedAtomicValue) {
-            ConversionResult val = ((UntypedAtomicValue)item).convert(requiredItemType, true);
-            if (val instanceof ValidationFailure) {
-                String msg = role.composeRequiredMessage(requiredItemType);
-                msg += ". " + ((ValidationFailure)val).getMessage();
-                XPathException err = new XPathException(msg);
-                err.setErrorCode(role.getErrorCode());
-                err.setLocator(UntypedAtomicConverter.this.getSourceLocator());
-                throw err;
-            } else {
-                return (AtomicValue)val;
-            }
+        } else if (item instanceof UntypedAtomicValue) {
+            return convertItem((UntypedAtomicValue) item).asAtomic();
         } else {
             return item;
         }

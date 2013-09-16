@@ -5,7 +5,7 @@ import client.net.sf.saxon.ce.lib.StringCollator;
 import client.net.sf.saxon.ce.regex.ARegularExpression;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ConversionResult;
 import client.net.sf.saxon.ce.type.ValidationFailure;
 
@@ -131,16 +131,16 @@ public class DurationValue extends AtomicValue {
         for (int i=0; i<s.length(); i++) {
             char c = s.charAt(i);
             switch (c) {
-                case 0:
-                case 1:
-                case 2:
-                case 3:
-                case 4:
-                case 5:
-                case 6:
-                case 7:
-                case 8:
-                case 9:
+                case '0':
+                case '1':
+                case '2':
+                case '3':
+                case '4':
+                case '5':
+                case '6':
+                case '7':
+                case '8':
+                case '9':
                     part = part*10 + (c - '0');
                     break;
                 case 'T':
@@ -237,29 +237,29 @@ public class DurationValue extends AtomicValue {
      * and xs:untypedAtomic. For external objects, the result is AnyAtomicType.
      */
 
-    public BuiltInAtomicType getItemType() {
-        return BuiltInAtomicType.DURATION;
+    public AtomicType getItemType() {
+        return AtomicType.DURATION;
     }
 
     /**
      * Convert to target data type
      *
+     *
      * @param requiredType an integer identifying the required atomic type
-     * @param validate     if set to false, the caller asserts that the value is known to be valid
      * @return an AtomicValue, a value of the required type; or a {@link ValidationFailure} if
      *         the value cannot be converted.
      */
 
-    public ConversionResult convertPrimitive(BuiltInAtomicType requiredType, boolean validate) {
-        if (requiredType == BuiltInAtomicType.ANY_ATOMIC || requiredType == BuiltInAtomicType.DURATION) {
+    public ConversionResult convert(AtomicType requiredType) {
+        if (requiredType == AtomicType.ANY_ATOMIC || requiredType == AtomicType.DURATION) {
             return this;
-        } else if (requiredType == BuiltInAtomicType.UNTYPED_ATOMIC) {
+        } else if (requiredType == AtomicType.UNTYPED_ATOMIC) {
             return new UntypedAtomicValue(getStringValue());
-        } else if (requiredType == BuiltInAtomicType.STRING) {
+        } else if (requiredType == AtomicType.STRING) {
             return new StringValue(getStringValue());
-        } else if (requiredType == BuiltInAtomicType.YEAR_MONTH_DURATION) {
+        } else if (requiredType == AtomicType.YEAR_MONTH_DURATION) {
             return YearMonthDurationValue.fromMonths(months * (negative ? -1 : +1));
-        } else if (requiredType == BuiltInAtomicType.DAY_TIME_DURATION) {
+        } else if (requiredType == AtomicType.DAY_TIME_DURATION) {
             return new DayTimeDurationValue((negative ? -1 : +1), 0, 0, 0, seconds, microseconds);
         } else {
             return new ValidationFailure("Cannot convert duration to " +

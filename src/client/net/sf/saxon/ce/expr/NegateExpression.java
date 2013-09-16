@@ -40,7 +40,7 @@ public class NegateExpression extends UnaryExpression {
         Expression oldop = operand;
         RoleLocator role = new RoleLocator(RoleLocator.UNARY_EXPR, "-", 0);
         operand = TypeChecker.staticTypeCheck(operand, SequenceType.OPTIONAL_NUMERIC, backwardsCompatible,
-                role, visitor);
+                role);
         operand = visitor.typeCheck(operand, contextItemType);
         if (operand != oldop) {
             adoptChildExpression(operand);

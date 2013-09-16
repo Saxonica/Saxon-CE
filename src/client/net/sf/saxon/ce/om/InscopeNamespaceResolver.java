@@ -1,5 +1,6 @@
 package client.net.sf.saxon.ce.om;
 
+import client.net.sf.saxon.ce.pattern.AnyNodeTest;
 import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 import client.net.sf.saxon.ce.tree.util.NamespaceIterator;
 import client.net.sf.saxon.ce.type.Type;
@@ -43,7 +44,7 @@ public class InscopeNamespaceResolver implements NamespaceResolver {
         if ("".equals(prefix) && !useDefault) {
             return "";
         }
-        UnfailingIterator iter = node.iterateAxis(Axis.NAMESPACE);
+        UnfailingIterator iter = node.iterateAxis(Axis.NAMESPACE, AnyNodeTest.getInstance());
         while (true) {
             NodeInfo node = (NodeInfo)iter.next();
             if (node == null) {

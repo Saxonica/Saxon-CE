@@ -4,9 +4,8 @@ import client.net.sf.saxon.ce.expr.Expression;
 import client.net.sf.saxon.ce.expr.ExpressionVisitor;
 import client.net.sf.saxon.ce.expr.instruct.AnalyzeString;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
-import client.net.sf.saxon.ce.om.*;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
+import client.net.sf.saxon.ce.tree.linked.NodeImpl;
 import client.net.sf.saxon.ce.type.ItemType;
 
 /**
@@ -28,15 +27,6 @@ public class XSLAnalyzeString extends StyleElement {
      */
 
     public boolean isInstruction() {
-        return true;
-    }
-
-    /**
-     * Determine whether this type of element is allowed to contain an xsl:fallback
-     * instruction
-     */
-
-    public boolean mayContainFallback() {
         return true;
     }
 
@@ -65,26 +55,21 @@ public class XSLAnalyzeString extends StyleElement {
     public void validate(Declaration decl) throws XPathException {
         //checkWithinTemplate();
 
-        UnfailingIterator kids = iterateAxis(Axis.CHILD);
-        while (true) {
-            NodeInfo curr = (NodeInfo) kids.next();
-            if (curr == null) {
-                break;
-            }
-            if (curr instanceof XSLFallback) {
+        for (NodeImpl child : allChildren()) {
+            if (child instanceof XSLFallback) {
                 // no-op
-            } else if (curr instanceof XSLMatchingSubstring) {
-                boolean b = curr.getLocalPart().equals("matching-substring");
+            } else if (child instanceof XSLMatchingSubstring) {
+                boolean b = child.getLocalPart().equals("matching-substring");
                 if (b) {
                     if (matching != null) {
                         compileError("xsl:matching-substring element must only appear once", "XTSE0010");
                     }
-                    matching = (StyleElement) curr;
+                    matching = (StyleElement) child;
                 } else {
                     if (nonMatching != null) {
                         compileError("xsl:non-matching-substring element must only appear once", "XTSE0010");
                     }
-                    nonMatching = (StyleElement) curr;
+                    nonMatching = (StyleElement) child;
                 }
             } else {
                 compileError("Only xsl:matching-substring and xsl:non-matching-substring are allowed here", "XTSE0010");
@@ -105,12 +90,12 @@ public class XSLAnalyzeString extends StyleElement {
     public Expression compile(Executable exec, Declaration decl) throws XPathException {
         Expression matchingBlock = null;
         if (matching != null) {
-            matchingBlock = matching.compileSequenceConstructor(exec, decl, matching.iterateAxis(Axis.CHILD));
+            matchingBlock = matching.compileSequenceConstructor(exec, decl);
         }
 
         Expression nonMatchingBlock = null;
         if (nonMatching != null) {
-            nonMatchingBlock = nonMatching.compileSequenceConstructor(exec, decl, nonMatching.iterateAxis(Axis.CHILD));
+            nonMatchingBlock = nonMatching.compileSequenceConstructor(exec, decl);
         }
 
         try {

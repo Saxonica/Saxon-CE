@@ -5,7 +5,7 @@ import client.net.sf.saxon.ce.functions.Component;
 import client.net.sf.saxon.ce.trans.Err;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ConversionResult;
 import client.net.sf.saxon.ce.type.ValidationFailure;
 import com.google.gwt.regexp.shared.MatchResult;
@@ -105,8 +105,8 @@ public final class TimeValue extends CalendarValue implements Comparable<TimeVal
      * and xs:untypedAtomic. For external objects, the result is AnyAtomicType.
      */
 
-    public BuiltInAtomicType getItemType() {
-        return BuiltInAtomicType.TIME;
+    public AtomicType getItemType() {
+        return AtomicType.TIME;
     }
 
     /**
@@ -153,16 +153,17 @@ public final class TimeValue extends CalendarValue implements Comparable<TimeVal
     /**
      * Convert to target data type
      *
+     *
      * @param requiredType an integer identifying the required atomic type
      * @return an AtomicValue, a value of the required type; or an ErrorValue
      */
 
-    public ConversionResult convertPrimitive(BuiltInAtomicType requiredType, boolean validate) {
-        if (requiredType == BuiltInAtomicType.ANY_ATOMIC || requiredType == BuiltInAtomicType.TIME) {
+    public ConversionResult convert(AtomicType requiredType) {
+        if (requiredType == AtomicType.ANY_ATOMIC || requiredType == AtomicType.TIME) {
             return this;
-        } else if (requiredType == BuiltInAtomicType.UNTYPED_ATOMIC) {
+        } else if (requiredType == AtomicType.UNTYPED_ATOMIC) {
             return new UntypedAtomicValue(getStringValue());
-        } else if (requiredType == BuiltInAtomicType.STRING) {
+        } else if (requiredType == AtomicType.STRING) {
             return new StringValue(getStringValue());
         } else {
             return new ValidationFailure("Cannot convert gYear to " + requiredType.getDisplayName(), "XPTY0004");

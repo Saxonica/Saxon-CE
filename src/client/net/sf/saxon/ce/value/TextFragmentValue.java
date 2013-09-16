@@ -11,6 +11,7 @@ import client.net.sf.saxon.ce.tree.iter.SingletonIterator;
 import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
 import client.net.sf.saxon.ce.tree.util.Navigator;
+import client.net.sf.saxon.ce.tree.util.Orphan;
 import client.net.sf.saxon.ce.type.Type;
 
 import java.util.HashMap;
@@ -19,11 +20,8 @@ import java.util.HashMap;
 * This class represents a temporary tree whose root document node owns a single text node. <BR>
 */
 
-public final class TextFragmentValue implements DocumentInfo {
+public final class TextFragmentValue extends Orphan implements DocumentInfo {
 
-    private CharSequence text;
-    private String baseURI;
-    private String documentURI;
     private TextFragmentTextNode textNode = null;   // created on demand
     private Configuration config;
     private int documentNumber;
@@ -36,8 +34,10 @@ public final class TextFragmentValue implements DocumentInfo {
     */
 
     public TextFragmentValue(CharSequence value, String baseURI) {
-        this.text = value;
-        this.baseURI = baseURI;
+        setNodeKind(Type.DOCUMENT);
+        setNodeName(null);
+        setStringValue(value);
+        setSystemId(baseURI);
     }
 
 	/**
@@ -49,15 +49,6 @@ public final class TextFragmentValue implements DocumentInfo {
 		documentNumber = -1;    // the document number is allocated lazily because it can cause
                                 // contention on the NamePool and is often not needed.
 	}
-
-    /**
-     * Get the configuration previously set using setConfiguration
-     * (or the default configuraton allocated automatically)
-     */
-
-    public Configuration getConfiguration() {
-        return config;
-    }
 
     /**
 	* Get the unique document number
@@ -73,23 +64,6 @@ public final class TextFragmentValue implements DocumentInfo {
 	}
 
     /**
-    * Return the type of node.
-    * @return Type.DOCUMENT (always)
-    */
-
-    public final int getNodeKind() {
-        return Type.DOCUMENT;
-    }
-
-    /**
-    * Get the String Value
-    */
-
-    public String getStringValue() {
-        return text.toString();
-    }
-
-    /**
     * Determine whether this is the same node as another node
     * @return true if this Node object and the supplied Node object represent the
     * same node in the tree.
@@ -97,41 +71,6 @@ public final class TextFragmentValue implements DocumentInfo {
 
     public boolean isSameNodeInfo(NodeInfo other) {
         return this==other;
-    }
-
-    /**
-    * Get a character string that uniquely identifies this node
-     * @param buffer the buffer to contain the generated ID
-     */
-
-    public void generateId(FastStringBuffer buffer) {
-        buffer.append("tt");
-        buffer.append(Long.toString(getDocumentNumber()));
-    }
-
-    /**
-    * Set the system ID (that is, the document URI property) for the document node.
-     * @throws UnsupportedOperationException (always). This kind of tree does not have a document URI.
-    */
-
-    public void setSystemId(String systemId) {
-        documentURI = systemId;
-    }
-
-    /**
-    * Get the system ID (the document URI) of the document node.
-    */
-
-    public String getSystemId() {
-        return documentURI;
-    }
-
-    /**
-    * Get the base URI for the document node.
-    */
-
-    public String getBaseURI() {
-        return baseURI;
     }
 
     /**
@@ -149,121 +88,13 @@ public final class TextFragmentValue implements DocumentInfo {
     }
 
     /**
-     * Get the name of the node
-     *
-     * @return the name of the node, as a StructuredQName. Return null for an unnamed node.
-     */
-    public StructuredQName getNodeName() {
-        return null;
-    }
-
-    /**
-    * Get the URI part of the name of this node. This is the URI corresponding to the
-    * prefix, or the URI of the default namespace if appropriate.
-    * @return The URI of the namespace of this node. For an unnamed node, or for
-    * an element or attribute in the default namespace, return an empty string.
-    */
-
-    public String getURI() {
-        return "";
-    }
-
-    /**
-    * Get the display name of this node. For elements and attributes this is [prefix:]localname.
-    * For unnamed nodes, it is an empty string.
-    * @return The display name of this node.
-    * For a node with no name, return an empty string.
-    */
-
-    public String getDisplayName() {
-        return "";
-    }
-
-    /**
-    * Get the local name of this node.
-    * @return The local name of this node.
-    * For a node with no name, return "".
-    */
-
-    public String getLocalPart() {
-        return "";
-    }
-
-    /**
     * Determine whether the node has any children.
     * @return <code>true</code> if this node has any attributes,
     *   <code>false</code> otherwise.
     */
 
     public boolean hasChildNodes() {
-        return !("".equals(text));
-    }
-
-    /**
-     * Get all namespace undeclarations and undeclarations defined on this element.
-     *
-     * @param buffer If this is non-null, and the result array fits in this buffer, then the result
-     *               may overwrite the contents of this array, to avoid the cost of allocating a new array on the heap.
-     * @return An array of integers representing the namespace declarations and undeclarations present on
-     *         this element. For a node other than an element, return null. Otherwise, the returned array is a
-     *         sequence of namespace codes, whose meaning may be interpreted by reference to the name pool. The
-     *         top half word of each namespace code represents the prefix, the bottom half represents the URI.
-     *         If the bottom half is zero, then this is a namespace undeclaration rather than a declaration.
-     *         The XML namespace is never included in the list. If the supplied array is larger than required,
-     *         then the first unused entry will be set to -1.
-     *         <p/>
-     *         <p>For a node other than an element, the method returns null.</p>
-     */
-
-    public NamespaceBinding[] getDeclaredNamespaces(NamespaceBinding[] buffer) {
-        return null;
-    }
-
-    /**
-     * Get the typed value of the item
-     *
-     * @return the typed value of the item. In general this will be a sequence
-     */
-
-    public AtomicValue getTypedValue() {
-        return new UntypedAtomicValue(text);
-    }
-
-    /**
-    * Return an iteration over the nodes reached by the given axis from this node
-    * @param axisNumber The axis to be iterated over
-    * @return a AxisIterator that scans the nodes reached by the axis in turn.
-    * @see client.net.sf.saxon.ce.om.Axis
-    */
-
-    public UnfailingIterator iterateAxis(byte axisNumber) {
-        switch (axisNumber) {
-            case Axis.ANCESTOR:
-            case Axis.ATTRIBUTE:
-            case Axis.FOLLOWING:
-            case Axis.FOLLOWING_SIBLING:
-            case Axis.NAMESPACE:
-            case Axis.PARENT:
-            case Axis.PRECEDING:
-            case Axis.PRECEDING_SIBLING:
-            case Axis.PRECEDING_OR_ANCESTOR:
-                return EmptyIterator.getInstance();
-
-            case Axis.SELF:
-            case Axis.ANCESTOR_OR_SELF:
-                return SingletonIterator.makeIterator(this);
-
-            case Axis.CHILD:
-            case Axis.DESCENDANT:
-                return SingletonIterator.makeIterator(getTextNode());
-
-            case Axis.DESCENDANT_OR_SELF:
-                NodeInfo[] nodes = {this, getTextNode()};
-                return new ArrayIterator(nodes);
-
-            default:
-                 throw new IllegalArgumentException("Unknown axis number " + axisNumber);
-        }
+        return !("".equals(getStringValue()));
     }
 
     /**
@@ -284,7 +115,6 @@ public final class TextFragmentValue implements DocumentInfo {
             case Axis.PARENT:
             case Axis.PRECEDING:
             case Axis.PRECEDING_SIBLING:
-            case Axis.PRECEDING_OR_ANCESTOR:
                 return EmptyIterator.getInstance();
 
             case Axis.SELF:
@@ -320,24 +150,6 @@ public final class TextFragmentValue implements DocumentInfo {
     }
 
     /**
-     * Find the parent node of this node.
-     * @return The Node object describing the containing element or root node.
-     */
-
-    public NodeInfo getParent() {
-        return null;
-    }
-
-    /**
-    * Get the root node
-    * @return the NodeInfo representing the root of this tree
-    */
-
-    public NodeInfo getRoot() {
-        return this;
-    }
-
-    /**
     * Get the root (document) node
     * @return the DocumentInfo representing the containing document
     */
@@ -352,7 +164,7 @@ public final class TextFragmentValue implements DocumentInfo {
 
     public void copy(Receiver out, int copyOptions)
     throws XPathException {
-        out.characters(text);
+        out.characters(getStringValue());
     }
 
     /**
@@ -372,7 +184,7 @@ public final class TextFragmentValue implements DocumentInfo {
 
     private TextFragmentTextNode getTextNode() {
         if (textNode==null) {
-            textNode = new TextFragmentTextNode();
+            textNode = new TextFragmentTextNode(getStringValue(), getSystemId());
         }
         return textNode;
     }
@@ -381,56 +193,13 @@ public final class TextFragmentValue implements DocumentInfo {
     * Inner class representing the text node; this is created on demand
     */
 
-    private class TextFragmentTextNode implements NodeInfo {
+    private class TextFragmentTextNode extends Orphan implements NodeInfo {
 
-        /**
-        * Set the system ID for the entity containing the node.
-        */
-
-        public void setSystemId(String systemId) {}
-
-        /**
-         * Get the configuration
-         */
-
-        public Configuration getConfiguration() {
-            return config;
-        }
-
-        /**
-         * Get the name of the node
-         *
-         * @return the name of the node, as a StructuredQName. Return null for an unnamed node.
-         */
-        public StructuredQName getNodeName() {
-            return null;
-        }
-
-        /**
-        * Return the type of node.
-        * @return Type.TEXT (always)
-        */
-
-        public final int getNodeKind() {
-            return Type.TEXT;
-        }
-
-        /**
-        * Get the String Value
-        */
-
-        public String getStringValue() {
-            return text.toString();
-        }
-
-        /**
-        * Determine whether this is the same node as another node
-        * @return true if this Node object and the supplied Node object represent the
-        * same node in the tree.
-        */
-
-        public boolean isSameNodeInfo(NodeInfo other) {
-            return this==other;
+        public TextFragmentTextNode(CharSequence value, String systemId) {
+            setStringValue(value);
+            setSystemId(systemId);
+            setNodeKind(Type.TEXT);
+            setNodeName(null);
         }
 
         /**
@@ -438,26 +207,8 @@ public final class TextFragmentValue implements DocumentInfo {
          */
 
         public void generateId(FastStringBuffer buffer) {
-            buffer.append("tt");
-            buffer.append(Long.toString(getDocumentNumber()));
+            getParent().generateId(buffer);
             buffer.append("t1");
-        }
-
-        /**
-        * Get the system ID for the entity containing the node.
-        */
-
-        public String getSystemId() {
-            return null;
-        }
-
-        /**
-        * Get the base URI for the node. Default implementation for child nodes gets
-        * the base URI of the parent node.
-        */
-
-        public String getBaseURI() {
-            return baseURI;
         }
 
         /**
@@ -475,48 +226,6 @@ public final class TextFragmentValue implements DocumentInfo {
         }
 
         /**
-        * Get the URI part of the name of this node. This is the URI corresponding to the
-        * prefix, or the URI of the default namespace if appropriate.
-        * @return The URI of the namespace of this node. For an unnamed node, or for
-        * an element or attribute in the default namespace, return an empty string.
-        */
-
-        public String getURI() {
-            return "";
-        }
-
-        /**
-        * Get the display name of this node. For elements and attributes this is [prefix:]localname.
-        * For unnamed nodes, it is an empty string.
-        * @return The display name of this node.
-        * For a node with no name, return an empty string.
-        */
-
-        public String getDisplayName() {
-            return "";
-        }
-
-        /**
-        * Get the local name of this node.
-        * @return The local name of this node.
-        * For a node with no name, return "".
-        */
-
-        public String getLocalPart() {
-            return "";
-        }
-
-        /**
-        * Determine whether the node has any children.
-        * @return <code>true</code> if this node has any attributes,
-        *   <code>false</code> otherwise.
-        */
-
-        public boolean hasChildNodes() {
-            return false;
-        }
-
-        /**
          * Get the document number of the document containing this node. For a free-standing
          * orphan node, just return the hashcode.
          */
@@ -524,76 +233,6 @@ public final class TextFragmentValue implements DocumentInfo {
         public int getDocumentNumber() {
             return getDocumentRoot().getDocumentNumber();
         }
-
-        /**
-         * Get all namespace undeclarations and undeclarations defined on this element.
-         *
-         * @param buffer If this is non-null, and the result array fits in this buffer, then the result
-         *               may overwrite the contents of this array, to avoid the cost of allocating a new array on the heap.
-         * @return An array of integers representing the namespace declarations and undeclarations present on
-         *         this element. For a node other than an element, return null. Otherwise, the returned array is a
-         *         sequence of namespace codes, whose meaning may be interpreted by reference to the name pool. The
-         *         top half word of each namespace code represents the prefix, the bottom half represents the URI.
-         *         If the bottom half is zero, then this is a namespace undeclaration rather than a declaration.
-         *         The XML namespace is never included in the list. If the supplied array is larger than required,
-         *         then the first unused entry will be set to -1.
-         *         <p/>
-         *         <p>For a node other than an element, the method returns null.</p>
-         */
-
-        public NamespaceBinding[] getDeclaredNamespaces(NamespaceBinding[] buffer) {
-            return null;
-        }
-
-        /**
-         * Get the typed value of the item
-         *
-         * @return the typed value of the item. In general this will be a sequence
-         * @throws client.net.sf.saxon.ce.trans.XPathException
-         *          where no typed value is available, e.g. for
-         *          an element with complex content
-         */
-
-        public AtomicValue getTypedValue() {
-            return new UntypedAtomicValue(text);
-        }
-
-        /**
-         * Return an enumeration over the nodes reached by the given axis from this node
-         * @param axisNumber the axis to be iterated over
-         * @return a AxisIterator that scans the nodes reached by the axis in turn.
-         */
-
-         public UnfailingIterator iterateAxis(byte axisNumber) {
-             switch (axisNumber) {
-                 case Axis.ANCESTOR:
-                 case Axis.PARENT:
-                 case Axis.PRECEDING_OR_ANCESTOR:
-                     return SingletonIterator.makeIterator(TextFragmentValue.this);
-
-                 case Axis.ANCESTOR_OR_SELF:
-                     NodeInfo[] nodes = {this, TextFragmentValue.this};
-                     return new ArrayIterator(nodes);
-
-                 case Axis.ATTRIBUTE:
-                 case Axis.CHILD:
-                 case Axis.DESCENDANT:
-                 case Axis.FOLLOWING:
-                 case Axis.FOLLOWING_SIBLING:
-                 case Axis.NAMESPACE:
-                 case Axis.PRECEDING:
-                 case Axis.PRECEDING_SIBLING:
-                     return EmptyIterator.getInstance();
-
-                 case Axis.SELF:
-                 case Axis.DESCENDANT_OR_SELF:
-                     return SingletonIterator.makeIterator(this);
-
-                 default:
-                      throw new IllegalArgumentException("Unknown axis number " + axisNumber);
-             }
-         }
-
 
         /**
         * Return an enumeration over the nodes reached by the given axis from this node
@@ -606,7 +245,6 @@ public final class TextFragmentValue implements DocumentInfo {
             switch (axisNumber) {
                 case Axis.ANCESTOR:
                 case Axis.PARENT:
-                case Axis.PRECEDING_OR_ANCESTOR:
                     return Navigator.filteredSingleton(TextFragmentValue.this, nodeTest);
 
                 case Axis.ANCESTOR_OR_SELF:
@@ -675,7 +313,7 @@ public final class TextFragmentValue implements DocumentInfo {
 
         public void copy(Receiver out, int copyOptions)
         throws XPathException {
-            out.characters(text);
+            out.characters(getStringValue());
         }
 
 

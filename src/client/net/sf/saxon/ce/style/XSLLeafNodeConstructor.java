@@ -3,13 +3,10 @@ package client.net.sf.saxon.ce.style;
 import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.expr.instruct.SimpleNodeConstructor;
+import client.net.sf.saxon.ce.expr.instruct.ValueOf;
 import client.net.sf.saxon.ce.functions.SystemFunction;
-import client.net.sf.saxon.ce.om.Axis;
-import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
-import client.net.sf.saxon.ce.type.Type;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.value.StringValue;
 
 /**
@@ -20,20 +17,6 @@ import client.net.sf.saxon.ce.value.StringValue;
 public abstract class XSLLeafNodeConstructor extends StyleElement {
 
     protected Expression select = null;
-
-    /**
-     * Method for use by subclasses (processing-instruction and namespace) that take
-     * a name and a select attribute
-     * @return the expression defining the name attribute
-     * @throws XPathException if attributes are invalid
-     */
-
-    protected Expression prepareAttributesNameAndSelect() throws XPathException {
-        Expression name = (Expression)checkAttribute("name", "a1");
-        select = (Expression)checkAttribute("select", "e");
-        checkForUnknownAttributes();
-        return name;
-    }
 
     /**
      * Determine whether this node is an instruction.
@@ -60,23 +43,6 @@ public abstract class XSLLeafNodeConstructor extends StyleElement {
             String errorCode = getErrorCodeForSelectPlusContent();
             compileError("An " + getDisplayName() + " element with a select attribute must be empty", errorCode);
         }
-        UnfailingIterator kids = iterateAxis(Axis.CHILD);
-        NodeInfo first = (NodeInfo)kids.next();
-        if (select == null) {
-            if (first == null) {
-                // there are no child nodes and no select attribute
-                //stringValue = "";
-                select = new StringLiteral(StringValue.EMPTY_STRING);
-            } else {
-                if (kids.next() == null) {
-                    // there is exactly one child node
-                    if (first.getNodeKind() == Type.TEXT) {
-                        // it is a text node: optimize for this case
-                        select = new StringLiteral(first.getStringValue());
-                    }
-                }
-            }
-        }
     }
 
     /**
@@ -92,7 +58,7 @@ public abstract class XSLLeafNodeConstructor extends StyleElement {
         }
         try {
             if (select == null) {
-                select = compileSequenceConstructor(exec, decl, iterateAxis(Axis.CHILD));
+                select = compileSequenceConstructor(exec, decl);
             }
             select = makeSimpleContentConstructor(select, separator);
             inst.setSelect(select, exec.getConfiguration());
@@ -112,12 +78,15 @@ public abstract class XSLLeafNodeConstructor extends StyleElement {
      */
 
     public static Expression makeSimpleContentConstructor(Expression select, Expression separator) {
+        if (select instanceof ValueOf && ((ValueOf)select).getContentExpression() instanceof StringLiteral) {
+            return ((ValueOf)select).getContentExpression();
+        }
         // Merge adjacent text nodes
         select = new AdjacentTextNodeMerger(select);
         // Atomize the result
         select = new Atomizer(select);
         // Convert each atomic value to a string
-        select = new AtomicSequenceConverter(select, BuiltInAtomicType.STRING);
+        select = new AtomicSequenceConverter(select, AtomicType.STRING);
         // Join the resulting strings with a separator
         select = SystemFunction.makeSystemFunction("string-join", new Expression[]{select, separator});
         // All that's left for the instruction to do is to construct the right kind of node

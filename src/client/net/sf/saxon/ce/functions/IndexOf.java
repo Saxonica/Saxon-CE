@@ -9,7 +9,7 @@ import client.net.sf.saxon.ce.expr.sort.GenericAtomicComparer;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.value.AtomicValue;
 import client.net.sf.saxon.ce.value.IntegerValue;
@@ -34,18 +34,18 @@ public class IndexOf extends CollatingFunction {
         final GenericAtomicComparer comparer = getAtomicComparer(2, context);
         SequenceIterator seq = argument[0].iterate(context);
         final AtomicValue val = (AtomicValue)argument[1].evaluateItem(context);
-        final BuiltInAtomicType searchType = val.getItemType();
+        final AtomicType searchType = val.getItemType();
         return new ItemMappingIterator(seq,
                 new IndexOfMappingFunction(searchType, comparer, val));
     }
 
     public static class IndexOfMappingFunction implements ItemMappingFunction, StatefulMappingFunction {
         int index = 0;
-        private BuiltInAtomicType searchType;
+        private AtomicType searchType;
         private AtomicComparer comparer;
         private AtomicValue val;
 
-        public IndexOfMappingFunction(BuiltInAtomicType searchType, AtomicComparer comparer, AtomicValue val) {
+        public IndexOfMappingFunction(AtomicType searchType, AtomicComparer comparer, AtomicValue val) {
             this.searchType = searchType;
             this.comparer = comparer;
             this.val = val;
@@ -66,8 +66,9 @@ public class IndexOf extends CollatingFunction {
          * of the underlying iteration
          *
          * @return a clone of this MappingFunction
+         * @param newBaseIterator
          */
-        public StatefulMappingFunction getAnother() {
+        public StatefulMappingFunction getAnother(SequenceIterator newBaseIterator) {
             return new IndexOfMappingFunction(searchType, comparer, val);
         }
     }

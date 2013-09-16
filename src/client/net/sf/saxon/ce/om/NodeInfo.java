@@ -23,7 +23,7 @@ import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
  * The interface represented by this class is at a slightly higher level than the abstraction described
  * in the W3C data model specification, in that it includes support for the XPath axes, rather than exposing
  * the lower-level properties (such as "parent" and "children") directly. All navigation within trees,
- * except for a few convenience methods, is done by following the axes using the {@link #iterateAxis} method.
+ * except for a few convenience methods, is done by following the axes using the iterateAxis method.
  * This allows different implementations of the XPath tree model to implement axis navigation in different ways.
  * Some implementations may choose to use the helper methods provided in class {@link client.net.sf.saxon.ce.tree.util.Navigator}.
  * <p>
@@ -37,7 +37,7 @@ import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
  * @since 8.4. Extended with three extra methods, previously in ExtendedNodeInfo, in 9.1
  */
 
-public interface NodeInfo extends Item, ValueRepresentation {
+public interface NodeInfo extends Item, Sequence {
 
     /**
      * Get the kind of node. This will be a value such as {@link client.net.sf.saxon.ce.type.Type#ELEMENT}
@@ -214,23 +214,6 @@ public interface NodeInfo extends Item, ValueRepresentation {
 
     /**
      * Return an iteration over all the nodes reached by the given axis from this node
-     *
-     * @exception UnsupportedOperationException if the namespace axis is
-     *     requested and this axis is not supported for this implementation.
-     * @param axisNumber an integer identifying the axis; one of the constants
-     *      defined in class {@link client.net.sf.saxon.ce.om.Axis}
-     * @return an AxisIterator that delivers the nodes reached by the axis in
-     *     turn. The nodes are returned in axis order (document order for a forwards
-     *     axis, reverse document order for a reverse axis).
-     * @see client.net.sf.saxon.ce.om.Axis
-     * @since 8.4
-     */
-
-    public UnfailingIterator iterateAxis(byte axisNumber);
-
-
-    /**
-     * Return an iteration over all the nodes reached by the given axis from this node
      * that match a given NodeTest
      *
      * @exception UnsupportedOperationException if the namespace axis is
@@ -302,6 +285,13 @@ public interface NodeInfo extends Item, ValueRepresentation {
      */
 
     public int getDocumentNumber();
+
+    /**
+     * Get the index position of this node among its siblings (starting from 0)
+     * @return 0 for the first child, 1 for the second child, etc.
+     */
+
+    public int getSiblingPosition();
 
     /**
      * Copy this node to a given Receiver.

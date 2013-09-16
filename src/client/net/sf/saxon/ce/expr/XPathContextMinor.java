@@ -6,7 +6,11 @@ import client.net.sf.saxon.ce.event.*;
 import client.net.sf.saxon.ce.expr.instruct.LocalParam;
 import client.net.sf.saxon.ce.expr.instruct.ParameterSet;
 import client.net.sf.saxon.ce.expr.sort.GroupIterator;
-import client.net.sf.saxon.ce.om.*;
+import client.net.sf.saxon.ce.functions.Count;
+import client.net.sf.saxon.ce.om.Item;
+import client.net.sf.saxon.ce.om.SequenceIterator;
+import client.net.sf.saxon.ce.om.StructuredQName;
+import client.net.sf.saxon.ce.om.Sequence;
 import client.net.sf.saxon.ce.regex.RegexIterator;
 import client.net.sf.saxon.ce.trans.Mode;
 import client.net.sf.saxon.ce.trans.Rule;
@@ -27,7 +31,7 @@ public class XPathContextMinor implements XPathContext {
     SequenceReceiver currentReceiver;
     boolean isTemporaryDestination = false;
     XPathContext caller = null;
-    protected StackFrame stackFrame;
+    protected Sequence[] stackFrame;
     Object origin = null;
     XPathException currentException;
 
@@ -184,16 +188,13 @@ public class XPathContextMinor implements XPathContext {
         if (last.value >= 0) {
             return last.value;
         }
-        if ((currentIterator.getProperties() & SequenceIterator.LAST_POSITION_FINDER) == 0) {
-            SequenceIterator another = currentIterator.getAnother();
-            int count = 0;
-            while (another.next() != null) {
-                count++;
+        if (currentIterator instanceof LastPositionFinder) {
+            int count = ((LastPositionFinder)currentIterator).getLastPosition();
+            if (count != -1) {
+                return (last.value = count);
             }
-            return (last.value = count);
-        } else {
-            return (last.value = ((LastPositionFinder)currentIterator).getLastPosition());
         }
+        return (last.value = Count.count(currentIterator.getAnother()));
     }
 
     /**
@@ -212,7 +213,7 @@ public class XPathContextMinor implements XPathContext {
      * @return array of variables.
      */
 
-    public StackFrame getStackFrame() {
+    public Sequence[] getStackFrame() {
         return stackFrame;
     }
 
@@ -221,17 +222,17 @@ public class XPathContextMinor implements XPathContext {
      * Get the value of a local variable, identified by its slot number
      */
 
-    public ValueRepresentation evaluateLocalVariable(int slotnumber) {
-        return stackFrame.slots[slotnumber];
+    public Sequence evaluateLocalVariable(int slotnumber) {
+        return stackFrame[slotnumber];
     }
 
     /**
      * Set the value of a local variable, identified by its slot number
      */
 
-    public void setLocalVariable(int slotnumber, ValueRepresentation value) {
+    public void setLocalVariable(int slotnumber, Sequence value) {
         try {
-            stackFrame.slots[slotnumber] = value;
+            stackFrame[slotnumber] = value;
         } catch (ArrayIndexOutOfBoundsException e) {
             throw new AssertionError("Internal error: invalid slot number for local variable " +
                     (slotnumber == -999 ? "(No slot allocated)" : "(" + slotnumber + ")"));

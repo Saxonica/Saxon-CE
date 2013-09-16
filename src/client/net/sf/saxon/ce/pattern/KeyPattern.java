@@ -41,7 +41,7 @@ public final class KeyPattern extends NodeSetPattern {
     public Pattern analyze(ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
         expression = visitor.typeCheck(expression, contextItemType);
         RoleLocator role = new RoleLocator(RoleLocator.FUNCTION, "key", 2);
-        expression = TypeChecker.staticTypeCheck(expression, SequenceType.ATOMIC_SEQUENCE, false, role, visitor);
+        expression = TypeChecker.staticTypeCheck(expression, SequenceType.ATOMIC_SEQUENCE, false, role);
         keySet = visitor.getExecutable().getKeyManager().getKeyDefinitionSet(keyName);
         if (keySet == null) {
             XPathException err = new XPathException("Unknown key name " + keyName.getClarkName() + " in pattern");

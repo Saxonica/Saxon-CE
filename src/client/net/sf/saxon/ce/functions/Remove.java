@@ -7,7 +7,6 @@ import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.value.AtomicValue;
 import client.net.sf.saxon.ce.value.NumericValue;
 import client.net.sf.saxon.ce.value.IntegerValue;
-import com.sun.org.apache.regexp.internal.RE;
 
 /**
 * The XPath 2.0 remove() function
@@ -138,8 +137,9 @@ public class Remove extends SystemFunction {
          * of the underlying iteration
          *
          * @return a clone of this MappingFunction
+         * @param newBaseIterator
          */
-        public StatefulMappingFunction getAnother() {
+        public StatefulMappingFunction getAnother(SequenceIterator newBaseIterator) {
             return new RemoveMappingFunction(removeIndex);
         }
     }

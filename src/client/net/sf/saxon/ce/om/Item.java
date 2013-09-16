@@ -18,7 +18,7 @@ import client.net.sf.saxon.ce.value.AtomicValue;
  * @since 8.4
  */
 
-public interface Item extends ValueRepresentation {
+public interface Item extends Sequence {
 
     /**
      * Get the value of the item as a string. For nodes, this is the string value of the

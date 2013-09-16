@@ -72,19 +72,6 @@ public class ATokenIterator implements SequenceIterator {
         return new ATokenIterator(input, new REMatcher(matcher.getProgram()));
     }
 
-    /**
-     * Get properties of this iterator, as a bit-significant integer.
-     *
-     * @return the properties of this iterator. This will be some combination of
-     *         properties. It is always
-     *         acceptable to return the value zero, indicating that there are no known special properties.
-     *         It is acceptable for the properties of the iterator to change depending on its state.
-     */
-
-    public int getProperties() {
-        return 0;
-    }
-
 }
 
 // This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. 

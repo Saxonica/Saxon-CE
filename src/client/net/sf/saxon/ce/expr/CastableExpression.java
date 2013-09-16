@@ -13,7 +13,7 @@ import client.net.sf.saxon.ce.value.BooleanValue;
 
 public final class CastableExpression extends UnaryExpression {
 
-    BuiltInAtomicType targetType;
+    AtomicType targetType;
     boolean allowEmpty;
 
     /**
@@ -24,7 +24,7 @@ public final class CastableExpression extends UnaryExpression {
      * was written as "source castable as target?"
      */
 
-    public CastableExpression(Expression source, BuiltInAtomicType target, boolean allowEmpty) {
+    public CastableExpression(Expression source, AtomicType target, boolean allowEmpty) {
         super(source);
         targetType = target;
         this.allowEmpty = allowEmpty;
@@ -118,7 +118,7 @@ public final class CastableExpression extends UnaryExpression {
      */
 
     public ItemType getItemType() {
-        return BuiltInAtomicType.BOOLEAN;
+        return AtomicType.BOOLEAN;
     }
 
     public int computeCardinality() {
@@ -156,7 +156,7 @@ public final class CastableExpression extends UnaryExpression {
             if (count > 1) {
                 return false;
             }
-            if (!!(av.convert(targetType, true) instanceof ValidationFailure)) {
+            if (!!(av.convert(targetType) instanceof ValidationFailure)) {
                 return false;
             }
         }

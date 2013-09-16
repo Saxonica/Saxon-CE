@@ -1,4 +1,5 @@
 package client.net.sf.saxon.ce.style;
+
 import client.net.sf.saxon.ce.expr.Expression;
 import client.net.sf.saxon.ce.expr.RoleLocator;
 import client.net.sf.saxon.ce.expr.SuppliedParameterReference;
@@ -6,8 +7,10 @@ import client.net.sf.saxon.ce.expr.TypeChecker;
 import client.net.sf.saxon.ce.expr.instruct.*;
 import client.net.sf.saxon.ce.om.Axis;
 import client.net.sf.saxon.ce.om.NodeInfo;
+import client.net.sf.saxon.ce.pattern.AnyNodeTest;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
+import client.net.sf.saxon.ce.tree.linked.NodeImpl;
 import client.net.sf.saxon.ce.value.SequenceType;
 import client.net.sf.saxon.ce.value.Whitespace;
 
@@ -44,9 +47,11 @@ public class XSLParam extends XSLVariableDeclaration {
         }
 
         if (!global) {
-            UnfailingIterator preceding = iterateAxis(Axis.PRECEDING_SIBLING);
+            UnfailingIterator prec = iterateAxis(Axis.PRECEDING_SIBLING, AnyNodeTest.getInstance());
+            int index = 0;
+            NodeImpl node;
             while (true) {
-                NodeInfo node = (NodeInfo)preceding.next();
+                node = (NodeImpl)prec.next();
                 if (node == null) {
                     break;
                 }
@@ -54,6 +59,7 @@ public class XSLParam extends XSLVariableDeclaration {
                     if (this.getVariableQName().equals(((XSLParam)node).getVariableQName())) {
                         compileError("The name of the parameter is not unique", "XTSE0580");
                     }
+                    index++;
                 } else if (node instanceof StyleElement) {
                     compileError("xsl:param must not be preceded by other instructions", "XTSE0010");
                 } else {
@@ -63,14 +69,7 @@ public class XSLParam extends XSLVariableDeclaration {
                     }
                 }
             }
-
-            SlotManager p = getContainingSlotManager();
-            if (p==null) {
-                compileError("Local variable must be declared within a template or function", "XTSE0010");
-            } else {
-                setSlotNumber(p.allocateSlotNumber(getVariableQName()));
-            }
-
+            setSlotNumber(index);
         }
 
         if (requiredParam) {
@@ -110,7 +109,7 @@ public class XSLParam extends XSLVariableDeclaration {
                         pref,
                         requiredType,
                         false,
-                        role, makeExpressionVisitor());
+                        role);
             }
 
             GeneralVariable inst;

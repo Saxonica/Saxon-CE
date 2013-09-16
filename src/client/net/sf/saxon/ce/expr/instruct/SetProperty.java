@@ -1,15 +1,13 @@
 package client.net.sf.saxon.ce.expr.instruct;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-
-import com.google.gwt.core.client.JavaScriptObject;
-
+import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.js.IXSLFunction;
 import client.net.sf.saxon.ce.pattern.EmptySequenceTest;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
-import client.net.sf.saxon.ce.expr.*;
+import com.google.gwt.core.client.JavaScriptObject;
+
+import java.util.Iterator;
 
 public class SetProperty extends Instruction {
     private Expression targetObject;
@@ -100,11 +98,7 @@ public class SetProperty extends Instruction {
      */
 
     public Iterator<Expression> iterateSubExpressions() {
-        ArrayList list = new ArrayList(3);
-        list.add(select);
-        list.add(targetObject);
-        list.add(name);
-        return list.iterator();
+        return nonNullChildren(select, targetObject, name);
     }
 
     private static Object eval(Expression ex, XPathContext context) throws XPathException {

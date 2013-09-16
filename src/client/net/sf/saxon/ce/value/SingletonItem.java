@@ -2,10 +2,7 @@ package client.net.sf.saxon.ce.value;
 import client.net.sf.saxon.ce.js.JSObjectType;
 import client.net.sf.saxon.ce.js.JSObjectValue;
 import client.net.sf.saxon.ce.om.*;
-import client.net.sf.saxon.ce.pattern.DocumentNodeTest;
-import client.net.sf.saxon.ce.pattern.NameTest;
-import client.net.sf.saxon.ce.pattern.NodeKindTest;
-import client.net.sf.saxon.ce.pattern.NodeTest;
+import client.net.sf.saxon.ce.pattern.*;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.SingletonIterator;
 import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
@@ -17,7 +14,7 @@ import client.net.sf.saxon.ce.type.Type;
  * (that is, nodes, and function items)
 */
 
-public class SingletonItem extends Value implements GroundedValue{
+public class SingletonItem extends Value {
 
     protected Item item = null;
 
@@ -46,7 +43,7 @@ public class SingletonItem extends Value implements GroundedValue{
             switch (node.getNodeKind()) {
                 case Type.DOCUMENT:
                     // Need to know whether the document is well-formed and if so what the element type is
-                    UnfailingIterator iter = node.iterateAxis(Axis.CHILD);
+                    UnfailingIterator iter = node.iterateAxis(Axis.CHILD, AnyNodeTest.getInstance());
                     ItemType elementType = null;
                     while (true) {
                         NodeInfo n = (NodeInfo)iter.next();
@@ -124,27 +121,6 @@ public class SingletonItem extends Value implements GroundedValue{
         }
     }
 
-
-    /**
-     * Get a subsequence of the value
-     *
-     * @param start  the index of the first item to be included in the result, counting from zero.
-     *               A negative value is taken as zero. If the value is beyond the end of the sequence, an empty
-     *               sequence is returned
-     * @param length the number of items to be included in the result. Specify Integer.MAX_VALUE to
-     *               get the subsequence up to the end of the base sequence. If the value is negative, an empty sequence
-     *               is returned. If the value goes off the end of the sequence, the result returns items up to the end
-     *               of the sequence
-     * @return the required subsequence. If min is
-     */
-
-    public GroundedValue subsequence(int start, int length) {
-        if (item != null && start <= 0 && start+length > 0) {
-            return this;
-        } else {
-            return EmptySequence.getInstance();
-        }
-    }
 
     /**
     * Get the node that forms the node-set. Return null if there is none.

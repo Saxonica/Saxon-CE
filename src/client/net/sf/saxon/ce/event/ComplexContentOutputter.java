@@ -2,6 +2,7 @@ package client.net.sf.saxon.ce.event;
 
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
 import client.net.sf.saxon.ce.om.*;
+import client.net.sf.saxon.ce.pattern.AnyNodeTest;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.value.AtomicValue;
@@ -237,13 +238,11 @@ public final class ComplexContentOutputter extends SequenceReceiver {
         if (((nsBinding.getPrefix().isEmpty())) && !nsBinding.getURI().isEmpty()) {
             declaresDefaultNamespace = true;
             if (elementIsInNullNamespace == null) {
-                elementIsInNullNamespace = Boolean.valueOf(
-                        pendingStartTag.getNamespaceURI().equals(NamespaceConstant.NULL));
+                elementIsInNullNamespace = pendingStartTag.getNamespaceURI().equals(NamespaceConstant.NULL);
             }
-            if (elementIsInNullNamespace.booleanValue()) {
-                XPathException err = new XPathException("Cannot output a namespace node for the default namespace when the element is in no namespace");
-                err.setErrorCode("XTDE0440");
-                throw err;
+            if (elementIsInNullNamespace) {
+                throw new XPathException(
+                        "Cannot output a namespace node for the default namespace when the element is in no namespace", "XTDE0440");
             }
         }
 
@@ -425,7 +424,7 @@ public final class ComplexContentOutputter extends SequenceReceiver {
             previousAtomic = true;
         } else if (((NodeInfo)item).getNodeKind() == Type.DOCUMENT) {
             startDocument();
-            SequenceIterator iter = ((NodeInfo)item).iterateAxis(Axis.CHILD);
+            SequenceIterator iter = ((NodeInfo)item).iterateAxis(Axis.CHILD, AnyNodeTest.getInstance());
             while (true) {
                 Item it = iter.next();
                 if (it == null) break;

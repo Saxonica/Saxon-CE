@@ -6,10 +6,8 @@ import client.net.sf.saxon.ce.expr.ExpressionVisitor;
 import client.net.sf.saxon.ce.expr.Literal;
 import client.net.sf.saxon.ce.expr.instruct.Choose;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
-import client.net.sf.saxon.ce.om.Axis;
-import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
+import client.net.sf.saxon.ce.tree.linked.NodeImpl;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.value.BooleanValue;
 import com.google.gwt.logging.client.LogConfiguration;
@@ -49,25 +47,20 @@ public class XSLChoose extends StyleElement {
     }
 
     public void validate(Declaration decl) throws XPathException {
-        UnfailingIterator kids = iterateAxis(Axis.CHILD);
-        while (true) {
-            NodeInfo curr = (NodeInfo) kids.next();
-            if (curr == null) {
-                break;
-            }
-            if (curr instanceof XSLWhen) {
+        for (NodeImpl child: allChildren()) {
+            if (child instanceof XSLWhen) {
                 if (otherwise != null) {
                     otherwise.compileError("xsl:otherwise must come last", "XTSE0010");
                 }
                 numberOfWhens++;
-            } else if (curr instanceof XSLOtherwise) {
+            } else if (child instanceof XSLOtherwise) {
                 if (otherwise != null) {
-                    ((XSLOtherwise) curr).compileError("Only one xsl:otherwise is allowed in an xsl:choose", "XTSE0010");
+                    ((XSLOtherwise) child).compileError("Only one xsl:otherwise is allowed in an xsl:choose", "XTSE0010");
                 } else {
-                    otherwise = (StyleElement) curr;
+                    otherwise = (StyleElement) child;
                 }
             } else {
-                StyleElement se = (curr instanceof StyleElement ? (StyleElement)curr : this);
+                StyleElement se = (child instanceof StyleElement ? (StyleElement)child : this);
                 se.compileError("Only xsl:when and xsl:otherwise are allowed within xsl:choose", "XTSE0010");
             }
         }
@@ -83,16 +76,10 @@ public class XSLChoose extends StyleElement {
 
     public boolean markTailCalls() {
         boolean found = false;
-        UnfailingIterator kids = iterateAxis(Axis.CHILD);
-        while (true) {
-            NodeInfo curr = (NodeInfo) kids.next();
-            if (curr == null) {
-                return found;
-            }
-            if (curr instanceof StyleElement) {
-                found |= ((StyleElement) curr).markTailCalls();
-            }
+        for (NodeImpl child : allChildren()) {
+            found |= ((StyleElement) child).markTailCalls();
         }
+        return found;
     }
 
 
@@ -107,25 +94,19 @@ public class XSLChoose extends StyleElement {
         }
 
         int w = 0;
-        UnfailingIterator kids = iterateAxis(Axis.CHILD);
         ExpressionVisitor visitor = makeExpressionVisitor();
-        while (true) {
-            NodeInfo curr = (NodeInfo) kids.next();
-            if (curr == null) {
-                break;
-            }
-            Expression action = ((StyleElement)curr).compileSequenceConstructor(
-                        exec, decl, curr.iterateAxis(Axis.CHILD));
+        for (NodeImpl child : allChildren()) {
+            Expression action = ((StyleElement)child).compileSequenceConstructor(exec, decl);
             actions[w] = visitor.simplify(action);
-            if (curr instanceof XSLWhen) {
-                conditions[w] = ((XSLWhen) curr).getCondition();
-            } else if (curr instanceof XSLOtherwise) {
+            if (child instanceof XSLWhen) {
+                conditions[w] = ((XSLWhen) child).getCondition();
+            } else if (child instanceof XSLOtherwise) {
                 conditions[w] = Literal.makeLiteral(BooleanValue.TRUE);
             } else {
                 // Ignore: problem has already been reported.
             }
             if (conditionTests != null) {
-                conditionTests[w] = (curr instanceof XSLWhen ? ((XSLWhen)curr).getAttributeValue("", "test") : "");
+                conditionTests[w] = (child instanceof XSLWhen ? ((XSLWhen)child).getAttributeValue("", "test") : "");
             }
             w++;
         }

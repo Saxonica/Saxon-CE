@@ -269,13 +269,7 @@ public abstract class FunctionCall extends Expression {
     */
 
     public Iterator<Expression> iterateSubExpressions() {
-//        try {
-            return Arrays.asList(argument).iterator();
-//        } catch (NullPointerException err) {
-//            // typically caused by doing CopyLocationInfo after creating the function
-//            // but before creating its arguments
-//            throw err;
-//        }
+        return Arrays.asList(argument).iterator();
     }
 
     /**

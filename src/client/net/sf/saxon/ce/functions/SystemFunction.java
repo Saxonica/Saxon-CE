@@ -85,7 +85,7 @@ public abstract class SystemFunction extends FunctionCall {
                                 argument[arg],
                                 getRequiredType(arg),
                                 visitor.getStaticContext().isInBackwardsCompatibleMode(),
-                                role, visitor);
+                                role);
     }
 
 

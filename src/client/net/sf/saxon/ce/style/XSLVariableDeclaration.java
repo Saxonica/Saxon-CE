@@ -1,9 +1,7 @@
 package client.net.sf.saxon.ce.style;
 
 import client.net.sf.saxon.ce.expr.*;
-import client.net.sf.saxon.ce.expr.instruct.GeneralVariable;
 import client.net.sf.saxon.ce.expr.instruct.GlobalVariable;
-import client.net.sf.saxon.ce.expr.instruct.SlotManager;
 import client.net.sf.saxon.ce.pattern.AnyNodeTest;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.TypeHierarchy;
@@ -11,7 +9,6 @@ import client.net.sf.saxon.ce.value.SequenceType;
 import client.net.sf.saxon.ce.value.Value;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 
 
@@ -30,7 +27,7 @@ public abstract class XSLVariableDeclaration
     private int slotNumber = -9876;  // initial value designed solely to show up when debugging
 
     // List of VariableReference objects that reference this XSLVariableDeclaration
-    protected List references = new ArrayList(10);
+    protected List<VariableReference> references = new ArrayList<VariableReference>(10);
 
     /**
      * Ask whether this node is a declaration, that is, a permitted child of xsl:stylesheet
@@ -42,16 +39,6 @@ public abstract class XSLVariableDeclaration
     public boolean isDeclaration() {
         return true;
     }    
-
-    /**
-     * Get the SlotManager associated with this stylesheet construct. The SlotManager contains the
-     * information needed to manage the local stack frames used by run-time instances of the code.
-     * @return the associated SlotManager object
-     */
-
-    public SlotManager getSlotManager() {
-        return slotManager;
-    }
 
     /**
      * Get the slot number allocated to this variable (its position in the stackframe)
@@ -103,8 +90,7 @@ public abstract class XSLVariableDeclaration
     public void fixupReferences() throws XPathException {
         final SequenceType type = getRequiredType();
         final TypeHierarchy th = TypeHierarchy.getInstance();
-        final Iterator iter = references.iterator();
-        while (iter.hasNext()) {
+        for (VariableReference reference : references) {
             Value constantValue = null;
             int properties = 0;
             if (this instanceof XSLVariable) {
@@ -114,14 +100,14 @@ public abstract class XSLVariableDeclaration
                     // now, we do a quick check. See test bug64
                     int relation = th.relationship(select.getItemType(), type.getPrimaryType());
                     if (relation == TypeHierarchy.SAME_TYPE || relation == TypeHierarchy.SUBSUMED_BY) {
-                        constantValue = ((Literal)select).getValue();
+                        constantValue = ((Literal) select).getValue();
                     }
                 }
                 if (select != null) {
                     properties = select.getSpecialProperties();
                 }
             }
-            ((VariableReference)iter.next()).setStaticType(type, constantValue, properties);
+            (reference).setStaticType(type, constantValue, properties);
         }
         super.fixupReferences();
     }
@@ -135,7 +121,7 @@ public abstract class XSLVariableDeclaration
         super.validate(decl);
         if (global) {
             if (!redundant) {
-                slotNumber = getExecutable().getGlobalVariableMap().allocateSlotNumber(getVariableQName());
+                slotNumber = getExecutable().allocateGlobalVariableSlot();
             }
         } 
     }
@@ -146,20 +132,9 @@ public abstract class XSLVariableDeclaration
     */
 
     protected void fixupBinding(Binding binding) {
-        Iterator iter = references.iterator();
-        while (iter.hasNext()) {
-            ((VariableReference)iter.next()).fixup(binding);
+        for (VariableReference reference : references) {
+            (reference).fixup(binding);
         }
-    }
-
-    /**
-     * Set the number of references to this variable. This code is invoked only for a global variable,
-     * and only if there is at least one reference.
-     * @param var the variable
-     */
-
-    protected void setReferenceCount(GeneralVariable var) {
-        var.setReferenceCount(10);  // TODO: temporary
     }
 
     protected void index(Declaration decl, PrincipalStylesheetModule top) throws XPathException {
@@ -183,18 +158,8 @@ public abstract class XSLVariableDeclaration
                 compileError(err);
             }
 
-            // Try to extract new global variables from the body of the variable declaration
-            // (but don't extract the whole body!)
-//            if (opt.getOptimizationLevel() != Optimizer.NO_OPTIMIZATION) {
-//                exp2 = opt.promoteExpressionsToGlobal(exp2, visitor, true);
-//            }
-            // dropped because it doesn't seem to do much good - just splits up an expression
-            // into lots of small global variables.
-
-            allocateSlots(exp2);
-            if (slotManager != null && slotManager.getNumberOfVariables() > 0) {
-                ((GlobalVariable)compiledVariable).setContainsLocals(slotManager);
-            }
+            int numberOfSlots = ExpressionTool.allocateSlots(exp2, 0);
+            ((GlobalVariable)compiledVariable).setContainsLocals(numberOfSlots);
 
             if (exp2 != select) {
                 select = exp2;
@@ -203,14 +168,6 @@ public abstract class XSLVariableDeclaration
         }
     }
 
-    /**
-     * Get the compiled variable
-     * @return the compiled variable if it has been compiled, or null otherwise
-     */
-
-    public GeneralVariable getCompiledVariable() {
-        return compiledVariable;
-    }
 }
 
 // This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. 

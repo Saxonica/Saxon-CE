@@ -10,7 +10,6 @@ import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.value.Whitespace;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 
 /**
@@ -57,12 +56,7 @@ public class NamespaceConstructor extends SimpleNodeConstructor {
     }
 
     public Iterator<Expression> iterateSubExpressions() {
-        ArrayList list = new ArrayList(6);
-        if (select != null) {
-            list.add(select);
-        }
-        list.add(name);
-        return list.iterator();
+        return nonNullChildren(select, name);
     }
 
 

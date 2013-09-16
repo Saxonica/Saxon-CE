@@ -108,7 +108,7 @@ public class CopyOf extends Instruction {
 
 
     public Iterator<Expression> iterateSubExpressions() {
-        return monoIterator(select);
+        return nonNullChildren(select);
     }
 
     /**

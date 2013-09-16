@@ -1,10 +1,10 @@
 package client.net.sf.saxon.ce.tree.iter;
 
 import client.net.sf.saxon.ce.expr.LastPositionFinder;
-import client.net.sf.saxon.ce.om.GroundedValue;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.value.EmptySequence;
+import client.net.sf.saxon.ce.value.Value;
 
 /**
  * EmptyIterator: an iterator over an empty sequence. Since such an iterator has no state,
@@ -88,19 +88,6 @@ public class EmptyIterator implements UnfailingIterator,
 
     //public void setIsAtomizing(boolean atomizing) {}
 
-     /**
-     * Get properties of this iterator, as a bit-significant integer.
-     *
-     * @return the properties of this iterator. This will be some combination of
-     *         properties such as {@link #GROUNDED}, {@link #LAST_POSITION_FINDER}. It is always
-     *         acceptable to return the value zero, indicating that there are no known special properties.
-     *         It is acceptable for the properties of the iterator to change depending on its state.
-     */
-
-    public int getProperties() {
-        return GROUNDED | LAST_POSITION_FINDER;
-    }
-
     /**
      * Return a Value containing all the items in the sequence returned by this
      * SequenceIterator. This should be an "in-memory" value, not a Closure.
@@ -108,7 +95,7 @@ public class EmptyIterator implements UnfailingIterator,
      * @return the corresponding Value
      */
 
-    public GroundedValue materialize() {
+    public Value materialize() {
         return EmptySequence.getInstance();
     }
 

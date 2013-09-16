@@ -34,7 +34,7 @@ public class AnyJSObjectNodeTest extends NodeTest {
         return Type.ITEM;
     }
 
-    public BuiltInAtomicType getAtomizedItemType() {
+    public AtomicType getAtomizedItemType() {
         return null;
     }
 

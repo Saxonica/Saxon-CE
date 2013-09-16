@@ -4,7 +4,7 @@ import client.net.sf.saxon.ce.lib.StringCollator;
 import client.net.sf.saxon.ce.regex.ARegularExpression;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ConversionResult;
 import client.net.sf.saxon.ce.type.ValidationFailure;
 
@@ -52,8 +52,8 @@ public final class YearMonthDurationValue extends DurationValue implements Compa
      * and xs:untypedAtomic. For external objects, the result is AnyAtomicType.
      */
 
-    public BuiltInAtomicType getItemType() {
-        return BuiltInAtomicType.YEAR_MONTH_DURATION;
+    public AtomicType getItemType() {
+        return AtomicType.YEAR_MONTH_DURATION;
     }
 
     /**

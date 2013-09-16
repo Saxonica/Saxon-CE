@@ -1,5 +1,5 @@
 package client.net.sf.saxon.ce.expr;
-import client.net.sf.saxon.ce.om.ValueRepresentation;
+import client.net.sf.saxon.ce.om.Sequence;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.value.SequenceType;
@@ -25,7 +25,7 @@ public interface Binding  {
      * @return the result of evaluating the variable
     */
 
-    public ValueRepresentation evaluateVariable(XPathContext context) throws XPathException;
+    public Sequence evaluateVariable(XPathContext context) throws XPathException;
 
     /**
      * Indicate whether the binding is local or global. A global binding is one that has a fixed

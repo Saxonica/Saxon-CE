@@ -1,10 +1,8 @@
 package client.net.sf.saxon.ce.style;
 import client.net.sf.saxon.ce.expr.Expression;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
-import client.net.sf.saxon.ce.om.StructuredQName;
-import client.net.sf.saxon.ce.type.ItemType;
-import client.net.sf.saxon.ce.om.AttributeCollection;
 import client.net.sf.saxon.ce.trans.XPathException;
+import client.net.sf.saxon.ce.type.ItemType;
 
 /**
 * Handler for xsl:matching-substring and xsl:non-matching-substring elements in stylesheet.
@@ -25,11 +23,7 @@ public class XSLMatchingSubstring extends StyleElement {
 
 
     public void prepareAttributes() throws XPathException {
-		AttributeCollection atts = getAttributeList();
-		for (int a=0; a<atts.getLength(); a++) {
-			StructuredQName qn = atts.getStructuredQName(a);
-        	checkUnknownAttribute(qn);
-        }
+		checkForUnknownAttributes();
     }
 
     /**

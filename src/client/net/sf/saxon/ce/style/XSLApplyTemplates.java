@@ -1,8 +1,5 @@
 package client.net.sf.saxon.ce.style;
 
-import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
-import com.google.gwt.logging.client.LogConfiguration;
-
 import client.net.sf.saxon.ce.LogController;
 import client.net.sf.saxon.ce.expr.AxisExpression;
 import client.net.sf.saxon.ce.expr.Expression;
@@ -12,13 +9,14 @@ import client.net.sf.saxon.ce.expr.instruct.ApplyTemplates;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.expr.sort.SortExpression;
 import client.net.sf.saxon.ce.expr.sort.SortKeyDefinition;
-import client.net.sf.saxon.ce.om.*;
+import client.net.sf.saxon.ce.om.Axis;
+import client.net.sf.saxon.ce.om.NamespaceException;
+import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.Err;
 import client.net.sf.saxon.ce.trans.Mode;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.value.SequenceType;
-import client.net.sf.saxon.ce.value.Whitespace;
+import com.google.gwt.logging.client.LogConfiguration;
 
 
 /**
@@ -107,27 +105,7 @@ public class XSLApplyTemplates extends StyleElement {
             mode = getPreparedStylesheet().getRuleManager().getMode(modeName, true);
         }
 
-        // handle sorting if requested
-
-        UnfailingIterator kids = iterateAxis(Axis.CHILD);
-        while (true) {
-            NodeInfo child = (NodeInfo)kids.next();
-            if (child == null) {
-                break;
-            }
-            if (child instanceof XSLSort) {
-                // no-op
-            } else if (child instanceof XSLWithParam) {
-                // usesParams = true;
-            } else if (child.getNodeKind() == Type.TEXT) {
-                    // with xml:space=preserve, white space nodes may still be there
-                if (!Whitespace.isWhite(child.getStringValue())) {
-                    compileError("No character data is allowed within xsl:apply-templates", "XTSE0010");
-                }
-            } else {
-                compileError("Invalid element within xsl:apply-templates", "XTSE0010");
-            }
-        }
+        onlyAllow("sort", "with-param");
 
         if (select==null) {
             select = new AxisExpression(Axis.CHILD, null);
@@ -141,7 +119,7 @@ public class XSLApplyTemplates extends StyleElement {
             role.setErrorCode("XTTE0520");
             select = TypeChecker.staticTypeCheck(select,
                                         SequenceType.NODE_SEQUENCE,
-                                        false, role, makeExpressionVisitor());
+                                        false, role);
         } catch (XPathException err) {
             compileError(err);
         }
@@ -168,7 +146,7 @@ public class XSLApplyTemplates extends StyleElement {
         if (sortKeys != null) {
             sortedSequence = new SortExpression(select, sortKeys);
         }
-        compileSequenceConstructor(exec, decl, iterateAxis(Axis.CHILD));
+        compileSequenceConstructor(exec, decl);
         ApplyTemplates app = new ApplyTemplates(
                                     sortedSequence,
                                     useCurrentMode,

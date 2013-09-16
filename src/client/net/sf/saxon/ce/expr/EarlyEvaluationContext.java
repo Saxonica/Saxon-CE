@@ -55,7 +55,7 @@ public class EarlyEvaluationContext implements XPathContext {
      * Get the value of a local variable, identified by its slot number
      */
 
-    public ValueRepresentation evaluateLocalVariable(int slotnumber) {
+    public Sequence evaluateLocalVariable(int slotnumber) {
         notAllowed();
         return null;
     }
@@ -208,7 +208,7 @@ public class EarlyEvaluationContext implements XPathContext {
      * @return array of variables.
      */
 
-    public StackFrame getStackFrame() {
+    public Sequence[] getStackFrame() {
         notAllowed();
         return null;
     }
@@ -288,7 +288,7 @@ public class EarlyEvaluationContext implements XPathContext {
      * Set the value of a local variable, identified by its slot number
      */
 
-    public void setLocalVariable(int slotnumber, ValueRepresentation value) {
+    public void setLocalVariable(int slotnumber, Sequence value) {
         notAllowed();
     }
 

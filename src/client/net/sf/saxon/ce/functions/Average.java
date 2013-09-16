@@ -4,7 +4,7 @@ import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.value.*;
 
@@ -25,10 +25,10 @@ public class Average extends Aggregate {
 
     public ItemType getItemType() {
         ItemType base = Atomizer.getAtomizedItemType(argument[0], false);
-        if (base == BuiltInAtomicType.UNTYPED_ATOMIC) {
-            return BuiltInAtomicType.DOUBLE;
-        } else if (base == BuiltInAtomicType.INTEGER) {
-            return BuiltInAtomicType.DECIMAL;
+        if (base == AtomicType.UNTYPED_ATOMIC) {
+            return AtomicType.DOUBLE;
+        } else if (base == AtomicType.INTEGER) {
+            return AtomicType.DECIMAL;
         } else {
             return base;
         }
@@ -49,7 +49,7 @@ public class Average extends Aggregate {
         count++;
         if (item instanceof UntypedAtomicValue) {
             try {
-                item = item.convert(BuiltInAtomicType.DOUBLE, true).asAtomic();
+                item = item.convert(AtomicType.DOUBLE).asAtomic();
             } catch (XPathException e) {
                 e.maybeSetLocation(getSourceLocator());
                 throw e;
@@ -64,7 +64,7 @@ public class Average extends Aggregate {
                 }
                 count++;
                 if (next instanceof UntypedAtomicValue) {
-                    next = next.convert(BuiltInAtomicType.DOUBLE, true).asAtomic();
+                    next = next.convert(AtomicType.DOUBLE).asAtomic();
                 } else if (!(next instanceof NumericValue)) {
                     badMix(context);
                 }

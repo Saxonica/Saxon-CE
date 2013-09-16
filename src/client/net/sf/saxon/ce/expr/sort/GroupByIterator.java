@@ -9,7 +9,7 @@ import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.ListIterator;
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.value.AtomicValue;
 
 import java.util.ArrayList;
@@ -74,7 +74,7 @@ public class GroupByIterator implements GroupIterator, LastPositionFinder {
         this.keyExpression = keyExpression;
         this.keyContext = keyContext;
         this.collator = collator;
-        BuiltInAtomicType type = (BuiltInAtomicType)keyExpression.getItemType();
+        AtomicType type = (AtomicType)keyExpression.getItemType();
         this.comparer = AtomicSortComparer.makeSortComparer(collator, type, keyContext.getImplicitTimezone());
         buildIndexedGroups();
     }
@@ -198,19 +198,6 @@ public class GroupByIterator implements GroupIterator, LastPositionFinder {
     public SequenceIterator getAnother() throws XPathException {
         XPathContext c2 = keyContext.newMinorContext();
         return new GroupByIterator(population.getAnother(), keyExpression, c2, collator);
-    }
-
-    /**
-     * Get properties of this iterator, as a bit-significant integer.
-     *
-     * @return the properties of this iterator. This will be some combination of
-     *         properties such as {@link #GROUNDED}, {@link #LAST_POSITION_FINDER}. It is always
-     *         acceptable to return the value zero, indicating that there are no known special properties.
-     *         It is acceptable for the properties of the iterator to change depending on its state.
-     */
-
-    public int getProperties() {
-        return LAST_POSITION_FINDER ;
     }
 
     /**

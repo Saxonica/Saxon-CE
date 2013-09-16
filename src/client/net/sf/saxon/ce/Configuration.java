@@ -64,8 +64,6 @@ public class Configuration {
 
     private ErrorListener errorListener = new StandardErrorListener();
 
-    private boolean timing = false;
-    private boolean allowExternalFunctions = true;
     private DocumentPool globalDocumentPool = new DocumentPool();
     private int implicitTimezone = DateTimeValue.fromJavaDate(new Date()).getTimezoneInMinutes();
 
@@ -73,38 +71,6 @@ public class Configuration {
     private Logger logger = Logger.getLogger("Configuration");
 
     private int nextDocumentNumber = 0;
-
-    /**
-     * Allocate a unique document number
-     * @return a unique document number
-     */
-
-    public synchronized int allocateDocumentNumber() {
-        return nextDocumentNumber++;
-    }
-
-
-    /**
-     * Constant indicating the XML Version 1.0
-     */
-
-    public static final int XML10 = 10;
-
-    /**
-     * Constant indicating the XML Version 1.1
-     */
-
-    public static final int XML11 = 11;
-
-    /**
-     * Constant indicating that the host language is XSLT
-     */
-    public static final int XSLT = 50;
-
-    /**
-     * Constant indicating that the host language is XPATH itself - that is, a free-standing XPath environment
-     */
-    public static final int XPATH = 54;
 
     /**
      * Create a non-schema-aware configuration object with default settings for all options.
@@ -122,6 +88,17 @@ public class Configuration {
     public static String getEditionCode() {
         return "CE";
     }
+
+    /**
+     * Allocate a unique document number
+     * @return a unique document number
+     */
+
+    public synchronized int allocateDocumentNumber() {
+        return nextDocumentNumber++;
+    }
+
+
 
     public DocumentInfo getHostPage() {
         // attempt to initialise this only once - in the Configuration constructor led
@@ -175,75 +152,6 @@ public class Configuration {
 
     public void setErrorListener(ErrorListener listener) {
         this.errorListener = listener;
-    }
-
-    /**
-     * Determine whether brief progress messages and timing information will be output
-     * to System.err.
-     * <p/>
-     * This method is provided largely for internal use. Progress messages are normally
-     * controlled directly from the command line interfaces, and are not normally used when
-     * driving Saxon from the Java API.
-     *
-     * @return true if these messages are to be output.
-     */
-
-    public boolean isTiming() {
-        return timing;
-    }
-
-    /**
-     * Determine whether brief progress messages and timing information will be output
-     * to System.err.
-     * <p/>
-     * This method is provided largely for internal use. Progress messages are normally
-     * controlled directly from the command line interfaces, and are not normally used when
-     *
-     * @param timing true if these messages are to be output.
-     */
-
-    public void setTiming(boolean timing) {
-        this.timing = timing;
-    }
-
-    /**
-     * Determine whether calls to external Java functions are permitted.
-     *
-     * @return true if such calls are permitted.
-     * @since 8.4
-     */
-
-    public boolean isAllowExternalFunctions() {
-        return allowExternalFunctions;
-    }
-
-    /**
-     * Determine whether calls to external Java functions are permitted. Allowing
-     * external function calls is potentially a security risk if the stylesheet or
-     * Query is untrusted, as it allows arbitrary Java methods to be invoked, which can
-     * examine or modify the contents of filestore and other resources on the machine
-     * where the query/stylesheet is executed.
-     * <p/>
-     * <p>Setting the value to false disallows all of the following:</p>
-     * <p/>
-     * <ul>
-     * <li>Calls to Java extension functions</li>
-     * <li>Use of the XSLT system-property() function to access Java system properties</li>
-     * <li>Use of a relative URI in the <code>xsl:result-document</code> instruction</li>
-     * <li>Calls to XSLT extension instructions</li>
-     * </ul>
-     * <p/>
-     * <p>Note that this option does not disable use of the <code>doc()</code> function or similar
-     * functions to access the filestore of the machine where the transformation or query is running.
-     * That should be done using a user-supplied <code>URIResolver</code></p>
-     *
-     * @param allowExternalFunctions true if external function calls are to be
-     *                               permitted.
-     * @since 8.4
-     */
-
-    public void setAllowExternalFunctions(boolean allowExternalFunctions) {
-        this.allowExternalFunctions = allowExternalFunctions;
     }
 
     /**

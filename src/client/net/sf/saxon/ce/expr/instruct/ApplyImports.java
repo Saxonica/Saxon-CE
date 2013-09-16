@@ -13,15 +13,21 @@ import java.util.ArrayList;
 import java.util.Iterator;
 
 /**
-* An xsl:apply-imports element in the stylesheet
+* An xsl:apply-imports or xsl:next-match instruction
 */
 
 public class ApplyImports extends Instruction {
 
+    public static final int APPLY_IMPORTS = 1;
+    public static final int NEXT_MATCH = 2;
+
+    private int operation;
+
     WithParam[] actualParams = null;
     WithParam[] tunnelParams = null;
 
-    public ApplyImports() {
+    public ApplyImports(int operation) {
+        this.operation = operation;
     }
 
     /**
@@ -121,8 +127,9 @@ public class ApplyImports extends Instruction {
         return list.iterator();
     }
 
-
     public TailCall processLeavingTail(XPathContext context) throws XPathException {
+
+        Rule rule;
 
         Controller controller = context.getController();
         // handle parameters if any
@@ -133,37 +140,50 @@ public class ApplyImports extends Instruction {
         Rule currentTemplateRule = context.getCurrentTemplateRule();
         if (currentTemplateRule==null) {
             dynamicError("There is no current template rule", "XTDE0560");
+            return null;
         }
 
-        int min = currentTemplateRule.getMinImportPrecedence();
-        int max = currentTemplateRule.getPrecedence()-1;
         Mode mode = context.getCurrentMode();
         if (mode == null) {
             mode = controller.getRuleManager().getUnnamedMode();
         }
+
         if (context.getCurrentIterator()==null) {
-            dynamicError("Cannot call xsl:apply-imports when there is no context item", "XTDE0565");
+            throw new XPathException("There is no context item", "XTDE0565");
         }
+
         Item currentItem = context.getCurrentIterator().current();
         if (!(currentItem instanceof NodeInfo)) {
-            dynamicError("Cannot call xsl:apply-imports when context item is not a node", "XTDE0565");
+            dynamicError("The context item is not a node", "XTDE0565");
         }
-        NodeInfo node = (NodeInfo)currentItem;
-        Rule rule = controller.getRuleManager().getTemplateRule(node, mode, min, max, context);
 
-		if (rule==null) {             // use the default action for the node
-            mode.getBuiltInRuleSet().process(node, params, tunnels, context, getSourceLocator());
+        if (operation == APPLY_IMPORTS) {
+
+            int min = currentTemplateRule.getMinImportPrecedence();
+            int max = currentTemplateRule.getPrecedence()-1;
+
+            rule = controller.getRuleManager().getTemplateRule(
+                    (NodeInfo)currentItem, mode, min, max, context);
+
         } else {
+            // operation = NEXT_MATCH
+
+            rule = controller.getRuleManager().getNextMatchHandler(
+                    (NodeInfo)currentItem, mode, currentTemplateRule, context);
+
+        }
+        if (rule==null) {             // use the default action for the node
+            mode.getBuiltInRuleSet().process((NodeInfo)currentItem, params, tunnels, context, getSourceLocator());
+        } else {
+            Template nh = rule.getAction();
             XPathContextMajor c2 = context.newContext();
-            Template nh = (Template)rule.getAction();
+            c2.openStackFrame(nh.getNumberOfSlots());
             c2.setLocalParameters(params);
             c2.setTunnelParameters(tunnels);
-            c2.openStackFrame(nh.getStackFrameMap());
             c2.setCurrentTemplateRule(rule);
             nh.apply(c2);
         }
         return null;
-                // We never treat apply-imports as a tail call, though we could
     }
 
 

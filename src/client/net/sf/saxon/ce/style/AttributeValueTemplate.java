@@ -5,7 +5,7 @@ import client.net.sf.saxon.ce.functions.Concat;
 import client.net.sf.saxon.ce.functions.SystemFunction;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.SourceLocator;
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.Cardinality;
 import client.net.sf.saxon.ce.value.StringValue;
@@ -128,8 +128,8 @@ public abstract class AttributeValueTemplate {
         if (Cardinality.allowsMany(exp.getCardinality())) {
             exp = new FirstItemExpression(exp);
         }
-        if (!th.isSubType(exp.getItemType(), BuiltInAtomicType.STRING)) {
-            exp = new AtomicSequenceConverter(exp, BuiltInAtomicType.STRING);
+        if (!th.isSubType(exp.getItemType(), AtomicType.STRING)) {
+            exp = new AtomicSequenceConverter(exp, AtomicType.STRING);
         }
         return exp;
     }

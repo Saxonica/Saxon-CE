@@ -7,7 +7,7 @@ import client.net.sf.saxon.ce.functions.SystemFunction;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
 import client.net.sf.saxon.ce.om.*;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.AtomicValue;
@@ -16,7 +16,6 @@ import client.net.sf.saxon.ce.value.StringValue;
 import client.net.sf.saxon.ce.value.Whitespace;
 import com.google.gwt.logging.client.LogConfiguration;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 
 
@@ -83,15 +82,14 @@ public class ComputedElement extends ElementCreator {
         elementName = visitor.typeCheck(elementName, contextItemType);
         RoleLocator role;
         TypeHierarchy th = TypeHierarchy.getInstance();
-        if (!th.isSubType(elementName.getItemType(), BuiltInAtomicType.STRING)) {
+        if (!th.isSubType(elementName.getItemType(), AtomicType.STRING)) {
             elementName = SystemFunction.makeSystemFunction("string", new Expression[]{elementName});
         }
         if (namespace != null) {
             namespace = visitor.typeCheck(namespace, contextItemType);
-            // TODO: not sure there are any circumstances in which this type check can fail
             role = new RoleLocator(RoleLocator.INSTRUCTION, "element/namespace", 0);
             namespace = TypeChecker.staticTypeCheck(
-                    namespace, SequenceType.SINGLE_STRING, false, role, visitor);
+                    namespace, SequenceType.SINGLE_STRING, false, role);
         }
         if (Literal.isAtomic(elementName)) {
             // Check we have a valid lexical QName, whose prefix is in scope where necessary
@@ -103,8 +101,7 @@ public class ComputedElement extends ElementCreator {
                         String prefix = parts[0];
                         String uri = getNamespaceResolver().getURIForPrefix(prefix, true);
                         if (uri == null) {
-                            XPathException se = new XPathException("Prefix " + prefix + " has not been declared");
-                            se.setErrorCode("XPST0081");
+                            XPathException se = new XPathException("Prefix " + prefix + " has not been declared", "XPST0081");
                             se.setIsStaticError(true);
                             throw se;
                         }
@@ -132,13 +129,7 @@ public class ComputedElement extends ElementCreator {
     }
 
     public Iterator<Expression> iterateSubExpressions() {
-        ArrayList list = new ArrayList(3);
-        list.add(content);
-        list.add(elementName);
-        if (namespace != null) {
-            list.add(namespace);
-        }
-        return list.iterator();
+        return nonNullChildren(content, elementName, namespace);
     }
 
 

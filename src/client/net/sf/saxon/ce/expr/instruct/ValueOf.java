@@ -77,7 +77,7 @@ public final class ValueOf extends SimpleNodeConstructor {
      */
 
     public Expression convertToCastAsString() {
-        return new CastExpression(select, BuiltInAtomicType.UNTYPED_ATOMIC, true);
+        return new CastExpression(select, AtomicType.UNTYPED_ATOMIC, true);
     }
 
     /**

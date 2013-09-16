@@ -5,7 +5,7 @@ import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.lib.StringCollator;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.URI;
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.StringValue;
@@ -264,7 +264,7 @@ public class SortKeyDefinition {
             String dataType = sortProperties[DATA_TYPE].evaluateAsString(context).toString();
             if (dataType.equals("text")) {
                 atomicComparer = AtomicSortComparer.makeSortComparer(stringCollator,
-                    BuiltInAtomicType.STRING, context.getImplicitTimezone());
+                    AtomicType.STRING, context.getImplicitTimezone());
                 atomicComparer = new TextComparer(atomicComparer);
             } else if (dataType.equals("number")) {
                 atomicComparer = NumericComparer.getInstance();

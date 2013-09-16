@@ -1,7 +1,7 @@
 package client.net.sf.saxon.ce.value;
 
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ConversionResult;
 import client.net.sf.saxon.ce.type.ValidationFailure;
 
@@ -37,8 +37,8 @@ public final class DoubleValue extends NumericValue {
      * and xs:untypedAtomic. For external objects, the result is AnyAtomicType.
      */
 
-    public BuiltInAtomicType getItemType() {
-        return BuiltInAtomicType.DOUBLE;
+    public AtomicType getItemType() {
+        return AtomicType.DOUBLE;
     }
 
     /**
@@ -85,20 +85,19 @@ public final class DoubleValue extends NumericValue {
     /**
      * Convert to target data type
      *
+     *
      * @param requiredType an integer identifying the required atomic type
-     * @param validate     true if the supplied value must be validated, false if the caller warrants that it is
-     *                     valid
      * @return an AtomicValue, a value of the required type
      */
 
-    public ConversionResult convertPrimitive(BuiltInAtomicType requiredType, boolean validate) {
-        if (requiredType == BuiltInAtomicType.ANY_ATOMIC ||
-                requiredType == BuiltInAtomicType.NUMERIC ||
-                requiredType == BuiltInAtomicType.DOUBLE) {
+    public ConversionResult convert(AtomicType requiredType) {
+        if (requiredType == AtomicType.ANY_ATOMIC ||
+                requiredType == AtomicType.NUMERIC ||
+                requiredType == AtomicType.DOUBLE) {
             return this;
-        } else if (requiredType == BuiltInAtomicType.BOOLEAN) {
+        } else if (requiredType == AtomicType.BOOLEAN) {
             return BooleanValue.get(effectiveBooleanValue());
-        } else if (requiredType == BuiltInAtomicType.INTEGER) {
+        } else if (requiredType == AtomicType.INTEGER) {
             if (Double.isNaN(value)) {
                 return new ValidationFailure("Cannot convert double NaN to an integer", "FOCA0002");
             }
@@ -106,17 +105,17 @@ public final class DoubleValue extends NumericValue {
                 return new ValidationFailure("Cannot convert double INF to an integer", "FOCA0002");
             }
             return IntegerValue.decimalToInteger(new BigDecimal(value));
-        } else if (requiredType == BuiltInAtomicType.DECIMAL) {
+        } else if (requiredType == AtomicType.DECIMAL) {
             try {
                 return new DecimalValue(value);
             } catch (XPathException e) {
                 return new ValidationFailure(e.getMessage());
             }
-        } else if (requiredType == BuiltInAtomicType.FLOAT) {
+        } else if (requiredType == AtomicType.FLOAT) {
             return new FloatValue((float) value);
-        } else if (requiredType == BuiltInAtomicType.STRING) {
+        } else if (requiredType == AtomicType.STRING) {
             return new StringValue(getStringValue());
-        } else if (requiredType == BuiltInAtomicType.UNTYPED_ATOMIC) {
+        } else if (requiredType == AtomicType.UNTYPED_ATOMIC) {
             return new UntypedAtomicValue(getStringValue());
         } else {
             return new ValidationFailure("Cannot convert double to " +
@@ -145,11 +144,13 @@ public final class DoubleValue extends NumericValue {
         } else if (Double.isInfinite(value)) {
             return (value > 0 ? "INF" : "-INF");
         }
-        if (isWholeNumber()) {
-            // TODO: negative zero
+        double a = Math.abs(value);
+        if (isWholeNumber() && a < 1e6) {
+            if (isNegativeZero(value)) {
+                return "-0";
+            }
             return "" + (long) value;
         } else {
-            double a = Math.abs(value);
             if (a < 1e6) {
                 if (a >= 1e-3) {
                     return Double.toString(value);
@@ -167,6 +168,10 @@ public final class DoubleValue extends NumericValue {
                 return Double.toString(value);
             }
         }
+    }
+
+    public static boolean isNegativeZero(double d) {
+        return new Double(d).equals(NEGATIVE_ZERO);
     }
 
     public static native String convertToString(double num) /*-{

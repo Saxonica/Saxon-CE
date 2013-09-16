@@ -6,14 +6,13 @@ import client.net.sf.saxon.ce.lib.NamespaceConstant;
 import client.net.sf.saxon.ce.om.*;
 import client.net.sf.saxon.ce.pattern.NodeKindTest;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.SequenceType;
 import client.net.sf.saxon.ce.value.StringValue;
 import client.net.sf.saxon.ce.value.Whitespace;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 
 /**
@@ -102,7 +101,7 @@ public final class ComputedAttribute extends AttributeCreator {
         //role.setSourceLocator(this);
 
         TypeHierarchy th = TypeHierarchy.getInstance();
-        if (!th.isSubType(attributeName.getItemType(), BuiltInAtomicType.STRING)) {
+        if (!th.isSubType(attributeName.getItemType(), AtomicType.STRING)) {
             attributeName = SystemFunction.makeSystemFunction("string", new Expression[]{attributeName});
         }
 
@@ -113,7 +112,7 @@ public final class ComputedAttribute extends AttributeCreator {
             role = new RoleLocator(RoleLocator.INSTRUCTION, "attribute/namespace", 0);
             //role.setSourceLocator(this);
             namespace = TypeChecker.staticTypeCheck(
-                    namespace, SequenceType.SINGLE_STRING, false, role, visitor);
+                    namespace, SequenceType.SINGLE_STRING, false, role);
         }
     }
 
@@ -144,15 +143,7 @@ public final class ComputedAttribute extends AttributeCreator {
      */
 
     public Iterator<Expression> iterateSubExpressions() {
-        ArrayList list = new ArrayList(3);
-        if (select != null) {
-            list.add(select);
-        }
-        list.add(attributeName);
-        if (namespace != null) {
-            list.add(namespace);
-        }
-        return list.iterator();
+        return nonNullChildren(select, attributeName, namespace);
     }
 
 

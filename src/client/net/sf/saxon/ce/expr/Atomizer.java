@@ -8,7 +8,7 @@ import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.pattern.EmptySequenceTest;
 import client.net.sf.saxon.ce.pattern.NodeTest;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.type.TypeHierarchy;
@@ -73,7 +73,7 @@ public final class Atomizer extends UnaryExpression  {
         final TypeHierarchy th = TypeHierarchy.getInstance();
         visitor.resetStaticProperties();
         ItemType operandType = operand.getItemType();
-        if (th.isSubType(operandType, BuiltInAtomicType.ANY_ATOMIC)) {
+        if (th.isSubType(operandType, AtomicType.ANY_ATOMIC)) {
             return operand;
         }
         operand.setFlattened(true);
@@ -102,7 +102,7 @@ public final class Atomizer extends UnaryExpression  {
         Expression exp = super.optimize(visitor, contextItemType);
         if (exp == this) {
             final TypeHierarchy th = TypeHierarchy.getInstance();
-            if (th.isSubType(operand.getItemType(), BuiltInAtomicType.ANY_ATOMIC)) {
+            if (th.isSubType(operand.getItemType(), AtomicType.ANY_ATOMIC)) {
                 return operand;
             }
             if (operand instanceof ValueOf) {
@@ -187,23 +187,23 @@ public final class Atomizer extends UnaryExpression  {
                 // Some node-kinds always have a typed value that's a string
 
                 if ((kinds | STRING_KINDS) == STRING_KINDS) {
-                    return BuiltInAtomicType.STRING;
+                    return AtomicType.STRING;
                 }
                 // Some node-kinds are always untyped atomic; some are untypedAtomic provided that the configuration
                 // is untyped
 
                 if ((kinds | UNTYPED_IF_UNTYPED_KINDS) == UNTYPED_IF_UNTYPED_KINDS) {
-                    return BuiltInAtomicType.UNTYPED_ATOMIC;
+                    return AtomicType.UNTYPED_ATOMIC;
                 }
             } else {
                 if ((kinds | UNTYPED_KINDS) == UNTYPED_KINDS) {
-                    return BuiltInAtomicType.UNTYPED_ATOMIC;
+                    return AtomicType.UNTYPED_ATOMIC;
                 }
             }
 
             return in.getAtomizedItemType();
         }
-	    return BuiltInAtomicType.ANY_ATOMIC;
+	    return AtomicType.ANY_ATOMIC;
 	}
 
     /**

@@ -1,7 +1,6 @@
 package client.net.sf.saxon.ce.value;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ConversionResult;
 import client.net.sf.saxon.ce.type.ValidationFailure;
 
@@ -36,8 +35,8 @@ public final class FloatValue extends NumericValue {
      * and xs:untypedAtomic. For external objects, the result is AnyAtomicType.
      */
 
-    public BuiltInAtomicType getItemType() {
-        return BuiltInAtomicType.FLOAT;
+    public AtomicType getItemType() {
+        return AtomicType.FLOAT;
     }
 
     /**
@@ -83,18 +82,19 @@ public final class FloatValue extends NumericValue {
 
     /**
      * Convert to target data type
+     *
      * @param requiredType an integer identifying the required atomic type
      * @return an AtomicValue, a value of the required type; or an ErrorValue
     */
 
-    public ConversionResult convertPrimitive(BuiltInAtomicType requiredType, boolean validate) {
-        if (requiredType == BuiltInAtomicType.ANY_ATOMIC ||
-                requiredType == BuiltInAtomicType.NUMERIC ||
-                requiredType == BuiltInAtomicType.FLOAT) {
+    public ConversionResult convert(AtomicType requiredType) {
+        if (requiredType == AtomicType.ANY_ATOMIC ||
+                requiredType == AtomicType.NUMERIC ||
+                requiredType == AtomicType.FLOAT) {
             return this;
-        } else if (requiredType == BuiltInAtomicType.BOOLEAN) {
+        } else if (requiredType == AtomicType.BOOLEAN) {
             return BooleanValue.get(effectiveBooleanValue());
-        } else if (requiredType == BuiltInAtomicType.INTEGER) {
+        } else if (requiredType == AtomicType.INTEGER) {
             if (Float.isNaN(value)) {
                 return new ValidationFailure("Cannot convert float NaN to an integer", "FOCA0002");
             }
@@ -102,17 +102,17 @@ public final class FloatValue extends NumericValue {
                 return new ValidationFailure("Cannot convert float INF to an integer", "FOCA0002");
             }
             return IntegerValue.decimalToInteger(new BigDecimal(value));
-        } else if (requiredType == BuiltInAtomicType.DECIMAL) {
+        } else if (requiredType == AtomicType.DECIMAL) {
             try {
                 return new DecimalValue(value);
             } catch (XPathException e) {
                 return new ValidationFailure(e.getMessage());
             }
-        } else if (requiredType == BuiltInAtomicType.DOUBLE) {
+        } else if (requiredType == AtomicType.DOUBLE) {
             return new DoubleValue(value);
-        } else if (requiredType == BuiltInAtomicType.STRING) {
+        } else if (requiredType == AtomicType.STRING) {
             return new StringValue(getStringValue());
-        } else if (requiredType == BuiltInAtomicType.UNTYPED_ATOMIC) {
+        } else if (requiredType == AtomicType.UNTYPED_ATOMIC) {
             return new UntypedAtomicValue(getStringValue());
         } else {
             return new ValidationFailure("Cannot convert float to " + requiredType.getDisplayName(), "XPTY0004");
@@ -129,34 +129,37 @@ public final class FloatValue extends NumericValue {
      * @return the string value
      */
     public CharSequence getPrimitiveStringValue() {
-        // Same code as for DoubleValue, but using the Float type
-        if (Float.isNaN(value)) {
-            return "NaN";
-        } else if (Float.isInfinite(value)) {
-            return (value > 0 ? "INF" : "-INF");
-        }
-        if (isWholeNumber()) {
-            // TODO: negative zero
-            return ""+(long)value;
-        } else {
-            double a = Math.abs(value);
-            if (a < 1e6) {
-                if (a >= 1e-3) {
-                    return Float.toString(value);
-                } else if (a >= 1e-6) {
-                    return BigDecimal.valueOf(value).toPlainString();
-                } else {
-                    BigDecimal dec = BigDecimal.valueOf(value);
-                    return dec.toString();
-                }
-            } else if (a < 1e7) {
-                FastStringBuffer sb = new FastStringBuffer(Float.toString(value * 10));
-                sb.setCharAt(sb.length()-1, (char)((int)sb.charAt(sb.length()-1) - 1));
-                return sb;
-            } else {
-                return Float.toString(value);
-            }
-        }
+        return new DoubleValue(value).getPrimitiveStringValue();
+//        // Same code as for DoubleValue, but using the Float type
+//        if (Float.isNaN(value)) {
+//            return "NaN";
+//        } else if (Float.isInfinite(value)) {
+//            return (value > 0 ? "INF" : "-INF");
+//        }
+//        if (isWholeNumber()) {
+//            if (DoubleValue.isNegativeZero(value)) {
+//                return "-0";
+//            }
+//            return ""+(long)value;
+//        } else {
+//            double a = Math.abs(value);
+//            if (a < 1e6) {
+//                if (a >= 1e-3) {
+//                    return Float.toString(value);
+//                } else if (a >= 1e-6) {
+//                    return BigDecimal.valueOf(value).toPlainString();
+//                } else {
+//                    BigDecimal dec = BigDecimal.valueOf(value);
+//                    return dec.toString();
+//                }
+//            } else if (a < 1e7) {
+//                FastStringBuffer sb = new FastStringBuffer(Float.toString(value * 10));
+//                sb.setCharAt(sb.length()-1, (char)((int)sb.charAt(sb.length()-1) - 1));
+//                return sb;
+//            } else {
+//                return Float.toString(value);
+//            }
+//        }
     }
 
     /*// previously used DoubleValue
@@ -225,7 +228,7 @@ public final class FloatValue extends NumericValue {
     public NumericValue roundHalfToEven(int scale) {
         try {
             return (FloatValue)
-                    new DoubleValue((double)value).roundHalfToEven(scale).convertPrimitive(BuiltInAtomicType.FLOAT, true).asAtomic();
+                    new DoubleValue((double)value).roundHalfToEven(scale).convert(AtomicType.FLOAT).asAtomic();
         } catch (XPathException err) {
             throw new AssertionError(err);
         }
@@ -282,7 +285,7 @@ public final class FloatValue extends NumericValue {
             return super.compareTo(other);
         }
         try {
-            return compareTo(((NumericValue)other).convertPrimitive(BuiltInAtomicType.FLOAT, true).asAtomic());
+            return compareTo(((NumericValue)other).convert(AtomicType.FLOAT).asAtomic());
         } catch (XPathException err) {
             throw new ClassCastException("Operand of comparison cannot be promoted to xs:float");
         }
@@ -299,14 +302,6 @@ public final class FloatValue extends NumericValue {
         if (value == otherFloat) return 0;
         if (value < otherFloat) return -1;
         return +1;
-    }
-
-    /**
-     * Get an object that implements XML Schema comparison semantics
-     */
-
-    private Comparable getSchemaComparable() {
-        return new Float(value);
     }
 
 }

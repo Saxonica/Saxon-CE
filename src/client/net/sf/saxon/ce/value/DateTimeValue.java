@@ -7,7 +7,7 @@ import client.net.sf.saxon.ce.trans.Err;
 import client.net.sf.saxon.ce.trans.NoDynamicContextException;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ConversionResult;
 import client.net.sf.saxon.ce.type.ValidationFailure;
 import com.google.gwt.regexp.shared.MatchResult;
@@ -205,8 +205,8 @@ public final class DateTimeValue extends CalendarValue implements Comparable {
      * and xs:untypedAtomic. For external objects, the result is AnyAtomicType.
      */
 
-    public BuiltInAtomicType getItemType() {
-        return BuiltInAtomicType.DATE_TIME;
+    public AtomicType getItemType() {
+        return AtomicType.DATE_TIME;
     }
 
     /**
@@ -359,30 +359,31 @@ public final class DateTimeValue extends CalendarValue implements Comparable {
     /**
      * Convert to target data type
      *
+     *
      * @param requiredType an integer identifying the required atomic type
      * @return an AtomicValue, a value of the required type; or an ErrorValue
      */
 
-    public ConversionResult convertPrimitive(BuiltInAtomicType requiredType, boolean validate) {
-        if (requiredType == BuiltInAtomicType.ANY_ATOMIC || requiredType == BuiltInAtomicType.DATE_TIME) {
+    public ConversionResult convert(AtomicType requiredType) {
+        if (requiredType == AtomicType.ANY_ATOMIC || requiredType == AtomicType.DATE_TIME) {
             return this;
-        } else if (requiredType == BuiltInAtomicType.UNTYPED_ATOMIC) {
+        } else if (requiredType == AtomicType.UNTYPED_ATOMIC) {
             return new UntypedAtomicValue(getStringValue());
-        } else if (requiredType == BuiltInAtomicType.STRING) {
+        } else if (requiredType == AtomicType.STRING) {
             return new StringValue(getStringValue());
-        } else if (requiredType == BuiltInAtomicType.DATE) {
+        } else if (requiredType == AtomicType.DATE) {
             return new DateValue(year, month, day, getTimezoneInMinutes());
-        } else if (requiredType == BuiltInAtomicType.TIME) {
+        } else if (requiredType == AtomicType.TIME) {
             return new TimeValue(hour, minute, second, microsecond, getTimezoneInMinutes());
-        } else if (requiredType == BuiltInAtomicType.G_YEAR) {
+        } else if (requiredType == AtomicType.G_YEAR) {
             return new GYearValue(year, getTimezoneInMinutes());
-        } else if (requiredType == BuiltInAtomicType.G_YEAR_MONTH) {
+        } else if (requiredType == AtomicType.G_YEAR_MONTH) {
             return new GYearMonthValue(year, month, getTimezoneInMinutes());
-        } else if (requiredType == BuiltInAtomicType.G_MONTH) {
+        } else if (requiredType == AtomicType.G_MONTH) {
             return new GMonthValue(month, getTimezoneInMinutes());
-        } else if (requiredType == BuiltInAtomicType.G_MONTH_DAY) {
+        } else if (requiredType == AtomicType.G_MONTH_DAY) {
             return new GMonthDayValue(month, day, getTimezoneInMinutes());
-        } else if (requiredType == BuiltInAtomicType.G_DAY) {
+        } else if (requiredType == AtomicType.G_DAY) {
             return new GDayValue(day, getTimezoneInMinutes());
         } else {
             return new ValidationFailure("Cannot convert dateTime to " +

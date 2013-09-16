@@ -2,11 +2,8 @@ package client.net.sf.saxon.ce.style;
 
 import client.net.sf.saxon.ce.expr.Expression;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
-import client.net.sf.saxon.ce.om.Axis;
-import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 
 /**
 * An xsl:character-map declaration in the stylesheet. <br>
@@ -53,16 +50,7 @@ public class XSLCharacterMap extends StyleElement {
 
         // check that the only children are xsl:output-character elements
 
-        UnfailingIterator kids = iterateAxis(Axis.CHILD);
-        while (true) {
-            Item child = kids.next();
-            if (child == null) {
-                break;
-            }
-            if (!(child instanceof XSLOutputCharacter)) {
-                compileError("Only xsl:output-character is allowed within xsl:character-map", "XTSE0010");
-            }
-        }
+        onlyAllow("output-character");
 
         validated = true;
     }

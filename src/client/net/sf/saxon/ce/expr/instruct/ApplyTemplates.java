@@ -3,6 +3,7 @@ package client.net.sf.saxon.ce.expr.instruct;
 import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.js.IXSLFunction;
 import client.net.sf.saxon.ce.om.*;
+import client.net.sf.saxon.ce.pattern.AnyNodeTest;
 import client.net.sf.saxon.ce.trans.Mode;
 import client.net.sf.saxon.ce.trans.Rule;
 import client.net.sf.saxon.ce.trans.XPathException;
@@ -272,7 +273,7 @@ public class ApplyTemplates extends Instruction {
                 if (template != previousTemplate) {
                     // Reuse the previous stackframe unless it's a different template rule
                     previousTemplate = template;
-                    context.openStackFrame(template.getStackFrameMap());
+                    context.openStackFrame(template.getNumberOfSlots());
                     context.setLocalParameters(parameters);
                     context.setTunnelParameters(tunnelParameters);
                 }
@@ -311,7 +312,7 @@ public class ApplyTemplates extends Instruction {
         switch(node.getNodeKind()) {
             case Type.DOCUMENT:
             case Type.ELEMENT:
-                SequenceIterator iter = node.iterateAxis(Axis.CHILD);
+                SequenceIterator iter = node.iterateAxis(Axis.CHILD, AnyNodeTest.getInstance());
                 XPathContextMajor c2 = context.newContext();
 	            TailCall tc = applyTemplates(
                         iter, context.getCurrentMode(), parameters, tunnelParams, c2, sourceLocator);
@@ -445,14 +446,14 @@ public class ApplyTemplates extends Instruction {
 
     private static class ApplyTemplatesPackage implements TailCall {
 
-        private ValueRepresentation selectedNodes;
+        private Sequence selectedNodes;
         private Mode mode;
         private ParameterSet params;
         private ParameterSet tunnelParams;
         private XPathContextMajor evaluationContext;
         private SourceLocator sourceLocator;
 
-        ApplyTemplatesPackage(ValueRepresentation selectedNodes,
+        ApplyTemplatesPackage(Sequence selectedNodes,
                                      Mode mode,
                                      ParameterSet params,
                                      ParameterSet tunnelParams,

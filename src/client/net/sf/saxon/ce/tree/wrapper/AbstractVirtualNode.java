@@ -135,6 +135,15 @@ public abstract class AbstractVirtualNode implements VirtualNode {
     }
 
     /**
+     * Get the index position of this node among its siblings (starting from 0)
+     *
+     * @return 0 for the first child, 1 for the second child, etc.
+     */
+    public int getSiblingPosition() {
+        return node.getSiblingPosition();
+    }
+
+    /**
      * Return the string value of the node. The interpretation of this depends on the type
      * of node. For an element it is the accumulated character content of the element,
      * including descendant elements.
@@ -199,8 +208,10 @@ public abstract class AbstractVirtualNode implements VirtualNode {
      */
 
     public UnfailingIterator iterateAxis(byte axisNumber, NodeTest nodeTest) {
-        return new Navigator.AxisFilter(iterateAxis(axisNumber), nodeTest);
+        return Navigator.newAxisFilter(iterateAxis0(axisNumber), nodeTest);
     }
+
+    protected abstract UnfailingIterator iterateAxis0(byte axisNumber);
 
     /**
      * Get the root node - always a document node with this tree implementation

@@ -271,7 +271,7 @@ public final class AxisExpression extends Expression {
         Item item = context.getContextItem();
         if (item instanceof NodeInfo) {
             if (test == null) {
-                return ((NodeInfo) item).iterateAxis(axis);
+                return ((NodeInfo) item).iterateAxis(axis, AnyNodeTest.getInstance());
             } else {
                 return ((NodeInfo) item).iterateAxis(axis, test);
             }

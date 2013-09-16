@@ -1,14 +1,13 @@
 package client.net.sf.saxon.ce.expr;
 
 import client.net.sf.saxon.ce.om.StructuredQName;
-import client.net.sf.saxon.ce.om.ValueRepresentation;
+import client.net.sf.saxon.ce.om.Sequence;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.value.SequenceType;
 import client.net.sf.saxon.ce.value.Value;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Iterator;
 import java.util.List;
 
@@ -25,7 +24,6 @@ public abstract class Assignation extends Expression implements Binding {
     protected Expression action;         // the action performed for each value of the variable
     protected StructuredQName variableName;
     protected SequenceType requiredType;
-    int refCount = 2;
 
     //protected RangeVariable declaration;
 
@@ -86,7 +84,7 @@ public abstract class Assignation extends Expression implements Binding {
     * Get the value of the range variable
     */
 
-    public ValueRepresentation evaluateVariable(XPathContext context) throws XPathException {
+    public Sequence evaluateVariable(XPathContext context) throws XPathException {
         return context.evaluateLocalVariable(slotNumber);
     }
 
@@ -213,7 +211,7 @@ public abstract class Assignation extends Expression implements Binding {
     */
 
     public Iterator<Expression> iterateSubExpressions() {
-        return Arrays.asList((new Expression[]{sequence, action})).iterator();
+        return nonNullChildren(sequence, action);
     }
 
     /**
@@ -252,28 +250,6 @@ public abstract class Assignation extends Expression implements Binding {
             ref.refineVariableType(type, cardinality, constantValue, properties, visitor);
             visitor.resetStaticProperties();
         }
-    }
-
-    /**
-     * Register a variable reference that refers to the variable bound in this expression
-     * @param isLoopingReference - true if the reference occurs within a loop, such as the predicate
-     * of a filter expression
-     */
-
-    public void addReference(boolean isLoopingReference) {
-        refCount += (isLoopingReference ? 10 : 1);
-    }
-
-    /**
-     * Get the (nominal) count of the number of references to this variable
-     * @return zero if there are no references, one if there is a single reference that is not in
-     * a loop, some higher number if there are multiple references (or a single reference in a loop),
-     * or the special value @link RangeVariable#FILTERED} if there are any references
-     * in filter expressions that require searching.
-     */
-
-    public int getNominalReferenceCount() {
-        return refCount;
     }
 
 }

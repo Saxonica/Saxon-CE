@@ -62,7 +62,7 @@ public final class SequenceOutputter extends SequenceReceiver {
      * @return the sequence
     */
 
-    public ValueRepresentation getSequence() {
+    public Sequence getSequence() {
         switch (list.size()) {
             case 0:
                 return EmptySequence.getInstance();

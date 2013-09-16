@@ -1,13 +1,12 @@
 package client.net.sf.saxon.ce.expr;
 
 import client.net.sf.saxon.ce.expr.instruct.DocumentInstr;
-import client.net.sf.saxon.ce.expr.instruct.GlobalVariable;
 import client.net.sf.saxon.ce.expr.instruct.TailCall;
 import client.net.sf.saxon.ce.expr.instruct.TailCallReturner;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.om.StructuredQName;
-import client.net.sf.saxon.ce.om.ValueRepresentation;
+import client.net.sf.saxon.ce.om.Sequence;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.TypeHierarchy;
@@ -75,7 +74,6 @@ public class LetExpression extends Assignation implements TailCallReturner {
                 (sequence instanceof Literal ? ((Literal) sequence).getValue() : null),
                 sequence.getSpecialProperties(), visitor, this);
 
-        refCount = 0;
         action = visitor.typeCheck(action, contextItemType);
         return this;
     }
@@ -96,20 +94,20 @@ public class LetExpression extends Assignation implements TailCallReturner {
      * Static type checking for let expressions is delegated to the expression itself,
      * and is performed on the "action" expression, to allow further delegation to the branches
      * of a conditional
+     *
      * @param req the required type
      * @param backwardsCompatible true if backwards compatibility mode applies
      * @param role the role of the expression in relation to the required type
-     * @param visitor an expression visitor
      * @return the expression after type checking (perhaps augmented with dynamic type checking code)
      * @throws XPathException if failures occur, for example if the static type of one branch of the conditional
      * is incompatible with the required type
      */
 
     public Expression staticTypeCheck(SequenceType req,
-                                             boolean backwardsCompatible,
-                                             RoleLocator role, ExpressionVisitor visitor)
+                                      boolean backwardsCompatible,
+                                      RoleLocator role)
     throws XPathException {
-        action = TypeChecker.staticTypeCheck(action, req, backwardsCompatible, role, visitor);
+        action = TypeChecker.staticTypeCheck(action, req, backwardsCompatible, role);
         return this;
     }
 
@@ -155,14 +153,6 @@ public class LetExpression extends Assignation implements TailCallReturner {
                 requiredType = SequenceType.SINGLE_UNTYPED_ATOMIC;
                 adoptChildExpression(sequence);
             }
-        }
-
-        // refCount is initialized during the typeCheck() phase
-        if (refCount == 0) {
-            // variable is not used - no need to evaluate it
-            Expression a = visitor.optimize(action, contextItemType);
-            ExpressionTool.copyLocationInfo(this, a);
-            return a;
         }
 
         int tries = 0;
@@ -221,7 +211,7 @@ public class LetExpression extends Assignation implements TailCallReturner {
         // minimize stack consumption by evaluating nested LET expressions iteratively
         LetExpression let = this;
         while (true) {
-            ValueRepresentation val = let.eval(context);
+            Sequence val = let.eval(context);
             context.setLocalVariable(let.getLocalSlotNumber(), val);
             if (let.action instanceof LetExpression) {
                 let = (LetExpression) let.action;
@@ -239,7 +229,7 @@ public class LetExpression extends Assignation implements TailCallReturner {
      * @return the result of evaluating the expression that is bound to the variable
      */
 
-    protected ValueRepresentation eval(XPathContext context) throws XPathException {
+    protected Sequence eval(XPathContext context) throws XPathException {
         if (evaluationMode == ExpressionTool.UNDECIDED) {
             evaluationMode = ExpressionTool.lazyEvaluationMode(sequence);
         }
@@ -254,7 +244,7 @@ public class LetExpression extends Assignation implements TailCallReturner {
         // minimize stack consumption by evaluating nested LET expressions iteratively
         LetExpression let = this;
         while (true) {
-            ValueRepresentation val = let.eval(context);
+            Sequence val = let.eval(context);
             context.setLocalVariable(let.getLocalSlotNumber(), val);
             if (let.action instanceof LetExpression) {
                 let = (LetExpression) let.action;
@@ -274,7 +264,7 @@ public class LetExpression extends Assignation implements TailCallReturner {
         // minimize stack consumption by evaluating nested LET expressions iteratively
         LetExpression let = this;
         while (true) {
-            ValueRepresentation val = let.eval(context);
+            Sequence val = let.eval(context);
             context.setLocalVariable(let.getLocalSlotNumber(), val);
             if (let.action instanceof LetExpression) {
                 let = (LetExpression) let.action;
@@ -340,13 +330,6 @@ public class LetExpression extends Assignation implements TailCallReturner {
             // pass the offer on to the sequence expression
             Expression seq2 = doPromotion(sequence, offer);
             if (seq2 != sequence) {
-                // if we've extracted a global variable, it may need to be marked indexable
-                if (seq2 instanceof VariableReference) {
-                    Binding b = ((VariableReference)seq2).getBinding();
-                    if (b instanceof GlobalVariable) {
-                        ((GlobalVariable)b).setReferenceCount(refCount < 10 ? 10 : refCount);
-                    }
-                }
                 sequence = seq2;
             }
             if (offer.action == PromotionOffer.UNORDERED ||
@@ -382,7 +365,7 @@ public class LetExpression extends Assignation implements TailCallReturner {
         // minimize stack consumption by evaluating nested LET expressions iteratively
         LetExpression let = this;
         while (true) {
-            ValueRepresentation val = let.eval(context);
+            Sequence val = let.eval(context);
             context.setLocalVariable(let.getLocalSlotNumber(), val);
             if (let.action instanceof LetExpression) {
                 let = (LetExpression) let.action;

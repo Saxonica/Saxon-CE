@@ -4,7 +4,7 @@ import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.pattern.NodeTest;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.BooleanValue;
@@ -90,7 +90,7 @@ public class BooleanFn extends SystemFunction  {
         TypeHierarchy th = TypeHierarchy.getInstance();
         if (exp instanceof BooleanFn && ((BooleanFn)exp).operation == BooleanFn.BOOLEAN) {
             return ((BooleanFn)exp).getArguments()[0];
-        } else if (th.isSubType(exp.getItemType(), BuiltInAtomicType.BOOLEAN) &&
+        } else if (th.isSubType(exp.getItemType(), AtomicType.BOOLEAN) &&
                 exp.getCardinality() == StaticProperty.EXACTLY_ONE) {
             return exp;
         } else if (exp instanceof Count) {

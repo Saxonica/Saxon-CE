@@ -4,13 +4,9 @@ import client.net.sf.saxon.ce.expr.ExpressionVisitor;
 import client.net.sf.saxon.ce.expr.Literal;
 import client.net.sf.saxon.ce.expr.instruct.AttributeSet;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
-import client.net.sf.saxon.ce.expr.instruct.SlotManager;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
-import client.net.sf.saxon.ce.om.Axis;
-import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 import client.net.sf.saxon.ce.type.AnyItemType;
 
 import java.util.ArrayList;
@@ -23,14 +19,8 @@ import java.util.List;
 
 public class XSLAttributeSet extends StyleElement implements StylesheetProcedure {
 
-    //private String nameAtt;
-                // the name of the attribute set as written
-
     private String useAtt;
                 // the value of the use-attribute-sets attribute, as supplied
-
-    private SlotManager stackFrameMap;
-                // needed if variables are used
 
     private List<Declaration> attributeSetElements = null;
                 // list of Declarations of XSLAttributeSet objects referenced by this one
@@ -40,9 +30,6 @@ public class XSLAttributeSet extends StyleElement implements StylesheetProcedure
 
     private AttributeSet procedure = new AttributeSet();
                 // the compiled form of this attribute set
-
-    private int referenceCount = 0;
-                // the number of references to this attribute set
 
     private boolean validated = false;
 
@@ -75,47 +62,10 @@ public class XSLAttributeSet extends StyleElement implements StylesheetProcedure
         return procedure;
     }
 
-    /**
-     * Increment the number of references found to this attribute set
-     */
-
-    public void incrementReferenceCount() {
-        referenceCount++;
-    }
-
     public void prepareAttributes() throws XPathException {
-//		useAtt = null;
-//
-//		AttributeCollection atts = getAttributeList();
-//
-//		for (int a=0; a<atts.getLength(); a++) {
-//			StructuredQName qn = atts.getStructuredQName(a);
-//            String f = qn.getClarkName();
-//			if (f.equals("name")) {
-//        		nameAtt = Whitespace.trim(atts.getValue(a));
-//        	} else if (f.equals("use-attribute-sets")) {
-//        		useAtt = atts.getValue(a);
-//        	} else {
-//        		checkUnknownAttribute(qn);
-//        	}
-//        }
-
         setObjectName((StructuredQName)checkAttribute("name", "q1"));
         useAtt = (String)checkAttribute("use-attribute-sets", "w");
         checkForUnknownAttributes();
-
-
-//
-//        try {
-//            setObjectName(makeQName(nameAtt));
-//        } catch (NamespaceException err) {
-//            compileError(err.getMessage(), "XTSE0280");
-//            setObjectName(new StructuredQName("", "", "attribute-set-error-name"));
-//        } catch (XPathException err) {
-//            compileError(err.getMessage(), err.getErrorCodeQName());
-//            setObjectName(new StructuredQName("", "", "attribute-set-error-name"));
-//        }
-
     }
 
     /**
@@ -145,18 +95,7 @@ public class XSLAttributeSet extends StyleElement implements StylesheetProcedure
 
         checkTopLevel(null);
 
-        stackFrameMap = new SlotManager();
-
-        UnfailingIterator kids = iterateAxis(Axis.CHILD);
-        while (true) {
-            Item child = kids.next();
-            if (child == null) {
-                break;
-            }
-            if (!(child instanceof XSLAttribute)) {
-                compileError("Only xsl:attribute is allowed within xsl:attribute-set", "XTSE0010");
-            }
-        }
+        onlyAllow("attribute");
 
         if (useAtt!=null) {
             // identify any attribute sets that this one refers to
@@ -200,13 +139,6 @@ public class XSLAttributeSet extends StyleElement implements StylesheetProcedure
     }
 
     /**
-    * Get details of stack frame
-    */
-
-    public SlotManager getSlotManager() {
-        return stackFrameMap;
-    }
-    /**
      * Compile the attribute set
      * @param exec the Executable
      * @param decl
@@ -214,34 +146,31 @@ public class XSLAttributeSet extends StyleElement implements StylesheetProcedure
      * @throws XPathException if a failure is detected
      */
     public Expression compile(Executable exec, Declaration decl) throws XPathException {
-        if (referenceCount > 0 ) {
-            Expression body = compileSequenceConstructor(exec, decl, iterateAxis(Axis.CHILD));
-            if (body == null) {
-                body = Literal.makeEmptySequence();
+        Expression body = compileSequenceConstructor(exec, decl);
+        if (body == null) {
+            body = Literal.makeEmptySequence();
+        }
+
+        try {
+
+            ExpressionVisitor visitor = makeExpressionVisitor();
+            body = visitor.simplify(body);
+
+            procedure.setUseAttributeSets(useAttributeSets);
+            procedure.setName(getObjectName());
+            procedure.setBody(body);
+            procedure.setSourceLocator(this);
+            procedure.setExecutable(exec);
+
+            Expression exp2 = body.optimize(visitor, AnyItemType.getInstance());
+            if (body != exp2) {
+                procedure.setBody(exp2);
+                body = exp2;
             }
 
-            try {
-
-                ExpressionVisitor visitor = makeExpressionVisitor();
-                body = visitor.simplify(body);
-
-                procedure.setUseAttributeSets(useAttributeSets);
-                procedure.setName(getObjectName());
-                procedure.setBody(body);
-                procedure.setSourceLocator(this);
-                procedure.setExecutable(exec);
-
-                Expression exp2 = body.optimize(visitor, AnyItemType.getInstance());
-                if (body != exp2) {
-                    procedure.setBody(exp2);
-                    body = exp2;
-                }
-
-                super.allocateSlots(body);
-                procedure.setStackFrameMap(stackFrameMap);
-            } catch (XPathException e) {
-                compileError(e);
-            }
+            procedure.allocateSlots(0);
+        } catch (XPathException e) {
+            compileError(e);
         }
         return null;
     }

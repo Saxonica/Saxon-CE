@@ -85,7 +85,7 @@ public final class ItemChecker extends UnaryExpression {
                 //        requiredItemType, operand.getItemType());
                 //visitor.getStaticContext().issueWarning("The only value that can pass type-checking is an empty sequence. " +
                 //        message, getSourceLocator());
-            } else if (requiredItemType.equals(BuiltInAtomicType.STRING) && th.isSubType(supplied, BuiltInAtomicType.ANY_URI)) {
+            } else if (requiredItemType.equals(AtomicType.STRING) && th.isSubType(supplied, AtomicType.ANY_URI)) {
                 // URI promotion will take care of this at run-time
                 return operand;
             } else {

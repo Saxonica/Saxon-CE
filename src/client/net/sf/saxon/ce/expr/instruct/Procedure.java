@@ -2,6 +2,7 @@ package client.net.sf.saxon.ce.expr.instruct;
 
 import client.net.sf.saxon.ce.expr.Container;
 import client.net.sf.saxon.ce.expr.Expression;
+import client.net.sf.saxon.ce.expr.ExpressionTool;
 import client.net.sf.saxon.ce.trace.InstructionInfo;
 import client.net.sf.saxon.ce.tree.util.SourceLocator;
 
@@ -24,8 +25,7 @@ public abstract class Procedure implements Container, InstructionInfo {
     private SourceLocator sourceLocator;
     protected Expression body;
     private Executable executable;
-    private SlotManager stackFrameMap;
-    private int hostLanguage;
+    private int numberOfSlots;
 
     public Procedure() {}
 
@@ -53,24 +53,19 @@ public abstract class Procedure implements Container, InstructionInfo {
         body.setContainer(this);
     }
 
-    public void setHostLanguage(int language) {
-        hostLanguage = language;
-    }
-
-    private int getHostLanguage() {
-        return hostLanguage;
-    }
-
     public final Expression getBody() {
         return body;
     }
 
-    public void setStackFrameMap(SlotManager map) {
-        stackFrameMap = map;
+    public void allocateSlots(int reserved) {
+        numberOfSlots = ExpressionTool.allocateSlots(body, reserved);
     }
+//    public void setStackFrameMap(SlotManager map) {
+//        numberOfSlots = map.getNumberOfVariables();
+//    }
 
-    public SlotManager getStackFrameMap() {
-        return stackFrameMap;
+    public int getNumberOfSlots() {
+        return numberOfSlots;
     }
 
     public final Executable getExecutable() {

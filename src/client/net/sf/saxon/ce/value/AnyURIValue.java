@@ -1,6 +1,6 @@
 package client.net.sf.saxon.ce.value;
 
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ConversionResult;
 import client.net.sf.saxon.ce.type.ValidationFailure;
 
@@ -33,22 +33,23 @@ public final class AnyURIValue extends StringValue {
         this.value = (value == null ? "" : Whitespace.collapseWhitespace(value).toString());
     }
 
-    public BuiltInAtomicType getItemType() {
-        return BuiltInAtomicType.ANY_URI;
+    public AtomicType getItemType() {
+        return AtomicType.ANY_URI;
     }
 
     /**
      * Convert to target data type
+     *
      * @param requiredType integer code representing the item type required
      * @return the result of the conversion, or an ErrorValue
      */
 
-    public ConversionResult convertPrimitive(BuiltInAtomicType requiredType, boolean validate) {
-        if (requiredType == BuiltInAtomicType.ANY_ATOMIC || requiredType == BuiltInAtomicType.ANY_URI) {
+    public ConversionResult convert(AtomicType requiredType) {
+        if (requiredType == AtomicType.ANY_ATOMIC || requiredType == AtomicType.ANY_URI) {
             return this;
-        } else if (requiredType == BuiltInAtomicType.UNTYPED_ATOMIC) {
+        } else if (requiredType == AtomicType.UNTYPED_ATOMIC) {
             return new UntypedAtomicValue(value);
-        } else if (requiredType == BuiltInAtomicType.STRING) {
+        } else if (requiredType == AtomicType.STRING) {
             return new StringValue(value);
         } else {
             return new ValidationFailure("Cannot convert anyURI to " +

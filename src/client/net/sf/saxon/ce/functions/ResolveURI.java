@@ -70,13 +70,13 @@ public class ResolveURI extends SystemFunction {
                 if (relativeURI.isAbsolute()) {
                     return new AnyURIValue(relative);
                 }
-                dynamicError(msgBase + "in resolve-uri(): Base URI " + Err.wrap(base) + " is not an absolute URI", "FORG0002");
+                dynamicError(msgBase + Err.wrap(base) + " is not an absolute URI", "FORG0002");
                 return null;
             }
             URI resolved = makeAbsolute(relative,  base);
             return new AnyURIValue(resolved.toString());
         } catch (URI.URISyntaxException err) {
-            dynamicError(msgBase + "Base URI " + Err.wrap(base) + " is invalid: " + err.getMessage(),
+            dynamicError(msgBase + Err.wrap(base) + " is invalid: " + err.getMessage(),
                     "FORG0002");
             return null;
         }

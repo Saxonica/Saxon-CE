@@ -8,10 +8,10 @@ import client.net.sf.saxon.ce.functions.NumberFn;
 import client.net.sf.saxon.ce.lib.StringCollator;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.SequenceIterator;
-import client.net.sf.saxon.ce.om.ValueRepresentation;
+import client.net.sf.saxon.ce.om.Sequence;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.SingletonIterator;
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.value.*;
 import client.net.sf.saxon.ce.value.StringValue;
@@ -118,8 +118,8 @@ public class GeneralComparison extends BinaryExpression {
 
     public boolean effectiveBooleanValue(XPathContext context) throws XPathException {
 
-        ValueRepresentation v0 = SequenceExtent.makeSequenceExtent(operand0.iterate(context));
-        ValueRepresentation v1 = SequenceExtent.makeSequenceExtent(operand1.iterate(context));
+        Sequence v0 = SequenceExtent.makeSequenceExtent(operand0.iterate(context));
+        Sequence v1 = SequenceExtent.makeSequenceExtent(operand1.iterate(context));
 
         if (backwardsCompatible) {
             // If either operand is a singleton boolean, convert the other to a singleton boolean
@@ -179,7 +179,7 @@ public class GeneralComparison extends BinaryExpression {
      * @throws XPathException if atomization fails
      */
 
-    private static SequenceIterator atomize(ValueRepresentation v) throws XPathException {
+    private static SequenceIterator atomize(Sequence v) throws XPathException {
         if (v instanceof AtomicValue) {
             return SingletonIterator.makeIterator((AtomicValue)v);
         } else {
@@ -204,8 +204,8 @@ public class GeneralComparison extends BinaryExpression {
                                    AtomicValue a1,
                                    AtomicComparer comparer) throws XPathException {
 
-        BuiltInAtomicType t0 = a0.getItemType();
-        BuiltInAtomicType t1 = a1.getItemType();
+        AtomicType t0 = a0.getItemType();
+        AtomicType t1 = a1.getItemType();
 
         if (backwardsCompatible) {
             // If either operand is a number, convert both operands to xs:double using
@@ -220,10 +220,10 @@ public class GeneralComparison extends BinaryExpression {
             // If either operand is a string, or if both are untyped atomic, convert
             // both operands to strings and compare them
 
-            if (t0.equals(BuiltInAtomicType.STRING) || t1.equals(BuiltInAtomicType.STRING) ||
-                    (t0.equals(BuiltInAtomicType.UNTYPED_ATOMIC) && t1.equals(BuiltInAtomicType.UNTYPED_ATOMIC))) {
-                StringValue s0 = (StringValue)a0.convert(BuiltInAtomicType.STRING, true).asAtomic();
-                StringValue s1 = (StringValue)a1.convert(BuiltInAtomicType.STRING, true).asAtomic();
+            if (t0.equals(AtomicType.STRING) || t1.equals(AtomicType.STRING) ||
+                    (t0.equals(AtomicType.UNTYPED_ATOMIC) && t1.equals(AtomicType.UNTYPED_ATOMIC))) {
+                StringValue s0 = (StringValue)a0.convert(AtomicType.STRING).asAtomic();
+                StringValue s1 = (StringValue)a1.convert(AtomicType.STRING).asAtomic();
                 return ValueComparison.compare(s0, operator, s1, comparer, false);
             }
         }
@@ -231,12 +231,12 @@ public class GeneralComparison extends BinaryExpression {
         // If either operand is untyped atomic,
         // convert it to the type of the other operand, and compare
 
-        if (t0.equals(BuiltInAtomicType.UNTYPED_ATOMIC)) {
-            a0 = a0.convert(t1, true).asAtomic();
+        if (t0.equals(AtomicType.UNTYPED_ATOMIC)) {
+            a0 = a0.convert(t1).asAtomic();
         }
 
-        if (t1.equals(BuiltInAtomicType.UNTYPED_ATOMIC)) {
-            a1 = a1.convert(t0, true).asAtomic();
+        if (t1.equals(AtomicType.UNTYPED_ATOMIC)) {
+            a1 = a1.convert(t0).asAtomic();
         }
 
         return ValueComparison.compare(a0, operator, a1, comparer, false);
@@ -248,7 +248,7 @@ public class GeneralComparison extends BinaryExpression {
      */
 
     public ItemType getItemType() {
-        return BuiltInAtomicType.BOOLEAN;
+        return AtomicType.BOOLEAN;
     }
 
     /**

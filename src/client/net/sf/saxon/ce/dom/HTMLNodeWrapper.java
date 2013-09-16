@@ -13,7 +13,6 @@ import client.net.sf.saxon.ce.tree.NamespaceNode;
 import client.net.sf.saxon.ce.tree.iter.*;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
 import client.net.sf.saxon.ce.tree.util.Navigator;
-import client.net.sf.saxon.ce.tree.wrapper.SiblingCountingNode;
 import client.net.sf.saxon.ce.tree.wrapper.VirtualNode;
 import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.value.AtomicValue;
@@ -37,7 +36,7 @@ import java.util.ArrayList;
   * and the capitalisation of element names 
   */
 
-public class HTMLNodeWrapper implements NodeInfo, VirtualNode, SiblingCountingNode {
+public class HTMLNodeWrapper implements NodeInfo, VirtualNode {
 
     protected Node node;
     private StructuredQName qName;
@@ -264,12 +263,7 @@ public class HTMLNodeWrapper implements NodeInfo, VirtualNode, SiblingCountingNo
     */
 
     public int compareOrder(NodeInfo other) {
-        if (other instanceof SiblingCountingNode) {
-            return Navigator.compareOrder(this, (SiblingCountingNode)other);
-        } else {
-            // it's presumably a Namespace Node
-            return -other.compareOrder(this);
-        }
+        return Navigator.compareOrder(this, other);
     }
 
     /**
@@ -483,7 +477,7 @@ public class HTMLNodeWrapper implements NodeInfo, VirtualNode, SiblingCountingNo
             // for an attribute, no prefix means no namespace
             uri = "";
         } else {
-            UnfailingIterator nsiter = element.iterateAxis(Axis.NAMESPACE);
+            UnfailingIterator nsiter = element.iterateAxis(Axis.NAMESPACE, AnyNodeTest.getInstance());
             while (true) {
                 NodeInfo ns = (NodeInfo)nsiter.next();
                 if (ns == null) {
@@ -622,7 +616,7 @@ public class HTMLNodeWrapper implements NodeInfo, VirtualNode, SiblingCountingNo
                 case Type.ATTRIBUTE:
                     ix = 0;
                     StructuredQName fp = getNodeName();
-                    UnfailingIterator iter = parent.iterateAxis(Axis.ATTRIBUTE);
+                    UnfailingIterator iter = parent.iterateAxis(Axis.ATTRIBUTE, AnyNodeTest.getInstance());
                     while (true) {
                         NodeInfo n = (NodeInfo)iter.next();
                         if (n==null || n.getNodeName().equals(fp)) {
@@ -635,7 +629,7 @@ public class HTMLNodeWrapper implements NodeInfo, VirtualNode, SiblingCountingNo
                 case Type.NAMESPACE:
                     ix = 0;
                     fp = getNodeName();
-                    iter = parent.iterateAxis(Axis.NAMESPACE);
+                    iter = parent.iterateAxis(Axis.NAMESPACE, AnyNodeTest.getInstance());
                     while (true) {
                         NodeInfo n = (NodeInfo)iter.next();
                         if (n==null || n.getNodeName().equals(fp)) {
@@ -658,7 +652,7 @@ public class HTMLNodeWrapper implements NodeInfo, VirtualNode, SiblingCountingNo
     * @return a SequenceIterator that scans the nodes reached by the axis in turn.
     */
 
-    public UnfailingIterator iterateAxis(byte axisNumber) {
+    public UnfailingIterator iterateAxis0(byte axisNumber) {
         switch (axisNumber) {
             case Axis.ANCESTOR:
                 if (nodeKind==Type.DOCUMENT) {
@@ -681,7 +675,7 @@ public class HTMLNodeWrapper implements NodeInfo, VirtualNode, SiblingCountingNo
 
             case Axis.CHILD:
                 if (hasChildNodes()) {
-                    return new Navigator.EmptyTextFilter(new ChildEnumeration(this, true, true, false));
+                    return Navigator.newEmptyTextFilter(new ChildEnumeration(this, true, true, false));
                 } else {
                     return EmptyIterator.getInstance();
                 }
@@ -706,7 +700,7 @@ public class HTMLNodeWrapper implements NodeInfo, VirtualNode, SiblingCountingNo
                     case Type.NAMESPACE:
                         return EmptyIterator.getInstance();
                     default:
-                        return new Navigator.EmptyTextFilter(
+                        return Navigator.newEmptyTextFilter(
                                 new ChildEnumeration(this, false, true, false));
                  }
 
@@ -730,18 +724,15 @@ public class HTMLNodeWrapper implements NodeInfo, VirtualNode, SiblingCountingNo
                     case Type.NAMESPACE:
                         return EmptyIterator.getInstance();
                     default:
-                        return new Navigator.EmptyTextFilter(
+                        return Navigator.newEmptyTextFilter(
                                 new ChildEnumeration(this, false, false, false));
                  }
 
             case Axis.SELF:
                  return SingletonIterator.makeIterator(this);
 
-            case Axis.PRECEDING_OR_ANCESTOR:
-                 return new Navigator.PrecedingEnumeration(this, true);
-
             default:
-                 throw new IllegalArgumentException("Unknown axis number " + axisNumber);
+                 throw new IllegalArgumentException();
         }
     }
 
@@ -756,7 +747,7 @@ public class HTMLNodeWrapper implements NodeInfo, VirtualNode, SiblingCountingNo
         if (axisNumber == Axis.CHILD && nodeTest.getRequiredNodeKind() == Type.ELEMENT) {
             // common case: avoid creating wrappers for the text nodes
             if (hasChildNodes()) {
-                return new Navigator.AxisFilter(
+                return Navigator.newAxisFilter(
                         new ChildEnumeration(this, true, true, true), nodeTest);
             } else {
                 return EmptyIterator.getInstance();
@@ -783,7 +774,7 @@ public class HTMLNodeWrapper implements NodeInfo, VirtualNode, SiblingCountingNo
                 } else {
                 	value = getAltAttribute(name);
                 	if (docWrapper.getDocType() == DocType.XHTML) {
-                		return new Navigator.AxisFilter(iterateAxis(axisNumber), nodeTest);
+                		return Navigator.newAxisFilter(iterateAxis0(axisNumber), nodeTest);
                 	}
                 }
                 //HTML only (not XHTML) - so don't use prefix / namespace
@@ -800,7 +791,7 @@ public class HTMLNodeWrapper implements NodeInfo, VirtualNode, SiblingCountingNo
                 return EmptyIterator.getInstance();
             }
         }
-        return new Navigator.AxisFilter(iterateAxis(axisNumber), nodeTest);
+        return Navigator.newAxisFilter(iterateAxis0(axisNumber), nodeTest);
     }
     
   
@@ -1328,19 +1319,6 @@ public class HTMLNodeWrapper implements NodeInfo, VirtualNode, SiblingCountingNo
 
         public SequenceIterator getAnother() {
             return new ChildEnumeration(start, downwards, forwards, elementsOnly);
-        }
-
-        /**
-         * Get properties of this iterator, as a bit-significant integer.
-         *
-         * @return the properties of this iterator. This will be some combination of
-         *         properties such as {@link #GROUNDED}, {@link #LAST_POSITION_FINDER}. It is always
-         *         acceptable to return the value zero, indicating that there are no known special properties.
-         *         It is acceptable for the properties of the iterator to change depending on its state.
-         */
-
-        public int getProperties() {
-            return 0;
         }
 
     } // end of class ChildEnumeration

@@ -3,7 +3,7 @@ package client.net.sf.saxon.ce.expr;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.om.StructuredQName;
-import client.net.sf.saxon.ce.om.ValueRepresentation;
+import client.net.sf.saxon.ce.om.Sequence;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.TypeHierarchy;
@@ -123,27 +123,6 @@ public class ForExpression extends Assignation {
         Expression e2 = extractLoopInvariants(visitor, contextItemType);
         if (e2 != null && e2 != this) {
             return visitor.optimize(e2, contextItemType);
-        }
-
-        // Simplify an expression of the form "for $b in a/b/c return $b/d".
-        // (XQuery users seem to write these a lot!)
-
-        if (sequence instanceof SlashExpression && action instanceof SlashExpression) {
-            SlashExpression path2 = (SlashExpression)action;
-            Expression start2 = path2.getControllingExpression();
-            Expression step2 = path2.getControlledExpression();
-            if (start2 instanceof VariableReference && ((VariableReference)start2).getBinding() == this &&
-                    ExpressionTool.getReferenceCount(action, this, false) == 1 &&
-                    ((step2.getDependencies() & (StaticProperty.DEPENDS_ON_POSITION | StaticProperty.DEPENDS_ON_LAST)) == 0)) {
-                Expression newPath = new SlashExpression(sequence, path2.getControlledExpression());
-                ExpressionTool.copyLocationInfo(this, newPath);
-                newPath = visitor.typeCheck(visitor.simplify(newPath), contextItemType);
-                if (newPath instanceof SlashExpression) {
-                    // if not, it has been wrapped in a DocumentSorter or Reverser, which makes it ineligible.
-                    // see test qxmp299, where this condition isn't satisfied
-                    return visitor.optimize(newPath, contextItemType);
-                }
-            }
         }
 
         // Simplify an expression of the form "for $x in EXPR return $x". These sometimes
@@ -362,15 +341,14 @@ public class ForExpression extends Assignation {
             return action.evaluateItem(context);
         }
 
-        public StatefulMappingFunction getAnother() {
+        public StatefulMappingFunction getAnother(SequenceIterator newBaseIterator) {
             // Create a copy of the stack frame, so that changes made to local variables by the cloned
             // iterator are not seen by the original iterator
             XPathContextMajor c2 = context.newContext();
-            StackFrame oldstack = context.getStackFrame();
-            ValueRepresentation[] vars = oldstack.getStackFrameValues();
-            ValueRepresentation[] newvars = new ValueRepresentation[vars.length];
+            Sequence[] vars = context.getStackFrame();
+            Sequence[] newvars = new Sequence[vars.length];
             System.arraycopy(vars, 0, newvars, 0, vars.length);
-            c2.setStackFrame(oldstack.getStackFrameMap(), newvars);
+            c2.setStackFrame(newvars.length, newvars);
             return new MappingAction(c2, slotNumber, pslot, action);
         }
     }

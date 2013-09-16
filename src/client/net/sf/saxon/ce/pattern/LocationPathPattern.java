@@ -2,14 +2,13 @@ package client.net.sf.saxon.ce.pattern;
 
 import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
-import client.net.sf.saxon.ce.expr.instruct.SlotManager;
 import client.net.sf.saxon.ce.functions.Last;
 import client.net.sf.saxon.ce.functions.Position;
 import client.net.sf.saxon.ce.om.*;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.SingletonIterator;
 import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.type.TypeHierarchy;
@@ -312,22 +311,20 @@ public final class LocationPathPattern extends Pattern {
 
     /**
      * Allocate slots to any variables used within the pattern
-     * @param env the static context in the XSLT stylesheet
-     * @param slotManager
-     *@param nextFree the next slot that is free to be allocated @return the next slot that is free to be allocated
+     * @param nextFree the next slot that is free to be allocated @return the next slot that is free to be allocated
      */
 
-    public int allocateSlots(StaticContext env, SlotManager slotManager, int nextFree) {
+    public int allocateSlots(int nextFree) {
         // See tests cnfr23, idky239, match54
         // SlotManager slotManager = env.getStyleElement().getContainingSlotManager();
         if (variableBinding != null) {
-            nextFree = ExpressionTool.allocateSlots(variableBinding, nextFree, slotManager);
+            nextFree = ExpressionTool.allocateSlots(variableBinding, nextFree);
         }
         for (int i = 0; i < filters.length; i++) {
-            nextFree = ExpressionTool.allocateSlots(filters[i], nextFree, slotManager);
+            nextFree = ExpressionTool.allocateSlots(filters[i], nextFree);
         }
         if (upperPattern != null) {
-            nextFree = upperPattern.allocateSlots(env, slotManager, nextFree);
+            nextFree = upperPattern.allocateSlots(nextFree);
         }
         return nextFree;
     }
@@ -561,8 +558,8 @@ public final class LocationPathPattern extends Pattern {
     public boolean isPositional(TypeHierarchy th) {
         for (int i = 0; i < filters.length; i++) {
             ItemType type = filters[i].getItemType();
-            if (type == BuiltInAtomicType.DOUBLE || type == BuiltInAtomicType.DECIMAL ||
-                    type == BuiltInAtomicType.INTEGER || type == BuiltInAtomicType.FLOAT || type == BuiltInAtomicType.ANY_ATOMIC) {
+            if (type == AtomicType.DOUBLE || type == AtomicType.DECIMAL ||
+                    type == AtomicType.INTEGER || type == AtomicType.FLOAT || type == AtomicType.ANY_ATOMIC) {
                 return true;
             }
             if ((filters[i].getDependencies() &

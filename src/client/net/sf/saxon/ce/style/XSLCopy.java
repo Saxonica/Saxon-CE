@@ -2,7 +2,6 @@ package client.net.sf.saxon.ce.style;
 
 import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.expr.instruct.*;
-import client.net.sf.saxon.ce.om.Axis;
 import client.net.sf.saxon.ce.pattern.NodeKindTest;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.value.SequenceType;
@@ -75,7 +74,7 @@ public class XSLCopy extends StyleElement {
             role.setErrorCode("XTTE2170");
             select = TypeChecker.staticTypeCheck(select,
                                         SequenceType.OPTIONAL_ITEM,
-                                        false, role, makeExpressionVisitor());
+                                        false, role);
         } catch (XPathException err) {
             compileError(err);
         }
@@ -83,7 +82,7 @@ public class XSLCopy extends StyleElement {
         Copy inst = new Copy(select,
                              copyNamespaces,
                              inheritNamespaces);
-        Expression content = compileSequenceConstructor(exec, decl, iterateAxis(Axis.CHILD));
+        Expression content = compileSequenceConstructor(exec, decl);
 
         if (attributeSets != null) {
             UseAttributeSets use = new UseAttributeSets(attributeSets);

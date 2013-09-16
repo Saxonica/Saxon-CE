@@ -3,7 +3,6 @@ package client.net.sf.saxon.ce.tree;
 import client.net.sf.saxon.ce.event.Receiver;
 import client.net.sf.saxon.ce.event.ReceiverOptions;
 import client.net.sf.saxon.ce.om.*;
-import client.net.sf.saxon.ce.pattern.AnyNodeTest;
 import client.net.sf.saxon.ce.pattern.NodeTest;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.*;
@@ -154,6 +153,15 @@ public class NamespaceNode implements NodeInfo {
     }
 
     /**
+     * Get the index position of this node among its siblings (starting from 0)
+     *
+     * @return 0 for the first child, 1 for the second child, etc.
+     */
+    public int getSiblingPosition() {
+        return 1;
+    }
+
+    /**
      * Return the string value of the node. The interpretation of this depends on the type
      * of node. For a namespace node, it is the namespace URI.
      *
@@ -223,22 +231,6 @@ public class NamespaceNode implements NodeInfo {
 
     /**
      * Return an iteration over all the nodes reached by the given axis from this node
-     *
-     * @param axisNumber an integer identifying the axis; one of the constants
-     *                   defined in class net.sf.saxon.om.Axis
-     * @return an AxisIterator that scans the nodes reached by the axis in
-     *         turn.
-     * @throws UnsupportedOperationException if the namespace axis is
-     *                                       requested and this axis is not supported for this implementation.
-     * @see client.net.sf.saxon.ce.om.Axis
-     */
-
-    public UnfailingIterator iterateAxis(byte axisNumber) {
-        return iterateAxis(axisNumber, AnyNodeTest.getInstance());
-    }
-
-    /**
-     * Return an iteration over all the nodes reached by the given axis from this node
      * that match a given NodeTest
      *
      * @param axisNumber an integer identifying the axis; one of the constants
@@ -274,7 +266,7 @@ public class NamespaceNode implements NodeInfo {
                 return EmptyIterator.getInstance();
 
             case Axis.FOLLOWING:
-                return new Navigator.AxisFilter(
+                return Navigator.newAxisFilter(
                         new Navigator.FollowingEnumeration(this),
                         nodeTest);
 
@@ -282,17 +274,13 @@ public class NamespaceNode implements NodeInfo {
                 return Navigator.filteredSingleton(element, nodeTest);
 
             case Axis.PRECEDING:
-                return new Navigator.AxisFilter(
+                return Navigator.newAxisFilter(
                         new Navigator.PrecedingEnumeration(this, false),
                         nodeTest);
 
             case Axis.SELF:
                 return Navigator.filteredSingleton(this, nodeTest);
 
-            case Axis.PRECEDING_OR_ANCESTOR:
-                return new Navigator.AxisFilter(
-                        new Navigator.PrecedingEnumeration(this, true),
-                        nodeTest);
             default:
                 throw new IllegalArgumentException("Unknown axis number " + axisNumber);
         }

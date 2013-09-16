@@ -2,7 +2,7 @@ package client.net.sf.saxon.ce.expr;
 import client.net.sf.saxon.ce.expr.instruct.UserFunction;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.SequenceIterator;
-import client.net.sf.saxon.ce.om.ValueRepresentation;
+import client.net.sf.saxon.ce.om.Sequence;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.value.SequenceExtent;
@@ -75,7 +75,7 @@ public final class TailCallLoop extends UnaryExpression {
         final XPathContextMajor cm = (XPathContextMajor)context;
         while (true) {
             SequenceIterator iter = operand.iterate(cm);
-            ValueRepresentation extent = SequenceExtent.makeSequenceExtent(iter);
+            Sequence extent = SequenceExtent.makeSequenceExtent(iter);
             UserFunction fn = cm.getTailCallFunction();
             if (fn == null) {
                 return Value.asIterator(extent);
@@ -138,8 +138,8 @@ public final class TailCallLoop extends UnaryExpression {
      * @throws XPathException if the called function fails
      */
 
-    private ValueRepresentation tailCallDifferentFunction(UserFunction fn, XPathContextMajor cm) throws XPathException {
-        cm.resetStackFrameMap(fn.getStackFrameMap(), fn.getNumberOfArguments());
+    private Sequence tailCallDifferentFunction(UserFunction fn, XPathContextMajor cm) throws XPathException {
+        cm.resetStackFrameMap(fn.getNumberOfSlots(), fn.getNumberOfArguments());
         try {
             return ExpressionTool.evaluate(fn.getBody(), fn.getEvaluationMode(), cm);
         } catch (XPathException err) {

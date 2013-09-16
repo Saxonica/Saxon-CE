@@ -64,8 +64,8 @@ public class FixedElement extends ElementCreator {
     protected void outputNamespaceNodes(XPathContext context, Receiver out, StructuredQName nameCode, NodeInfo copiedNode)
     throws XPathException {
         if (namespaceCodes != null) {
-            for (int i=0; i<namespaceCodes.length; i++) {
-                out.namespace(namespaceCodes[i], 0);
+            for (NamespaceBinding namespaceCode : namespaceCodes) {
+                out.namespace(namespaceCode, 0);
             }
         }
     }

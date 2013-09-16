@@ -3,7 +3,7 @@ package client.net.sf.saxon.ce.value;
 import client.net.sf.saxon.ce.trans.Err;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ConversionResult;
 import client.net.sf.saxon.ce.type.ValidationFailure;
 import com.google.gwt.regexp.shared.RegExp;
@@ -228,8 +228,8 @@ public class DecimalValue extends NumericValue {
      * and xs:untypedAtomic. For external objects, the result is AnyAtomicType.
      */
 
-    public BuiltInAtomicType getItemType() {
-        return BuiltInAtomicType.DECIMAL;
+    public AtomicType getItemType() {
+        return AtomicType.DECIMAL;
     }
 
 
@@ -265,22 +265,22 @@ public class DecimalValue extends NumericValue {
      * Convert to target data type
      */
 
-    public ConversionResult convertPrimitive(BuiltInAtomicType requiredType, boolean validate) {
-        if (requiredType == BuiltInAtomicType.ANY_ATOMIC ||
-                requiredType == BuiltInAtomicType.NUMERIC ||
-                requiredType == BuiltInAtomicType.DECIMAL) {
+    public ConversionResult convert(AtomicType requiredType) {
+        if (requiredType == AtomicType.ANY_ATOMIC ||
+                requiredType == AtomicType.NUMERIC ||
+                requiredType == AtomicType.DECIMAL) {
             return this;
-        } else if (requiredType == BuiltInAtomicType.INTEGER) {
+        } else if (requiredType == AtomicType.INTEGER) {
             return IntegerValue.decimalToInteger(value);
-        } else if (requiredType == BuiltInAtomicType.BOOLEAN) {
+        } else if (requiredType == AtomicType.BOOLEAN) {
             return BooleanValue.get(value.signum() != 0);
-        } else if (requiredType == BuiltInAtomicType.DOUBLE) {
+        } else if (requiredType == AtomicType.DOUBLE) {
             return new DoubleValue(value.doubleValue());
-        } else if (requiredType == BuiltInAtomicType.FLOAT) {
+        } else if (requiredType == AtomicType.FLOAT) {
             return new FloatValue(value.floatValue());
-        } else if (requiredType == BuiltInAtomicType.STRING) {
+        } else if (requiredType == AtomicType.STRING) {
             return new StringValue(getStringValue());
-        } else if (requiredType == BuiltInAtomicType.UNTYPED_ATOMIC) {
+        } else if (requiredType == AtomicType.UNTYPED_ATOMIC) {
             return new UntypedAtomicValue((getStringValue()));
         } else {
             return new ValidationFailure("Cannot convert decimal to " +
@@ -467,7 +467,7 @@ public class DecimalValue extends NumericValue {
             return value.compareTo(((DecimalValue) other).value);
         } else if (other instanceof FloatValue) {
             try {
-                FloatValue f = (FloatValue) convertPrimitive(BuiltInAtomicType.FLOAT, true).asAtomic();
+                FloatValue f = (FloatValue) convert(AtomicType.FLOAT).asAtomic();
                 return f.compareTo(other);
             } catch (XPathException err) {
                 throw new AssertionError("Conversion of decimal to float should never fail");

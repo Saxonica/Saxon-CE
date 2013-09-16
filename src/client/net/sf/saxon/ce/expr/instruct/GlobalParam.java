@@ -1,7 +1,7 @@
 package client.net.sf.saxon.ce.expr.instruct;
 import client.net.sf.saxon.ce.Controller;
 import client.net.sf.saxon.ce.expr.XPathContext;
-import client.net.sf.saxon.ce.om.ValueRepresentation;
+import client.net.sf.saxon.ce.om.Sequence;
 import client.net.sf.saxon.ce.trans.XPathException;
 
 /**
@@ -20,7 +20,7 @@ public final class GlobalParam extends GlobalVariable {
     */
 
     @Override
-    public ValueRepresentation evaluateVariable(XPathContext context) throws XPathException {
+    public Sequence evaluateVariable(XPathContext context) throws XPathException {
         Controller controller = context.getController();
         Bindery b = controller.getBindery();
         boolean wasSupplied;
@@ -32,7 +32,7 @@ public final class GlobalParam extends GlobalVariable {
             throw e;
         }
 
-        ValueRepresentation val = b.getGlobalVariableValue(this);
+        Sequence val = b.getGlobalVariable(getSlotNumber());
         if (wasSupplied || val!=null) {
             return val;
         } else {

@@ -44,17 +44,6 @@ public class AttributeSet extends Procedure {
     }
 
     /**
-     * Set the stack frame map which allocates slots to variables declared in this attribute set
-     * @param stackFrameMap the stack frame map
-     */
-
-    public void setStackFrameMap(SlotManager stackFrameMap) {
-        if (stackFrameMap != null && stackFrameMap.getNumberOfVariables() > 0) {
-            super.setStackFrameMap(stackFrameMap);
-        }
-    }
-
-    /**
      * Determine whether the attribute set has any dependencies on the focus
      * @return the dependencies
      */
@@ -65,8 +54,8 @@ public class AttributeSet extends Procedure {
             d |= body.getDependencies() & StaticProperty.DEPENDS_ON_FOCUS;
         }
         if (useAttributeSets != null) {
-            for (int i=0; i<useAttributeSets.length; i++) {
-                d |= useAttributeSets[i].getFocusDependencies();
+            for (AttributeSet useAttributeSet : useAttributeSets) {
+                d |= useAttributeSet.getFocusDependencies();
             }
         }
         return d;
@@ -85,9 +74,9 @@ public class AttributeSet extends Procedure {
             AttributeSet.expand(useAttributeSets, context);
         }
 
-        if (getStackFrameMap() != null) {
+        if (getNumberOfSlots() != 0) {
             XPathContextMajor c2 = context.newContext();
-            c2.openStackFrame(getStackFrameMap());
+            c2.openStackFrame(getNumberOfSlots());
             getBody().process(c2);
         } else {
             getBody().process(context);
@@ -108,12 +97,12 @@ public class AttributeSet extends Procedure {
      * Expand an array of attribute sets
      * @param asets the attribute sets to be expanded
      * @param context the run-time context to use
-     * @throws XPathException
+     * @throws XPathException if a dynamic error occurs
      */
 
     protected static void expand(AttributeSet[] asets, XPathContext context) throws XPathException {
-        for (int i=0; i<asets.length; i++) {
-            asets[i].expand(context);
+        for (AttributeSet aset : asets) {
+            aset.expand(context);
         }
     }
 

@@ -14,7 +14,7 @@ import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.pattern.NodeKindTest;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.value.StringValue;
 import client.net.sf.saxon.ce.value.TextFragmentValue;
@@ -106,7 +106,7 @@ public class DocumentInstr extends ParentNodeConstructor {
             } else {
                 StringJoin fn = (StringJoin)SystemFunction.makeSystemFunction(
                         "string-join", new Expression[]{content, new StringLiteral(StringValue.EMPTY_STRING)});
-                CastExpression cast = new CastExpression(fn, BuiltInAtomicType.UNTYPED_ATOMIC, false);
+                CastExpression cast = new CastExpression(fn, AtomicType.UNTYPED_ATOMIC, false);
                 ExpressionTool.copyLocationInfo(this, cast);
                 return cast;
             }

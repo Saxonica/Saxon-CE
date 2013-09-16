@@ -2,7 +2,6 @@ package client.net.sf.saxon.ce.expr;
 
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.SequenceIterator;
-import client.net.sf.saxon.ce.om.ValueRepresentation;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.GroundedIterator;
 import client.net.sf.saxon.ce.value.Value;
@@ -31,20 +30,20 @@ public final class LastItemExpression extends SingleItemFilter {
 
     public Item evaluateItem(XPathContext context) throws XPathException {
         SequenceIterator forwards = operand.iterate(context);
-        if ((forwards.getProperties() & SequenceIterator.GROUNDED) != 0) {
-            ValueRepresentation repr = ((GroundedIterator)forwards).materialize();
-            Value val = Value.asValue(repr);
-            int length = val.getLength();
-            return val.itemAt(length - 1);
-        } else {
-            Item current = null;
-            while (true) {
-                Item item = forwards.next();
-                if (item == null) {
-                    return current;
-                }
-                current = item;
+        if (forwards instanceof GroundedIterator) {
+            Value val = ((GroundedIterator)forwards).materialize();
+            if (val != null) {
+                return val.itemAt(val.getLength() - 1);
             }
+        }
+
+        Item current = null;
+        while (true) {
+            Item item = forwards.next();
+            if (item == null) {
+                return current;
+            }
+            current = item;
         }
     }
 

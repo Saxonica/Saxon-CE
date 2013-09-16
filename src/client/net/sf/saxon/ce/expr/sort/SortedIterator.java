@@ -120,28 +120,16 @@ public class SortedIterator implements SequenceIterator, LastPositionFinder, Sor
     }
 
     /**
-     * Get properties of this iterator, as a bit-significant integer.
-     *
-     * @return the properties of this iterator. This will be some combination of
-     *         properties such as {@link #GROUNDED}, {@link #LAST_POSITION_FINDER}. It is always
-     *         acceptable to return the value zero, indicating that there are no known special properties.
-     *         It is acceptable for the properties of the iterator to change depending on its state.
-     */
-
-    public int getProperties() {
-        return LAST_POSITION_FINDER;
-    }
-
-    /**
      * Create an array holding the items to be sorted and the values of their sort keys
      * @throws XPathException
      */
 
     protected void buildArray() throws XPathException {
-        int allocated;
-        if ((base.getProperties() & SequenceIterator.LAST_POSITION_FINDER) != 0) {
+        int allocated = -1;
+        if (base instanceof LastPositionFinder) {
             allocated = ((LastPositionFinder)base).getLastPosition();
-        } else {
+        }
+        if (allocated == -1) {
             allocated = 100;
         }
 

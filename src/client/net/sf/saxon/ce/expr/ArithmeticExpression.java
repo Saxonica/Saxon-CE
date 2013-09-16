@@ -3,7 +3,7 @@ package client.net.sf.saxon.ce.expr;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.pattern.EmptySequenceTest;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.*;
@@ -74,36 +74,36 @@ public class ArithmeticExpression extends BinaryExpression {
 
         RoleLocator role0 = new RoleLocator(RoleLocator.BINARY_EXPR, Token.tokens[operator], 0);
         //role0.setSourceLocator(this);
-        operand0 = TypeChecker.staticTypeCheck(operand0, atomicType, false, role0, visitor);
+        operand0 = TypeChecker.staticTypeCheck(operand0, atomicType, false, role0);
         final ItemType itemType0 = operand0.getItemType();
         if (itemType0 instanceof EmptySequenceTest) {
             return new Literal(EmptySequence.getInstance());
         }
-        BuiltInAtomicType type0 = (BuiltInAtomicType) itemType0.getPrimitiveItemType();
-        if (type0 == BuiltInAtomicType.UNTYPED_ATOMIC) {
-            operand0 = new UntypedAtomicConverter(operand0, BuiltInAtomicType.DOUBLE, true, role0);
+        AtomicType type0 = (AtomicType) itemType0.getPrimitiveItemType();
+        if (type0 == AtomicType.UNTYPED_ATOMIC) {
+            operand0 = new UntypedAtomicConverter(operand0, AtomicType.DOUBLE, true, role0);
         } else if (/*!(operand0 instanceof UntypedAtomicConverter)*/
                 (operand0.getSpecialProperties() & StaticProperty.NOT_UNTYPED) == 0 &&
-                        th.relationship(type0, BuiltInAtomicType.UNTYPED_ATOMIC) != TypeHierarchy.DISJOINT) {
-            operand0 = new UntypedAtomicConverter(operand0, BuiltInAtomicType.DOUBLE, false, role0);
+                        th.relationship(type0, AtomicType.UNTYPED_ATOMIC) != TypeHierarchy.DISJOINT) {
+            operand0 = new UntypedAtomicConverter(operand0, AtomicType.DOUBLE, false, role0);
         }
 
         // System.err.println("First operand"); operand0.display(10);
 
         RoleLocator role1 = new RoleLocator(RoleLocator.BINARY_EXPR, Token.tokens[operator], 1);
         //role1.setSourceLocator(this);
-        operand1 = TypeChecker.staticTypeCheck(operand1, atomicType, false, role1, visitor);
+        operand1 = TypeChecker.staticTypeCheck(operand1, atomicType, false, role1);
         final ItemType itemType1 = operand1.getItemType();
         if (itemType1 instanceof EmptySequenceTest) {
             return new Literal(EmptySequence.getInstance());
         }
-        BuiltInAtomicType type1 = (BuiltInAtomicType) itemType1.getPrimitiveItemType();
-        if (type1 == BuiltInAtomicType.UNTYPED_ATOMIC) {
-            operand1 = new UntypedAtomicConverter(operand1, BuiltInAtomicType.DOUBLE, true, role1);
+        AtomicType type1 = (AtomicType) itemType1.getPrimitiveItemType();
+        if (type1 == AtomicType.UNTYPED_ATOMIC) {
+            operand1 = new UntypedAtomicConverter(operand1, AtomicType.DOUBLE, true, role1);
         } else if (/*!(operand1 instanceof UntypedAtomicConverter) &&*/
                 (operand1.getSpecialProperties() & StaticProperty.NOT_UNTYPED) == 0 &&
-                        th.relationship(type1, BuiltInAtomicType.UNTYPED_ATOMIC) != TypeHierarchy.DISJOINT) {
-            operand1 = new UntypedAtomicConverter(operand1, BuiltInAtomicType.DOUBLE, false, role1);
+                        th.relationship(type1, AtomicType.UNTYPED_ATOMIC) != TypeHierarchy.DISJOINT) {
+            operand1 = new UntypedAtomicConverter(operand1, AtomicType.DOUBLE, false, role1);
         }
 
         if (operand0 != oldOp0) {
@@ -154,23 +154,23 @@ public class ArithmeticExpression extends BinaryExpression {
 
     public static AtomicValue compute(AtomicValue value0, int operator, AtomicValue value1, XPathContext context)
             throws XPathException {
-        BuiltInAtomicType p0 = value0.getItemType();
-        BuiltInAtomicType p1 = value1.getItemType();
+        AtomicType p0 = value0.getItemType();
+        AtomicType p1 = value1.getItemType();
         TypeHierarchy th = TypeHierarchy.getInstance();
 
-        if (p0 == BuiltInAtomicType.UNTYPED_ATOMIC) {
-            p0 = BuiltInAtomicType.DOUBLE;
-            value0 = value0.convert(BuiltInAtomicType.DOUBLE, true).asAtomic();
+        if (p0 == AtomicType.UNTYPED_ATOMIC) {
+            p0 = AtomicType.DOUBLE;
+            value0 = value0.convert(AtomicType.DOUBLE).asAtomic();
         }
-        if (p1 == BuiltInAtomicType.UNTYPED_ATOMIC) {
-            p1 = BuiltInAtomicType.DOUBLE;
-            value1 = value1.convert(BuiltInAtomicType.DOUBLE, true).asAtomic();
+        if (p1 == AtomicType.UNTYPED_ATOMIC) {
+            p1 = AtomicType.DOUBLE;
+            value1 = value1.convert(AtomicType.DOUBLE).asAtomic();
         }
-        if (p0 == BuiltInAtomicType.DATE || p0 == BuiltInAtomicType.TIME) {
-            p0 = BuiltInAtomicType.DATE_TIME;
+        if (p0 == AtomicType.DATE || p0 == AtomicType.TIME) {
+            p0 = AtomicType.DATE_TIME;
         }
-        if (p1 == BuiltInAtomicType.DATE || p1 == BuiltInAtomicType.TIME) {
-            p1 = BuiltInAtomicType.DATE_TIME;
+        if (p1 == AtomicType.DATE || p1 == AtomicType.TIME) {
+            p1 = AtomicType.DATE_TIME;
         }
 
         if (value0 instanceof NumericValue && value1 instanceof NumericValue) {
@@ -207,7 +207,7 @@ public class ArithmeticExpression extends BinaryExpression {
                         if (Double.isNaN(d1)) {
                             throw new XPathException("Second operand of idiv is NaN", "FOAR0002");
                         }
-                        return new DoubleValue(d0 / d1).convert(BuiltInAtomicType.INTEGER, true).asAtomic();
+                        return new DoubleValue(d0 / d1).convert(AtomicType.INTEGER).asAtomic();
 
                 }
                 return new DoubleValue(result);
@@ -242,7 +242,7 @@ public class ArithmeticExpression extends BinaryExpression {
                         if (Float.isNaN(f1)) {
                             throw new XPathException("Second operand of idiv is NaN", "FOAR0002");
                         }
-                        return new FloatValue(f0 / f1).convert(BuiltInAtomicType.INTEGER, true).asAtomic();
+                        return new FloatValue(f0 / f1).convert(AtomicType.INTEGER).asAtomic();
 
                 }
                 return new FloatValue(result);
@@ -274,8 +274,7 @@ public class ArithmeticExpression extends BinaryExpression {
                                 throw err1;
                             }
                         }
-                        result = result1;
-                        break;
+                        return new DecimalValue(result1);
                     case Token.MOD:
                         try {
                             result = d0.remainder(d1);
@@ -305,18 +304,18 @@ public class ArithmeticExpression extends BinaryExpression {
         } else {
             // computations involving dates, times, and durations
 
-            if (p0 == BuiltInAtomicType.DATE_TIME) {
-                if (p1 == BuiltInAtomicType.DATE_TIME && operator == Token.MINUS) {
+            if (p0 == AtomicType.DATE_TIME) {
+                if (p1 == AtomicType.DATE_TIME && operator == Token.MINUS) {
                     return ((CalendarValue)value0).subtract((CalendarValue)value1, context);
-                } else if (th.isSubType(p1, BuiltInAtomicType.DURATION) && (operator == Token.PLUS || operator == Token.MINUS)) {
+                } else if (th.isSubType(p1, AtomicType.DURATION) && (operator == Token.PLUS || operator == Token.MINUS)) {
                     DurationValue b = (DurationValue) value1;
                     if (operator == Token.MINUS) {
                         b = b.multiply(-1.0);
                     }
                     return ((CalendarValue) value0).add(b);
                 }
-            } else if (th.isSubType(p0, BuiltInAtomicType.DURATION)) {
-                if (th.isSubType(p1, BuiltInAtomicType.DURATION)) {
+            } else if (th.isSubType(p0, AtomicType.DURATION)) {
+                if (th.isSubType(p1, AtomicType.DURATION)) {
                     DurationValue d0 = (DurationValue) value1;
                     DurationValue d1 = (DurationValue) value1;
                     switch (operator) {
@@ -327,19 +326,19 @@ public class ArithmeticExpression extends BinaryExpression {
                         case Token.DIV:
                             return d0.divide(d1);
                     }
-                } else if (p1 == BuiltInAtomicType.DATE_TIME && operator == Token.PLUS) {
+                } else if (p1 == AtomicType.DATE_TIME && operator == Token.PLUS) {
                     return ((CalendarValue) value1).add((DurationValue) value0);
-                } else if (th.isSubType(p1, BuiltInAtomicType.NUMERIC) && (operator == Token.MULT || operator == Token.DIV)) {
+                } else if (th.isSubType(p1, AtomicType.NUMERIC) && (operator == Token.MULT || operator == Token.DIV)) {
                     double d1 = ((NumericValue) value1).getDoubleValue();
                     if (operator == Token.DIV) {
                         d1 = 1.0 / d1;
                     }
                     return ((DurationValue) value0).multiply(d1);
                 }
-            } else if (th.isSubType(p0, BuiltInAtomicType.NUMERIC) &&
-                    th.isSubType(p1, BuiltInAtomicType.DURATION) &&
+            } else if (th.isSubType(p0, AtomicType.NUMERIC) &&
+                    th.isSubType(p1, AtomicType.DURATION) &&
                     operator == Token.MULT) {
-                return ((DurationValue) value1).multiply(((NumericValue) value1).getDoubleValue());
+                return ((DurationValue) value1).multiply(((NumericValue) value0).getDoubleValue());
             }
         }
         throw new XPathException("Undefined arithmetic operation: " + p0 + " " + Token.tokens[operator] + " " + p1, "XPTY0004");
@@ -353,18 +352,23 @@ public class ArithmeticExpression extends BinaryExpression {
 
     public ItemType getItemType() {
         ItemType t1 = operand0.getItemType();
-        if (!(t1 instanceof BuiltInAtomicType)) {
+        if (!(t1 instanceof AtomicType)) {
             t1 = t1.getAtomizedItemType();
         }
         ItemType t2 = operand1.getItemType();
-        if (!(t2 instanceof BuiltInAtomicType)) {
+        if (!(t2 instanceof AtomicType)) {
             t2 = t2.getAtomizedItemType();
         }
         TypeHierarchy th = TypeHierarchy.getInstance();
-        if (th.isSubType(t1, BuiltInAtomicType.NUMERIC) && th.isSubType(t2, BuiltInAtomicType.NUMERIC)) {
-            return BuiltInAtomicType.NUMERIC;
+        boolean numeric1 = th.isSubType(t1, AtomicType.NUMERIC);
+        boolean numeric2 = th.isSubType(t2, AtomicType.NUMERIC);
+        if (numeric1 && numeric2) {
+            return AtomicType.NUMERIC;
+        } else if ((numeric1 || numeric2) && (operator == Token.PLUS || operator == Token.MINUS)) {
+            // this case is important for filter expressions such as $a[$i+1]
+            return AtomicType.NUMERIC;
         } else {
-            return BuiltInAtomicType.ANY_ATOMIC;
+            return AtomicType.ANY_ATOMIC;
         }
     }
 

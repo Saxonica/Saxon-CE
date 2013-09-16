@@ -5,12 +5,9 @@ import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.EmptyIterator;
 import client.net.sf.saxon.ce.tree.iter.SteppingIterator;
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
-import client.net.sf.saxon.ce.value.AtomicValue;
-import client.net.sf.saxon.ce.value.IntegerValue;
-import client.net.sf.saxon.ce.value.NumericValue;
-import client.net.sf.saxon.ce.value.SequenceType;
+import client.net.sf.saxon.ce.value.*;
 
 /**
 * A RangeExpression is an expression that represents an integer sequence as
@@ -46,12 +43,18 @@ public class RangeExpression extends BinaryExpression {
         boolean backCompat = visitor.getStaticContext().isInBackwardsCompatibleMode();
         RoleLocator role0 = new RoleLocator(RoleLocator.BINARY_EXPR, "to", 0);
         operand0 = TypeChecker.staticTypeCheck(
-                operand0, SequenceType.OPTIONAL_INTEGER, backCompat, role0, visitor);
+                operand0, SequenceType.OPTIONAL_INTEGER, backCompat, role0);
 
         RoleLocator role1 = new RoleLocator(RoleLocator.BINARY_EXPR, "to", 1);
         operand1 = TypeChecker.staticTypeCheck(
-                operand1, SequenceType.OPTIONAL_INTEGER, backCompat, role1, visitor);
+                operand1, SequenceType.OPTIONAL_INTEGER, backCompat, role1);
 
+        return this;
+    }
+
+    public Expression optimize(ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
+        operand0 = visitor.optimize(operand0, contextItemType);
+        operand1 = visitor.optimize(operand1, contextItemType);
         return this;
     }
 
@@ -60,7 +63,7 @@ public class RangeExpression extends BinaryExpression {
      */
 
     public ItemType getItemType() {
-        return BuiltInAtomicType.INTEGER;
+        return AtomicType.INTEGER;
     }
 
     /**

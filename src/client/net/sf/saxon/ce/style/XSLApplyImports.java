@@ -2,12 +2,7 @@ package client.net.sf.saxon.ce.style;
 import client.net.sf.saxon.ce.expr.Expression;
 import client.net.sf.saxon.ce.expr.instruct.ApplyImports;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
-import client.net.sf.saxon.ce.om.Axis;
-import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
-import client.net.sf.saxon.ce.type.Type;
-import client.net.sf.saxon.ce.value.Whitespace;
 
 /**
 * An xsl:apply-imports element in the stylesheet
@@ -30,29 +25,11 @@ public class XSLApplyImports extends StyleElement {
     }
 
     public void validate(Declaration decl) throws XPathException {
-        //checkWithinTemplate();
-        UnfailingIterator kids = iterateAxis(Axis.CHILD);
-        while (true) {
-            NodeInfo child = (NodeInfo)kids.next();
-            if (child == null) {
-                break;
-            }
-            if (child instanceof XSLWithParam) {
-                // OK;
-            } else if (child.getNodeKind() == Type.TEXT) {
-                    // with xml:space=preserve, white space nodes may still be there
-                if (!Whitespace.isWhite(child.getStringValue())) {
-                    compileError("No character data is allowed within xsl:apply-imports", "XTSE0010");
-                }
-            } else {
-                compileError("Child element " + child.getDisplayName() +
-                        " is not allowed as a child of xsl:apply-imports", "XTSE0010");
-            }
-        }
+        onlyAllow("with-param");
     }
 
     public Expression compile(Executable exec, Declaration decl) throws XPathException {
-        ApplyImports inst = new ApplyImports();
+        ApplyImports inst = new ApplyImports(ApplyImports.APPLY_IMPORTS);
         inst.setActualParameters(getWithParamInstructions(exec, decl, false, inst),
                                  getWithParamInstructions(exec, decl, true, inst));
         return inst;

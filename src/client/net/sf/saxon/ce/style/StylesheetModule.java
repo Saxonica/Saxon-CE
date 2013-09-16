@@ -1,11 +1,9 @@
 package client.net.sf.saxon.ce.style;
 
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.om.Axis;
-import client.net.sf.saxon.ce.om.NodeInfo;
-import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
-import client.net.sf.saxon.ce.value.Whitespace;
+import client.net.sf.saxon.ce.tree.linked.NodeImpl;
 import client.net.sf.saxon.ce.type.Type;
+import client.net.sf.saxon.ce.value.Whitespace;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -98,13 +96,7 @@ public class StylesheetModule {
         minImportPrecedence = precedence;
         StyleElement previousElement = sourceElement;
 
-        UnfailingIterator kids = sourceElement.iterateAxis(Axis.CHILD);
-
-        while (true) {
-            NodeInfo child = (NodeInfo) kids.next();
-            if (child == null) {
-                break;
-            }
+        for (NodeImpl child : sourceElement.allChildren()) {
             if (child.getNodeKind() == Type.TEXT) {
                 // in an embedded stylesheet, white space nodes may still be there
                 if (!Whitespace.isWhite(child.getStringValue())) {
@@ -120,7 +112,7 @@ public class StylesheetModule {
                     XSLGeneralIncorporate xslinc = (XSLGeneralIncorporate) child;
                     xslinc.processAttributes();
 
-                    if (xslinc.isImport()) {
+                    if ("import".equals(xslinc.getLocalPart())) {
                         if (foundNonImport) {
                             xslinc.compileError("xsl:import elements must come first", "XTSE0200");
                         }
@@ -141,14 +133,14 @@ public class StylesheetModule {
                     errors = sourceElement.getPreparedStylesheet().getErrorCount() - errors;
                     if (errors > 0) {
                         xslinc.compileError("Reported " + errors  + (errors==1 ? " error" : " errors") +
-                                " in " + (xslinc.isImport() ? "imported" : "included") +
-                                " stylesheet module", "XTSE0165");
+                                " in " + xslinc.getLocalPart().substring(0,6) +
+                                "ed stylesheet module", "XTSE0165");
                     }
 
                     // after processing the imported stylesheet and any others it brought in,
                     // adjust the import precedence of this stylesheet if necessary
 
-                    if (xslinc.isImport()) {
+                    if (xslinc.getLocalPart().equals("import")) {
                         precedence = inc.getPrecedence() + 1;
                     } else {
                         precedence = inc.getPrecedence();

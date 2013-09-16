@@ -63,7 +63,7 @@ public class Controller {
     private Item contextForGlobalVariables;
     private Bindery bindery;                // holds values of global variables
     private RuleManager ruleManager;
-    private HashMap<StructuredQName, ValueRepresentation> parameters;
+    private HashMap<StructuredQName, Sequence> parameters;
     private String principalResultURI;
     private ErrorListener errorListener;
     private Executable executable;
@@ -316,11 +316,11 @@ public class Controller {
     	}
     }
     
-    public HashMap<StructuredQName, ValueRepresentation> getParameters() {
+    public HashMap<StructuredQName, Sequence> getParameters() {
     	return parameters;
     }
     
-    public void setParameters(HashMap<StructuredQName, ValueRepresentation> params) {
+    public void setParameters(HashMap<StructuredQName, Sequence> params) {
     	parameters = params;
     }
     
@@ -1058,7 +1058,7 @@ public class Controller {
             } else {
                 Template t = initialTemplate;
                 XPathContextMajor c2 = initialContext.newContext();
-                c2.openStackFrame(t.getStackFrameMap());
+                c2.openStackFrame(t.getNumberOfSlots());
                 c2.setLocalParameters(new ParameterSet());
                 c2.setTunnelParameters(new ParameterSet());
 
@@ -1184,9 +1184,9 @@ public class Controller {
      * @param value The value of the parameter, or null to remove a previously set value
      */
 
-    public void setParameter(StructuredQName qName, ValueRepresentation value) {
+    public void setParameter(StructuredQName qName, Sequence value) {
         if (parameters == null) {
-            parameters = new HashMap<StructuredQName, ValueRepresentation>();
+            parameters = new HashMap<StructuredQName, Sequence>();
         }
         parameters.put(qName, value);
     }
@@ -1214,7 +1214,7 @@ public class Controller {
      * @return the value of the parameter, if it exists, or null otherwise
      */
 
-    public ValueRepresentation getParameter(StructuredQName qName) {
+    public Sequence getParameter(StructuredQName qName) {
         if (parameters==null) {
             return null;
         }

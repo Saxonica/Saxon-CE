@@ -2,7 +2,6 @@ package client.net.sf.saxon.ce.pattern;
 
 import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.expr.*;
-import client.net.sf.saxon.ce.expr.instruct.SlotManager;
 import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.trans.XPathException;
@@ -56,7 +55,7 @@ public class NodeSetPattern extends Pattern {
     public Pattern analyze(ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
         expression = visitor.typeCheck(expression, contextItemType);
         RoleLocator role = new RoleLocator(RoleLocator.VARIABLE, expression.toString(), 0);
-        expression = TypeChecker.staticTypeCheck(expression, SequenceType.NODE_SEQUENCE, false, role, visitor);
+        expression = TypeChecker.staticTypeCheck(expression, SequenceType.NODE_SEQUENCE, false, role);
         itemType = expression.getItemType();
         return this;
     }
@@ -104,13 +103,11 @@ public class NodeSetPattern extends Pattern {
 
     /**
      * Allocate slots to any variables used within the pattern
-     * @param env         the static context in the XSLT stylesheet
-     * @param slotManager the slot manager representing the stack frame for local variables
      * @param nextFree    the next slot that is free to be allocated @return the next slot that is free to be allocated
      */
 
-     public int allocateSlots(StaticContext env, SlotManager slotManager, int nextFree) {
-        return ExpressionTool.allocateSlots(expression, nextFree, slotManager);
+     public int allocateSlots(int nextFree) {
+        return ExpressionTool.allocateSlots(expression, nextFree);
     }
 
 

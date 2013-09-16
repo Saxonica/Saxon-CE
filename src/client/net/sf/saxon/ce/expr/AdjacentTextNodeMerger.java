@@ -201,9 +201,6 @@ public class AdjacentTextNodeMerger extends UnaryExpression {
             return new AdjacentTextNodeMergingIterator(base.getAnother());
         }
 
-        public int getProperties() {
-            return 0;
-        }
     }
 
     /**

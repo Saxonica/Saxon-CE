@@ -1,11 +1,11 @@
 package client.net.sf.saxon.ce.expr.instruct;
 
-import client.net.sf.saxon.ce.expr.*;
-import client.net.sf.saxon.ce.om.ValueRepresentation;
+import client.net.sf.saxon.ce.expr.Expression;
+import client.net.sf.saxon.ce.expr.ExpressionTool;
+import client.net.sf.saxon.ce.expr.XPathContext;
+import client.net.sf.saxon.ce.om.Sequence;
 import client.net.sf.saxon.ce.trans.XPathException;
 
-import java.util.Arrays;
-import java.util.Collections;
 import java.util.Iterator;
 
 /**
@@ -68,15 +68,7 @@ public final class LocalParam extends GeneralVariable {
      */
 
     public Iterator<Expression> iterateSubExpressions() {
-        if (select != null && conversion != null) {
-            return Arrays.asList((new Expression[]{select, conversion})).iterator();
-        } else if (select != null) {
-            return monoIterator(select);
-        } else if (conversion != null) {
-            return monoIterator(conversion);
-        } else {
-            return Collections.EMPTY_LIST.iterator();
-        }
+        return nonNullChildren(select, conversion);
     }
 
 
@@ -125,7 +117,7 @@ public final class LocalParam extends GeneralVariable {
      * Evaluate the variable
      */
 
-    public ValueRepresentation evaluateVariable(XPathContext c) {
+    public Sequence evaluateVariable(XPathContext c) {
         return c.evaluateLocalVariable(slotNumber);
     }
 

@@ -111,7 +111,7 @@ public class XSLElement extends StyleElement {
     }
 
     private Expression compileContentExpression(Executable exec, Declaration decl, ElementCreator inst) throws XPathException {
-        Expression content = compileSequenceConstructor(exec, decl, iterateAxis(Axis.CHILD));
+        Expression content = compileSequenceConstructor(exec, decl);
 
         if (attributeSets != null) {
             UseAttributeSets use = new UseAttributeSets(attributeSets);

@@ -8,12 +8,11 @@ import client.net.sf.saxon.ce.regex.ARegularExpression;
 import client.net.sf.saxon.ce.regex.RegexIterator;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.EmptyIterator;
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.value.SequenceType;
 
-import java.util.ArrayList;
 import java.util.Iterator;
 
 /**
@@ -113,11 +112,11 @@ public class AnalyzeString extends Instruction {
         flags = visitor.typeCheck(flags, contextItemType);
         adoptChildExpression(flags);
         if (matching != null) {
-            matching = visitor.typeCheck(matching, BuiltInAtomicType.STRING);
+            matching = visitor.typeCheck(matching, AtomicType.STRING);
             adoptChildExpression(matching);
         }
         if (nonMatching != null) {
-            nonMatching = visitor.typeCheck(nonMatching, BuiltInAtomicType.STRING);
+            nonMatching = visitor.typeCheck(nonMatching, AtomicType.STRING);
             adoptChildExpression(nonMatching);
         }
         
@@ -126,11 +125,11 @@ public class AnalyzeString extends Instruction {
 
         SequenceType required = (SequenceType.SINGLE_STRING);
                                     // see bug 7976
-        select = TypeChecker.staticTypeCheck(select, required, false, role, visitor);
+        select = TypeChecker.staticTypeCheck(select, required, false, role);
         role = new RoleLocator(RoleLocator.INSTRUCTION, "analyze-string/regex", 0);
-        regex = TypeChecker.staticTypeCheck(regex, SequenceType.SINGLE_STRING, false, role, visitor);
+        regex = TypeChecker.staticTypeCheck(regex, SequenceType.SINGLE_STRING, false, role);
         role = new RoleLocator(RoleLocator.INSTRUCTION, "analyze-string/flags", 0);
-        flags = TypeChecker.staticTypeCheck(flags, SequenceType.SINGLE_STRING, false, role, visitor);
+        flags = TypeChecker.staticTypeCheck(flags, SequenceType.SINGLE_STRING, false, role);
         return this;
     }
 
@@ -143,11 +142,11 @@ public class AnalyzeString extends Instruction {
         flags = visitor.optimize(flags, contextItemType);
         adoptChildExpression(flags);
         if (matching != null) {
-            matching = matching.optimize(visitor, BuiltInAtomicType.STRING);
+            matching = matching.optimize(visitor, AtomicType.STRING);
             adoptChildExpression(matching);
         }
         if (nonMatching != null) {
-            nonMatching = nonMatching.optimize(visitor, BuiltInAtomicType.STRING);
+            nonMatching = nonMatching.optimize(visitor, AtomicType.STRING);
             adoptChildExpression(nonMatching);
         }
         return this;
@@ -230,17 +229,7 @@ public class AnalyzeString extends Instruction {
      */
 
     public Iterator<Expression> iterateSubExpressions() {
-        ArrayList<Expression> list = new ArrayList<Expression>(5);
-        list.add(select);
-        list.add(regex);
-        list.add(flags);
-        if (matching != null) {
-            list.add(matching);
-        }
-        if (nonMatching != null) {
-            list.add(nonMatching);
-        }
-        return list.iterator();
+        return nonNullChildren(select, regex, flags, matching, nonMatching);
     }
 
     /**

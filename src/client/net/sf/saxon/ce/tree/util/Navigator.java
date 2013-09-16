@@ -3,13 +3,15 @@ package client.net.sf.saxon.ce.tree.util;
 import client.net.sf.saxon.ce.Controller;
 import client.net.sf.saxon.ce.event.Receiver;
 import client.net.sf.saxon.ce.expr.Expression;
+import client.net.sf.saxon.ce.expr.ItemMappingFunction;
+import client.net.sf.saxon.ce.expr.UnfailingItemMappingIterator;
 import client.net.sf.saxon.ce.expr.XPathContext;
+import client.net.sf.saxon.ce.functions.Count;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
 import client.net.sf.saxon.ce.om.*;
 import client.net.sf.saxon.ce.pattern.*;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.*;
-import client.net.sf.saxon.ce.tree.wrapper.SiblingCountingNode;
 import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.value.SequenceExtent;
 
@@ -107,20 +109,6 @@ public final class Navigator {
      */
 
     public static String getPath(NodeInfo node) {
-        return getPath(node, null);
-    }
-
-    /**
-     * Get an absolute XPath expression that identifies a given node within its document
-     *
-     * @param node the node whose path is required. If null is supplied,
-     *             an empty string is returned - this fact is used in making a recursive call
-     *             for a parentless node.
-     * @param context the XPath dynamic evaluation context. May be null if no context is known
-     * @return a path expression that can be used to retrieve the node
-     */
-
-    public static String getPath(NodeInfo node, XPathContext context) {
         if (node == null) {
             return "";
         }
@@ -135,7 +123,7 @@ public final class Navigator {
                 if (parent == null) {
                     return node.getDisplayName();
                 } else {
-                    pre = getPath(parent, context);
+                    pre = getPath(parent);
                     if (pre.equals("/")) {
                         return '/' + node.getDisplayName();
                     } else {
@@ -162,26 +150,26 @@ public final class Navigator {
                     }
                 }
             case Type.ATTRIBUTE:
-                return getPath(parent, context) + "/@" + node.getDisplayName();
+                return getPath(parent) + "/@" + node.getDisplayName();
             case Type.TEXT:
-                pre = getPath(parent, context);
+                pre = getPath(parent);
                 return (pre.equals("/") ? "" : pre) +
-                        "/text()[" + getNumberSimple(node, context) + ']';
+                        "/text()[" + getNumberSimple(node) + ']';
             case Type.COMMENT:
-                pre = getPath(parent, context);
+                pre = getPath(parent);
                 return (pre.equals("/") ? "" : pre) +
-                        "/comment()[" + getNumberSimple(node, context) + ']';
+                        "/comment()[" + getNumberSimple(node) + ']';
             case Type.PROCESSING_INSTRUCTION:
-                pre = getPath(parent, context);
+                pre = getPath(parent);
                 return (pre.equals("/") ? "" : pre) +
-                        "/processing-instruction()[" + getNumberSimple(node, context) + ']';
+                        "/processing-instruction()[" + getNumberSimple(node) + ']';
             case Type.NAMESPACE:
                 String test = node.getLocalPart();
                 if (test.length() == 0) {
                     // default namespace: need a node-test that selects unnamed nodes only
                     test = "*[not(local-name()]";
                 }
-                return getPath(parent, context) + "/namespace::" + test;
+                return getPath(parent) + "/namespace::" + test;
             default:
                 return "";
         }
@@ -191,16 +179,12 @@ public final class Navigator {
      * Get simple node number. This is defined as one plus the number of previous siblings of the
      * same node type and name. It is not accessible directly in XSL.
      *
+     *
      * @param node    The node whose number is required
-     * @param context Used for remembering previous result, for
-     *                performance. May be null.
      * @return the node number, as defined above
-     * @throws XPathException if any error occurs
      */
 
-    public static int getNumberSimple(NodeInfo node, XPathContext context)  {
-
-        //checkNumberable(node);
+    public static int getNumberSimple(NodeInfo node)  {
 
         NodeTest same;
 
@@ -210,32 +194,12 @@ public final class Navigator {
             same = new NameTest(node);
         }
 
-        Controller controller = (context == null ? null : context.getController());
         UnfailingIterator preceding = node.iterateAxis(Axis.PRECEDING_SIBLING, same);
-
-        int i = 1;
-        while (true) {
-            NodeInfo prev = (NodeInfo)preceding.next();
-            if (prev == null) {
-                break;
-            }
-
-            if (controller != null) {
-                int memo = controller.getRememberedNumber(prev);
-                if (memo > 0) {
-                    memo += i;
-                    controller.setRememberedNumber(node, memo);
-                    return memo;
-                }
-            }
-
-            i++;
+        try {
+            return Count.count(preceding) + 1;
+        } catch (XPathException e) {
+            throw new AssertionError(e);
         }
-
-        if (controller != null) {
-            controller.setRememberedNumber(node, i);
-        }
-        return i;
     }
 
     /**
@@ -265,7 +229,7 @@ public final class Navigator {
                                       Pattern from, XPathContext context) throws XPathException {
 
         if (count == null && from == null) {
-            return getNumberSimple(node, context);
+            return getNumberSimple(node);
         }
 
         boolean knownToMatch = false;
@@ -329,7 +293,7 @@ public final class Navigator {
      * @return one plus the number of nodes that precede the current node,
      *         that match the count pattern, and that follow the first node that
      *         matches the from pattern if specified.
-     * @throws client.net.sf.saxon.ce.trans.XPathException
+     * @throws XPathException if an error occurs matching a pattern
      *
      */
 
@@ -344,7 +308,7 @@ public final class Navigator {
             Object[] memo = (Object[])controller.getUserData(inst, "xsl:number");
             if (memo != null) {
                 memoNode = (NodeInfo)memo[0];
-                memoNumber = ((Integer)memo[1]).intValue();
+                memoNumber = (Integer) memo[1];
             }
         }
 
@@ -377,9 +341,11 @@ public final class Navigator {
             return num;
         }
 
-        SequenceIterator preceding =
-                node.iterateAxis(Axis.PRECEDING_OR_ANCESTOR, filter);
-       
+        UnfailingIterator preceding = new PrecedingEnumeration(node, true);
+        if (filter != AnyNodeTest.getInstance()) {
+            preceding = newAxisFilter(preceding, filter);
+        }
+
         while (true) {
             NodeInfo prev = (NodeInfo)preceding.next();
             if (prev == null) {
@@ -402,7 +368,7 @@ public final class Navigator {
         if (memoise) {
             Object[] memo = new Object[2];
             memo[0] = node;
-            memo[1] = Integer.valueOf(num);
+            memo[1] = num;
             controller.setUserData(inst, "xsl:number", memo);
         }
         return num;
@@ -421,19 +387,17 @@ public final class Navigator {
      *                Default (null) is the root node. Only nodes below the first (most
      *                recent) node that matches the 'from' pattern are counted.
      * @param context The dynamic context for the transformation
-     * @return a vector containing for each ancestor-or-self that matches the
+     * @return a list containing for each ancestor-or-self that matches the
      *         count pattern and that is below the nearest node that matches the
      *         from pattern, an Integer which is one greater than the number of
      *         previous siblings that match the count pattern.
-     * @throws XPathException
+     * @throws XPathException if an error occurs matching the pattern
      */
 
-    public static List getNumberMulti(NodeInfo node, Pattern count,
+    public static List<Integer> getNumberMulti(NodeInfo node, Pattern count,
                                       Pattern from, XPathContext context) throws XPathException {
 
-        //checkNumberable(node);
-
-        ArrayList v = new ArrayList(5);
+        ArrayList<Integer> v = new ArrayList<Integer>(5);
 
         if (count == null) {
             if (node.getNodeName() == null) {    // unnamed node
@@ -448,7 +412,7 @@ public final class Navigator {
         while (true) {
             if (count.matches(curr, context)) {
                 int num = getNumberSingle(curr, count, null, context);
-                v.add(0, new Long(num));
+                v.add(0, num);
             }
             curr = curr.getParent();
             if (curr == null) {
@@ -589,7 +553,7 @@ public final class Navigator {
      *         return true, and the two nodes will produce the same result for generateId())
      */
 
-    public static int compareOrder(SiblingCountingNode first, SiblingCountingNode second) {
+    public static int compareOrder(NodeInfo first, NodeInfo second) {
 
         // are they the same node?
         if (first.isSameNodeInfo(second)) {
@@ -666,8 +630,7 @@ public final class Navigator {
                 if (p1.getNodeKind() != Type.ATTRIBUTE && p2.getNodeKind() == Type.ATTRIBUTE) {
                     return +1;  // attributes first
                 }
-                return ((SiblingCountingNode)p1).getSiblingPosition() -
-                        ((SiblingCountingNode)p2).getSiblingPosition();
+                return p1.getSiblingPosition() - p2.getSiblingPosition();
             }
             p1 = par1;
             p2 = par2;
@@ -700,7 +663,7 @@ public final class Navigator {
      * @param addDocNr true if a unique document number is to be included in the information
      */
 
-    public static void appendSequentialKey(SiblingCountingNode node, FastStringBuffer sb, boolean addDocNr) {
+    public static void appendSequentialKey(NodeInfo node, FastStringBuffer sb, boolean addDocNr) {
         if (addDocNr) {
             sb.append('w');
             sb.append(Long.toString(node.getDocumentNumber()));
@@ -708,7 +671,7 @@ public final class Navigator {
         if (node.getNodeKind() != Type.DOCUMENT) {
             NodeInfo parent = node.getParent();
             if (parent != null) {
-                appendSequentialKey(((SiblingCountingNode)parent), sb, false);
+                appendSequentialKey(parent, sb, false);
             }
         }
         sb.append(alphaKey(node.getSiblingPosition()));
@@ -815,48 +778,16 @@ public final class Navigator {
         }
     }
 
-    /**
-     * AxisFilter is an iterator that applies a NodeTest filter to
-     * the nodes returned by an underlying AxisIterator.
-     */
-
-    public static class AxisFilter extends AxisIteratorImpl {
-        private UnfailingIterator base;
-        private NodeTest nodeTest;
-
-        /**
-         * Construct a AxisFilter
-         *
-         * @param base the underlying iterator that returns all the nodes on
-         *             a required axis. This must not be an atomizing iterator!
-         * @param test a NodeTest that is applied to each node returned by the
-         *             underlying AxisIterator; only those nodes that pass the NodeTest are
-         *             returned by the AxisFilter
-         */
-
-        public AxisFilter(UnfailingIterator base, NodeTest test) {
-            this.base = base;
-            nodeTest = test;
-            position = 0;
+    public static UnfailingIterator newAxisFilter(UnfailingIterator base, final NodeTest test) {
+        if (test == AnyNodeTest.getInstance()) {
+            return base;
         }
-
-        public Item next() {
-            while (true) {
-                current = (NodeInfo)base.next();
-                if (current == null) {
-                    position = -1;
-                    return null;
-                }
-                if (nodeTest.matches(current)) {
-                    position++;
-                    return current;
-                }
+        ItemMappingFunction umf = new ItemMappingFunction() {
+            public Item mapItem(Item item) {
+                return (test.matches((NodeInfo)item) ? item : null);
             }
-        }
-
-        public SequenceIterator getAnother() {
-            return new AxisFilter((UnfailingIterator)base.getAnother(), nodeTest);
-        }
+        };
+        return new UnfailingItemMappingIterator(base, umf);
     }
 
     /**
@@ -864,38 +795,16 @@ public final class Navigator {
      * nodes returned by an underlying AxisIterator.
      */
 
-    public static class EmptyTextFilter extends AxisIteratorImpl {
-        private UnfailingIterator base;
-
-        /**
-         * Construct an EmptyTextFilter
-         *
-         * @param base the underlying iterator that returns all the nodes on
-         *             a required axis. This must not be an atomizing iterator
-         */
-
-        public EmptyTextFilter(UnfailingIterator base) {
-            this.base = base;
-            position = 0;
-        }
-
-        public Item next() {
-            while (true) {
-                current = (NodeInfo)base.next();
-                if (current == null) {
-                    position = -1;
+    public static UnfailingIterator newEmptyTextFilter(UnfailingIterator base) {
+        ItemMappingFunction umf = new ItemMappingFunction() {
+            public Item mapItem(Item item) {
+                if (((NodeInfo)item).getNodeKind() == Type.TEXT && item.getStringValue().equals("")) {
                     return null;
                 }
-                if (!(current.getNodeKind() == Type.TEXT && current.getStringValue().length() == 0)) {
-                    position++;
-                    return current;
-                }
+                return item;
             }
-        }
-
-        public SequenceIterator getAnother() {
-            return new EmptyTextFilter((UnfailingIterator)base.getAnother());
-        }
+        };
+        return new UnfailingItemMappingIterator(base, umf);
     }
 
 
@@ -1009,9 +918,9 @@ public final class Navigator {
                 // we're just starting...
                 if (start.hasChildNodes()) {
                     //children = new XMLNodeWrapper.ChildEnumeration(start, true, forwards);
-                    children = start.iterateAxis(Axis.CHILD);
+                    children = start.iterateAxis(Axis.CHILD, AnyNodeTest.getInstance());
                     if (!forwards) {
-                        UnfailingIterator forwards = start.iterateAxis(Axis.CHILD);
+                        UnfailingIterator forwards = start.iterateAxis(Axis.CHILD, AnyNodeTest.getInstance());
                         SequenceExtent reversed;
                         try {
                             reversed = SequenceExtent.makeReversed(forwards);
@@ -1063,7 +972,7 @@ public final class Navigator {
                 case Type.PROCESSING_INSTRUCTION:
                     //siblingEnum = new XMLNodeWrapper.ChildEnumeration(start, false, true);
                     // gets following siblings
-                    siblingEnum = start.iterateAxis(Axis.FOLLOWING_SIBLING);
+                    siblingEnum = start.iterateAxis(Axis.FOLLOWING_SIBLING, AnyNodeTest.getInstance());
                     break;
                 case Type.ATTRIBUTE:
                 case Type.NAMESPACE:
@@ -1073,7 +982,7 @@ public final class Navigator {
                     if (parent == null) {
                         siblingEnum = EmptyIterator.getInstance();
                     } else {
-                        siblingEnum = parent.iterateAxis(Axis.CHILD);
+                        siblingEnum = parent.iterateAxis(Axis.CHILD, AnyNodeTest.getInstance());
                     }
                     break;
                 default:
@@ -1116,7 +1025,7 @@ public final class Navigator {
                     siblingEnum = EmptyIterator.getInstance();
                 } else {
                     //siblingEnum = new XMLNodeWrapper.ChildEnumeration(next, false, true);
-                    siblingEnum = n.iterateAxis(Axis.FOLLOWING_SIBLING);
+                    siblingEnum = n.iterateAxis(Axis.FOLLOWING_SIBLING, AnyNodeTest.getInstance());
                 }
                 advance();
             } else {
@@ -1162,7 +1071,7 @@ public final class Navigator {
                 case Type.COMMENT:
                 case Type.PROCESSING_INSTRUCTION:
                     // get preceding-sibling enumeration
-                    siblingEnum = start.iterateAxis(Axis.PRECEDING_SIBLING);
+                    siblingEnum = start.iterateAxis(Axis.PRECEDING_SIBLING, AnyNodeTest.getInstance());
                     break;
                 default:
                     siblingEnum = EmptyIterator.getInstance();
@@ -1202,7 +1111,7 @@ public final class Navigator {
                 if (n.getNodeKind() == Type.DOCUMENT) {
                     siblingEnum = EmptyIterator.getInstance();
                 } else {
-                    siblingEnum = n.iterateAxis(Axis.PRECEDING_SIBLING);
+                    siblingEnum = n.iterateAxis(Axis.PRECEDING_SIBLING, AnyNodeTest.getInstance());
                 }
                 if (!includeAncestors) {
                     advance();

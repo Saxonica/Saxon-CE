@@ -159,7 +159,7 @@ public interface XPathContext {
      * @return array of variables.
      */
 
-    public StackFrame getStackFrame();
+    public Sequence[] getStackFrame();
 
      /**
       * Get the value of a local variable, identified by its slot number
@@ -168,7 +168,7 @@ public interface XPathContext {
       * @return the value of the variable.
      */
 
-    public ValueRepresentation evaluateLocalVariable(int slotnumber);
+    public Sequence evaluateLocalVariable(int slotnumber);
 
     /**
      * Set the value of a local variable, identified by its slot number
@@ -177,7 +177,7 @@ public interface XPathContext {
      * @param value the value of the variable
      */
 
-    public void setLocalVariable(int slotnumber, ValueRepresentation value);
+    public void setLocalVariable(int slotnumber, Sequence value);
 
     /**
      * Set a new output destination, supplying the output format details. <BR>

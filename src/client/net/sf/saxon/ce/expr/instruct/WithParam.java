@@ -1,7 +1,7 @@
 package client.net.sf.saxon.ce.expr.instruct;
 
 import client.net.sf.saxon.ce.expr.*;
-import client.net.sf.saxon.ce.om.ValueRepresentation;
+import client.net.sf.saxon.ce.om.Sequence;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
 
@@ -112,7 +112,7 @@ public class WithParam extends GeneralVariable {
      * Evaluate the variable (method exists only to satisfy the interface)
      */
 
-    public ValueRepresentation evaluateVariable(XPathContext context) throws XPathException {
+    public Sequence evaluateVariable(XPathContext context) throws XPathException {
         throw new UnsupportedOperationException();
     }
 

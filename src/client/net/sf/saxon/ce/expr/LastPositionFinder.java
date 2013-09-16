@@ -13,8 +13,9 @@ public interface LastPositionFinder  {
     * Get the last position (that is, the number of items in the sequence). This method is
     * non-destructive: it does not change the state of the iterator.
     * The result is undefined if the next() method of the iterator has already returned null.
-    * This method must not be called unless the result of getProperties() on the iterator
-     * includes the bit setting {@link client.net.sf.saxon.ce.om.SequenceIterator#LAST_POSITION_FINDER}
+    * This method returns -1 if the last position cannot be determined.
+     * @return the number of items in the sequence, or -1 if this cannot be determined.
+     * @throws XPathException if a dynamic error occurs while obtaining the value.
     */
 
     public int getLastPosition() throws XPathException;

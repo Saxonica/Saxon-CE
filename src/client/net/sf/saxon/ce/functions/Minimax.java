@@ -28,7 +28,7 @@ public class Minimax extends CollatingFunction {
     public static final int MIN = 2;
     public static final int MAX = 3;
 
-    private BuiltInAtomicType argumentType = BuiltInAtomicType.ANY_ATOMIC;
+    private AtomicType argumentType = AtomicType.ANY_ATOMIC;
     private boolean ignoreNaN = false;
 
     /**
@@ -91,7 +91,7 @@ public class Minimax extends CollatingFunction {
 
     public Expression optimize(ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
         TypeHierarchy th = TypeHierarchy.getInstance();
-        argumentType = (BuiltInAtomicType)argument[0].getItemType().getAtomizedItemType().getPrimitiveItemType();
+        argumentType = (AtomicType)argument[0].getItemType().getAtomizedItemType().getPrimitiveItemType();
         Expression e = super.optimize(visitor, contextItemType);
         if (e != this) {
             return e;
@@ -99,7 +99,7 @@ public class Minimax extends CollatingFunction {
         if (getNumberOfArguments() == 1) {
             // test for a singleton: this often happens after (A<B) is rewritten as (min(A) lt max(B))
             int card = argument[0].getCardinality();
-            if (!Cardinality.allowsMany(card) && th.isSubType(argument[0].getItemType(), BuiltInAtomicType.NUMERIC)) {
+            if (!Cardinality.allowsMany(card) && th.isSubType(argument[0].getItemType(), AtomicType.NUMERIC)) {
                 return argument[0];
             }
         }
@@ -114,8 +114,8 @@ public class Minimax extends CollatingFunction {
 
     public ItemType getItemType() {
         ItemType t = Atomizer.getAtomizedItemType(argument[0], false);
-        if (t == BuiltInAtomicType.UNTYPED_ATOMIC) {
-            return BuiltInAtomicType.DOUBLE;
+        if (t == AtomicType.UNTYPED_ATOMIC) {
+            return AtomicType.DOUBLE;
         } else {
             return t;
         }
@@ -138,9 +138,9 @@ public class Minimax extends CollatingFunction {
 
     public AtomicComparer getAtomicComparer(XPathContext context) throws XPathException {
         StringCollator collator = getCollator(1, context);
-        BuiltInAtomicType type = argumentType;
-        if (type == BuiltInAtomicType.UNTYPED_ATOMIC) {
-            type = BuiltInAtomicType.DOUBLE;
+        AtomicType type = argumentType;
+        if (type == AtomicType.UNTYPED_ATOMIC) {
+            type = AtomicType.DOUBLE;
         }
         AtomicComparer comparer =
                 GenericAtomicComparer.makeAtomicComparer(type, type, collator, context.getImplicitTimezone());
@@ -223,7 +223,7 @@ public class Minimax extends CollatingFunction {
             }
         }
 
-        BuiltInAtomicType lowestCommonSuperType = min.getItemType();
+        AtomicType lowestCommonSuperType = min.getItemType();
 
         while (true) {
             AtomicValue test = (AtomicValue)iter.next();
@@ -253,7 +253,7 @@ public class Minimax extends CollatingFunction {
                     foundFloat = true;
                 }
             }
-            lowestCommonSuperType = (BuiltInAtomicType)Type.getCommonSuperType(
+            lowestCommonSuperType = (AtomicType)Type.getCommonSuperType(
                     lowestCommonSuperType, prim.getItemType());
             if (prim.isNaN()) {
                 // if there's a double NaN in the sequence, return NaN, unless ignoreNaN is set
@@ -282,14 +282,14 @@ public class Minimax extends CollatingFunction {
         }
         if (foundDouble) {
             if (!(min instanceof DoubleValue)) {
-                min = min.convert(BuiltInAtomicType.DOUBLE, true).asAtomic();
+                min = min.convert(AtomicType.DOUBLE).asAtomic();
             }
         } else if (foundFloat) {
             if (!(min instanceof FloatValue)) {
-                min = min.convert(BuiltInAtomicType.FLOAT, true).asAtomic();
+                min = min.convert(AtomicType.FLOAT).asAtomic();
             }    
         }
-        return min.convert(lowestCommonSuperType, false).asAtomic();
+        return min.convert(lowestCommonSuperType).asAtomic();
     }
 
 }

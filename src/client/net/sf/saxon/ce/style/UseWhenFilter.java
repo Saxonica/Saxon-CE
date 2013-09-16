@@ -4,7 +4,6 @@ import client.net.sf.saxon.ce.Controller;
 import client.net.sf.saxon.ce.event.ProxyReceiver;
 import client.net.sf.saxon.ce.event.StartTagBuffer;
 import client.net.sf.saxon.ce.expr.*;
-import client.net.sf.saxon.ce.expr.instruct.SlotManager;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
 import client.net.sf.saxon.ce.om.*;
 import client.net.sf.saxon.ce.trans.XPathException;
@@ -227,15 +226,14 @@ public class UseWhenFilter extends ProxyReceiver {
         ItemType contextItemType = Type.ITEM_TYPE;
         ExpressionVisitor visitor = ExpressionVisitor.make(staticContext, staticContext.getExecutable());
         expr = visitor.typeCheck(expr, contextItemType);
-        SlotManager stackFrameMap = new SlotManager();
-        ExpressionTool.allocateSlots(expr, stackFrameMap.getNumberOfVariables(), stackFrameMap);
+        int slots = ExpressionTool.allocateSlots(expr, 0);
         Controller controller = new Controller(getConfiguration());
         // TODO ensure calls on doc() are unsuccessful
         controller.setCurrentDateTime(currentDateTime);
                 // this is to ensure that all use-when expressions in a module use the same date and time
         XPathContext dynamicContext = controller.newXPathContext();
         dynamicContext = dynamicContext.newCleanContext();
-        ((XPathContextMajor)dynamicContext).openStackFrame(stackFrameMap);
+        ((XPathContextMajor)dynamicContext).openStackFrame(slots);
         return expr.effectiveBooleanValue(dynamicContext);
     }
 

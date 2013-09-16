@@ -5,9 +5,8 @@ import client.net.sf.saxon.ce.functions.BooleanFn;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.BooleanValue;
 
 /**
@@ -51,8 +50,6 @@ public class QuantifiedExpression extends Assignation {
 
     public Expression typeCheck(ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
 
-        final TypeHierarchy th = TypeHierarchy.getInstance();
-
         // The order of events is critical here. First we ensure that the type of the
         // sequence expression is established. This is used to establish the type of the variable,
         // which in turn is required when type-checking the action part.
@@ -67,13 +64,6 @@ public class QuantifiedExpression extends Assignation {
         Configuration config = visitor.getConfiguration();
         sequence = ExpressionTool.unsorted(config, sequence, false);
 
-//        SequenceType decl = getRequiredType();
-//        SequenceType sequenceType = SequenceType.makeSequenceType(decl.getPrimaryType(),
-//                                             StaticProperty.ALLOWS_ZERO_OR_MORE);
-//        RoleLocator role = new RoleLocator(RoleLocator.VARIABLE, getVariableQName(), 0);
-        //role.setSourceLocator(this);
-//        sequence = TypeChecker.strictTypeCheck(
-//                                sequence, sequenceType, role, visitor.getStaticContext());
         ItemType actualItemType = sequence.getItemType();
         refineTypeInformation(actualItemType,
                 StaticProperty.EXACTLY_ONE,
@@ -201,7 +191,7 @@ public class QuantifiedExpression extends Assignation {
      */
 
 	public ItemType getItemType() {
-	    return BuiltInAtomicType.BOOLEAN;
+	    return AtomicType.BOOLEAN;
 	}
 
     /**

@@ -2,7 +2,6 @@ package client.net.sf.saxon.ce.pattern;
 
 import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
-import client.net.sf.saxon.ce.expr.instruct.SlotManager;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.trans.XPathException;
@@ -133,17 +132,15 @@ public class UnionPattern extends Pattern {
     /**
      * Allocate slots to any variables used within the pattern
      *
-     * @param env      the static context in the XSLT stylesheet
-     * @param slotManager
-     *@param nextFree the next slot that is free to be allocated @return the next slot that is free to be allocated
+     * @param nextFree the next slot that is free to be allocated @return the next slot that is free to be allocated
      */
 
-    public int allocateSlots(StaticContext env, SlotManager slotManager, int nextFree) {
+    public int allocateSlots(int nextFree) {
         if (variableBinding != null) {
-            nextFree = ExpressionTool.allocateSlots(variableBinding, nextFree, slotManager);
+            nextFree = ExpressionTool.allocateSlots(variableBinding, nextFree);
         }
-        nextFree = p1.allocateSlots(env, slotManager, nextFree);
-        nextFree = p2.allocateSlots(env, slotManager, nextFree);
+        nextFree = p1.allocateSlots(nextFree);
+        nextFree = p2.allocateSlots(nextFree);
         return nextFree;
     }
 

@@ -26,7 +26,7 @@ public class DecimalFormatManager {
     */
 
     public DecimalFormatManager() {
-        formatTable = new HashMap(10);
+        formatTable = new HashMap<StructuredQName, DecimalFormatInfo>(10);
         defaultDFS = new DecimalSymbols();
     }
 

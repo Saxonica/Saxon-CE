@@ -5,7 +5,7 @@ import client.net.sf.saxon.ce.functions.BooleanFn;
 import client.net.sf.saxon.ce.functions.SystemFunction;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.BooleanValue;
@@ -132,7 +132,7 @@ public class BooleanExpression extends BinaryExpression {
 
         if (e == this && operator == Token.AND &&
                 operand1 instanceof UserFunctionCall &&
-                th.isSubType(operand1.getItemType(), BuiltInAtomicType.BOOLEAN) &&
+                th.isSubType(operand1.getItemType(), AtomicType.BOOLEAN) &&
                 !visitor.isLoopingSubexpression(null)) {
             Expression cond = Choose.makeConditional(operand0, operand1, Literal.makeLiteral(BooleanValue.FALSE));
             ExpressionTool.copyLocationInfo(this, cond);
@@ -142,7 +142,7 @@ public class BooleanExpression extends BinaryExpression {
     }
 
     private Expression forceToBoolean(Expression in, TypeHierarchy th) {
-        if (in.getItemType() == BuiltInAtomicType.BOOLEAN && in.getCardinality() == StaticProperty.ALLOWS_ONE) {
+        if (in.getItemType() == AtomicType.BOOLEAN && in.getCardinality() == StaticProperty.ALLOWS_ONE) {
             return in;
         } else {
             return SystemFunction.makeSystemFunction("boolean", new Expression[]{in});
@@ -180,7 +180,7 @@ public class BooleanExpression extends BinaryExpression {
      */
 
     public ItemType getItemType() {
-        return BuiltInAtomicType.BOOLEAN;
+        return AtomicType.BOOLEAN;
     }
 
 }

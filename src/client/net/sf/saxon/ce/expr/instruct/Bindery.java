@@ -1,13 +1,16 @@
 package client.net.sf.saxon.ce.expr.instruct;
 
 import client.net.sf.saxon.ce.expr.*;
-import client.net.sf.saxon.ce.om.*;
-import client.net.sf.saxon.ce.pattern.NameTest;
+import client.net.sf.saxon.ce.om.DocumentInfo;
+import client.net.sf.saxon.ce.om.DocumentPool;
+import client.net.sf.saxon.ce.om.StructuredQName;
+import client.net.sf.saxon.ce.om.Sequence;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.URI;
-import client.net.sf.saxon.ce.type.*;
-import client.net.sf.saxon.ce.value.*;
-import client.net.sf.saxon.ce.value.StringValue;
+import client.net.sf.saxon.ce.value.EmptySequence;
+import client.net.sf.saxon.ce.value.SequenceExtent;
+import client.net.sf.saxon.ce.value.SequenceType;
+import client.net.sf.saxon.ce.value.Value;
 
 import java.util.HashMap;
 
@@ -21,18 +24,18 @@ import java.util.HashMap;
 
 public final class Bindery  {
 
-    private ValueRepresentation[] globals;          // values of global variables and parameters
+    private Sequence[] globals;          // values of global variables and parameters
     private boolean[] busy;                         // set to true while variable is being evaluated
-    private HashMap<StructuredQName, ValueRepresentation> globalParameters;    // supplied global parameters
+    private HashMap<StructuredQName, Sequence> globalParameters;    // supplied global parameters
 
     /**
      * Define how many slots are needed for global variables
-     * @param map the SlotManager that keeps track of slot allocation for global variables.
+     * @param numberOfGlobals number of slots needed for global variables.
     */
 
-    public void allocateGlobals(SlotManager map) {
-        int n = map.getNumberOfVariables()+1;
-        globals = new ValueRepresentation[n];
+    public void allocateGlobals(int numberOfGlobals) {
+        int n = numberOfGlobals+1;
+        globals = new Sequence[n];
         busy = new boolean[n];
         for (int i=0; i<n; i++) {
             globals[i] = null;
@@ -46,7 +49,7 @@ public final class Bindery  {
     * @param params The ParameterSet passed in by the user, eg. from the command line
     */
 
-    public void defineGlobalParameters(HashMap<StructuredQName, ValueRepresentation> params) {
+    public void defineGlobalParameters(HashMap<StructuredQName, Sequence> params) {
         globalParameters = params;
     }
 
@@ -94,15 +97,15 @@ public final class Bindery  {
             }
         }   
 
-        ValueRepresentation val = null;
-        if (obj instanceof ValueRepresentation) {
-            val = (ValueRepresentation)obj;
+        Sequence val = null;
+        if (obj instanceof Sequence) {
+            val = (Sequence)obj;
         }
         if (val==null) {
             val = EmptySequence.getInstance();
         }
 
-        val = applyFunctionConversionRules(val, requiredType, context);
+        val = applyFunctionConversionRules(qName, val, requiredType, context);
 
         XPathException err = TypeChecker.testConformance(val, requiredType, context);
         if (err != null) {
@@ -123,103 +126,16 @@ public final class Bindery  {
      */
 
     public static Value applyFunctionConversionRules(
-            ValueRepresentation value, SequenceType requiredType, final XPathContext context)
+            StructuredQName qName,
+            Sequence value, SequenceType requiredType, final XPathContext context)
             throws XPathException {
-        final TypeHierarchy th = TypeHierarchy.getInstance();
-        final ItemType requiredItemType = requiredType.getPrimaryType();
-        ItemType suppliedItemType = (value instanceof NodeInfo
-                ? new NameTest(((NodeInfo)value))
-                : ((Value)value).getItemType());
 
-        SequenceIterator iterator = Value.asIterator(value);
-
-        if (requiredItemType.isAtomicType()) {
-
-            // step 1: apply atomization if necessary
-
-            if (!suppliedItemType.isAtomicType()) {
-                iterator = Atomizer.getAtomizingIterator(iterator);
-                suppliedItemType = suppliedItemType.getAtomizedItemType();
-            }
-
-            // step 2: convert untyped atomic values to target item type
-
-            if (th.relationship(suppliedItemType, BuiltInAtomicType.UNTYPED_ATOMIC) != TypeHierarchy.DISJOINT) {
-                ItemMappingFunction converter = new ItemMappingFunction() {
-                    public Item mapItem(Item item) throws XPathException {
-                        if (item instanceof UntypedAtomicValue) {
-                            return ((UntypedAtomicValue)item).convert(
-                                    (BuiltInAtomicType)requiredItemType, true).asAtomic();
-                        } else {
-                            return item;
-                        }
-                    }
-                };
-                iterator = new ItemMappingIterator(iterator, converter, true);
-            }
-
-            // step 3: apply numeric promotion
-
-            if (requiredItemType.equals(BuiltInAtomicType.DOUBLE)) {
-                ItemMappingFunction promoter = new ItemMappingFunction() {
-                    public Item mapItem(Item item) throws XPathException {
-                        if (item instanceof NumericValue) {
-                            return ((AtomicValue)item).convert(
-                                BuiltInAtomicType.DOUBLE, true).asAtomic();
-                        } else {
-                            throw new XPathException(
-                                    "Cannot promote non-numeric value to xs:double", "XPTY0004");
-                        }
-                    }
-                };
-                iterator = new ItemMappingIterator(iterator, promoter, true);
-            } else if (requiredItemType.equals(BuiltInAtomicType.FLOAT)) {
-                ItemMappingFunction promoter = new ItemMappingFunction() {
-                    public Item mapItem(Item item) throws XPathException {
-                        if (item instanceof DoubleValue) {
-                            throw new XPathException(
-                                    "Cannot promote xs:double value to xs:float", "XPTY0004");
-                        } else if (item instanceof NumericValue) {
-                            return ((AtomicValue)item).convert(
-                                BuiltInAtomicType.FLOAT, true).asAtomic();
-                        } else {
-                            throw new XPathException(
-                                    "Cannot promote non-numeric value to xs:float", "XPTY0004");
-                        }
-                    }
-                };
-                iterator = new ItemMappingIterator(iterator, promoter, true);
-            }
-
-            // step 4: apply URI-to-string promotion
-
-            if (requiredItemType.equals(BuiltInAtomicType.STRING) &&
-                    th.relationship(suppliedItemType, BuiltInAtomicType.ANY_URI) != TypeHierarchy.DISJOINT) {
-                ItemMappingFunction promoter = new ItemMappingFunction() {
-                    public Item mapItem(Item item) throws XPathException {
-                        if (item instanceof AnyURIValue) {
-                            return new StringValue(item.getStringValue());
-                        } else {
-                            return item;
-                        }
-                    }
-                };
-                iterator = new ItemMappingIterator(iterator, promoter, true);
-            }
-        }
-
-        return Value.asValue(SequenceExtent.makeSequenceExtent(iterator));
+        RoleLocator role = new RoleLocator(RoleLocator.PARAM, qName, 0);
+        Expression e = TypeChecker.staticTypeCheck(new Literal(Value.asValue(value)), requiredType, false, role);
+        return Value.asValue(SequenceExtent.makeSequenceExtent(e.iterate(context)));
     }
 
-    /**
-    * Provide a value for a global variable
-    * @param binding identifies the variable
-    * @param value the value of the variable
-    */
 
-    public void defineGlobalVariable(GlobalVariable binding, ValueRepresentation value) {
-        globals[binding.getSlotNumber()] = value;
-    }
 
     /**
      * Set/Unset a flag to indicate that a particular global variable is currently being
@@ -269,7 +185,7 @@ public final class Bindery  {
      * the variable is initialized using the collection() function.
     */
 
-    public synchronized ValueRepresentation saveGlobalVariableValue(GlobalVariable binding, ValueRepresentation value) {
+    public synchronized Sequence saveGlobalVariableValue(GlobalVariable binding, Sequence value) {
         int slot = binding.getSlotNumber();
         if (globals[slot] != null) {
             // another thread has already evaluated the value
@@ -281,24 +197,13 @@ public final class Bindery  {
         }
     }
 
-
-    /**
-    * Get the value of a global variable
-    * @param binding the Binding that establishes the unique instance of the variable
-    * @return the Value of the variable if defined, null otherwise.
-    */
-
-    public ValueRepresentation getGlobalVariableValue(GlobalVariable binding) {
-        return globals[binding.getSlotNumber()];
-    }
-
     /**
     * Get the value of a global variable whose slot number is known
     * @param slot the slot number of the required variable
     * @return the Value of the variable if defined, null otherwise.
     */
 
-    public ValueRepresentation getGlobalVariable(int slot) {
+    public Sequence getGlobalVariable(int slot) {
         return globals[slot];
     }
 

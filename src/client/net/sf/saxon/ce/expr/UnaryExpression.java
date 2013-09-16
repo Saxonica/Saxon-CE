@@ -110,9 +110,8 @@ public abstract class UnaryExpression extends Expression {
     */
 
     public Iterator<Expression> iterateSubExpressions() {
-        return monoIterator(operand);
+        return nonNullChildren(operand);
     }
-
 
     /**
     * Get the static properties of this expression (other than its type). The result is

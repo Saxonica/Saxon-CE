@@ -59,7 +59,7 @@ public class DistinctValues extends CollatingFunction {
             }
         }
 
-        public StatefulMappingFunction getAnother() {
+        public StatefulMappingFunction getAnother(SequenceIterator newBaseIterator) {
             return new DistinctItemsMappingFunction(collator, implicitTimezone);
         }
     }

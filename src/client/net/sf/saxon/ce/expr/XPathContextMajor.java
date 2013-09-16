@@ -5,7 +5,7 @@ import client.net.sf.saxon.ce.expr.instruct.*;
 import client.net.sf.saxon.ce.expr.sort.GroupIterator;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.StructuredQName;
-import client.net.sf.saxon.ce.om.ValueRepresentation;
+import client.net.sf.saxon.ce.om.Sequence;
 import client.net.sf.saxon.ce.regex.RegexIterator;
 import client.net.sf.saxon.ce.trans.Mode;
 import client.net.sf.saxon.ce.trans.Rule;
@@ -40,9 +40,11 @@ public class XPathContextMajor extends XPathContextMinor {
 
     public XPathContextMajor(Controller controller) {
         this.controller = controller;
-        stackFrame = StackFrame.EMPTY;
+        stackFrame = EMPTY_STACKFRAME;
         origin = controller;
     }
+
+    private static final Sequence[] EMPTY_STACKFRAME = new Sequence[0];
 
     /**
     * Private Constructor
@@ -124,16 +126,6 @@ public class XPathContextMajor extends XPathContextMinor {
     }
 
     /**
-     *
-     */
-
-    public static XPathContextMajor newThreadContext(XPathContextMinor prev) {
-        XPathContextMajor c = newContext(prev);
-        c.stackFrame = prev.stackFrame.copy();
-        return c;
-    }
-
-    /**
      * Get the local parameters for the current template call.
      * @return the supplied parameters
      */
@@ -176,60 +168,40 @@ public class XPathContextMajor extends XPathContextMinor {
      * Set the local stack frame. This method is used when creating a Closure to support
      * delayed evaluation of expressions. The "stack frame" is actually on the Java heap, which
      * means it can survive function returns and the like.
-     * @param map the SlotManager, which holds static details of the allocation of variables to slots
+     * @param size the number of slots needed on the stack frame
      * @param variables the array of "slots" to hold the actual variable values. This array will be
      * copied if it is too small to hold all the variables defined in the SlotManager
      */
 
-    public void setStackFrame(SlotManager map, ValueRepresentation[] variables) {
-        stackFrame = new StackFrame(map, variables);
-        if (map != null && variables.length != map.getNumberOfVariables()) {
-            if (variables.length > map.getNumberOfVariables()) {
+    public void setStackFrame(int size, Sequence[] variables) {
+        stackFrame = variables;
+        if (variables.length != size) {
+            if (variables.length > size) {
                 throw new IllegalStateException(
                         "Attempting to set more local variables (" + variables.length +
-                                ") than the stackframe can accommodate (" + map.getNumberOfVariables() + ")");
+                                ") than the stackframe can accommodate (" + size + ")");
             }
-            stackFrame.slots = new ValueRepresentation[map.getNumberOfVariables()];
-            System.arraycopy(variables, 0, stackFrame.slots, 0, variables.length);
+            stackFrame = new Sequence[size];
+            System.arraycopy(variables, 0, stackFrame, 0, variables.length);
         }
     }
 
     /**
      * Reset the stack frame variable map, while reusing the StackFrame object itself. This
      * is done on a tail call to a different function
-     * @param map the SlotManager representing the stack frame contents
+     * @param numberOfSlots the number of slots needed for the stack frame contents
      * @param numberOfParams the number of parameters required on the new stack frame
      */
 
-    public void resetStackFrameMap(SlotManager map, int numberOfParams) {
-        stackFrame.map = map;
-        if (stackFrame.slots.length != map.getNumberOfVariables()) {
-            ValueRepresentation[] v2 = new ValueRepresentation[map.getNumberOfVariables()];
-            System.arraycopy(stackFrame.slots, 0, v2, 0, numberOfParams);
-            stackFrame.slots = v2;
+    public void resetStackFrameMap(int numberOfSlots, int numberOfParams) {
+        if (stackFrame.length != numberOfSlots) {
+            Sequence[] v2 = new Sequence[numberOfSlots];
+            System.arraycopy(stackFrame, 0, v2, 0, numberOfParams);
+            stackFrame = v2;
         } else {
             // not strictly necessary
-            Arrays.fill(stackFrame.slots, numberOfParams, stackFrame.slots.length, null);
+            Arrays.fill(stackFrame, numberOfParams, stackFrame.length, null);
         }
-    }
-
-    /**
-     * Get a all the variables in the stack frame
-     * @return an array holding all the variables, each referenceable by its slot number
-     */
-
-    public ValueRepresentation[] getAllVariableValues() {
-        return stackFrame.getStackFrameValues();
-    }
-
-    /**
-     * Overwrite all the variables in the stack frame
-     * @param values an array holding all the variables, each referenceable by its slot number;
-     * the caller must ensure this is the correct length (and valid in other ways)
-     */
-
-    public void resetAllVariableValues(ValueRepresentation[] values) {
-        stackFrame.setStackFrameValues(values);
     }
 
     /**
@@ -240,13 +212,13 @@ public class XPathContextMajor extends XPathContextMinor {
      * @param variables the parameter to be supplied to the user function
      */
 
-    public void requestTailCall(UserFunction fn, ValueRepresentation[] variables) {
-        if (variables.length > stackFrame.slots.length) {
-            ValueRepresentation[] v2 = new ValueRepresentation[fn.getStackFrameMap().getNumberOfVariables()];
+    public void requestTailCall(UserFunction fn, Sequence[] variables) {
+        if (variables.length > stackFrame.length) {
+            Sequence[] v2 = new Sequence[fn.getNumberOfSlots()];
             System.arraycopy(variables, 0, v2, 0, variables.length);
-            stackFrame.slots = v2;
+            stackFrame = v2;
         } else {
-            System.arraycopy(variables, 0, stackFrame.slots, 0, variables.length);
+            System.arraycopy(variables, 0, stackFrame, 0, variables.length);
         }
         tailCallFunction = fn;
     }
@@ -263,29 +235,15 @@ public class XPathContextMajor extends XPathContextMinor {
     }
 
     /**
-     * Create a new stack frame for local variables, using the supplied SlotManager to
-     * define the allocation of slots to individual variables
-     * @param map the SlotManager for the new stack frame
+     * Create a new stack frame for local variables
+     * @param numberOfSlots the number of slots needed in the stack frame
      */
-    public void openStackFrame(SlotManager map) {
-        int numberOfSlots = map.getNumberOfVariables();
+    public void openStackFrame(int numberOfSlots) {
         if (numberOfSlots == 0) {
-            stackFrame = StackFrame.EMPTY;
+            stackFrame = EMPTY_STACKFRAME;
         } else {
-            stackFrame = new StackFrame(map, new ValueRepresentation[numberOfSlots]);
+            stackFrame = new Sequence[numberOfSlots];
         }
-    }
-
-    /**
-     * Create a new stack frame large enough to hold a given number of local variables,
-     * for which no stack frame map is available. This is used in particular when evaluating
-     * match patterns of template rules.
-     * @param numberOfVariables The number of local variables to be accommodated.
-     */
-
-    public void openStackFrame(int numberOfVariables) {
-        stackFrame = new StackFrame(new SlotManager(numberOfVariables),
-                                    new ValueRepresentation[numberOfVariables]);
     }
 
     /**
@@ -400,8 +358,8 @@ public class XPathContextMajor extends XPathContextMinor {
         if (index < 0) {
             return ParameterSet.NOT_SUPPLIED;
         }
-        ValueRepresentation val = params.getValue(index);
-        stackFrame.slots[binding.getSlotNumber()] = val;
+        Sequence val = params.getValue(index);
+        stackFrame[binding.getSlotNumber()] = val;
         boolean checked = params.isTypeChecked(index);
         return (checked ? ParameterSet.SUPPLIED_AND_CHECKED : ParameterSet.SUPPLIED);
     }

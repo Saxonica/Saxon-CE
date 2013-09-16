@@ -5,6 +5,7 @@ import client.net.sf.saxon.ce.expr.instruct.*;
 import client.net.sf.saxon.ce.om.Axis;
 import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.om.StructuredQName;
+import client.net.sf.saxon.ce.pattern.AnyNodeTest;
 import client.net.sf.saxon.ce.pattern.NodeKindTest;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
@@ -25,7 +26,6 @@ public abstract class XSLGeneralVariable extends StyleElement {
     protected SequenceType requiredType = null;
     protected String constantText = null;
     protected boolean global;
-    protected SlotManager slotManager = null;  // used only for global variable declarations
     protected boolean redundant = false;
     protected boolean requiredParam = false;
     protected boolean implicitlyRequiredParam = false;
@@ -153,9 +153,6 @@ public abstract class XSLGeneralVariable extends StyleElement {
     public void validate(Declaration decl) throws XPathException {
         global = isTopLevel();
 
-        if (global) {
-            slotManager = new SlotManager();
-        }
         if (select!=null && hasChildNodes()) {
             compileError("An " + getDisplayName() + " element with a select attribute must be empty", "XTSE0620");
         }
@@ -174,7 +171,7 @@ public abstract class XSLGeneralVariable extends StyleElement {
 
         if (select==null && allowsValue()) {
             textonly = true;
-            UnfailingIterator kids = iterateAxis(Axis.CHILD);
+            UnfailingIterator kids = iterateAxis(Axis.CHILD, AnyNodeTest.getInstance());
             NodeInfo first = (NodeInfo)kids.next();
             if (first == null) {
                 if (requiredType == null) {
@@ -240,7 +237,7 @@ public abstract class XSLGeneralVariable extends StyleElement {
                     RoleLocator role = new RoleLocator(category, getVariableDisplayName(), 0);
                     //role.setSourceLocator(new ExpressionLocation(this));
                     role.setErrorCode(errorCode);
-                    select = TypeChecker.staticTypeCheck(select, required, false, role, makeExpressionVisitor());
+                    select = TypeChecker.staticTypeCheck(select, required, false, role);
                 } else {
                     // do the check later
                 }
@@ -274,7 +271,7 @@ public abstract class XSLGeneralVariable extends StyleElement {
             if (requiredType==null) {
                 DocumentInstr doc = new DocumentInstr(textonly, constantText, getBaseURI());
                 var.adoptChildExpression(doc);
-                Expression b = compileSequenceConstructor(exec, decl, iterateAxis(Axis.CHILD));
+                Expression b = compileSequenceConstructor(exec, decl);
                 if (b == null) {
                     b = Literal.makeEmptySequence();
                 }
@@ -282,7 +279,7 @@ public abstract class XSLGeneralVariable extends StyleElement {
                 select = doc;
                 var.setSelectExpression(doc);
             } else {
-                select = compileSequenceConstructor(exec, decl, iterateAxis(Axis.CHILD));
+                select = compileSequenceConstructor(exec, decl);
                 var.adoptChildExpression(select);
                 if (select == null) {
                     select = Literal.makeEmptySequence();
@@ -296,7 +293,7 @@ public abstract class XSLGeneralVariable extends StyleElement {
                         role.setErrorCode("XTTE0570");
                         //role.setSourceLocator(new ExpressionLocation(this));
                         select = makeExpressionVisitor().simplify(select);
-                        select = TypeChecker.staticTypeCheck(select, requiredType, false, role, makeExpressionVisitor());
+                        select = TypeChecker.staticTypeCheck(select, requiredType, false, role);
                     }
                 } catch (XPathException err) {
                     err.setLocator(this);
@@ -324,21 +321,14 @@ public abstract class XSLGeneralVariable extends StyleElement {
                 	//exp2.AddTraceProperty("select", selectAtt);
                 }
             }
-            setReferenceCount(gvar);
-
             if (exp2 != select) {
                 gvar.setSelectExpression(exp2);
             }
         }
     }
 
-    protected void setReferenceCount(GeneralVariable var) {
-        // overridden in subclass
-    }
-    
 
-
- }
+}
 
 // This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. 
 // If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.

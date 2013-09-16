@@ -4,7 +4,6 @@ import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.Controller;
 import client.net.sf.saxon.ce.event.PipelineConfiguration;
 import client.net.sf.saxon.ce.event.SequenceOutputter;
-import client.net.sf.saxon.ce.expr.instruct.SlotManager;
 import client.net.sf.saxon.ce.functions.Current;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
 import client.net.sf.saxon.ce.om.*;
@@ -185,7 +184,7 @@ public class ExpressionTool {
      *     evaluate it later
      */
 
-    public static ValueRepresentation evaluate(Expression exp, int evaluationMode, XPathContext context)
+    public static Sequence evaluate(Expression exp, int evaluationMode, XPathContext context)
     throws XPathException {
         switch (evaluationMode) {
 
@@ -223,7 +222,7 @@ public class ExpressionTool {
                 seq.open();
                 exp.process(c2);
                 seq.close();
-                ValueRepresentation val = seq.getSequence();
+                Sequence val = seq.getSequence();
                 seq.reset();
                 return val;
 
@@ -250,20 +249,16 @@ public class ExpressionTool {
 
     /**
      * Allocate slot numbers to range variables
+     *
      * @param exp the expression whose range variables need to have slot numbers assigned
      * @param nextFree the next slot number that is available for allocation
-     * @param frame a SlotManager object that is used to track the mapping of slot numbers
-     * to variable names for debugging purposes. May be null.
      * @return the next unallocated slot number.
     */
 
-    public static int allocateSlots(Expression exp, int nextFree, SlotManager frame) {
+    public static int allocateSlots(Expression exp, int nextFree) {
         if (exp instanceof Assignation) {
             ((Assignation)exp).setSlotNumber(nextFree);
             nextFree++;
-            if (frame != null) {
-                frame.allocateSlotNumber(((Assignation)exp).getVariableQName());
-            }
         }
         if (exp instanceof VariableReference) {
             VariableReference var = (VariableReference)exp;
@@ -287,7 +282,7 @@ public class ExpressionTool {
         }
         for (Iterator children = exp.iterateSubExpressions(); children.hasNext();) {
             Expression child = (Expression)children.next();
-            nextFree = allocateSlots(child, nextFree, frame);
+            nextFree = allocateSlots(child, nextFree);
         }
 
         return nextFree;
@@ -445,40 +440,6 @@ public class ExpressionTool {
                 gatherVariableReferences((Expression)iter.next(), binding, list);
             }
         }
-    }
-
-    /**
-     * Determine how often a variable is referenced. This is the number of times
-     * it is referenced at run-time: so a reference in a loop counts as "many". This code
-     * currently handles local variables (Let expressions) and function parameters. It is
-     * not currently used for XSLT template parameters. It's not the end of the world if
-     * the answer is wrong (unless it's wrongly given as zero), but if wrongly returned as
-     * 1 then the variable will be repeatedly evaluated.
-     * @param exp the expression within which variable references are to be counted
-     * @param binding identifies the variable of interest
-     * @param inLoop true if the expression is within a loop, in which case a reference counts as many.
-     * This should be set to false on the initial call, it may be set to true on an internal recursive
-     * call 
-     * @return the number of references. The interesting values are 0, 1,  "many" (represented
-     * by any value >1), and the special value FILTERED, which indicates that there are
-     * multiple references and one or more of them is of the form $x[....] indicating that an
-     * index might be useful.
-     */
-
-    public static int getReferenceCount(Expression exp, Binding binding, boolean inLoop) {
-        int rcount = 0;
-        if (exp instanceof VariableReference && ((VariableReference)exp).getBinding() == binding) {
-            rcount += (inLoop ? 10 : 1);
-        } else if ((exp.getDependencies() & StaticProperty.DEPENDS_ON_LOCAL_VARIABLES) == 0) {
-            return 0;
-        } else {
-            for (Iterator iter = exp.iterateSubExpressions(); iter.hasNext(); ) {
-                Expression child = (Expression)iter.next();
-                boolean childLoop = inLoop || (exp.hasLoopingSubexpression(child));
-                rcount += getReferenceCount(child, binding, childLoop);
-            }
-        }
-        return rcount;
     }
 
 

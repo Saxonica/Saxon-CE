@@ -1,26 +1,23 @@
 package client.net.sf.saxon.ce.style;
 
-import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
-import com.google.gwt.logging.client.LogConfiguration;
-
 import client.net.sf.saxon.ce.LogController;
 import client.net.sf.saxon.ce.expr.Expression;
 import client.net.sf.saxon.ce.expr.instruct.CallTemplate;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.expr.instruct.Template;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
-import client.net.sf.saxon.ce.om.*;
+import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.Err;
 import client.net.sf.saxon.ce.trans.XPathException;
+import client.net.sf.saxon.ce.tree.linked.NodeImpl;
 import client.net.sf.saxon.ce.type.AnyItemType;
 import client.net.sf.saxon.ce.type.ItemType;
-import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.value.SequenceType;
-import client.net.sf.saxon.ce.value.Whitespace;
+import com.google.gwt.logging.client.LogConfiguration;
 
 /**
-* An xsl:call-template element in the stylesheet
-*/
+ * An xsl:call-template element in the stylesheet
+ */
 
 public class XSLCallTemplate extends StyleElement {
 
@@ -29,9 +26,10 @@ public class XSLCallTemplate extends StyleElement {
     private boolean useTailRecursion = false;
 
     /**
-    * Determine whether this node is an instruction.
-    * @return true - it is an instruction
-    */
+     * Determine whether this node is an instruction.
+     *
+     * @return true - it is an instruction
+     */
 
     public boolean isInstruction() {
         return true;
@@ -42,11 +40,12 @@ public class XSLCallTemplate extends StyleElement {
     /**
      * Determine the type of item returned by this instruction (only relevant if
      * it is an instruction).
+     *
      * @return the item type returned
      */
-    
+
     protected ItemType getReturnedItemType() {
-        if (template==null || gettingReturnedItemType) {
+        if (template == null || gettingReturnedItemType) {
             return AnyItemType.getInstance();
         } else {
             // protect against infinite recursion
@@ -59,7 +58,7 @@ public class XSLCallTemplate extends StyleElement {
 
     public void prepareAttributes() throws XPathException {
 
-        calledTemplateName = (StructuredQName)checkAttribute("name", "q1");
+        calledTemplateName = (StructuredQName) checkAttribute("name", "q1");
         checkForUnknownAttributes();
 
 //		AttributeCollection atts = getAttributeList();
@@ -94,26 +93,10 @@ public class XSLCallTemplate extends StyleElement {
     }
 
     public void validate(Declaration decl) throws XPathException {
-        UnfailingIterator kids = iterateAxis(Axis.CHILD);
-        while (true) {
-            NodeInfo child = (NodeInfo)kids.next();
-            if (child == null) {
-                break;
-            }
-            if (child instanceof XSLWithParam) {
-                // OK;
-            } else if (child.getNodeKind() == Type.TEXT) {
-                    // with xml:space=preserve, white space nodes may still be there
-                if (!Whitespace.isWhite(child.getStringValue())) {
-                    compileError("No character data is allowed within xsl:call-template", "XTSE0010");
-                }
-            } else {
-                compileError("Child element " + Err.wrap(child.getDisplayName(), Err.ELEMENT) +
-                        " is not allowed as a child of xsl:call-template", "XTSE0010");
-            }
-        }
+        onlyAllow("with-param");
+
         if (!(calledTemplateName.getNamespaceURI().equals(NamespaceConstant.SAXON) &&
-                    calledTemplateName.getLocalName().equals("error-template"))) {
+                calledTemplateName.getLocalName().equals("error-template"))) {
             template = findTemplate(calledTemplateName);
         }
     }
@@ -123,31 +106,21 @@ public class XSLCallTemplate extends StyleElement {
         // of the called template
 
         if (template != null) {
-            UnfailingIterator declaredParams = template.iterateAxis(Axis.CHILD);
-            while(true) {
-                NodeInfo param = (NodeInfo)declaredParams.next();
-                if (param == null) {
-                    break;
-                }
-                if (param instanceof XSLParam && ((XSLParam)param).isRequiredParam()
-                                              && !((XSLParam)param).isTunnelParam()) {
-                    UnfailingIterator actualParams = iterateAxis(Axis.CHILD);
+            for (NodeImpl param : template.allChildren()) {
+                if (param instanceof XSLParam && ((XSLParam) param).isRequiredParam()
+                        && !((XSLParam) param).isTunnelParam()) {
                     boolean ok = false;
-                    while(true) {
-                        NodeInfo withParam = (NodeInfo)actualParams.next();
-                        if (withParam == null) {
-                            break;
-                        }
-                        if (withParam instanceof XSLWithParam &&
-                                ((XSLWithParam)withParam).getVariableQName().equals(
-                                    ((XSLParam)param).getVariableQName())) {
+                    for (NodeImpl child : allChildren()) {
+                        if (child instanceof XSLWithParam &&
+                                ((XSLWithParam) child).getVariableQName().equals(
+                                        ((XSLParam) param).getVariableQName())) {
                             ok = true;
                             break;
                         }
                     }
                     if (!ok) {
                         compileError("No value supplied for required parameter " +
-                                Err.wrap(((XSLParam)param).getVariableDisplayName(), Err.VARIABLE), "XTSE0690");
+                                Err.wrap(((XSLParam) param).getVariableDisplayName(), Err.VARIABLE), "XTSE0690");
                     }
                 }
             }
@@ -156,27 +129,17 @@ public class XSLCallTemplate extends StyleElement {
             // check that every supplied parameter is declared in the called
             // template
 
-            UnfailingIterator actualParams = iterateAxis(Axis.CHILD);
-            while(true) {
-                NodeInfo w = (NodeInfo)actualParams.next();
-                if (w == null) {
-                    break;
-                }
-                if (w instanceof XSLWithParam && !((XSLWithParam)w).isTunnelParam()) {
-                    XSLWithParam withParam = (XSLWithParam)w;
-                    UnfailingIterator formalParams = template.iterateAxis(Axis.CHILD);
+            for (NodeImpl w : allChildren()) {
+                if (w instanceof XSLWithParam && !((XSLWithParam) w).isTunnelParam()) {
+                    XSLWithParam withParam = (XSLWithParam) w;
                     boolean ok = false;
-                    while(true) {
-                        NodeInfo param = (NodeInfo)formalParams.next();
-                        if (param == null) {
-                            break;
-                        }
+                    for (NodeImpl param : template.allChildren()) {
                         if (param instanceof XSLParam &&
-                                ((XSLParam)param).getVariableQName().equals(withParam.getVariableQName())
-                                /* TODO spec bug 10934: && !((XSLParam)param).isTunnelParam() */
+                                ((XSLParam) param).getVariableQName().equals(withParam.getVariableQName())
+                            /* TODO spec bug 10934: && !((XSLParam)param).isTunnelParam() */
                                 ) {
                             ok = true;
-                            SequenceType required = ((XSLParam)param).getRequiredType();
+                            SequenceType required = ((XSLParam) param).getRequiredType();
                             withParam.checkAgainstRequiredType(required);
                             break;
                         }
@@ -194,7 +157,7 @@ public class XSLCallTemplate extends StyleElement {
     }
 
     private XSLTemplate findTemplate(StructuredQName templateName)
-    throws XPathException {
+            throws XPathException {
 
         PrincipalStylesheetModule psm = getPrincipalStylesheetModule();
         XSLTemplate template = psm.getNamedTemplate(templateName);
@@ -207,7 +170,7 @@ public class XSLCallTemplate extends StyleElement {
     /**
      * Mark tail-recursive calls on templates and functions.
      * For most instructions, this does nothing.
-    */
+     */
 
     public boolean markTailCalls() {
         useTailRecursion = true;
@@ -218,18 +181,18 @@ public class XSLCallTemplate extends StyleElement {
     public Expression compile(Executable exec, Declaration decl) throws XPathException {
         Template target;
 
-        if (template==null) {
+        if (template == null) {
             return null;   // error already reported
         }
         target = template.getCompiledTemplate();
 
         CallTemplate call = new CallTemplate(target, useTailRecursion);
         call.setActualParameters(getWithParamInstructions(exec, decl, false, call),
-                                 getWithParamInstructions(exec, decl, true, call));
+                getWithParamInstructions(exec, decl, true, call));
         if (LogConfiguration.loggingIsEnabled() && LogController.traceIsEnabled()) {
-        	call.AddTraceProperty("name", calledTemplateName.getDisplayName());
+            call.AddTraceProperty("name", calledTemplateName.getDisplayName());
         }
-        
+
         return call;
     }
 

@@ -3,7 +3,7 @@ package client.net.sf.saxon.ce.value;
 import client.net.sf.saxon.ce.lib.StringCollator;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ConversionResult;
 import client.net.sf.saxon.ce.type.ValidationFailure;
 
@@ -46,24 +46,25 @@ public class Base64BinaryValue extends AtomicValue {
         binaryValue = value;
     }
 
-    public BuiltInAtomicType getItemType() {
-        return BuiltInAtomicType.BASE64_BINARY;
+    public AtomicType getItemType() {
+        return AtomicType.BASE64_BINARY;
     }
 
     /**
      * Convert to target data type
+     *
      * @param requiredType an integer identifying the required atomic type
      * @return an AtomicValue, a value of the required type; or an ErrorValue
      */
 
-    public ConversionResult convertPrimitive(BuiltInAtomicType requiredType, boolean validate) {
-        if (requiredType == BuiltInAtomicType.ANY_ATOMIC || requiredType == BuiltInAtomicType.BASE64_BINARY) {
+    public ConversionResult convert(AtomicType requiredType) {
+        if (requiredType == AtomicType.ANY_ATOMIC || requiredType == AtomicType.BASE64_BINARY) {
             return this;
-        } else if (requiredType == BuiltInAtomicType.UNTYPED_ATOMIC) {
+        } else if (requiredType == AtomicType.UNTYPED_ATOMIC) {
             return new UntypedAtomicValue(getStringValue());
-        } else if (requiredType == BuiltInAtomicType.STRING) {
+        } else if (requiredType == AtomicType.STRING) {
             return new StringValue(getStringValue());
-        } else if (requiredType == BuiltInAtomicType.HEX_BINARY) {
+        } else if (requiredType == AtomicType.HEX_BINARY) {
             return new HexBinaryValue(binaryValue);
         } else {
             return new ValidationFailure("Cannot convert base64Binary to " + requiredType.getDisplayName(), "XPTY0004");

@@ -6,7 +6,7 @@ import client.net.sf.saxon.ce.functions.Count;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.om.SequenceIterator;
-import client.net.sf.saxon.ce.om.ValueRepresentation;
+import client.net.sf.saxon.ce.om.Sequence;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.EmptyIterator;
 import client.net.sf.saxon.ce.tree.iter.SingletonIterator;
@@ -21,7 +21,7 @@ import client.net.sf.saxon.ce.type.ItemType;
 */
 
 public abstract class Value
-        implements ValueRepresentation {
+        implements Sequence {
 
     /**
      * Static method to make a Value from a given Item (which may be either an AtomicValue
@@ -32,7 +32,7 @@ public abstract class Value
      *                  return an EmptySequence
      */
 
-    public static Value asValue(ValueRepresentation val) {
+    public static Value asValue(Sequence val) {
         if (val instanceof Value) {
             return (Value)val;
         } else if (val == null) {
@@ -50,7 +50,7 @@ public abstract class Value
      * @throws XPathException if the Value contains multiple items
      */
 
-    public static Item asItem(ValueRepresentation value) throws XPathException {
+    public static Item asItem(Sequence value) throws XPathException {
         if (value instanceof Item) {
             return (Item)value;
         } else {
@@ -75,7 +75,7 @@ public abstract class Value
      *                  return an EmptySequence
      */
 
-    public static SequenceIterator asIterator(ValueRepresentation val) throws XPathException {
+    public static SequenceIterator asIterator(Sequence val) throws XPathException {
         if (val instanceof Value) {
             return ((Value)val).iterate();
         } else if (val == null) {

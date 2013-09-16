@@ -10,7 +10,6 @@ import client.net.sf.saxon.ce.tree.NamespaceNode;
 import client.net.sf.saxon.ce.tree.iter.*;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
 import client.net.sf.saxon.ce.tree.util.Navigator;
-import client.net.sf.saxon.ce.tree.wrapper.SiblingCountingNode;
 import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.value.AtomicValue;
 import client.net.sf.saxon.ce.value.UntypedAtomicValue;
@@ -23,8 +22,7 @@ import client.net.sf.saxon.ce.value.UntypedAtomicValue;
  * @author Michael H. Kay
  */
 
-public abstract class NodeImpl
-        implements NodeInfo, SiblingCountingNode {
+public abstract class NodeImpl implements NodeInfo {
 
     private ParentNodeImpl parent;
     private int index;
@@ -333,26 +331,6 @@ public abstract class NodeImpl
      * Return an enumeration over the nodes reached by the given axis from this node
      *
      * @param axisNumber The axis to be iterated over
-     * @return an AxisIterator that scans the nodes reached by the axis in turn.
-     */
-
-    public UnfailingIterator iterateAxis(byte axisNumber) {
-        // Fast path for child axis
-        if (axisNumber == Axis.CHILD) {
-            if (this instanceof ParentNodeImpl) {
-                return ((ParentNodeImpl)this).enumerateChildren(AnyNodeTest.getInstance());
-            } else {
-                return EmptyIterator.getInstance();
-            }
-        } else {
-            return iterateAxis(axisNumber, AnyNodeTest.getInstance());
-        }
-    }
-
-    /**
-     * Return an enumeration over the nodes reached by the given axis from this node
-     *
-     * @param axisNumber The axis to be iterated over
      * @param nodeTest   A pattern to be matched by the returned nodes
      * @return an AxisIterator that scans the nodes reached by the axis in turn.
      */
@@ -384,12 +362,17 @@ public abstract class NodeImpl
                     for (int i=0; i<atts.getLength(); i++) {
                         nodes[i] = new AttributeImpl(((ElementImpl)this), i);
                     }
-                    return new Navigator.AxisFilter(new ArrayIterator(nodes), nodeTest);
+                    return Navigator.newAxisFilter(new ArrayIterator(nodes), nodeTest);
                 }
 
             case Axis.CHILD:
                 if (this instanceof ParentNodeImpl) {
-                    return ((ParentNodeImpl)this).enumerateChildren(nodeTest);
+                    UnfailingIterator all = new ArrayIterator(((ParentNodeImpl)this).allChildren());
+                    if (nodeTest == AnyNodeTest.getInstance()) {
+                        return all;
+                    } else {
+                        return Navigator.newAxisFilter(all, nodeTest);
+                    }
                 } else {
                     return EmptyIterator.getInstance();
                 }
@@ -409,7 +392,7 @@ public abstract class NodeImpl
                 return new SteppingIterator(this, new NextDescendantFunction(this, nodeTest), true);
 
             case Axis.FOLLOWING:
-                return new Navigator.AxisFilter(new Navigator.FollowingEnumeration(this), nodeTest);
+                return Navigator.newAxisFilter(new Navigator.FollowingEnumeration(this), nodeTest);
 
             case Axis.FOLLOWING_SIBLING:
                 return new SteppingIterator(this, new NextSiblingFunction(nodeTest), false);
@@ -428,16 +411,13 @@ public abstract class NodeImpl
                 return Navigator.filteredSingleton(parent, nodeTest);
 
             case Axis.PRECEDING:
-                return new Navigator.AxisFilter(new Navigator.PrecedingEnumeration(this, false), nodeTest);
+                return Navigator.newAxisFilter(new Navigator.PrecedingEnumeration(this, false), nodeTest);
 
             case Axis.PRECEDING_SIBLING:
                 return new SteppingIterator(this, new PrecedingSiblingFunction(nodeTest), false);
 
             case Axis.SELF:
                 return Navigator.filteredSingleton(this, nodeTest);
-
-            case Axis.PRECEDING_OR_ANCESTOR:
-                return new Navigator.AxisFilter(new Navigator.PrecedingEnumeration(this, true), nodeTest);
 
             default:
                 throw new IllegalArgumentException("Unknown axis number " + axisNumber);
@@ -602,6 +582,7 @@ public abstract class NodeImpl
     public Builder newBuilder() {
         return getPhysicalRoot().newBuilder();
     }
+
 
     private static class NextDescendantFunction implements SteppingIterator.SteppingFunction {
         private NodeImpl anchor;

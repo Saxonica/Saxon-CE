@@ -6,6 +6,8 @@ import client.net.sf.saxon.ce.expr.ItemMappingFunction;
 import client.net.sf.saxon.ce.expr.UnfailingItemMappingIterator;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
 import client.net.sf.saxon.ce.om.*;
+import client.net.sf.saxon.ce.pattern.AnyNodeTest;
+import client.net.sf.saxon.ce.pattern.NodeTest;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.EmptyIterator;
 import client.net.sf.saxon.ce.tree.iter.ListIterator;
@@ -145,11 +147,11 @@ public class SpaceStrippedNode extends AbstractVirtualNode {
     * @return a SequenceIterator that scans the nodes reached by the axis in turn.
     */
 
-    public UnfailingIterator iterateAxis(byte axisNumber) {
+    protected UnfailingIterator iterateAxis0(byte axisNumber) {
         switch (axisNumber) {
             case Axis.ATTRIBUTE:
             case Axis.NAMESPACE:
-                UnfailingIterator iter = iterateAxis(axisNumber);
+                UnfailingIterator iter = node.iterateAxis(axisNumber, AnyNodeTest.getInstance());
                 List<NodeInfo> wrappedNodes = new ArrayList<NodeInfo>();
                 while (true) {
                     NodeInfo att = (NodeInfo)iter.next();
@@ -163,17 +165,17 @@ public class SpaceStrippedNode extends AbstractVirtualNode {
                 return new ListIterator(wrappedNodes);
 
             case Axis.CHILD:
-                return makeStrippingIterator(node.iterateAxis(axisNumber), this);
+                return makeStrippingIterator(node.iterateAxis(axisNumber, AnyNodeTest.getInstance()), this);
             case Axis.FOLLOWING_SIBLING:
             case Axis.PRECEDING_SIBLING:
                 SpaceStrippedNode parent = (SpaceStrippedNode)getParent();
                 if (parent == null) {
                     return EmptyIterator.getInstance();
                 } else {
-                    return makeStrippingIterator(node.iterateAxis(axisNumber), parent);
+                    return makeStrippingIterator(node.iterateAxis(axisNumber, AnyNodeTest.getInstance()), parent);
                 }
             default:
-                return makeStrippingIterator(node.iterateAxis(axisNumber), null);
+                return makeStrippingIterator(node.iterateAxis(axisNumber, AnyNodeTest.getInstance()), null);
         }
     }
 

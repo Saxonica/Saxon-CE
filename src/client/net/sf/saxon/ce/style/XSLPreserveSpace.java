@@ -46,7 +46,7 @@ public class XSLPreserveSpace extends StyleElement {
     {
         Template preserve =
                 (getLocalPart().equals("preserve-space") ? Stripper.PRESERVE : Stripper.STRIP);
-        StripSpaceRules stripperRules = getPrincipalStylesheetModule().getStripperRules();
+        StripSpaceRules stripperRules = getExecutable().getStripperRules();
 
         // elements is a space-separated list of element names
 

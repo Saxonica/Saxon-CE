@@ -5,7 +5,7 @@ import client.net.sf.saxon.ce.expr.instruct.UserFunctionParameter;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.om.SequenceIterator;
-import client.net.sf.saxon.ce.om.ValueRepresentation;
+import client.net.sf.saxon.ce.om.Sequence;
 import client.net.sf.saxon.ce.pattern.NodeTest;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.AnyItemType;
@@ -119,9 +119,6 @@ public class VariableReference extends Expression {
         } else if (binding instanceof UserFunctionParameter) {
             inLoop = visitor.isLoopingSubexpression(null);
         }
-        if (binding instanceof Assignation) {
-            ((Assignation)binding).addReference(inLoop);
-        }
         return this;
     }
 
@@ -188,7 +185,10 @@ public class VariableReference extends Expression {
     public ItemType getItemType() {
         if (staticType == null || staticType.getPrimaryType() == AnyItemType.getInstance()) {
             if (binding != null) {
-                return binding.getRequiredType().getPrimaryType();
+                SequenceType st = binding.getRequiredType();
+                if (st != null) {
+                    return st.getPrimaryType();
+                }
             }
             return AnyItemType.getInstance();
         } else {
@@ -306,7 +306,7 @@ public class VariableReference extends Expression {
 
     public SequenceIterator iterate(XPathContext c) throws XPathException {
         try {
-            ValueRepresentation actual = evaluateVariable(c);
+            Sequence actual = evaluateVariable(c);
             return Value.asIterator(actual);
         } catch (XPathException err) {
             err.maybeSetLocation(getSourceLocator());
@@ -324,7 +324,7 @@ public class VariableReference extends Expression {
 
     public Item evaluateItem(XPathContext c) throws XPathException {
         try {
-            ValueRepresentation actual = evaluateVariable(c);
+            Sequence actual = evaluateVariable(c);
             if (actual instanceof Item) {
                 return (Item) actual;
             }
@@ -337,7 +337,7 @@ public class VariableReference extends Expression {
 
     public void process(XPathContext c) throws XPathException {
         try {
-            ValueRepresentation actual = evaluateVariable(c);
+            Sequence actual = evaluateVariable(c);
             if (actual instanceof NodeInfo) {
                 actual = new SingletonItem((NodeInfo) actual);
             }
@@ -355,7 +355,7 @@ public class VariableReference extends Expression {
      * @throws XPathException if any error occurs
      */
 
-    public ValueRepresentation evaluateVariable(XPathContext c) throws XPathException {
+    public Sequence evaluateVariable(XPathContext c) throws XPathException {
         try {
             return binding.evaluateVariable(c);
         } catch (NullPointerException err) {

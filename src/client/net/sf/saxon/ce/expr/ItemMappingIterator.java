@@ -59,7 +59,13 @@ public class ItemMappingIterator implements SequenceIterator, LastPositionFinder
                 return null;
             }
             // Call the supplied mapping function
-            current = action.mapItem(nextSource);
+            try {
+                current = action.mapItem(nextSource);
+            } catch (EarlyExitException e) {
+                current  = null;
+                position  = -1;
+                return null;
+            }
             if (current != null) {
                 position++;
                 return current;
@@ -79,32 +85,27 @@ public class ItemMappingIterator implements SequenceIterator, LastPositionFinder
     public SequenceIterator getAnother() throws XPathException {
         SequenceIterator newBase = base.getAnother();
         ItemMappingFunction newAction = action instanceof StatefulMappingFunction ?
-                (ItemMappingFunction)((StatefulMappingFunction)action).getAnother() :
+                (ItemMappingFunction)((StatefulMappingFunction)action).getAnother(null) :
                 action;
         return new ItemMappingIterator(newBase, newAction, oneToOne);
     }
 
     public int getLastPosition() throws XPathException {
-        // Must only be called if this is a last-position-finder iterator, which will only be true if the base iterator
-        // is a last-position-finder iterator and one-to-one is true
-        return ((LastPositionFinder)base).getLastPosition();
+        if (base instanceof LastPositionFinder && oneToOne) {
+            return ((LastPositionFinder)base).getLastPosition();
+        } else {
+            return -1;
+        }
     }
 
     /**
-     * Get properties of this iterator, as a bit-significant integer.
-     *
-     * @return the properties of this iterator. This will be some combination of
-     *         properties such as {@link client.net.sf.saxon.ce.om.SequenceIterator#GROUNDED},
-     *         {@link client.net.sf.saxon.ce.om.SequenceIterator#LAST_POSITION_FINDER},. It is always
-     *         acceptable to return the value zero, indicating that there are no known special properties.
-     *         It is acceptable for the properties of the iterator to change depending on its state.
+     * The mapping function can throw an EarlyExitException to indicate that no more iteme will be
+     * returned; processing of the input sequence can cease at this point.
      */
 
-    public int getProperties() {
-        if (oneToOne) {
-            return base.getProperties() & (LAST_POSITION_FINDER);
-        } else {
-            return 0;
+    public static class EarlyExitException extends XPathException{
+        public EarlyExitException() {
+            super("");
         }
     }
 }

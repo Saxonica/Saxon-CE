@@ -2,7 +2,7 @@ package client.net.sf.saxon.ce.expr;
 
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.SequenceIterator;
-import client.net.sf.saxon.ce.om.ValueRepresentation;
+import client.net.sf.saxon.ce.om.Sequence;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.AnyItemType;
 import client.net.sf.saxon.ce.type.ItemType;
@@ -98,15 +98,8 @@ public class SuppliedParameterReference extends Expression {
     * @throws XPathException if the variable is undefined
     */
 
-    public ValueRepresentation evaluateVariable(XPathContext c) throws XPathException {
-        if (slotNumber == -1) {
-            return c.getStackFrame().popDynamicValue();
-        }
-        try {
-            return c.evaluateLocalVariable(slotNumber);
-        } catch (AssertionError e) {
-            throw new AssertionError(e.getMessage() + ". No value has been set for parameter " + slotNumber);
-        }
+    public Sequence evaluateVariable(XPathContext c) throws XPathException {
+        return c.evaluateLocalVariable(slotNumber);
     }
 
     /**

@@ -3,8 +3,8 @@ package client.net.sf.saxon.ce.tree.iter;
 import client.net.sf.saxon.ce.expr.LastPositionFinder;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.SequenceIterator;
-import client.net.sf.saxon.ce.om.GroundedValue;
 import client.net.sf.saxon.ce.trans.XPathException;
+import client.net.sf.saxon.ce.value.Value;
 
 /**
  * This is an iterator over a sequence whose first item has already been read. On entry, the baseIterator
@@ -114,38 +114,32 @@ public class OneItemGoneIterator
     }
 
     /**
-     * Get properties of this iterator, as a bit-significant integer.
-     * @return the properties of this iterator. This will be some combination of
-     *         properties such as {@link #GROUNDED}, {@link #LAST_POSITION_FINDER}. It is always
-     *         acceptable to return the value zero, indicating that there are no known special properties.
-     *         It is acceptable for the properties of the iterator to change depending on its state.
-     * @since 8.6
-     */
-
-    public int getProperties() {
-        return baseIterator.getProperties();
-    }
-
-    /**
      * Get the last position (that is, the number of items in the sequence). This method is
      * non-destructive: it does not change the state of the iterator.
      * The result is undefined if the next() method of the iterator has already returned null.
-     * This method must not be called unless the result of getProperties() on the iterator
-     * includes the bit setting {@link #LAST_POSITION_FINDER}
+     * This method returns -1 if the last position cannot be determined.
      */
 
     public int getLastPosition() throws XPathException {
-        return ((LastPositionFinder)baseIterator).getLastPosition();
+        if (baseIterator instanceof LastPositionFinder) {
+            return ((LastPositionFinder)baseIterator).getLastPosition();
+        } else {
+            return -1;
+        }
     }
 
     /**
      * Return a GroundedValue containing all the items in the sequence returned by this
      * SequenceIterator. This should be an "in-memory" value, not a Closure.
-     * @return the corresponding Value
+     * @return the corresponding Value if the base iterator is grounded, or null otherwise.
      */
 
-    public GroundedValue materialize() throws XPathException {
-        return ((GroundedIterator)baseIterator).materialize();
+    public Value materialize() {
+        if (baseIterator instanceof GroundedIterator) {
+            return ((GroundedIterator)baseIterator).materialize();
+        } else {
+            return null;
+        }
     }
 
 }

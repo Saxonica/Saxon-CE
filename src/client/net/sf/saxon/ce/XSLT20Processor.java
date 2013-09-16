@@ -1,18 +1,14 @@
 package client.net.sf.saxon.ce;
 
-import java.lang.annotation.ElementType;
-
 import org.timepedia.exporter.client.Export;
-import org.timepedia.exporter.client.ExportJsInitMethod;
 import org.timepedia.exporter.client.ExportPackage;
 import org.timepedia.exporter.client.Exportable;
 
 import client.net.sf.saxon.ce.Controller.APIcommand;
-import client.net.sf.saxon.ce.dom.XMLDOM;
 import client.net.sf.saxon.ce.js.IXSLFunction;
 import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.om.StructuredQName;
-import client.net.sf.saxon.ce.om.ValueRepresentation;
+import client.net.sf.saxon.ce.om.Sequence;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.JsArrayIterator;
 
@@ -81,7 +77,7 @@ public class XSLT20Processor implements Exportable {
 		try {
 			
 			StructuredQName qn = new StructuredQName("", ns, localName);
-			ValueRepresentation vr = controller.getParameter(qn);
+			Sequence vr = controller.getParameter(qn);
 			return IXSLFunction.convertToJavaScript(vr);
 		} catch(Exception e) {
 			Xslt20ProcessorImpl.handleException(e, "getParameter");
@@ -163,10 +159,10 @@ public class XSLT20Processor implements Exportable {
 		}
 	}
 	
-	private ValueRepresentation getValue(Object jso) throws XPathException {
+	private Sequence getValue(Object jso) throws XPathException {
 			SequenceIterator iterator = IXSLFunction.convertFromJavaScript(jso, processor.config);
 			if (iterator instanceof JsArrayIterator) {
-				return (ValueRepresentation)iterator;
+				return (Sequence)iterator;
 			} else {
 				return iterator.next();
 			}

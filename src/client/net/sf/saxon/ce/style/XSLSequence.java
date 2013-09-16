@@ -2,10 +2,7 @@ package client.net.sf.saxon.ce.style;
 import client.net.sf.saxon.ce.LogController;
 import client.net.sf.saxon.ce.expr.Expression;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
-import client.net.sf.saxon.ce.om.Axis;
-import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 import client.net.sf.saxon.ce.type.ItemType;
 import com.google.gwt.logging.client.LogConfiguration;
 
@@ -50,15 +47,6 @@ public final class XSLSequence extends StyleElement {
         return false;
     }
 
-    /**
-    * Determine whether this type of element is allowed to contain an xsl:fallback
-    * instruction
-    */
-
-    public boolean mayContainFallback() {
-        return true;
-    }
-
     public void prepareAttributes() throws XPathException {
         select = (Expression)checkAttribute("select", "e1");
         checkForUnknownAttributes();
@@ -69,15 +57,7 @@ public final class XSLSequence extends StyleElement {
     }
 
     public void validate(Declaration decl) throws XPathException {
-        UnfailingIterator kids = iterateAxis(Axis.CHILD);
-        while (true) {
-            NodeInfo child = (NodeInfo)kids.next();
-            if (child == null) break;
-            if (!(child instanceof XSLFallback)) {
-                compileError("The only child node allowed for xsl:sequence is an xsl:fallback instruction", "XTSE0010");
-                break;
-            }
-        }
+        onlyAllow("fallback");
         select = typeCheck(select);
     }
 

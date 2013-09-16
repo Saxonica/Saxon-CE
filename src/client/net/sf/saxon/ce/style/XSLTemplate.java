@@ -3,18 +3,15 @@ package client.net.sf.saxon.ce.style;
 import client.net.sf.saxon.ce.LogController;
 import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
-import client.net.sf.saxon.ce.expr.instruct.SlotManager;
 import client.net.sf.saxon.ce.expr.instruct.Template;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
-import client.net.sf.saxon.ce.om.Axis;
 import client.net.sf.saxon.ce.om.NamespaceException;
-import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.pattern.Pattern;
 import client.net.sf.saxon.ce.trans.Mode;
 import client.net.sf.saxon.ce.trans.RuleManager;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
+import client.net.sf.saxon.ce.tree.linked.NodeImpl;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.value.DecimalValue;
@@ -38,9 +35,9 @@ public final class XSLTemplate extends StyleElement implements StylesheetProcedu
     private Pattern match;
     private boolean prioritySpecified;
     private double priority;
-    private SlotManager stackFrameMap;
     private Template compiledTemplate = new Template();
     private SequenceType requiredType = null;
+    private int numberOfParams;
     private boolean hasRequiredParams = false;
     private boolean ixslPreventDefault = false;
     private String ixslEventProperty = null;
@@ -203,21 +200,18 @@ public final class XSLTemplate extends StyleElement implements StylesheetProcedu
 	}
 
     public void validate(Declaration decl) throws XPathException {
-        stackFrameMap = new SlotManager();
         checkTopLevel(null);
 
         match = typeCheck("match", match);
 
         // See if there are any required parameters.
-        UnfailingIterator kids = iterateAxis(Axis.CHILD);
-        while(true) {
-            NodeInfo param = (NodeInfo)kids.next();
-            if (param == null) {
-                break;
-            }
-            if (param instanceof XSLParam && ((XSLParam)param).isRequiredParam()) {
-                hasRequiredParams = true;
-                break;
+        numberOfParams = 0;
+        for (NodeImpl param: allChildren()) {
+            if (param instanceof XSLParam) {
+                numberOfParams++;
+                if (((XSLParam)param).isRequiredParam()) {
+                    hasRequiredParams = true;
+                }
             }
         }
 
@@ -247,14 +241,13 @@ public final class XSLTemplate extends StyleElement implements StylesheetProcedu
 
     public Expression compile(Executable exec, Declaration decl) throws XPathException {
 
-        Expression block = compileSequenceConstructor(exec, decl, iterateAxis(Axis.CHILD));
+        Expression block = compileSequenceConstructor(exec, decl);
         if (block == null) {
             block = Literal.makeEmptySequence();
         }
 
         compiledTemplate.setMatchPattern(match);
         compiledTemplate.setBody(block);
-        compiledTemplate.setStackFrameMap(stackFrameMap);
         compiledTemplate.setExecutable(getExecutable());
         compiledTemplate.setSourceLocator(this);
         compiledTemplate.setHasRequiredParams(hasRequiredParams);
@@ -274,7 +267,7 @@ public final class XSLTemplate extends StyleElement implements StylesheetProcedu
                         new RoleLocator(RoleLocator.TEMPLATE_RESULT, getDiagnosticId(), 0);
                 //role.setSourceLocator(new ExpressionLocation(this));
                 role.setErrorCode("XTTE0505");
-                exp = TypeChecker.staticTypeCheck(exp, requiredType, false, role, makeExpressionVisitor());
+                exp = TypeChecker.staticTypeCheck(exp, requiredType, false, role);
             }
         } catch (XPathException err) {
             compileError(err);
@@ -318,7 +311,7 @@ public final class XSLTemplate extends StyleElement implements StylesheetProcedu
     public void register(Declaration declaration) throws XPathException {
         if (match != null) {
             StylesheetModule module = declaration.getModule();
-            int slots = match.allocateSlots(getStaticContext(), getSlotManager(), 0);
+            int slots = match.allocateSlots(0);
             RuleManager mgr = getPreparedStylesheet().getRuleManager();
             for (StructuredQName nc : modeNames) {
                 Mode mode = mgr.getMode(nc, true);
@@ -361,25 +354,13 @@ public final class XSLTemplate extends StyleElement implements StylesheetProcedu
             exp2 = visitor.optimize(exp2, contextItemType);
             if (exp != exp2) {
                 compiledTemplate.setBody(exp2);
-                exp = exp2;
             }
         } catch (XPathException e) {
             compileError(e);
         }
 
-        allocateSlots(exp);
+        compiledTemplate.allocateSlots(numberOfParams);
     }
-
-
-    /**
-    * Get associated Procedure (for details of stack frame)
-    */
-
-    public SlotManager getSlotManager() {
-        return stackFrameMap;
-    }
-
-
 
     /**
      * Get the compiled template

@@ -6,18 +6,17 @@ import client.net.sf.saxon.ce.functions.*;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
 import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.om.StructuredQName;
-import client.net.sf.saxon.ce.om.ValueRepresentation;
+import client.net.sf.saxon.ce.om.Sequence;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.EmptyIterator;
 import client.net.sf.saxon.ce.tree.iter.SingletonIterator;
 import client.net.sf.saxon.ce.type.AnyItemType;
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.*;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
 import java.util.Iterator;
 
 /**
@@ -153,7 +152,7 @@ public final class FilterExpression extends Expression {
         // determine whether the filter evaluates to a single number, where the number will be the same for
         // all values in the sequence
         filterIsIndependentNumeric =
-                th.isSubType(filter.getItemType(), BuiltInAtomicType.NUMERIC) &&
+                th.isSubType(filter.getItemType(), AtomicType.NUMERIC) &&
                         (filter.getDependencies() &
                                 (StaticProperty.DEPENDS_ON_CONTEXT_ITEM | StaticProperty.DEPENDS_ON_POSITION)) == 0 &&
                         !Cardinality.allowsMany(filter.getCardinality());
@@ -271,10 +270,10 @@ public final class FilterExpression extends Expression {
             int operator = ((ComparisonExpression)filter).getSingletonOperator();
             Expression comparand;
             if (operands[0] instanceof Position
-                    && th.isSubType(operands[1].getItemType(), BuiltInAtomicType.NUMERIC)) {
+                    && th.isSubType(operands[1].getItemType(), AtomicType.NUMERIC)) {
                 comparand = operands[1];
             } else if (operands[1] instanceof Position
-                    && th.isSubType(operands[0].getItemType(), BuiltInAtomicType.NUMERIC)) {
+                    && th.isSubType(operands[0].getItemType(), AtomicType.NUMERIC)) {
                 comparand = operands[0];
                 operator = Token.inverse(operator);
             } else {
@@ -356,7 +355,7 @@ public final class FilterExpression extends Expression {
             Expression start, Expression comparand, int operator,
             TypeHierarchy th)
             throws XPathException {
-        if (th.isSubType(comparand.getItemType(), BuiltInAtomicType.INTEGER)) {
+        if (th.isSubType(comparand.getItemType(), AtomicType.INTEGER)) {
             switch (operator) {
             case Token.FEQ: {
                 if (Literal.isConstantOne(comparand)) {
@@ -456,15 +455,15 @@ public final class FilterExpression extends Expression {
 
     private static boolean isPositionalFilter(Expression exp, TypeHierarchy th) {
         ItemType type = exp.getItemType();
-        if (type.equals(BuiltInAtomicType.BOOLEAN)) {
+        if (type.equals(AtomicType.BOOLEAN)) {
             // common case, get it out of the way quickly
             return isExplicitlyPositional(exp);
         }
-        return (type.equals(BuiltInAtomicType.ANY_ATOMIC) ||
+        return (type.equals(AtomicType.ANY_ATOMIC) ||
                 type instanceof AnyItemType ||
-                type.equals(BuiltInAtomicType.INTEGER) ||
-                type.equals(BuiltInAtomicType.NUMERIC) ||
-                th.isSubType(type, BuiltInAtomicType.NUMERIC) ||
+                type.equals(AtomicType.INTEGER) ||
+                type.equals(AtomicType.NUMERIC) ||
+                th.isSubType(type, AtomicType.NUMERIC) ||
                 isExplicitlyPositional(exp));
     }
 
@@ -487,7 +486,7 @@ public final class FilterExpression extends Expression {
      */
 
     public Iterator<Expression> iterateSubExpressions() {
-        return Arrays.asList((new Expression[]{start, filter})).iterator();
+        return nonNullChildren(start, filter);
     }
 
     /**
@@ -594,7 +593,7 @@ public final class FilterExpression extends Expression {
             return EmptyIterator.getInstance();
         }
 
-        ValueRepresentation filterValue = null;
+        Sequence filterValue = null;
         if (filter instanceof Literal) {
             filterValue = ((Literal)filter).getValue();
         } else if (filter instanceof VariableReference) {
@@ -616,7 +615,7 @@ public final class FilterExpression extends Expression {
                     }
                     if (pos >= 1) {
                         SequenceIterator base = startExp.iterate(context);
-                        return SubsequenceIterator.make(base, pos, pos);
+                        return Subsequence.makeIterator(base, pos, pos);
                     } else {
                         // index is less than one, no items will be selected
                         return EmptyIterator.getInstance();

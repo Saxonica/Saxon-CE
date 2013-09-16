@@ -52,7 +52,7 @@ public abstract class NumericValue extends AtomicValue implements Comparable {
      */
     public double getDoubleValue() {
         try {
-            return ((DoubleValue)convertPrimitive(BuiltInAtomicType.DOUBLE, true).asAtomic()).getDoubleValue();
+            return ((DoubleValue) convert(AtomicType.DOUBLE).asAtomic()).getDoubleValue();
         } catch (XPathException err) {
             return Double.NaN;
         }
@@ -65,7 +65,7 @@ public abstract class NumericValue extends AtomicValue implements Comparable {
 
     public float getFloatValue() {
         try {
-            return ((FloatValue)(convertPrimitive(BuiltInAtomicType.FLOAT, true).asAtomic())).getFloatValue();
+            return ((FloatValue)(convert(AtomicType.FLOAT).asAtomic())).getFloatValue();
         } catch (XPathException err) {
             return Float.NaN;
         }
@@ -78,7 +78,7 @@ public abstract class NumericValue extends AtomicValue implements Comparable {
      */
 
     public BigDecimal getDecimalValue() throws XPathException {
-        return ((DecimalValue)convertPrimitive(BuiltInAtomicType.DECIMAL, true).asAtomic()).getDecimalValue();
+        return ((DecimalValue) convert(AtomicType.DECIMAL).asAtomic()).getDecimalValue();
     }
 
     /**
@@ -89,7 +89,7 @@ public abstract class NumericValue extends AtomicValue implements Comparable {
      *     towards zero.
      */
     public int intValue() throws XPathException {
-        return ((IntegerValue)convertPrimitive(BuiltInAtomicType.INTEGER, true).asAtomic()).intValue();
+        return ((IntegerValue) convert(AtomicType.INTEGER).asAtomic()).intValue();
     }
 
     /**

@@ -169,8 +169,9 @@ public final class CardinalityChecker extends UnaryExpression {
          * of the underlying iteration
          *
          * @return a clone of this MappingFunction
+         * @param newBaseIterator
          */
-        public StatefulMappingFunction getAnother() {
+        public StatefulMappingFunction getAnother(SequenceIterator newBaseIterator) {
             return new SingletonCheckingFunction();
         }
     }

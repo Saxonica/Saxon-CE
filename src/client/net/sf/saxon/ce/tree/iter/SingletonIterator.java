@@ -1,11 +1,11 @@
 package client.net.sf.saxon.ce.tree.iter;
 
 import client.net.sf.saxon.ce.expr.LastPositionFinder;
-import client.net.sf.saxon.ce.om.GroundedValue;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.value.AtomicValue;
 import client.net.sf.saxon.ce.value.SingletonItem;
+import client.net.sf.saxon.ce.value.Value;
 
 
 /**
@@ -95,25 +95,12 @@ public class SingletonIterator implements UnfailingIterator,
      * evaluated and expanded.
      */
 
-    public GroundedValue materialize() {
+    public Value materialize() {
         if (item instanceof AtomicValue) {
             return (AtomicValue)item;
         } else {
             return new SingletonItem(item);
         }
-    }
-
-    /**
-     * Get properties of this iterator, as a bit-significant integer.
-     *
-     * @return the properties of this iterator. This will be some combination of
-     *         properties such as {@link #GROUNDED}, {@link #LAST_POSITION_FINDER}. It is always
-     *         acceptable to return the value zero, indicating that there are no known special properties.
-     *         It is acceptable for the properties of the iterator to change depending on its state.
-     */
-
-    public int getProperties() {
-        return GROUNDED | LAST_POSITION_FINDER ;
     }
 
 }

@@ -1,6 +1,6 @@
 package client.net.sf.saxon.ce.expr;
 
-import client.net.sf.saxon.ce.om.ValueRepresentation;
+import client.net.sf.saxon.ce.om.Sequence;
 import client.net.sf.saxon.ce.trans.XPathException;
 
 /**
@@ -73,12 +73,13 @@ public class LocalVariableReference extends VariableReference {
      * @throws XPathException if any dynamic error occurs while evaluating the variable
      */
 
-    public ValueRepresentation evaluateVariable(XPathContext c) throws XPathException {
+    public Sequence evaluateVariable(XPathContext c) throws XPathException {
         try {
-            return c.getStackFrame().slots[slotNumber];
+            return c.getStackFrame()[slotNumber];
         } catch (ArrayIndexOutOfBoundsException err) {
             if (slotNumber == -999) {
-                throw new ArrayIndexOutOfBoundsException("Local variable has not been allocated a stack frame slot");
+                throw new ArrayIndexOutOfBoundsException(
+                        "Local variable " + getDisplayName() + " has not been allocated a stack frame slot");
             }
             throw err;
         }

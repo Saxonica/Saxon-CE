@@ -13,7 +13,7 @@ import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.sxpath.AbstractStaticContext;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.SourceLocator;
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.AtomicType;
 
 /**
  * This class implements the static context used for evaluating use-when expressions in XSLT 2.0
@@ -151,7 +151,7 @@ public class UseWhenStaticContext extends AbstractStaticContext implements Stati
      * @return true if this type can be used in this static context
      */
 
-    public boolean isAllowedBuiltInType(BuiltInAtomicType type) {
+    public boolean isAllowedBuiltInType(AtomicType type) {
         return true;
     }
 

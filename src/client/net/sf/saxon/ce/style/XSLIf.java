@@ -4,7 +4,6 @@ import client.net.sf.saxon.ce.expr.Expression;
 import client.net.sf.saxon.ce.expr.Literal;
 import client.net.sf.saxon.ce.expr.instruct.Choose;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
-import client.net.sf.saxon.ce.om.Axis;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.value.Value;
@@ -74,7 +73,7 @@ public class XSLIf extends StyleElement {
             // This can happen with expressions such as test="function-available('abc')".
             try {
                 if (testVal.effectiveBooleanValue()) {
-                    return compileSequenceConstructor(exec, decl, iterateAxis(Axis.CHILD));
+                    return compileSequenceConstructor(exec, decl);
                 } else {
                     return null;
                 }
@@ -83,7 +82,7 @@ public class XSLIf extends StyleElement {
             }
         }
 
-        Expression action = compileSequenceConstructor(exec, decl, iterateAxis(Axis.CHILD));
+        Expression action = compileSequenceConstructor(exec, decl);
         if (action == null) {
             return null;
         }

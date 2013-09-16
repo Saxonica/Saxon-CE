@@ -7,12 +7,8 @@ import client.net.sf.saxon.ce.expr.TypeChecker;
 import client.net.sf.saxon.ce.expr.instruct.CallTemplate;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.expr.instruct.ScheduleExecution;
-import client.net.sf.saxon.ce.om.AttributeCollection;
-import client.net.sf.saxon.ce.om.Axis;
-import client.net.sf.saxon.ce.om.NodeInfo;
-import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
+import client.net.sf.saxon.ce.tree.linked.NodeImpl;
 import client.net.sf.saxon.ce.value.SequenceType;
 
 /**
@@ -22,6 +18,7 @@ import client.net.sf.saxon.ce.value.SequenceType;
 public class IXSLScheduleAction extends StyleElement {
 
     Expression wait;
+    Expression href;
     XSLCallTemplate instruction;
 
     public boolean isInstruction() {
@@ -29,24 +26,9 @@ public class IXSLScheduleAction extends StyleElement {
     }
 
     public void prepareAttributes() throws XPathException {
-
-        String waitAtt=null;
-
-        AttributeCollection atts = getAttributeList();
-
-        for (int a=0; a<atts.getLength(); a++) {
-            StructuredQName qn = atts.getStructuredQName(a);
-            String f = qn.getClarkName();
-            if (f.equals("wait")) {
-                waitAtt = atts.getValue(a);
-            } else {
-                checkUnknownAttribute(qn);
-            }
-        }
-
-        if (waitAtt!=null) {
-            wait = makeExpression(waitAtt);
-        }
+        wait = (Expression) checkAttribute("wait", "e");
+        href = (Expression) checkAttribute("href", "a");
+        checkForUnknownAttributes();
     }
 
     public void validate(Declaration decl) throws XPathException {
@@ -57,19 +39,15 @@ public class IXSLScheduleAction extends StyleElement {
             try {
                 RoleLocator role =
                     new RoleLocator(RoleLocator.INSTRUCTION, "ixsl:schedule-action/wait", 0);
-                wait = TypeChecker.staticTypeCheck(wait, SequenceType.SINGLE_INTEGER, false, role, visitor);
+                wait = TypeChecker.staticTypeCheck(wait, SequenceType.SINGLE_INTEGER, false, role);
             } catch (XPathException err) {
                 compileError(err);
             }
         }
 
         boolean found = false;
-        UnfailingIterator kids = iterateAxis(Axis.CHILD);
-        while(true) {
-            NodeInfo child = (NodeInfo)kids.next();
-            if (child == null) {
-                break;
-            } else if (child instanceof XSLFallback) {
+        for (NodeImpl child : allChildren()) {
+            if (child instanceof XSLFallback) {
                 // do nothing;
             } else if (child instanceof XSLCallTemplate) {
                 if (found) {
@@ -89,7 +67,7 @@ public class IXSLScheduleAction extends StyleElement {
     public Expression compile(Executable exec, Declaration decl) throws XPathException {
         CallTemplate call = (CallTemplate)instruction.compile(exec, decl);
         call.setUseTailRecursion(true);
-        return new ScheduleExecution(call, wait);
+        return new ScheduleExecution(call, wait, href);
     }
 }
 

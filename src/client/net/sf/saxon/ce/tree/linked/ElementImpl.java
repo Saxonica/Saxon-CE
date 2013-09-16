@@ -3,13 +3,13 @@ package client.net.sf.saxon.ce.tree.linked;
 import client.net.sf.saxon.ce.event.Receiver;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
 import client.net.sf.saxon.ce.om.*;
+import client.net.sf.saxon.ce.pattern.AnyNodeTest;
 import client.net.sf.saxon.ce.trans.XPathException;
+import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
 import client.net.sf.saxon.ce.tree.util.NamespaceIterator;
 import client.net.sf.saxon.ce.tree.util.Navigator;
 import client.net.sf.saxon.ce.type.Type;
-
-import java.util.Iterator;
 
 /**
   * ElementImpl implements an element with no attributes or namespace declarations.<P>
@@ -305,14 +305,16 @@ public class ElementImpl extends ParentNodeImpl {
         if (uri.equals(NamespaceConstant.XML)) {
             return "xml";
         }
-        NamespaceResolver resolver = new InscopeNamespaceResolver(this);
-        for (Iterator<String> iter = resolver.iteratePrefixes(); iter.hasNext();) {
-            String prefix = iter.next();
-            if (uri.equals(resolver.getURIForPrefix(prefix, true))) {
-                return uri;
+        UnfailingIterator iter = iterateAxis(Axis.NAMESPACE, AnyNodeTest.getInstance());
+        while (true) {
+            NodeInfo ns = (NodeInfo)iter.next();
+            if (ns == null) {
+                return null;
+            }
+            if (ns.getStringValue().equals(uri)) {
+                return ns.getLocalPart(); // the prefix
             }
         }
-        return null;
 	}
 
     /**

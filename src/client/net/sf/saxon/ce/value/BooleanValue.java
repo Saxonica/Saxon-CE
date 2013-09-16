@@ -2,7 +2,7 @@ package client.net.sf.saxon.ce.value;
 import client.net.sf.saxon.ce.lib.StringCollator;
 import client.net.sf.saxon.ce.trans.Err;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ConversionResult;
 import client.net.sf.saxon.ce.type.ValidationFailure;
 
@@ -100,29 +100,30 @@ public final class BooleanValue extends AtomicValue implements Comparable {
      * and xs:untypedAtomic. For external objects, the result is AnyAtomicType.
      */
 
-    public BuiltInAtomicType getItemType() {
-        return BuiltInAtomicType.BOOLEAN;
+    public AtomicType getItemType() {
+        return AtomicType.BOOLEAN;
     }
 
     /**
      * Convert to target data type
+     *
      * @param requiredType an integer identifying the required atomic type
      * @return an AtomicValue, a value of the required type
      */
 
-    public ConversionResult convertPrimitive(BuiltInAtomicType requiredType, boolean validate) {
-        if (requiredType == BuiltInAtomicType.ANY_ATOMIC || requiredType == BuiltInAtomicType.BOOLEAN) {
+    public ConversionResult convert(AtomicType requiredType) {
+        if (requiredType == AtomicType.ANY_ATOMIC || requiredType == AtomicType.BOOLEAN) {
             return this;
-        } else if (requiredType == BuiltInAtomicType.UNTYPED_ATOMIC) {
+        } else if (requiredType == AtomicType.UNTYPED_ATOMIC) {
             return new UntypedAtomicValue(getStringValue());
-        } else if (requiredType == BuiltInAtomicType.STRING) {
+        } else if (requiredType == AtomicType.STRING) {
             return (value ? StringValue.TRUE : StringValue.FALSE);
-        } else if (requiredType == BuiltInAtomicType.NUMERIC || requiredType == BuiltInAtomicType.INTEGER ||
-                requiredType == BuiltInAtomicType.DECIMAL) {
+        } else if (requiredType == AtomicType.NUMERIC || requiredType == AtomicType.INTEGER ||
+                requiredType == AtomicType.DECIMAL) {
             return (value ? IntegerValue.PLUS_ONE : IntegerValue.ZERO);
-        } else if (requiredType == BuiltInAtomicType.DOUBLE) {
+        } else if (requiredType == AtomicType.DOUBLE) {
             return (value ? DoubleValue.ONE : DoubleValue.ZERO);
-        } else if (requiredType == BuiltInAtomicType.FLOAT) {
+        } else if (requiredType == AtomicType.FLOAT) {
             return (value ? FloatValue.ONE : FloatValue.ZERO);
         } else {
             return new ValidationFailure("Cannot convert boolean to " +

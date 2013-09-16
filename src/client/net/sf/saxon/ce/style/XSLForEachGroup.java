@@ -3,8 +3,6 @@ import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.expr.instruct.ForEachGroup;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
-import client.net.sf.saxon.ce.lib.StringCollator;
-import client.net.sf.saxon.ce.om.Axis;
 import client.net.sf.saxon.ce.pattern.Pattern;
 import client.net.sf.saxon.ce.pattern.PatternSponsor;
 import client.net.sf.saxon.ce.trans.XPathException;
@@ -114,7 +112,7 @@ public final class XSLForEachGroup extends StyleElement {
                 //role.setSourceLocator(locator);
                 groupBy = TypeChecker.staticTypeCheck(groupBy,
                         SequenceType.ATOMIC_SEQUENCE,
-                        false, role, visitor);
+                        false, role);
             } catch (XPathException err) {
                 compileError(err);
             }
@@ -127,7 +125,7 @@ public final class XSLForEachGroup extends StyleElement {
                 role.setErrorCode("XTTE1100");
                 groupAdjacent = TypeChecker.staticTypeCheck(groupAdjacent,
                         SequenceType.SINGLE_ATOMIC,
-                        false, role, visitor);
+                        false, role);
             } catch (XPathException err) {
                 compileError(err);
             }
@@ -144,7 +142,7 @@ public final class XSLForEachGroup extends StyleElement {
                 role.setErrorCode("XTTE1120");
                 select = TypeChecker.staticTypeCheck(select,
                                             SequenceType.NODE_SEQUENCE,
-                                            false, role, visitor);
+                                            false, role);
             } catch (XPathException err) {
                 String prefix = (starting != null ?
                         "With group-starting-with attribute: " :
@@ -174,7 +172,7 @@ public final class XSLForEachGroup extends StyleElement {
 
 //        Block action = new Block();
 //        compileChildren(exec, action, true);
-        Expression action = compileSequenceConstructor(exec, decl, iterateAxis(Axis.CHILD));
+        Expression action = compileSequenceConstructor(exec, decl);
         if (action == null) {
             // body of for-each is empty: it's a no-op.
             return new Literal(EmptySequence.getInstance());

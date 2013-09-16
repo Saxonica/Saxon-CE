@@ -3,7 +3,7 @@ package client.net.sf.saxon.ce.value;
 import client.net.sf.saxon.ce.lib.StringCollator;
 import client.net.sf.saxon.ce.trans.Err;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ConversionResult;
 import client.net.sf.saxon.ce.type.StringToDouble;
 import client.net.sf.saxon.ce.type.ValidationFailure;
@@ -36,33 +36,31 @@ public class UntypedAtomicValue extends StringValue {
      * and xs:untypedAtomic. For external objects, the result is AnyAtomicType.
      */
 
-    public BuiltInAtomicType getItemType() {
-        return BuiltInAtomicType.UNTYPED_ATOMIC;
+    public AtomicType getItemType() {
+        return AtomicType.UNTYPED_ATOMIC;
     }
 
     /**
      * Convert a value to another primitive data type, with control over how validation is
      * handled.
+     *
      * @param requiredType type code of the required atomic type. This must not be a namespace-sensitive type.
-     * @param validate true if validation is required. If set to false, the caller guarantees that
-     * the value is valid for the target data type, and that further validation is therefore not required.
-     * Note that a validation failure may be reported even if validation was not requested.
      * @return the result of the conversion, if successful. If unsuccessful, the value returned
      * will be a ValidationErrorValue. The caller must check for this condition. No exception is thrown, instead
      * the exception will be encapsulated within the ErrorValue.
      */
 
-    public ConversionResult convertPrimitive(BuiltInAtomicType requiredType, boolean validate) {
-        if (requiredType == BuiltInAtomicType.STRING) {
+    public ConversionResult convert(AtomicType requiredType) {
+        if (requiredType == AtomicType.STRING) {
             if (value.length() == 0) {
                 // this case is common!
                 return StringValue.EMPTY_STRING;
             } else {
                 return new StringValue(value);
             }
-        } else if (requiredType == BuiltInAtomicType.UNTYPED_ATOMIC) {
+        } else if (requiredType == AtomicType.UNTYPED_ATOMIC) {
             return this;
-        } else if (requiredType == BuiltInAtomicType.DOUBLE || requiredType == BuiltInAtomicType.NUMERIC) {
+        } else if (requiredType == AtomicType.DOUBLE || requiredType == AtomicType.NUMERIC) {
             // for conversion to double (common in 1.0 mode), cache the result
             try {
                 return toDouble();
@@ -70,7 +68,7 @@ public class UntypedAtomicValue extends StringValue {
                 return new ValidationFailure(e.getMessage());
             }
         } else {
-            return super.convertPrimitive(requiredType, validate);
+            return super.convert(requiredType);
         }
     }
 
@@ -105,7 +103,7 @@ public class UntypedAtomicValue extends StringValue {
         if (other instanceof NumericValue) {
             if (doubleValue == null) {
                 try {
-                    doubleValue = (DoubleValue)convertPrimitive(BuiltInAtomicType.DOUBLE, true
+                    doubleValue = (DoubleValue) convert(AtomicType.DOUBLE
                     ).asAtomic();
                 } catch (XPathException err) {
                     throw new ClassCastException("Cannot convert untyped value " +
@@ -116,7 +114,7 @@ public class UntypedAtomicValue extends StringValue {
         } else if (other instanceof StringValue) {
             return collator.compareStrings(getStringValue(), other.getStringValue());
         } else {
-            ConversionResult result = convert(other.getItemType(), true);
+            ConversionResult result = convert(other.getItemType());
             if (result instanceof ValidationFailure) {
                 throw new ClassCastException("Cannot convert untyped atomic value '" + getStringValue()
                         + "' to type " + other.getItemType());

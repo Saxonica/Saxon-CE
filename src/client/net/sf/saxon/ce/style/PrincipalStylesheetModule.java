@@ -69,7 +69,7 @@ public class PrincipalStylesheetModule extends StylesheetModule {
         super(sourceElement, precedence);
     }
 
-    public void setPreparedStylesheet(Executable preparedStylesheet) {
+    public void setExecutable(Executable preparedStylesheet) {
         this.preparedStylesheet = preparedStylesheet;
     }
 
@@ -148,10 +148,6 @@ public class PrincipalStylesheetModule extends StylesheetModule {
 
         buildIndexes();
 
-        // check for use of schema-aware constructs
-
-        checkForSchemaAwareness();
-
         // process the attributes of every node in the tree
 
         processAllAttributes();
@@ -162,14 +158,10 @@ public class PrincipalStylesheetModule extends StylesheetModule {
 
         // fix up references from XPath expressions to variables and functions, for static typing
 
-        for (int i = 0; i < topLevel.size(); i++) {
-            Declaration decl = topLevel.get(i);
+        for (Declaration decl : topLevel) {
             StyleElement inst = decl.getSourceElement();
             if (!inst.isActionCompleted(StyleElement.ACTION_FIXUP)) {
                 inst.setActionCompleted(StyleElement.ACTION_FIXUP);
-//                if (inst instanceof XSLVariableDeclaration) {
-//                    System.err.println("Fixup global variable " + ((XSLVariableDeclaration)inst).getVariableQName());
-//                }
                 inst.fixupReferences();
             }
         }
@@ -182,8 +174,8 @@ public class PrincipalStylesheetModule extends StylesheetModule {
         if (!top.isActionCompleted(StyleElement.ACTION_VALIDATE)) {
             top.setActionCompleted(StyleElement.ACTION_VALIDATE);
             top.validate(decl);
-            for (int i = 0; i < topLevel.size(); i++) {
-                decl = topLevel.get(i);
+            for (Declaration aTopLevel : topLevel) {
+                decl = aTopLevel;
                 decl.getSourceElement().validateSubtree(decl);
             }
         }
@@ -367,10 +359,10 @@ public class PrincipalStylesheetModule extends StylesheetModule {
         }
         Integer x = localParameterNumbers.get(qName);
         if (x == null) {
-            x = Integer.valueOf(localParameterNumbers.size());
+            x = localParameterNumbers.size();
             localParameterNumbers.put(qName, x);
         }
-        return x.intValue();
+        return x;
     }
 
     /**
@@ -419,17 +411,6 @@ public class PrincipalStylesheetModule extends StylesheetModule {
         Declaration decl = templateIndex.get(name);
         return (decl == null ? null : (XSLTemplate)decl.getSourceElement());
     }
-
-
-    /**
-     * Check for schema-awareness.
-     * Typed input nodes are recognized if and only if the stylesheet contains an import-schema declaration.
-     */
-
-    private void checkForSchemaAwareness() {
-        // no-op
-    }
-
 
     protected void addNamespaceAlias(Declaration node) {
         namespaceAliasList.add(node);
@@ -637,33 +618,16 @@ public class PrincipalStylesheetModule extends StylesheetModule {
         // search for the named attribute set, using all of them if there are several with the
         // same name
 
-        for (int i = 0; i < topLevel.size(); i++) {
-            Declaration decl = topLevel.get(i);
+        for (Declaration decl : topLevel) {
             if (decl.getSourceElement() instanceof XSLAttributeSet) {
-                XSLAttributeSet t = (XSLAttributeSet)decl.getSourceElement();
+                XSLAttributeSet t = (XSLAttributeSet) decl.getSourceElement();
                 if (t.getAttributeSetName().equals(name)) {
-                    t.incrementReferenceCount();
                     list.add(decl);
                     found = true;
                 }
             }
         }
         return found;
-    }
-
-    /**
-     * Get the rules determining which nodes are to be stripped from the tree
-     * @return the Mode object holding the whitespace stripping rules. The stripping
-     * rules defined in xsl:strip-space are managed in the same way as template rules,
-     * hence the use of a special Mode object
-     */
-
-    protected StripSpaceRules getStripperRules() {
-        Executable exec = getExecutable();
-        if (exec.getStripperRules() == null) {
-            exec.setStripperRules(new StripSpaceRules());
-        }
-        return exec.getStripperRules();
     }
 
     /**
@@ -697,8 +661,6 @@ public class PrincipalStylesheetModule extends StylesheetModule {
             largestPatternStackFrame = n;
         }
     }
-
-
 
     /**
      * Compile time error, specifying an error code

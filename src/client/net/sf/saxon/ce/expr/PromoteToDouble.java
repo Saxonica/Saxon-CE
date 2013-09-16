@@ -1,7 +1,7 @@
 package client.net.sf.saxon.ce.expr;
 
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.type.BuiltInAtomicType;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.value.AtomicValue;
 import client.net.sf.saxon.ce.value.NumericValue;
@@ -23,7 +23,7 @@ public class PromoteToDouble extends NumericPromoter {
      */
 
 	public ItemType getItemType() {
-        return BuiltInAtomicType.DOUBLE;
+        return AtomicType.DOUBLE;
 	}
 
     /**
@@ -36,7 +36,7 @@ public class PromoteToDouble extends NumericPromoter {
         if (!(value instanceof NumericValue || value instanceof UntypedAtomicValue)) {
             typeError("Cannot promote non-numeric value to xs:double", "XPTY0004");
         }
-        return value.convert(BuiltInAtomicType.DOUBLE, true).asAtomic();
+        return value.convert(AtomicType.DOUBLE).asAtomic();
     }
 
 }

@@ -95,7 +95,7 @@ public class SetAttribute extends Instruction  {
      */
 
     public Iterator<Expression> iterateSubExpressions() {
-        return monoIterator(content);
+        return nonNullChildren(content);
     }
 
     public TailCall processLeavingTail(XPathContext context) throws XPathException {
