@@ -5,6 +5,9 @@
         <p>This section of the Saxon-CE documentation provides a summary of changes made to the
             software in successive releases.</p>
         <ul>
+            <li>
+                <p><a class="bodylink" href="R2.0">Release 2.0 (TBA)</a></p>
+            </li>      
       <li>
          <p><a class="bodylink" href="R1.1">Release 1.1 (February 2013)</a></p>
       </li>
@@ -35,7 +38,35 @@
       <li>
          <p><a class="bodylink" href="alpha0.1">Alpha 0.1 (March 2011)</a></p>
       </li>
-   </ul>
+        </ul>
+    <section id="R2.0" title="Release 2.0 (TBA)">
+        <h1>Release 2.0 (TBA)</h1>
+        
+        <p>This release brings a substantial reduction in the size of the Javascript code that
+        needs to be downloaded, from 880Kb to below 700Kb. This reduction, more than 20%, gives
+        a corresponding speed-up in the cost of starting up an application at the web browser,
+        especially of course if the code is not already cached.</p>
+        
+        <p>This reduction has been achieved largely without any change to the functionality of the
+        product. One change that might be noticed is that local variables are no longer evaluated
+        lazily: they will generally now be evaluated at the point of declaration. This will affect
+        any stylesheets where initializing the variable causes side-effects by invoking external 
+        Javascript code.</p>
+        
+        <p>New functionality includes the following:</p>
+        
+        <ol>
+            <li>
+                <p>Asynchronous loading of source documents is supported. The <code>ixsl:schedule-action</code>
+                instruction has a new attribute <code>href</code> whose value is an attribute value template
+                giving the URI of a document to be processed. The contained <code>xsl:call-template</code>
+                instruction is executed (with this document as the context item) as soon as the document has
+                been successfully downloaded and parsed.</p>
+            </li>
+        </ol>
+        
+
+    </section>
     <section id="R1.1" title="Release 1.1 (February 2013)">
       <h1>Release 1.1 (February 2013)</h1>
         

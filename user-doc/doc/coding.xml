@@ -219,11 +219,24 @@
     between events originating from users and from your own code.</i>
   </p>
    </section>
-   <section id="animation" title="Animation">
-      <h1>Animation</h1>
+   <section id="animation" title="Asynchronous Processing">
+      <h1>Asynchronous Processing</h1>
   
       <p>The extension instruction <code>ixsl:schedule-action</code> may be used to define processing
-   that is to take place after a defined interval. The <code>wait</code> attribute takes an XPath
+      that is to take place after a defined interval, or when a new source document is available.
+      There are two attributes: <code>href</code> and <code>wait</code>. If <code>href</code>
+      is present, then <code>wait</code> is ignored; if neither is present, then <code>wait="1"</code>
+      is assumed.</p>
+      
+      <p>The <code>href</code> attribute is an attribute value template whose effective value is the
+      URI of a source document to be loaded. If relative, this is resolved against the base URI of the
+      stylesheet. If the document is already available in the document pool, then processing proceeds
+      immediately; otherwise it is fetched using an asynchronous HTTP request, and the contained
+      instruction is executed (with the new document as context item) when it becomes available.
+      The document pool contains all documents read using either this mechanism or using a synchronous
+      call on the <code>doc()</code> or <code>document()</code> functions.</p>
+      
+      <p>The <code>wait</code> attribute takes an XPath
    expression whose value must be an integer, the length of time in milliseconds after which the
    body of the instruction will be executed.</p>
       <p>At present the body of the instruction must be a single call on
