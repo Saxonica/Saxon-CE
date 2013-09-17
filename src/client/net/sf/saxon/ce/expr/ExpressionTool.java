@@ -95,7 +95,7 @@ public class ExpressionTool {
         if (exp instanceof Literal) {
             return exp;   // fast exit
         }
-        PromotionOffer offer = new PromotionOffer(config);
+        PromotionOffer offer = new PromotionOffer();
         offer.action = PromotionOffer.UNORDERED;
         offer.retainAllNodes = retainAllNodes;
         return exp.promote(offer, null);
@@ -413,7 +413,7 @@ public class ExpressionTool {
                     new StructuredQName("saxon", NamespaceConstant.SAXON, "current" + exp.hashCode()));
             let.setRequiredType(SequenceType.SINGLE_ITEM);
             let.setSequence(new CurrentItemExpression());
-            PromotionOffer offer = new PromotionOffer(config);
+            PromotionOffer offer = new PromotionOffer();
             offer.action = PromotionOffer.REPLACE_CURRENT;
             offer.containingExpression = let;
             exp = exp.promote(offer, null);

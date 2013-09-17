@@ -4,11 +4,11 @@ import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.expr.sort.CodepointCollator;
 import client.net.sf.saxon.ce.expr.sort.GenericAtomicComparer;
 import client.net.sf.saxon.ce.lib.StringCollator;
+import client.net.sf.saxon.ce.om.Sequence;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.URI;
 import client.net.sf.saxon.ce.value.AtomicValue;
 import client.net.sf.saxon.ce.value.StringValue;
-import client.net.sf.saxon.ce.value.Value;
 
 
 /**
@@ -42,10 +42,10 @@ public abstract class CollatingFunction extends SystemFunction {
     private void preEvaluateCollation(StaticContext env) throws XPathException {
         if (getNumberOfArguments() == getDetails().maxArguments) {
             final Expression collationExp = argument[getNumberOfArguments() - 1];
-            final Value collationVal = (collationExp instanceof Literal ? ((Literal)collationExp).getValue() : null);
+            final Sequence collationVal = (collationExp instanceof Literal ? ((Literal)collationExp).getValue() : null);
             if (collationVal instanceof AtomicValue) {
                 // Collation is supplied as a constant
-                String collationName = collationVal.getStringValue();
+                String collationName = ((AtomicValue)collationVal).getStringValue();
                 collationName = resolveCollationURI(collationName);
                 stringCollator = env.getConfiguration().getNamedCollation(collationName);
                 // if collation is unknown, report the error at run-time

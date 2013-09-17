@@ -1,8 +1,10 @@
 package client.net.sf.saxon.ce.expr;
+
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.trans.XPathException;
+import client.net.sf.saxon.ce.tree.iter.FocusIterator;
 import client.net.sf.saxon.ce.value.BooleanValue;
 import client.net.sf.saxon.ce.value.NumericValue;
 import client.net.sf.saxon.ce.value.StringValue;
@@ -15,10 +17,8 @@ import client.net.sf.saxon.ce.value.StringValue;
 
 public class FilterIterator implements SequenceIterator {
 
-    protected SequenceIterator base;
+    protected FocusIterator base;
     protected Expression filter;
-    private int position = 0;
-    private Item current = null;
     protected XPathContext filterContext;
 
     /**
@@ -30,10 +30,9 @@ public class FilterIterator implements SequenceIterator {
 
     public FilterIterator(SequenceIterator base, Expression filter,
                             XPathContext context) {
-        this.base = base;
         this.filter = filter;
         filterContext = context.newMinorContext();
-        filterContext.setCurrentIterator(base);
+        this.base = filterContext.setCurrentIterator(base);
     }
 
     /**
@@ -41,13 +40,7 @@ public class FilterIterator implements SequenceIterator {
     */
 
     public Item next() throws XPathException {
-        current = getNextMatchingItem();
-        if (current == null) {
-            position = -1;
-        } else {
-            position++;
-        }
-        return current;
+        return getNextMatchingItem();
     }
 
     /**
@@ -103,14 +96,6 @@ public class FilterIterator implements SequenceIterator {
                 return false;
             }
         }
-    }
-
-    public Item current() {
-        return current;
-    }
-
-    public int position() {
-        return position;
     }
 
     /**

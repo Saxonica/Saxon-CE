@@ -6,11 +6,11 @@ import client.net.sf.saxon.ce.lib.TraceListener;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.trans.XPathException;
+import client.net.sf.saxon.ce.tree.iter.FocusIterator;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.TypeHierarchy;
 import com.google.gwt.logging.client.LogConfiguration;
 
-import java.util.Arrays;
 import java.util.Iterator;
 
 
@@ -132,7 +132,7 @@ public class ForEach extends Instruction implements ContextMappingFunction {
         // If any subexpressions within the body of the for-each are not dependent on the focus,
         // promote them: this causes them to be evaluated once, outside the for-each loop
 
-        PromotionOffer offer = new PromotionOffer(config);
+        PromotionOffer offer = new PromotionOffer();
         offer.action = PromotionOffer.FOCUS_INDEPENDENT;
         offer.promoteDocumentDependent = (select.getSpecialProperties() & StaticProperty.CONTEXT_DOCUMENT_NODESET) != 0;
         offer.promoteXSLTFunctions = false;
@@ -220,13 +220,13 @@ public class ForEach extends Instruction implements ContextMappingFunction {
         SequenceIterator iter = select.iterate(context);
 
         XPathContextMajor c2 = context.newContext();
-        c2.setCurrentIterator(iter);
+        FocusIterator focus = c2.setCurrentIterator(iter);
         c2.setCurrentTemplateRule(null);
 
         if (containsTailCall) {
             if (LogConfiguration.loggingIsEnabled() && LogController.traceIsEnabled()) { 
                 TraceListener listener = LogController.getTraceListener();
-                Item item = iter.next();
+                Item item = focus.next();
                 if (item == null) {
                     return null;
                 }
@@ -236,7 +236,7 @@ public class ForEach extends Instruction implements ContextMappingFunction {
                 return tc;
             	
             } else {
-	            Item item = iter.next();
+	            Item item = focus.next();
 	            if (item == null) {
 	                return null;
 	            }
@@ -246,7 +246,7 @@ public class ForEach extends Instruction implements ContextMappingFunction {
             if (LogConfiguration.loggingIsEnabled() && LogController.traceIsEnabled()) { 
                 TraceListener listener = LogController.getTraceListener();
                 while(true) {
-                    Item item = iter.next();
+                    Item item = focus.next();
                     if (item == null) {
                         break;
                     }
@@ -256,7 +256,7 @@ public class ForEach extends Instruction implements ContextMappingFunction {
                 }
             } else {
 	            while(true) {
-	                Item item = iter.next();
+	                Item item = focus.next();
 	                if (item == null) {
 	                    break;
 	                }

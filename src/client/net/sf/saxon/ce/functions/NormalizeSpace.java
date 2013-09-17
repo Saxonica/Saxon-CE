@@ -1,12 +1,11 @@
 package client.net.sf.saxon.ce.functions;
 import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.om.Item;
-import client.net.sf.saxon.ce.value.Whitespace;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.value.AtomicValue;
 import client.net.sf.saxon.ce.value.StringValue;
-import client.net.sf.saxon.ce.value.Value;
+import client.net.sf.saxon.ce.value.Whitespace;
 
 /**
  * Implement the XPath normalize-space() function
@@ -53,7 +52,7 @@ public class NormalizeSpace extends SystemFunction {
         if (argument.length == 0) {
             return this;
         } else {
-            return Literal.makeLiteral((Value)evaluateItem(
+            return Literal.makeLiteral(evaluateItem(
                     visitor.getStaticContext().makeEarlyEvaluationContext()));
         }
     }

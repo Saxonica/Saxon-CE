@@ -217,7 +217,7 @@ public final class FilterExpression extends Expression {
         // expression. Note: we do this even if the filter is numeric, because it ensures that
         // the subscript is pre-evaluated, allowing direct indexing into the sequence.
 
-        PromotionOffer offer = new PromotionOffer(config);
+        PromotionOffer offer = new PromotionOffer();
         offer.action = PromotionOffer.FOCUS_INDEPENDENT;
         offer.promoteDocumentDependent = (start.getSpecialProperties() & StaticProperty.CONTEXT_DOCUMENT_NODESET) != 0;
         offer.containingExpression = this;
@@ -241,7 +241,7 @@ public final class FilterExpression extends Expression {
 
     private Expression tryToRewritePositionalFilter(ExpressionVisitor visitor) throws XPathException {
         if (filter instanceof Literal) {
-            Value val = ((Literal)filter).getValue();
+            Sequence val = ((Literal)filter).getValue();
             if (val instanceof NumericValue) {
                 if (((NumericValue)val).isWholeNumber()) {
                     try {
@@ -261,7 +261,7 @@ public final class FilterExpression extends Expression {
                     return Literal.makeEmptySequence();
                 }
             } else {
-                return (val.effectiveBooleanValue() ? start : Literal.makeEmptySequence());
+                return (ExpressionTool.effectiveBooleanValue(val.iterate()) ? start : Literal.makeEmptySequence());
             }
         }
         if (filter instanceof ComparisonExpression) {
@@ -581,11 +581,11 @@ public final class FilterExpression extends Expression {
         // Fast path where both operands are constants, or simple variable references
 
         Expression startExp = start;
-        Value startValue = null;
+        Sequence startValue = null;
         if (startExp instanceof Literal) {
             startValue = ((Literal)startExp).getValue();
         } else if (startExp instanceof VariableReference) {
-            startValue = Value.asValue(((VariableReference)startExp).evaluateVariable(context));
+            startValue = ((VariableReference)startExp).evaluateVariable(context);
             startExp = new Literal(startValue);
         }
 
@@ -604,7 +604,7 @@ public final class FilterExpression extends Expression {
         // all cases where the filter expression is independent of the context, that is, where the
         // value of the filter expression is the same for all items in the sequence being filtered.
 
-        if (filterValue instanceof Value) {
+        if (filterValue instanceof SequenceTool) {
             if (filterValue instanceof NumericValue) {
                 // Filter is a constant number
                 if (((NumericValue)filterValue).isWholeNumber()) {

@@ -3,9 +3,8 @@ package client.net.sf.saxon.ce.expr;
 import client.net.sf.saxon.ce.expr.instruct.GlobalParam;
 import client.net.sf.saxon.ce.expr.instruct.UserFunctionParameter;
 import client.net.sf.saxon.ce.om.Item;
-import client.net.sf.saxon.ce.om.NodeInfo;
-import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.om.Sequence;
+import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.pattern.NodeTest;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.AnyItemType;
@@ -13,8 +12,7 @@ import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.Cardinality;
 import client.net.sf.saxon.ce.value.SequenceType;
-import client.net.sf.saxon.ce.value.SingletonItem;
-import client.net.sf.saxon.ce.value.Value;
+import client.net.sf.saxon.ce.value.SequenceTool;
 
 import java.util.logging.Logger;
 
@@ -28,7 +26,7 @@ public class VariableReference extends Expression {
     protected Binding binding = null;     // This will be null until fixup() is called; it will also be null
                                 // if the variable reference has been inlined
     protected SequenceType staticType = null;
-    protected Value constantValue = null;
+    protected Sequence constantValue = null;
     transient String displayName = null;
     private boolean flattened = false;
     private boolean inLoop = true;
@@ -62,7 +60,7 @@ public class VariableReference extends Expression {
      * @param properties static properties of the expression to which the variable is bound
      */
 
-    public void setStaticType(SequenceType type, Value value, int properties) {
+    public void setStaticType(SequenceType type, Sequence value, int properties) {
         // System.err.println(this + " Set static type = " + type);
         staticType = type;
         constantValue = value;
@@ -159,7 +157,7 @@ public class VariableReference extends Expression {
      */
 
     public void refineVariableType(
-            ItemType type, int cardinality, Value constantValue, int properties, ExpressionVisitor visitor) {
+            ItemType type, int cardinality, Sequence constantValue, int properties, ExpressionVisitor visitor) {
         TypeHierarchy th = TypeHierarchy.getInstance();
         ItemType oldItemType = getItemType();
         ItemType newItemType = oldItemType;
@@ -306,8 +304,7 @@ public class VariableReference extends Expression {
 
     public SequenceIterator iterate(XPathContext c) throws XPathException {
         try {
-            Sequence actual = evaluateVariable(c);
-            return Value.asIterator(actual);
+            return evaluateVariable(c).iterate();
         } catch (XPathException err) {
             err.maybeSetLocation(getSourceLocator());
             throw err;
@@ -324,11 +321,7 @@ public class VariableReference extends Expression {
 
     public Item evaluateItem(XPathContext c) throws XPathException {
         try {
-            Sequence actual = evaluateVariable(c);
-            if (actual instanceof Item) {
-                return (Item) actual;
-            }
-            return Value.asItem(actual);
+            return SequenceTool.asItem(evaluateVariable(c));
         } catch (XPathException err) {
             err.maybeSetLocation(getSourceLocator());
             throw err;
@@ -338,10 +331,7 @@ public class VariableReference extends Expression {
     public void process(XPathContext c) throws XPathException {
         try {
             Sequence actual = evaluateVariable(c);
-            if (actual instanceof NodeInfo) {
-                actual = new SingletonItem((NodeInfo) actual);
-            }
-            Value.process(Value.asIterator(actual), c);
+            SequenceTool.process(actual.iterate(), c);
         } catch (XPathException err) {
             err.maybeSetLocation(getSourceLocator());
             throw err;

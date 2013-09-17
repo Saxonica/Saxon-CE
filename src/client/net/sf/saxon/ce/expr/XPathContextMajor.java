@@ -11,6 +11,7 @@ import client.net.sf.saxon.ce.trans.Mode;
 import client.net.sf.saxon.ce.trans.Rule;
 import client.net.sf.saxon.ce.trans.RuleManager;
 import client.net.sf.saxon.ce.trans.XPathException;
+import client.net.sf.saxon.ce.tree.iter.FocusIterator;
 import client.net.sf.saxon.ce.tree.iter.SingletonIterator;
 import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 
@@ -65,9 +66,12 @@ public class XPathContextMajor extends XPathContextMinor {
         controller = new Controller(exec.getConfiguration(), exec);
         if (item != null) {
             UnfailingIterator iter = SingletonIterator.makeIterator(item);
-            iter.next();
-            currentIterator = iter;
-            last = new LastValue(1);
+            currentIterator = new FocusIterator(iter);
+            try {
+                currentIterator.next();
+            } catch (XPathException err) {
+                throw new AssertionError(err);
+            }
         }
         origin = controller;
     }
@@ -84,7 +88,6 @@ public class XPathContextMajor extends XPathContextMinor {
         c.stackFrame = stackFrame;
         c.localParameters = localParameters;
         c.tunnelParameters = tunnelParameters;
-        c.last = last;
         c.currentReceiver = currentReceiver;
         c.isTemporaryDestination = isTemporaryDestination;
         c.currentMode = currentMode;
@@ -113,7 +116,6 @@ public class XPathContextMajor extends XPathContextMinor {
         c.stackFrame = prev.getStackFrame();
         c.localParameters = p.getLocalParameters();
         c.tunnelParameters = p.getTunnelParameters();
-        c.last = prev.last;
         c.currentReceiver = prev.currentReceiver;
         c.isTemporaryDestination = prev.isTemporaryDestination;
         c.currentMode = p.getCurrentMode();

@@ -10,6 +10,7 @@ import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
 import client.net.sf.saxon.ce.tree.util.NamespaceIterator;
 import client.net.sf.saxon.ce.tree.util.Navigator;
 import client.net.sf.saxon.ce.type.Type;
+import client.net.sf.saxon.ce.value.AbstractNode;
 import client.net.sf.saxon.ce.value.AtomicValue;
 import client.net.sf.saxon.ce.value.StringValue;
 
@@ -17,7 +18,7 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public class NamespaceNode implements NodeInfo {
+public class NamespaceNode extends AbstractNode implements NodeInfo {
 
     NodeInfo element;
     NamespaceBinding nsBinding;

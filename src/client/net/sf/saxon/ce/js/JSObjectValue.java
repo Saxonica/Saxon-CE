@@ -1,6 +1,8 @@
 package client.net.sf.saxon.ce.js;
 
 import client.net.sf.saxon.ce.om.Item;
+import client.net.sf.saxon.ce.tree.iter.SingletonIterator;
+import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 import client.net.sf.saxon.ce.value.AtomicValue;
 import client.net.sf.saxon.ce.value.StringValue;
 import com.google.gwt.core.client.JavaScriptObject;
@@ -29,6 +31,37 @@ public class JSObjectValue implements Item {
 
     public AtomicValue getTypedValue() {
         return new StringValue(getStringValue());
+    }
+
+    /**
+     * Iterate over the items contained in this value.
+     *
+     * @return an iterator over the sequence of items
+     */
+    public UnfailingIterator iterate() {
+        return SingletonIterator.makeIterator(this);
+    }
+
+    /**
+     * Get the n'th item in the sequence (starting from 0). This is defined for all
+     * Values, but its real benefits come for a sequence Value stored extensionally
+     * (or for a MemoClosure, once all the values have been read)
+     *
+     * @param n position of the required item, counting from zero.
+     * @return the n'th item in the sequence, where the first item in the sequence is
+     *         numbered zero. If n is negative or >= the length of the sequence, returns null.
+     */
+    public Item itemAt(int n) {
+        return (n==0 ? this : null);
+    }
+
+    /**
+     * Get the length of the sequence
+     *
+     * @return the number of items in the sequence
+     */
+    public int getLength() {
+        return 1;
     }
 }
 

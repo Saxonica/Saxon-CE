@@ -2,6 +2,7 @@ package client.net.sf.saxon.ce.expr;
 
 import client.net.sf.saxon.ce.functions.NumberFn;
 import client.net.sf.saxon.ce.om.Item;
+import client.net.sf.saxon.ce.om.Sequence;
 import client.net.sf.saxon.ce.pattern.EmptySequenceTest;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.AtomicType;
@@ -66,7 +67,7 @@ public class ArithmeticExpression10 extends BinaryExpression {
 
         if (operator == Token.NEGATE) {
             if (operand1 instanceof Literal) {
-                Value v = ((Literal)operand1).getValue();
+                Sequence v = ((Literal)operand1).getValue();
                 if (v instanceof NumericValue) {
                     return Literal.makeLiteral(((NumericValue)v).negate());
                 }

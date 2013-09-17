@@ -2,11 +2,15 @@ package client.net.sf.saxon.ce.value;
 
 import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.lib.StringCollator;
-import client.net.sf.saxon.ce.om.*;
+import client.net.sf.saxon.ce.om.Item;
+import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.trans.NoDynamicContextException;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.SingletonIterator;
-import client.net.sf.saxon.ce.type.*;
+import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
+import client.net.sf.saxon.ce.type.AtomicType;
+import client.net.sf.saxon.ce.type.ConversionResult;
+import client.net.sf.saxon.ce.type.Type;
 
 
 /**
@@ -24,7 +28,7 @@ import client.net.sf.saxon.ce.type.*;
  * @author Michael H. Kay
  */
 
-public abstract class AtomicValue extends Value implements Item, ConversionResult {
+public abstract class AtomicValue implements Item, ConversionResult {
 
     /**
      * Get an object value that implements the XPath equality and ordering comparison semantics for this value.
@@ -140,7 +144,7 @@ public abstract class AtomicValue extends Value implements Item, ConversionResul
      *         value
      */
 
-    public final SequenceIterator iterate() {
+    public final UnfailingIterator iterate() {
         return SingletonIterator.makeIterator(this);
     }
 

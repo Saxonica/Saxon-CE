@@ -191,7 +191,7 @@ public final class CastExpression extends UnaryExpression  {
         }
 
         if (operand instanceof Literal) {
-            Value literalOperand = ((Literal)operand).getValue();
+            Sequence literalOperand = ((Literal)operand).getValue();
             if (literalOperand instanceof AtomicValue) {
                 AtomicValue av = ((AtomicValue)evaluateItem(visitor.getStaticContext().makeEarlyEvaluationContext()));
                 if (av instanceof StringValue) {

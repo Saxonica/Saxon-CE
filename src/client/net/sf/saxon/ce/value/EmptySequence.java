@@ -1,8 +1,10 @@
 package client.net.sf.saxon.ce.value;
+
 import client.net.sf.saxon.ce.om.Item;
-import client.net.sf.saxon.ce.om.SequenceIterator;
+import client.net.sf.saxon.ce.om.Sequence;
 import client.net.sf.saxon.ce.pattern.EmptySequenceTest;
 import client.net.sf.saxon.ce.tree.iter.EmptyIterator;
+import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 import client.net.sf.saxon.ce.type.ItemType;
 
 /**
@@ -10,7 +12,7 @@ import client.net.sf.saxon.ce.type.ItemType;
 */
 
 
-public final class EmptySequence extends Value {
+public final class EmptySequence implements Sequence {
 
     // This class has a single instance
     private static EmptySequence THE_INSTANCE = new EmptySequence();
@@ -34,17 +36,8 @@ public final class EmptySequence extends Value {
     * Return an iteration over the sequence
     */
 
-    public SequenceIterator iterate() {
+    public UnfailingIterator iterate() {
         return EmptyIterator.getInstance();
-    }
-
-    /**
-     * Return the value in the form of an Item
-     * @return the value in the form of an Item
-     */
-
-    public Item asItem() {
-        return null;
     }
     
     public String toString() {

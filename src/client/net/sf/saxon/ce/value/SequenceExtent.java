@@ -1,7 +1,8 @@
 package client.net.sf.saxon.ce.value;
-import client.net.sf.saxon.ce.expr.ExpressionTool;
 import client.net.sf.saxon.ce.expr.LastPositionFinder;
-import client.net.sf.saxon.ce.om.*;
+import client.net.sf.saxon.ce.om.Item;
+import client.net.sf.saxon.ce.om.Sequence;
+import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.ArrayIterator;
 import client.net.sf.saxon.ce.tree.iter.GroundedIterator;
@@ -21,7 +22,7 @@ import java.util.List;
  * by allocating memory to each item in the sequence.
  */
 
-public final class SequenceExtent extends Value {
+public final class SequenceExtent implements Sequence {
     transient private Item[] value;
     private ItemType itemType = null;   // memoized
 
@@ -101,12 +102,12 @@ public final class SequenceExtent extends Value {
 
     public static Sequence makeSequenceExtent(SequenceIterator iter) throws XPathException {
         if (iter instanceof GroundedIterator) {
-            Value value = ((GroundedIterator)iter).materialize();
+            Sequence value = ((GroundedIterator)iter).materialize();
             if (value != null) {
                 return value;
             }
         }
-        Value extent = new SequenceExtent(iter);
+        SequenceExtent extent = new SequenceExtent(iter);
         int len = extent.getLength();
         if (len==0) {
             return EmptySequence.getInstance();
@@ -161,16 +162,16 @@ public final class SequenceExtent extends Value {
      * Simplify this SequenceExtent
      * @return a Value holding the items delivered by the SequenceIterator. If the
      * sequence is empty the result will be an instance of {@link EmptySequence}. If it is of length
-     * one, the result will be an {@link AtomicValue} or a {@link SingletonItem}.
+     * one, the result will be an {@link AtomicValue} or a {@link client.net.sf.saxon.ce.om.NodeInfo}.
      * In all other cases, the {@link SequenceExtent} will be returned unchanged.
      */
 
-    public Value simplify() {
+    public Sequence simplify() {
         int n = getLength();
         if (n == 0) {
             return EmptySequence.getInstance();
         } else if (n == 1) {
-            return Value.asValue(itemAt(0));
+            return itemAt(0);
         } else {
             return this;
         }
@@ -246,24 +247,6 @@ public final class SequenceExtent extends Value {
 
     public UnfailingIterator iterate() {
         return new ArrayIterator(value);
-    }
-
-    /**
-     * Get the effective boolean value
-     */
-
-    public boolean effectiveBooleanValue() throws XPathException {
-        int len = getLength();
-        if (len == 0) {
-            return false;
-        } else if (value[0] instanceof NodeInfo) {
-            return true;
-        } else if (len > 1) {
-            // this is a type error - reuse the error messages
-            return ExpressionTool.effectiveBooleanValue(iterate());
-        } else {
-            return ((AtomicValue)value[0]).effectiveBooleanValue();
-        }
     }
 
 

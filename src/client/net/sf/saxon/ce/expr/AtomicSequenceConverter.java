@@ -1,14 +1,15 @@
 package client.net.sf.saxon.ce.expr;
 
 import client.net.sf.saxon.ce.om.Item;
-import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.om.Sequence;
+import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.type.*;
+import client.net.sf.saxon.ce.type.AtomicType;
+import client.net.sf.saxon.ce.type.ItemType;
+import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.AtomicValue;
 import client.net.sf.saxon.ce.value.Cardinality;
 import client.net.sf.saxon.ce.value.SequenceExtent;
-import client.net.sf.saxon.ce.value.Value;
 
 /**
 * An AtomicSequenceConverter is an expression that performs a cast on each member of
@@ -55,7 +56,7 @@ public final class AtomicSequenceConverter extends UnaryExpression {
         if (operand instanceof Literal) {
             Sequence val = SequenceExtent.makeSequenceExtent(
                     iterate(visitor.getStaticContext().makeEarlyEvaluationContext()));
-            return Literal.makeLiteral(Value.asValue(val));
+            return Literal.makeLiteral(val);
         }
         return this;
     }

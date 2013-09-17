@@ -152,7 +152,7 @@ public class ApplyImports extends Instruction {
             throw new XPathException("There is no context item", "XTDE0565");
         }
 
-        Item currentItem = context.getCurrentIterator().current();
+        Item currentItem = context.getContextItem();
         if (!(currentItem instanceof NodeInfo)) {
             dynamicError("The context item is not a node", "XTDE0565");
         }

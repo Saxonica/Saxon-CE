@@ -4,16 +4,20 @@ import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.functions.Last;
 import client.net.sf.saxon.ce.functions.Position;
-import client.net.sf.saxon.ce.om.*;
+import client.net.sf.saxon.ce.om.Axis;
+import client.net.sf.saxon.ce.om.Item;
+import client.net.sf.saxon.ce.om.NodeInfo;
+import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.tree.iter.SingletonIterator;
-import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.type.TypeHierarchy;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 
 /**
  * A LocationPathPattern represents a path, for example of the form A/B/C... The components are represented
@@ -419,9 +423,7 @@ public final class LocationPathPattern extends Pattern {
             Item ci = context.getContextItem();
             if (!(ci instanceof NodeInfo && ((NodeInfo)ci).isSameNodeInfo(node))) {
                 c2 = context.newContext();
-                UnfailingIterator si = SingletonIterator.makeIterator(node);
-                si.next();
-                c2.setCurrentIterator(si);
+                c2.setSingletonFocus(node);
             }
             variableBinding.evaluateItem(c2);
         }
@@ -475,9 +477,7 @@ public final class LocationPathPattern extends Pattern {
 
                 // System.err.println("Testing positional pattern against node " + node.generateId());
                 XPathContext c2 = context.newMinorContext();
-                UnfailingIterator single = SingletonIterator.makeIterator(node);
-                single.next();
-                c2.setCurrentIterator(single);
+                c2.setSingletonFocus(node);
                 try {
                     SequenceIterator nsv = equivalentExpr.iterate(c2);
                     while (true) {
@@ -490,10 +490,6 @@ public final class LocationPathPattern extends Pattern {
                         }
                     }
                 } catch (XPathException e) {
-//                    XPathException err = new XPathException("An error occurred matching pattern {" + toString() + "}: ", e);
-//                    err.setErrorCodeQName(e.getErrorCodeQName());
-//                    err.setLocator(this);
-//                    c2.getController().recoverableError(err);
                     return false;
                 }
             }
@@ -501,9 +497,7 @@ public final class LocationPathPattern extends Pattern {
 
         if (filters.length != 0) {
             XPathContext c2 = context.newMinorContext();
-            UnfailingIterator iter = SingletonIterator.makeIterator(node);
-            iter.next();
-            c2.setCurrentIterator(iter);
+            c2.setSingletonFocus(node);
             // it's a non-positional filter, so we can handle each node separately
 
             for (Expression filter : filters) {

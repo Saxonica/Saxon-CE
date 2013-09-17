@@ -197,7 +197,7 @@ public class UserFunctionCall extends FunctionCall {
 
     public Item evaluateItem(XPathContext c) throws XPathException {
         Sequence val = callFunction(c);
-        return Value.asItem(val);
+        return SequenceTool.asItem(val);
     }
 
     /**
@@ -206,8 +206,7 @@ public class UserFunctionCall extends FunctionCall {
      */
 
     public SequenceIterator iterate(XPathContext c) throws XPathException {
-        Sequence result = callFunction(c);
-        return Value.asIterator(result);
+        return callFunction(c).iterate();
     }
 
 

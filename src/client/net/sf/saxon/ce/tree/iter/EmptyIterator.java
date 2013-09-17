@@ -2,9 +2,9 @@ package client.net.sf.saxon.ce.tree.iter;
 
 import client.net.sf.saxon.ce.expr.LastPositionFinder;
 import client.net.sf.saxon.ce.om.Item;
+import client.net.sf.saxon.ce.om.Sequence;
 import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.value.EmptySequence;
-import client.net.sf.saxon.ce.value.Value;
 
 /**
  * EmptyIterator: an iterator over an empty sequence. Since such an iterator has no state,
@@ -39,23 +39,6 @@ public class EmptyIterator implements UnfailingIterator,
      */
     public Item next() {
         return null;
-    }
-
-    /**
-     * Get the current item, that is, the item returned by the most recent call of next().
-     * @return the current item. For the EmptyIterator this is always null.
-     */
-    public Item current() {
-        return null;
-    }
-
-    /**
-     * Get the position of the current item.
-     * @return the position of the current item. For the EmptyIterator this is always zero
-     * (whether or not the next() method has been called).
-     */
-    public int position() {
-        return 0;
     }
 
     /**
@@ -95,7 +78,7 @@ public class EmptyIterator implements UnfailingIterator,
      * @return the corresponding Value
      */
 
-    public Value materialize() {
+    public Sequence materialize() {
         return EmptySequence.getInstance();
     }
 

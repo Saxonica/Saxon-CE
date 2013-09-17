@@ -6,15 +6,17 @@ import client.net.sf.saxon.ce.event.*;
 import client.net.sf.saxon.ce.expr.instruct.LocalParam;
 import client.net.sf.saxon.ce.expr.instruct.ParameterSet;
 import client.net.sf.saxon.ce.expr.sort.GroupIterator;
-import client.net.sf.saxon.ce.functions.Count;
 import client.net.sf.saxon.ce.om.Item;
+import client.net.sf.saxon.ce.om.Sequence;
 import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.om.StructuredQName;
-import client.net.sf.saxon.ce.om.Sequence;
 import client.net.sf.saxon.ce.regex.RegexIterator;
 import client.net.sf.saxon.ce.trans.Mode;
 import client.net.sf.saxon.ce.trans.Rule;
 import client.net.sf.saxon.ce.trans.XPathException;
+import client.net.sf.saxon.ce.tree.iter.FocusIterator;
+import client.net.sf.saxon.ce.tree.iter.SingletonIterator;
+import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 import client.net.sf.saxon.ce.value.DateTimeValue;
 
 /**
@@ -26,8 +28,7 @@ import client.net.sf.saxon.ce.value.DateTimeValue;
 public class XPathContextMinor implements XPathContext {
 
     Controller controller;
-    SequenceIterator currentIterator;
-    LastValue last = null;
+    FocusIterator currentIterator;
     SequenceReceiver currentReceiver;
     boolean isTemporaryDestination = false;
     XPathContext caller = null;
@@ -62,7 +63,6 @@ public class XPathContextMinor implements XPathContext {
         c.caller = this;
         c.currentIterator = currentIterator;
         c.currentReceiver = currentReceiver;
-        c.last = last;
         c.isTemporaryDestination = isTemporaryDestination;
         c.stackFrame = stackFrame;
         c.currentException = currentException;
@@ -134,10 +134,25 @@ public class XPathContextMinor implements XPathContext {
     * Set a new sequence iterator.
     */
 
-    public void setCurrentIterator(SequenceIterator iter) {
-        currentIterator = iter;
-        last = new LastValue(-1);
+    public FocusIterator setCurrentIterator(SequenceIterator iter) {
+        if (iter instanceof FocusIterator) {
+            currentIterator = (FocusIterator)iter;
+        } else {
+            currentIterator = new FocusIterator(iter);
+        }
+        return currentIterator;
     }
+
+    public void setSingletonFocus(Item item) {
+        UnfailingIterator iter = SingletonIterator.makeIterator(item);
+        FocusIterator focus = setCurrentIterator(iter);
+        try {
+            focus.next();
+        } catch (XPathException e) {
+            throw new AssertionError(e);
+        }
+    }
+
 
     /**
      * Get the current iterator.
@@ -146,7 +161,7 @@ public class XPathContextMinor implements XPathContext {
      * (which means the context item, position, and size are undefined).
     */
 
-    public final SequenceIterator getCurrentIterator() {
+    public final FocusIterator getCurrentIterator() {
         return currentIterator;
     }
 
@@ -185,16 +200,7 @@ public class XPathContextMinor implements XPathContext {
         if (currentIterator == null) {
             throw new XPathException("The context size is currently undefined", "FONC0001");
         }
-        if (last.value >= 0) {
-            return last.value;
-        }
-        if (currentIterator instanceof LastPositionFinder) {
-            int count = ((LastPositionFinder)currentIterator).getLastPosition();
-            if (count != -1) {
-                return (last.value = count);
-            }
-        }
-        return (last.value = Count.count(currentIterator.getAnother()));
+        return currentIterator.last();
     }
 
     /**
@@ -426,21 +432,7 @@ public class XPathContextMinor implements XPathContext {
     // the tree). Only 6 context objects are created while doing this. This doesn't appear to be a productive
     // area to look for new optimizations.
 
-    /**
-     * Container for cached value of the last() function.
-     * This is shared between all context objects that share the same current iterator.
-     * Introduced in 9.2 to handle the case where a new context is introduced when the current
-     * outputter changes, without changing the current iterator: in this case the cached value
-     * was being lost because each call on last() used a different context object.
-     */
 
-    protected static class LastValue {
-        public int value = 0;
-
-        public LastValue(int count) {
-            value = count;
-        }
-    }
 }
 
 // This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. 

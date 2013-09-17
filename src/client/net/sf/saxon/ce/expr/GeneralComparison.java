@@ -124,9 +124,9 @@ public class GeneralComparison extends BinaryExpression {
         if (backwardsCompatible) {
             // If either operand is a singleton boolean, convert the other to a singleton boolean
             if (v0 instanceof BooleanValue) {
-                v1 = BooleanValue.get(ExpressionTool.effectiveBooleanValue(Value.asIterator(v1)));
+                v1 = BooleanValue.get(ExpressionTool.effectiveBooleanValue(v1.iterate()));
             } else if (v1 instanceof BooleanValue) {
-                v0 = BooleanValue.get(ExpressionTool.effectiveBooleanValue(Value.asIterator(v0)));
+                v0 = BooleanValue.get(ExpressionTool.effectiveBooleanValue(v0.iterate()));
             }
         }
 
@@ -154,7 +154,7 @@ public class GeneralComparison extends BinaryExpression {
 
         // Compare all pairs of atomic values in the two atomized sequences
 
-        Value val1 = Value.asValue(SequenceExtent.makeSequenceExtent(s1));
+        Sequence val1 = SequenceExtent.makeSequenceExtent(s1);
         int singletonOperator = getSingletonOperator(operator);
 
         while (true) {
@@ -183,7 +183,7 @@ public class GeneralComparison extends BinaryExpression {
         if (v instanceof AtomicValue) {
             return SingletonIterator.makeIterator((AtomicValue)v);
         } else {
-            return Atomizer.getAtomizingIterator(Value.asIterator(v));
+            return Atomizer.getAtomizingIterator(v.iterate());
         }
     }
 

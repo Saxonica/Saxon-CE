@@ -4,7 +4,7 @@ import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.*;
 import client.net.sf.saxon.ce.value.Cardinality;
-import client.net.sf.saxon.ce.value.Value;
+import client.net.sf.saxon.ce.value.SequenceTool;
 
 /**
 * A ItemChecker implements the item type checking of "treat as": that is,
@@ -167,8 +167,7 @@ public final class ItemChecker extends UnaryExpression {
                 message = "Supplied value of type " + Type.displayTypeName(item) +
                         " does not match the required type of " + role.getMessage();
             } else {
-                final TypeHierarchy th = TypeHierarchy.getInstance();
-                message = role.composeErrorMessage(requiredItemType, Value.asValue(item).getItemType());
+                message = role.composeErrorMessage(requiredItemType, SequenceTool.getItemType(item));
             }
             String errorCode = role.getErrorCode();
             if ("XPDY0050".equals(errorCode)) {

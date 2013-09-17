@@ -5,8 +5,6 @@ import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.tree.iter.SingletonIterator;
-import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.Type;
 
@@ -188,9 +186,7 @@ public class UnionPattern extends Pattern {
             Item ci = context.getContextItem();
             if (!(ci instanceof NodeInfo && ((NodeInfo)ci).isSameNodeInfo(e))) {
                 c2 = context.newContext();
-                UnfailingIterator si = SingletonIterator.makeIterator(e);
-                si.next();
-                c2.setCurrentIterator(si);
+                c2.setSingletonFocus(e);
             }
             variableBinding.evaluateItem(c2);
         }

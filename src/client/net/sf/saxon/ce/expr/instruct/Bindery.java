@@ -3,14 +3,13 @@ package client.net.sf.saxon.ce.expr.instruct;
 import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.om.DocumentInfo;
 import client.net.sf.saxon.ce.om.DocumentPool;
-import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.om.Sequence;
+import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.URI;
 import client.net.sf.saxon.ce.value.EmptySequence;
 import client.net.sf.saxon.ce.value.SequenceExtent;
 import client.net.sf.saxon.ce.value.SequenceType;
-import client.net.sf.saxon.ce.value.Value;
 
 import java.util.HashMap;
 
@@ -125,14 +124,14 @@ public final class Bindery  {
      * @throws XPathException if the value cannot be converted to the required type
      */
 
-    public static Value applyFunctionConversionRules(
+    public static Sequence applyFunctionConversionRules(
             StructuredQName qName,
             Sequence value, SequenceType requiredType, final XPathContext context)
             throws XPathException {
 
         RoleLocator role = new RoleLocator(RoleLocator.PARAM, qName, 0);
-        Expression e = TypeChecker.staticTypeCheck(new Literal(Value.asValue(value)), requiredType, false, role);
-        return Value.asValue(SequenceExtent.makeSequenceExtent(e.iterate(context)));
+        Expression e = TypeChecker.staticTypeCheck(new Literal(value), requiredType, false, role);
+        return SequenceExtent.makeSequenceExtent(e.iterate(context));
     }
 
 

@@ -2,11 +2,11 @@ package client.net.sf.saxon.ce.style;
 
 import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.expr.instruct.GlobalVariable;
+import client.net.sf.saxon.ce.om.Sequence;
 import client.net.sf.saxon.ce.pattern.AnyNodeTest;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.SequenceType;
-import client.net.sf.saxon.ce.value.Value;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -91,7 +91,7 @@ public abstract class XSLVariableDeclaration
         final SequenceType type = getRequiredType();
         final TypeHierarchy th = TypeHierarchy.getInstance();
         for (VariableReference reference : references) {
-            Value constantValue = null;
+            Sequence constantValue = null;
             int properties = 0;
             if (this instanceof XSLVariable) {
                 if (select instanceof Literal) {

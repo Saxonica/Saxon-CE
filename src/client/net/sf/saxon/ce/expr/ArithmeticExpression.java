@@ -132,7 +132,7 @@ public class ArithmeticExpression extends BinaryExpression {
 
         try {
             if ((operand0 instanceof Literal) && (operand1 instanceof Literal)) {
-                return new Literal(Value.asValue(evaluateItem(visitor.getStaticContext().makeEarlyEvaluationContext())));
+                return new Literal(evaluateItem(visitor.getStaticContext().makeEarlyEvaluationContext()));
             }
         } catch (XPathException err) {
             // if early evaluation fails, suppress the error: the value might

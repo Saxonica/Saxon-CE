@@ -6,7 +6,7 @@ import client.net.sf.saxon.ce.om.Sequence;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.value.SequenceExtent;
-import client.net.sf.saxon.ce.value.Value;
+import client.net.sf.saxon.ce.value.SequenceTool;
 
 /**
 * A TailCallLoop wraps the body of a function that contains tail-recursive function calls. On completion
@@ -78,10 +78,10 @@ public final class TailCallLoop extends UnaryExpression {
             Sequence extent = SequenceExtent.makeSequenceExtent(iter);
             UserFunction fn = cm.getTailCallFunction();
             if (fn == null) {
-                return Value.asIterator(extent);
+                return extent.iterate();
             }
             if (fn != containingFunction) {
-                return Value.asIterator(tailCallDifferentFunction(fn, cm));
+                return tailCallDifferentFunction(fn, cm).iterate();
             }
             // otherwise, loop round to execute the tail call
         }
@@ -100,7 +100,7 @@ public final class TailCallLoop extends UnaryExpression {
                return item;
             }
             if (fn != containingFunction) {
-                return Value.asItem(tailCallDifferentFunction(fn, cm));
+                return SequenceTool.asItem(tailCallDifferentFunction(fn, cm));
             }
             // otherwise, loop round to execute the tail call
         }
@@ -121,7 +121,7 @@ public final class TailCallLoop extends UnaryExpression {
                 return;
             }
             if (fn != containingFunction) {
-                Value.process(Value.asIterator(tailCallDifferentFunction(fn, cm)), cm);
+                SequenceTool.process(tailCallDifferentFunction(fn, cm).iterate(), cm);
                 return;
             }
             // otherwise, loop round to execute the tail call

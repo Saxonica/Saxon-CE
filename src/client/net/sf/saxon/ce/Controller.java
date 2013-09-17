@@ -1028,9 +1028,10 @@ public class Controller {
 
                 SequenceIterator currentIter = SingletonIterator.makeIterator(source);
                 if (initialTemplate != null) {
-                    currentIter.next();
+                    initialContext.setSingletonFocus(initialContextItem);
+                } else {
+                    currentIter = initialContext.setCurrentIterator(currentIter);
                 }
-                initialContext.setCurrentIterator(currentIter);
             }
 
             initializeController();

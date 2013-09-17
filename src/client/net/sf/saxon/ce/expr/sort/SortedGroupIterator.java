@@ -2,7 +2,6 @@ package client.net.sf.saxon.ce.expr.sort;
 
 import client.net.sf.saxon.ce.expr.LastPositionFinder;
 import client.net.sf.saxon.ce.expr.XPathContext;
-import client.net.sf.saxon.ce.expr.XPathContextMajor;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.trans.XPathException;
@@ -44,9 +43,9 @@ public class SortedGroupIterator extends SortedIterator implements GroupIterator
         nodeKeys = new Object[allocated * recordSize];
         count = 0;
 
-        XPathContextMajor c2 = context.newContext();
-        c2.setCurrentIterator(base);
-        c2.setCurrentGroupIterator((GroupIterator)base);
+//        XPathContextMajor c2 = context.newContext();
+//        FocusIterator focus = c2.setCurrentIterator(base);
+//        c2.setCurrentGroupIterator((GroupIterator)base);
                 // this provides the context for evaluating the sort key
 
         // initialise the array with data
@@ -65,12 +64,13 @@ public class SortedGroupIterator extends SortedIterator implements GroupIterator
             int k = count*recordSize;
             nodeKeys[k] = item;
             for (int n=0; n<comparators.length; n++) {
-                nodeKeys[k+n+1] = sortKeyEvaluator.evaluateSortKey(n, c2);
+                nodeKeys[k+n+1] = sortKeyEvaluator.evaluateSortKey(n, context);
             }
-            nodeKeys[k+comparators.length+1] = Integer.valueOf(count);
+            nodeKeys[k+comparators.length+1] = count;
             // extra code added to superclass
-            nodeKeys[k+comparators.length+2] = ((GroupIterator)base).getCurrentGroupingKey();
-            nodeKeys[k+comparators.length+3] = ((GroupIterator)base).iterateCurrentGroup();
+            GroupIterator gi = (GroupIterator)base.getUnderlyingIterator();
+            nodeKeys[k+comparators.length+2] = gi.getCurrentGroupingKey();
+            nodeKeys[k+comparators.length+3] = gi.iterateCurrentGroup();
             count++;
         }
     }

@@ -8,6 +8,7 @@ import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.trans.NoDynamicContextException;
 import client.net.sf.saxon.ce.trans.XPathException;
+import client.net.sf.saxon.ce.tree.iter.FocusIterator;
 import client.net.sf.saxon.ce.tree.iter.ListIterator;
 import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.value.AtomicValue;
@@ -26,7 +27,7 @@ import java.util.List;
 
 public class GroupAdjacentIterator implements GroupIterator {
 
-    private SequenceIterator population;
+    private FocusIterator population;
     private Expression keyExpression;
     private StringCollator collator;
     //private AtomicComparer comparer;
@@ -43,13 +44,12 @@ public class GroupAdjacentIterator implements GroupIterator {
     public GroupAdjacentIterator(SequenceIterator population, Expression keyExpression,
                                  XPathContext baseContext, StringCollator collator)
     throws XPathException {
-        this.population = population;
         this.keyExpression = keyExpression;
         this.baseContext = baseContext;
         this.runningContext = baseContext.newMinorContext();
-        runningContext.setCurrentIterator(population);
+        this.population = runningContext.setCurrentIterator(population);
         this.collator = collator;
-        next = population.next();
+        next = this.population.next();
         if (next != null) {
             nextKey = (AtomicValue)keyExpression.evaluateItem(runningContext);
         }
@@ -121,7 +121,7 @@ public class GroupAdjacentIterator implements GroupIterator {
         return current;
     }
 
-    public int position() {
+    private int position() {
         return position;
     }
 

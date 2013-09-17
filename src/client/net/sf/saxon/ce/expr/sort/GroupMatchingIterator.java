@@ -53,7 +53,7 @@ public abstract class GroupMatchingIterator implements  GroupIterator {
         return current;
     }
 
-    public int position() {
+    private int position() {
         return position;
     }
 

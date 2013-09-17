@@ -21,9 +21,6 @@ public final class MappingIterator implements SequenceIterator {
     private SequenceIterator base;
     private MappingFunction action;
     private SequenceIterator results = null;
-    //private boolean atomizing = false;
-    private Item current = null;
-    private int position = 0;
 
     /**
      * Construct a MappingIterator that will apply a specified MappingFunction to
@@ -68,23 +65,11 @@ public final class MappingIterator implements SequenceIterator {
                 // now go round the loop to get the next item from the base sequence
             } else {
                 results = null;
-                current = null;
-                position = -1;
                 return null;
             }
         }
 
-        current = nextItem;
-        position++;
         return nextItem;
-    }
-
-    public Item current() {
-        return current;
-    }
-
-    public int position() {
-        return position;
     }
 
     public SequenceIterator getAnother() throws XPathException {

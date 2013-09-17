@@ -1,11 +1,10 @@
 package client.net.sf.saxon.ce.expr;
-import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.NoDynamicContextException;
 import client.net.sf.saxon.ce.trans.XPathException;
+import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.value.SequenceExtent;
-import client.net.sf.saxon.ce.value.Value;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -187,8 +186,8 @@ public abstract class FunctionCall extends Expression {
         }
         try {
             Literal lit = Literal.makeLiteral(
-                    Value.asValue(SequenceExtent.makeSequenceExtent(
-                            iterate(visitor.getStaticContext().makeEarlyEvaluationContext()))));
+                    SequenceExtent.makeSequenceExtent(
+                            iterate(visitor.getStaticContext().makeEarlyEvaluationContext())));
             ExpressionTool.copyLocationInfo(this, lit);
             return lit;
         } catch (NoDynamicContextException e) {

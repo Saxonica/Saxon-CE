@@ -1,41 +1,32 @@
 package client.net.sf.saxon.ce;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.logging.Level;
-import java.util.logging.LogRecord;
-import java.util.logging.Logger;
-import java.util.logging.Handler;
-
 import client.net.sf.saxon.ce.lib.GenericLogHandler;
 import client.net.sf.saxon.ce.lib.JsLogHandler;
 import client.net.sf.saxon.ce.lib.ListenerLogHandler;
 import client.net.sf.saxon.ce.lib.TraceListener;
 import client.net.sf.saxon.ce.trace.XSLTTraceListener;
-import client.net.sf.saxon.ce.tree.util.URI;
-
-import com.google.gwt.core.client.GWT;
-import com.google.gwt.logging.client.FirebugLogHandler;
 import com.google.gwt.logging.client.HasWidgetsLogHandler;
 import com.google.gwt.logging.client.LoggingPopup;
-import com.google.gwt.logging.client.NullLogHandler;
-import com.google.gwt.logging.client.NullLoggingPopup;
 import com.google.gwt.user.client.Window;
 import com.google.gwt.user.client.ui.HasWidgets;
+
+import java.util.logging.Level;
+import java.util.logging.LogRecord;
+import java.util.logging.Logger;
 
 public class LogController {
 	
 	/**
 	 * Class for managing the GWT Logging
 	 * Proposed use of levels:
-	 * · OFF
-		· SEVERE GWT Exceptions and internal errors all fatal xslt errors
-		· WARNING GWT Warnings and bad but not fatal internal conditions
-		· INFO xsl:message and fn:trace output
-		· CONFIG Configuration data
-		· FINE High-level XSLT calls to the public API = Main transformation, inward calls such as events 
-		· FINER XSLT/XPath/IXSL function and template calls
-		· FINEST Output from TraceExpression - XSLT instructions within templates and functions
+	 * - OFF
+		- SEVERE GWT Exceptions and internal errors all fatal xslt errors
+		- WARNING GWT Warnings and bad but not fatal internal conditions
+		- INFO xsl:message and fn:trace output
+		- CONFIG Configuration data
+		- FINE High-level XSLT calls to the public API = Main transformation, inward calls such as events
+		- FINER XSLT/XPath/IXSL function and template calls
+		- FINEST Output from TraceExpression - XSLT instructions within templates and functions
 		
 		SystemLogHandler - not included
 		HasWidgetsLogHandler - the popup view
@@ -167,4 +158,4 @@ public class LogController {
 
 // This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. 
 // If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
-// This Source Code Form is ÒIncompatible With Secondary LicensesÓ, as defined by the Mozilla Public License, v. 2.0.
+// This Source Code Form is ï¿½Incompatible With Secondary Licensesï¿½, as defined by the Mozilla Public License, v. 2.0.

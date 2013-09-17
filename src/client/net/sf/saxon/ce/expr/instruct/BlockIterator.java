@@ -56,33 +56,6 @@ public class BlockIterator implements SequenceIterator {
     }
 
     /**
-     * Get the current value in the sequence (the one returned by the
-     * most recent call on next()). This will be null before the first
-     * call of next().
-     *
-     * @return the current item, the one most recently returned by a call on
-     *         next(); or null, if next() has not been called, or if the end
-     *         of the sequence has been reached.
-     */
-
-    public Item current() {
-        return current;
-    }
-
-    /**
-     * Get the current position. This will be zero before the first call
-     * on next(), otherwise it will be the number of times that next() has
-     * been called.
-     *
-     * @return the current position, the position of the item returned by the
-     *         most recent call of next()
-     */
-
-    public int position() {
-        return position;
-    }
-
-    /**
      * Get another SequenceIterator that iterates over the same items as the original,
      * but which is repositioned at the start of the sequence.
      *

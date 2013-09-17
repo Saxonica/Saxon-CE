@@ -382,7 +382,7 @@ public class Block extends Instruction {
     private void flushCurrentLiteralList(List<Item> currentLiteralList, List<Expression> list) throws XPathException {
         if (currentLiteralList != null) {
             SequenceIterator iter = new client.net.sf.saxon.ce.tree.iter.ListIterator(currentLiteralList);
-            list.add(Literal.makeLiteral((Value)SequenceExtent.makeSequenceExtent(iter)));
+            list.add(Literal.makeLiteral(SequenceExtent.makeSequenceExtent(iter)));
         }
     }
 

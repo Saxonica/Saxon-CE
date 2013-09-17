@@ -11,6 +11,7 @@ import client.net.sf.saxon.ce.tree.iter.*;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
 import client.net.sf.saxon.ce.tree.util.Navigator;
 import client.net.sf.saxon.ce.type.Type;
+import client.net.sf.saxon.ce.value.AbstractNode;
 import client.net.sf.saxon.ce.value.AtomicValue;
 import client.net.sf.saxon.ce.value.UntypedAtomicValue;
 
@@ -22,7 +23,7 @@ import client.net.sf.saxon.ce.value.UntypedAtomicValue;
  * @author Michael H. Kay
  */
 
-public abstract class NodeImpl implements NodeInfo {
+public abstract class NodeImpl extends AbstractNode implements NodeInfo {
 
     private ParentNodeImpl parent;
     private int index;

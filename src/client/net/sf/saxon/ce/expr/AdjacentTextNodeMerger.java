@@ -151,7 +151,6 @@ public class AdjacentTextNodeMerger extends UnaryExpression {
         private SequenceIterator base;
         private Item current;
         private Item next;
-        private int position = 0;
 
         public AdjacentTextNodeMergingIterator(SequenceIterator base) throws XPathException {
             this.base = base;
@@ -161,7 +160,6 @@ public class AdjacentTextNodeMerger extends UnaryExpression {
         public Item next() throws XPathException {
             current = next;
             if (current == null) {
-                position = -1;
                 return null;
             }
             next = base.next();
@@ -180,21 +178,11 @@ public class AdjacentTextNodeMerger extends UnaryExpression {
                     o.setNodeKind(Type.TEXT);
                     o.setStringValue(fsb);
                     current = o;
-                    position++;
                     return current;
                 }
             } else {
-                position++;
                 return current;
             }
-        }
-
-        public Item current() {
-            return current;
-        }
-
-        public int position() {
-            return position;
         }
 
         public SequenceIterator getAnother() throws XPathException {

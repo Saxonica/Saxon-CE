@@ -7,10 +7,9 @@ import client.net.sf.saxon.ce.dom.XMLDOM;
 import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.functions.ResolveURI;
 import client.net.sf.saxon.ce.om.DocumentInfo;
+import client.net.sf.saxon.ce.om.DocumentPool;
 import client.net.sf.saxon.ce.pattern.EmptySequenceTest;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.tree.iter.SingletonIterator;
-import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 import client.net.sf.saxon.ce.tree.util.URI;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.value.IntegerValue;
@@ -144,63 +143,75 @@ public class ScheduleExecution extends Instruction {
                 throw new XPathException("Cannot resolve URI " + hrefVal, e);
             }
             final String uri = abs.toString();
-
-            logger.log(Level.FINE, "Aynchronous GET for: " + abs);
-            final HTTPHandler hr = new HTTPHandler();
-
-            hr.doGet(uri, new RequestCallback() {
-
-                public void onError(Request request, Throwable exception) {
-                    //hr.setErrorMessage(exception.getMessage());
-                    String msg = "HTTP Error " + exception.getMessage() + " for URI " + uri;
-                    logger.log(Level.SEVERE, msg);
-                    if (SaxonceApi.doThrowJsExceptions()) {
-                        throw new RuntimeException(exception.getMessage());
-                    }
+            final DocumentPool pool = context.getController().getDocumentPool();
+            DocumentInfo existingDoc = pool.find(uri);
+            if (existingDoc != null) {
+                XPathContext c2 = context.newMinorContext();
+                c2.setSingletonFocus(existingDoc);
+                pack.setEvaluationContext(c2);
+                TailCall tc = pack.processLeavingTail();
+                while (tc != null) {
+                    tc = tc.processLeavingTail();
                 }
+                context.getController().getPendingUpdateList().apply(context);
+            } else {
 
-                public void onResponseReceived(Request request, Response response) {
-                    int statusCode = response.getStatusCode();
-                    if (statusCode == 200) {
-                        Logger.getLogger("ResponseReceived").fine("GET Ok for: " + uri);
-                        Node responseNode;
-                        try {
-                            responseNode = (Node) XMLDOM.parseXML(response.getText());
-                        } catch (Exception e) {
-                            logger.log(Level.SEVERE, "Failed to parse XML: " + e.getMessage());
-                            if (SaxonceApi.doThrowJsExceptions()) {
-                                throw new RuntimeException(e.getMessage());
-                            }
-                            return;
-                        }
-                        DocumentInfo doc = context.getConfiguration().wrapXMLDocument(responseNode, uri);
-                        UnfailingIterator focus = SingletonIterator.makeIterator(doc);
-                        focus.next();
-                        XPathContext c2 = context.newMinorContext();
-                        c2.setCurrentIterator(focus);
-                        pack.setEvaluationContext(c2);
-                        try {
-                            TailCall tc = pack.processLeavingTail();
-                            while (tc != null) {
-                                tc = tc.processLeavingTail();
-                            }
-                            context.getController().getPendingUpdateList().apply(context);
-                        } catch (XPathException e) {
-                            logger.log(Level.SEVERE, "In async document processing: " + e.getMessage());
-                            if (SaxonceApi.doThrowJsExceptions()) {
-                                throw new RuntimeException(e.getMessage());
-                            }
-                        }
+                logger.log(Level.FINE, "Aynchronous GET for: " + abs);
+                final HTTPHandler hr = new HTTPHandler();
 
+                hr.doGet(uri, new RequestCallback() {
 
-                    } else if (statusCode < 400) {
-                        // transient
-                    } else {
-                        String msg = "HTTP Error " + statusCode + " " + response.getStatusText() + " for URI " + uri;
+                    public void onError(Request request, Throwable exception) {
+                        //hr.setErrorMessage(exception.getMessage());
+                        String msg = "HTTP Error " + exception.getMessage() + " for URI " + uri;
                         logger.log(Level.SEVERE, msg);
+                        if (SaxonceApi.doThrowJsExceptions()) {
+                            throw new RuntimeException(exception.getMessage());
+                        }
                     }
-                } // ends inner method
-            }); // ends doGet method call
+
+                    public void onResponseReceived(Request request, Response response) {
+                        int statusCode = response.getStatusCode();
+                        if (statusCode == 200) {
+                            Logger.getLogger("ResponseReceived").fine("GET Ok for: " + uri);
+                            Node responseNode;
+                            try {
+                                responseNode = (Node) XMLDOM.parseXML(response.getText());
+                            } catch (Exception e) {
+                                logger.log(Level.SEVERE, "Failed to parse XML: " + e.getMessage());
+                                if (SaxonceApi.doThrowJsExceptions()) {
+                                    throw new RuntimeException(e.getMessage());
+                                }
+                                return;
+                            }
+                            DocumentInfo doc = context.getConfiguration().wrapXMLDocument(responseNode, uri);
+                            pool.add(doc, uri);
+                            XPathContext c2 = context.newMinorContext();
+                            c2.setSingletonFocus(doc);
+                            pack.setEvaluationContext(c2);
+                            try {
+                                TailCall tc = pack.processLeavingTail();
+                                while (tc != null) {
+                                    tc = tc.processLeavingTail();
+                                }
+                                context.getController().getPendingUpdateList().apply(context);
+                            } catch (XPathException e) {
+                                logger.log(Level.SEVERE, "In async document processing: " + e.getMessage());
+                                if (SaxonceApi.doThrowJsExceptions()) {
+                                    throw new RuntimeException(e.getMessage());
+                                }
+                            }
+
+
+                        } else if (statusCode < 400) {
+                            // transient
+                        } else {
+                            String msg = "HTTP Error " + statusCode + " " + response.getStatusText() + " for URI " + uri;
+                            logger.log(Level.SEVERE, msg);
+                        }
+                    } // ends inner method
+                }); // ends doGet method call
+            }
         } else {
             Timer t = new Timer() {
                 public void run() {

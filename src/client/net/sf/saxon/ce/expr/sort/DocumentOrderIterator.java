@@ -17,7 +17,6 @@ public final class DocumentOrderIterator implements SequenceIterator, Sortable {
     private SequenceExtent sequence;
     private NodeOrderComparer comparer;
     private NodeInfo current = null;
-    private int position = 0;
 
     /**
     * Iterate over a sequence in document order.
@@ -70,25 +69,15 @@ public final class DocumentOrderIterator implements SequenceIterator, Sortable {
             NodeInfo next = (NodeInfo)iterator.next();
             if (next == null) {
                 current = null;
-                position = -1;
                 return null;
             }
             if (current != null && next.isSameNodeInfo(current)) {
                 continue;
             } else {
-                position++;
                 current = next;
                 return current;
             }
         }
-    }
-
-    public Item current() {
-        return current;
-    }
-
-    public int position() {
-        return position;
     }
 
     public SequenceIterator getAnother() throws XPathException {

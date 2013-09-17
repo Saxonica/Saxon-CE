@@ -8,6 +8,7 @@ import client.net.sf.saxon.ce.pattern.NodeTest;
 import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
 import client.net.sf.saxon.ce.tree.util.Navigator;
+import client.net.sf.saxon.ce.value.AbstractNode;
 import client.net.sf.saxon.ce.value.AtomicValue;
 
 
@@ -16,7 +17,7 @@ import client.net.sf.saxon.ce.value.AtomicValue;
  * the underlying node is itself a Saxon NodeInfo.
  */
 
-public abstract class AbstractVirtualNode implements VirtualNode {
+public abstract class AbstractVirtualNode extends AbstractNode implements VirtualNode {
 
     protected NodeInfo node;
     protected AbstractVirtualNode parent;     // null means unknown

@@ -19,11 +19,10 @@ public class GroupStartingIterator extends GroupMatchingIterator implements Grou
     public GroupStartingIterator(SequenceIterator population, Pattern startPattern,
                                  XPathContext context)
             throws XPathException {
-        this.population = population;
         this.pattern = startPattern;
         baseContext = context;
         runningContext = context.newMinorContext();
-        runningContext.setCurrentIterator(population);
+        this.population = runningContext.setCurrentIterator(population);
         // the first item in the population always starts a new group
         next = population.next();
     }

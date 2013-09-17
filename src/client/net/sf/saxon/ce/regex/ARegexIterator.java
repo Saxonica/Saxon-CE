@@ -27,7 +27,6 @@ public class ARegexIterator implements RegexIterator {
     private UnicodeString current;     // the string most recently returned by the iterator
     private UnicodeString next;        // if the last string was a matching string, null; otherwise the next substring
                                 //        matched by the regex
-    private int position = 0;   // the value of XPath position()
     private int prevEnd = 0;    // the position in the input string of the end of the last match or non-match
     private HashMap<Integer, Integer> nestingTable = null;
                                 // evaluated on demand: a table that indicates for each captured group,
@@ -77,7 +76,6 @@ public class ARegexIterator implements RegexIterator {
                 } else {
                     // this really is the end...
                     current = null;
-                    position = -1;
                     prevEnd = -1;
                     return null;
                 }
@@ -91,11 +89,9 @@ public class ARegexIterator implements RegexIterator {
                 prevEnd = matcher.getParenEnd(0);
             } else {
                 current = null;
-                position = -1;
                 return null;
             }
         }
-        position++;
         return currentStringValue();
     }
 
@@ -105,24 +101,6 @@ public class ARegexIterator implements RegexIterator {
         } else {
             return StringValue.makeStringValue(current.toString());
         }
-    }
-
-    /**
-    * Get the current item in the sequence
-    * @return the item most recently returned by next()
-    */
-
-    public Item current() {
-        return currentStringValue();
-    }
-
-    /**
-    * Get the position of the current item in the sequence
-    * @return the position of the item most recently returned by next(), starting at 1
-    */
-
-    public int position() {
-        return position;
     }
 
     public void close() {

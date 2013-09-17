@@ -22,8 +22,6 @@ import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.trans.update.DeleteAction;
 import client.net.sf.saxon.ce.trans.update.InsertAction;
 import client.net.sf.saxon.ce.trans.update.PendingUpdateList;
-import client.net.sf.saxon.ce.tree.iter.SingletonIterator;
-import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 import client.net.sf.saxon.ce.tree.util.URI;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.Type;
@@ -288,9 +286,7 @@ public class ResultDocument extends Instruction  {
             	contextNodeName = (contextNodeName.equals("")? "" : " context node: " + contextNodeName);
             }
 
-            UnfailingIterator iterator = SingletonIterator.makeIterator(contextItem);
-            iterator.next(); // position on the single item
-            c3.setCurrentIterator(iterator);
+            c3.setSingletonFocus(contextItem);
             SequenceIterator iter = expr.iterate(c3);
             Item resultItem = iter.next();
             

@@ -3,8 +3,8 @@ package client.net.sf.saxon.ce.expr;
 import client.net.sf.saxon.ce.event.SequenceReceiver;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.NodeInfo;
-import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.om.Sequence;
+import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.value.*;
@@ -12,20 +12,20 @@ import client.net.sf.saxon.ce.value.StringValue;
 
 /**
  * A Literal is an expression whose value is constant: it is a class that implements the {@link Expression}
- * interface as a wrapper around a {@link Value}. This may derive from an actual literal in an XPath expression
+ * interface as a wrapper around a {@link client.net.sf.saxon.ce.value.SequenceTool}. This may derive from an actual literal in an XPath expression
  * or query, or it may be the result of evaluating a constant subexpression such as true() or xs:date('2007-01-16')
 */
 
 public class Literal extends Expression {
 
-    private Value value;
+    private Sequence value;
 
     /**
      * Create a literal as a wrapper around a Value
      * @param value the value of this literal
      */
 
-    public Literal(Value value) {
+    public Literal(Sequence value) {
         this.value = value;
     }
 
@@ -39,7 +39,7 @@ public class Literal extends Expression {
         if (value instanceof StringValue) {
             return new StringLiteral((StringValue)value);
         } else {
-            return new Literal(Value.asValue(value));
+            return new Literal(value);
         }
     }
 
@@ -57,7 +57,7 @@ public class Literal extends Expression {
      * @return the constant value
      */
 
-    public Value getValue() {
+    public Sequence getValue() {
         return value;
     }
 
@@ -85,7 +85,7 @@ public class Literal extends Expression {
      */
 
     public ItemType getItemType() {
-        return value.getItemType();
+        return SequenceTool.getItemTypeOfValue(value);
     }
 
     /**
@@ -238,8 +238,8 @@ public class Literal extends Expression {
         if (!(obj instanceof Literal)) {
             return false;
         }
-        Value v0 = value;
-        Value v1 = ((Literal)obj).value;
+        Sequence v0 = value;
+        Sequence v1 = ((Literal)obj).value;
         try {
             SequenceIterator i0 = v0.iterate();
             SequenceIterator i1 = v1.iterate();
@@ -331,7 +331,7 @@ public class Literal extends Expression {
 
     public static boolean isConstantBoolean(Expression exp, boolean value) {
         if (exp instanceof Literal) {
-            Value b = ((Literal)exp).getValue();
+            Sequence b = ((Literal)exp).getValue();
             return (b instanceof BooleanValue && ((BooleanValue)b).getBooleanValue() == value);
         }
         return false;
@@ -346,7 +346,7 @@ public class Literal extends Expression {
     public static boolean isConstantOne(Expression exp) {
         try {
             if (exp instanceof Literal) {
-                Value v = ((Literal)exp).getValue();
+                Sequence v = ((Literal)exp).getValue();
                 return (v instanceof IntegerValue && ((IntegerValue)v).intValue() == 1);
             }
             return false;

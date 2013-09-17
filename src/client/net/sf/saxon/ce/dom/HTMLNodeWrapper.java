@@ -15,6 +15,7 @@ import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
 import client.net.sf.saxon.ce.tree.util.Navigator;
 import client.net.sf.saxon.ce.tree.wrapper.VirtualNode;
 import client.net.sf.saxon.ce.type.Type;
+import client.net.sf.saxon.ce.value.AbstractNode;
 import client.net.sf.saxon.ce.value.AtomicValue;
 import client.net.sf.saxon.ce.value.StringValue;
 import client.net.sf.saxon.ce.value.UntypedAtomicValue;
@@ -36,7 +37,7 @@ import java.util.ArrayList;
   * and the capitalisation of element names 
   */
 
-public class HTMLNodeWrapper implements NodeInfo, VirtualNode {
+public class HTMLNodeWrapper extends AbstractNode implements NodeInfo, VirtualNode {
 
     protected Node node;
     private StructuredQName qName;

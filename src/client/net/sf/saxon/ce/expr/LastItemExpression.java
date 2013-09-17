@@ -1,10 +1,10 @@
 package client.net.sf.saxon.ce.expr;
 
 import client.net.sf.saxon.ce.om.Item;
+import client.net.sf.saxon.ce.om.Sequence;
 import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.GroundedIterator;
-import client.net.sf.saxon.ce.value.Value;
 
 /**
  * A LastItemExpression returns the last item in the sequence returned by a given
@@ -31,7 +31,7 @@ public final class LastItemExpression extends SingleItemFilter {
     public Item evaluateItem(XPathContext context) throws XPathException {
         SequenceIterator forwards = operand.iterate(context);
         if (forwards instanceof GroundedIterator) {
-            Value val = ((GroundedIterator)forwards).materialize();
+            Sequence val = ((GroundedIterator)forwards).materialize();
             if (val != null) {
                 return val.itemAt(val.getLength() - 1);
             }

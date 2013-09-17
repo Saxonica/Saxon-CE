@@ -7,7 +7,7 @@ import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.AnyItemType;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.value.SequenceType;
-import client.net.sf.saxon.ce.value.Value;
+import client.net.sf.saxon.ce.value.SequenceTool;
 
 /**
  * Supplied parameter reference: this is an internal expression used to refer to
@@ -110,7 +110,7 @@ public class SuppliedParameterReference extends Expression {
     */
 
     public SequenceIterator iterate(XPathContext context) throws XPathException {
-        return Value.asIterator(evaluateVariable(context));
+        return evaluateVariable(context).iterate();
     }
 
     /**
@@ -129,7 +129,7 @@ public class SuppliedParameterReference extends Expression {
       */
 
     public Item evaluateItem(XPathContext context) throws XPathException {
-        return Value.asItem(evaluateVariable(context));
+        return SequenceTool.asItem(evaluateVariable(context));
     }
 
     /**

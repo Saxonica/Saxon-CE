@@ -1,12 +1,14 @@
 package client.net.sf.saxon.ce.style;
+
 import client.net.sf.saxon.ce.LogController;
 import client.net.sf.saxon.ce.expr.Expression;
+import client.net.sf.saxon.ce.expr.ExpressionTool;
 import client.net.sf.saxon.ce.expr.Literal;
 import client.net.sf.saxon.ce.expr.instruct.Choose;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
+import client.net.sf.saxon.ce.om.Sequence;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
-import client.net.sf.saxon.ce.value.Value;
 import com.google.gwt.logging.client.LogConfiguration;
 
 
@@ -68,11 +70,11 @@ public class XSLIf extends StyleElement {
 
     public Expression compile(Executable exec, Declaration decl) throws XPathException {
         if (test instanceof Literal) {
-            Value testVal = ((Literal)test).getValue();
+            Sequence testVal = ((Literal)test).getValue();
             // condition known statically, so we only need compile the code if true.
             // This can happen with expressions such as test="function-available('abc')".
             try {
-                if (testVal.effectiveBooleanValue()) {
+                if (ExpressionTool.effectiveBooleanValue(testVal.iterate())) {
                     return compileSequenceConstructor(exec, decl);
                 } else {
                     return null;

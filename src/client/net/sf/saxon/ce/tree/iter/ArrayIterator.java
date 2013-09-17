@@ -2,9 +2,9 @@ package client.net.sf.saxon.ce.tree.iter;
 
 import client.net.sf.saxon.ce.expr.LastPositionFinder;
 import client.net.sf.saxon.ce.om.Item;
+import client.net.sf.saxon.ce.om.Sequence;
 import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.value.SequenceExtent;
-import client.net.sf.saxon.ce.value.Value;
 
 /**
  * ArrayIterator is used to enumerate items held in an array.
@@ -63,7 +63,7 @@ public class ArrayIterator implements UnfailingIterator,
      *
      * @return the current position (starting at 1 for the first item)
      */
-    public int position() {
+    private int position() {
         if (index > items.length) {
             return -1;
         }
@@ -96,7 +96,7 @@ public class ArrayIterator implements UnfailingIterator,
      * @return the corresponding SequenceValue
      */
 
-    public Value materialize() {
+    public Sequence materialize() {
         return new SequenceExtent(items);
     }
 

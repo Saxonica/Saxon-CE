@@ -108,7 +108,7 @@ public class QuantifiedExpression extends Assignation {
             action = ebv;
             adoptChildExpression(ebv);
         }
-        PromotionOffer offer = new PromotionOffer(config);
+        PromotionOffer offer = new PromotionOffer();
         offer.containingExpression = this;
         offer.action = PromotionOffer.RANGE_INDEPENDENT;
         offer.bindingList = new Binding[] {this};

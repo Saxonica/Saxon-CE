@@ -345,8 +345,10 @@ public class LiteralResultElement extends StyleElement {
                 } else {
                     message = "Namespace for stylesheet element should be " + NamespaceConstant.XSLT;
                 }
+            } else if (getLocalPart().equals("parsererror")) {
+                message = "Stylesheet is not well-formed XML. " + getStringValue();
             } else {
-                message = "The supplied file does not appear to be a stylesheet";
+                message = "The supplied file does not appear to be a stylesheet (found " + getLocalPart() + ")";
             }
             XPathException err = new XPathException(message);
             err.setLocator(this);

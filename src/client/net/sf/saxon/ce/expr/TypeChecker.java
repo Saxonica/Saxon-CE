@@ -8,7 +8,7 @@ import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.*;
 import client.net.sf.saxon.ce.value.Cardinality;
 import client.net.sf.saxon.ce.value.SequenceType;
-import client.net.sf.saxon.ce.value.Value;
+import client.net.sf.saxon.ce.value.SequenceTool;
 
 
 /**
@@ -315,8 +315,7 @@ public final class TypeChecker {
     throws XPathException {
         ItemType reqItemType = requiredType.getPrimaryType();
         final Configuration config = context.getConfiguration();
-        final TypeHierarchy th = TypeHierarchy.getInstance();
-        SequenceIterator iter = Value.asIterator(val);
+        SequenceIterator iter = val.iterate();
         int count = 0;
         while (true) {
             Item item = iter.next();
@@ -326,7 +325,7 @@ public final class TypeChecker {
             count++;
             if (!reqItemType.matchesItem(item, false, config)) {
                 return new XPathException("Required type is " + reqItemType +
-                        "; supplied value has type " + Value.asValue(val).getItemType(), "XPTY0004");
+                        "; supplied value has type " + SequenceTool.getItemTypeOfValue(val), "XPTY0004");
             }
         }
 

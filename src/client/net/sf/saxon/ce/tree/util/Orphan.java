@@ -6,6 +6,7 @@ import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.EmptyIterator;
 import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 import client.net.sf.saxon.ce.type.Type;
+import client.net.sf.saxon.ce.value.AbstractNode;
 import client.net.sf.saxon.ce.value.AtomicValue;
 import client.net.sf.saxon.ce.value.StringValue;
 import client.net.sf.saxon.ce.value.UntypedAtomicValue;
@@ -22,7 +23,7 @@ import client.net.sf.saxon.ce.value.UntypedAtomicValue;
  * @author Michael H. Kay
  */
 
-public class Orphan implements NodeInfo {
+public class Orphan extends AbstractNode implements NodeInfo {
 
     private int kind;
     private StructuredQName qName = null;

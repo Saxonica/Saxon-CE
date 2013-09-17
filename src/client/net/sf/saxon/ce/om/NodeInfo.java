@@ -1,4 +1,5 @@
 package client.net.sf.saxon.ce.om;
+
 import client.net.sf.saxon.ce.event.Receiver;
 import client.net.sf.saxon.ce.pattern.NodeTest;
 import client.net.sf.saxon.ce.trans.XPathException;

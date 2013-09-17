@@ -8,10 +8,11 @@ import client.net.sf.saxon.ce.trans.Mode;
 import client.net.sf.saxon.ce.trans.Rule;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.EmptyIterator;
+import client.net.sf.saxon.ce.tree.iter.FocusIterator;
 import client.net.sf.saxon.ce.tree.util.SourceLocator;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.Type;
-import client.net.sf.saxon.ce.value.Value;
+import client.net.sf.saxon.ce.value.SequenceTool;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -237,7 +238,7 @@ public class ApplyTemplates extends Instruction {
         TailCall tc = null;
 
 
-        context.setCurrentIterator(iterator);
+        FocusIterator focus = context.setCurrentIterator(iterator);
         context.setCurrentMode(mode);
         Template previousTemplate = null;
         while(true) {
@@ -251,7 +252,7 @@ public class ApplyTemplates extends Instruction {
                 } while (tc != null);
             }
 
-            NodeInfo node = (NodeInfo)iterator.next();
+            NodeInfo node = (NodeInfo)focus.next();
                     // We can assume it's a node - we did static type checking
             if (node == null) {
                 break;
@@ -269,7 +270,7 @@ public class ApplyTemplates extends Instruction {
                 // No need to open a new stack frame!
                 mode.getBuiltInRuleSet().process(node, parameters, tunnelParameters, context, sourceLocator);
             } else {
-                Template template = (Template)rule.getAction();
+                Template template = rule.getAction();
                 if (template != previousTemplate) {
                     // Reuse the previous stackframe unless it's a different template rule
                     previousTemplate = template;
@@ -470,7 +471,7 @@ public class ApplyTemplates extends Instruction {
 
         public TailCall processLeavingTail() throws XPathException {
             return applyTemplates(
-                    Value.asIterator(selectedNodes),
+                    selectedNodes.iterate(),
                     mode, params, tunnelParams, evaluationContext, sourceLocator);
         }
     }

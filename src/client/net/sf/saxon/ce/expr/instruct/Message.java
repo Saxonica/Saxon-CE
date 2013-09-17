@@ -2,12 +2,12 @@ package client.net.sf.saxon.ce.expr.instruct;
 
 import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.lib.StandardErrorListener;
+import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.trans.XPathException;
+import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
 import client.net.sf.saxon.ce.type.AnyItemType;
 import client.net.sf.saxon.ce.type.ItemType;
-import client.net.sf.saxon.ce.value.SequenceExtent;
-import client.net.sf.saxon.ce.value.Value;
 
 import java.util.Iterator;
 import java.util.logging.Level;
@@ -128,8 +128,19 @@ public class Message extends Instruction {
 
     public TailCall processLeavingTail(XPathContext context) throws XPathException {
         SequenceIterator iter = select.iterate(context);
-        Value extent = Value.asValue(SequenceExtent.makeSequenceExtent(iter));
-        String message = extent.getStringValue();
+        FastStringBuffer sb = new FastStringBuffer(FastStringBuffer.SMALL);
+        Item item = iter.next();
+        if (item != null) {
+            while (true) {
+                sb.append(item.getStringValue());
+                item = iter.next();
+                if (item == null) {
+                    break;
+                }
+                sb.append(' ');
+            }
+        }
+        String message = sb.toString();
         boolean abort = false;
         if (terminate != null) {
             String term = terminate.evaluateAsString(context).toString();

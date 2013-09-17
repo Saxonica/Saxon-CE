@@ -9,8 +9,6 @@ import client.net.sf.saxon.ce.om.*;
 import client.net.sf.saxon.ce.pattern.Pattern;
 import client.net.sf.saxon.ce.tree.iter.EmptyIterator;
 import client.net.sf.saxon.ce.tree.iter.ListIterator;
-import client.net.sf.saxon.ce.tree.iter.SingletonIterator;
-import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.value.AtomicValue;
@@ -258,10 +256,7 @@ public class KeyManager {
         // Make the node we are testing the context node,
         // with context position and context size set to 1
 
-        UnfailingIterator si = SingletonIterator.makeIterator(curr);
-        si.next();    // need to position iterator at first node
-
-        xc.setCurrentIterator(si);
+        xc.setSingletonFocus(curr);
 
         StringCollator collation = keydef.getCollation();
 

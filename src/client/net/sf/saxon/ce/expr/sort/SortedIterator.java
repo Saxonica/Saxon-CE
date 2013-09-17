@@ -1,10 +1,12 @@
 package client.net.sf.saxon.ce.expr.sort;
+
 import client.net.sf.saxon.ce.expr.LastPositionFinder;
 import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.trans.NoDynamicContextException;
 import client.net.sf.saxon.ce.trans.XPathException;
+import client.net.sf.saxon.ce.tree.iter.FocusIterator;
 import client.net.sf.saxon.ce.value.AtomicValue;
 
 /**
@@ -14,7 +16,7 @@ import client.net.sf.saxon.ce.value.AtomicValue;
 public class SortedIterator implements SequenceIterator, LastPositionFinder, Sortable {
 
     // the items to be sorted
-    protected SequenceIterator base;
+    protected FocusIterator base;
 
     // the call-back function used to evaluate sort keys
     protected SortKeyEvaluator sortKeyEvaluator;
@@ -51,8 +53,7 @@ public class SortedIterator implements SequenceIterator, LastPositionFinder, Sor
     public SortedIterator(XPathContext context, SequenceIterator base,
                                 SortKeyEvaluator sortKeyEvaluator, AtomicComparer[] comparators) {
         this.context = context.newMinorContext();
-        this.context.setCurrentIterator(base);
-        this.base = base;
+        this.base = this.context.setCurrentIterator(base);
         this.sortKeyEvaluator = sortKeyEvaluator;
         this.comparators = comparators;
         recordSize = comparators.length + 2;
@@ -87,10 +88,6 @@ public class SortedIterator implements SequenceIterator, LastPositionFinder, Sor
         return (Item)nodeKeys[(position-1)*recordSize];
     }
 
-    public int position() {
-        return position;
-    }
-
     public int getLastPosition() throws XPathException {
         if (count<0) {
             doSort();
@@ -106,7 +103,7 @@ public class SortedIterator implements SequenceIterator, LastPositionFinder, Sor
         }
         SortedIterator s = new SortedIterator();
         // the new iterator is the same as the old ...
-        s.base = base.getAnother();
+        s.base = (FocusIterator)base.getAnother();
         s.sortKeyEvaluator = sortKeyEvaluator;
         s.comparators = comparators;
         s.recordSize = recordSize;
@@ -126,8 +123,8 @@ public class SortedIterator implements SequenceIterator, LastPositionFinder, Sor
 
     protected void buildArray() throws XPathException {
         int allocated = -1;
-        if (base instanceof LastPositionFinder) {
-            allocated = ((LastPositionFinder)base).getLastPosition();
+        if (base.getUnderlyingIterator() instanceof LastPositionFinder) {
+            allocated = base.last();
         }
         if (allocated == -1) {
             allocated = 100;

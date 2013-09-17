@@ -2,7 +2,6 @@ package client.net.sf.saxon.ce.expr;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.value.SequenceExtent;
-import client.net.sf.saxon.ce.value.Value;
 
 import java.util.Iterator;
 
@@ -46,9 +45,9 @@ public abstract class UnaryExpression extends Expression {
         // if the operand value is known, pre-evaluate the expression
         try {
             if (operand instanceof Literal) {
-                return Literal.makeLiteral(Value.asValue(
+                return Literal.makeLiteral(
                         SequenceExtent.makeSequenceExtent(
-                                iterate(visitor.getStaticContext().makeEarlyEvaluationContext()))));
+                                iterate(visitor.getStaticContext().makeEarlyEvaluationContext())));
             }
                 //return (Value)ExpressionTool.eagerEvaluate(this, env.makeEarlyEvaluationContext());
         } catch (XPathException err) {
@@ -79,9 +78,9 @@ public abstract class UnaryExpression extends Expression {
         // if the operand value is known, pre-evaluate the expression
         try {
             if (operand instanceof Literal) {
-                return Literal.makeLiteral(Value.asValue(
+                return Literal.makeLiteral(
                         SequenceExtent.makeSequenceExtent(
-                                iterate(visitor.getStaticContext().makeEarlyEvaluationContext()))));
+                                iterate(visitor.getStaticContext().makeEarlyEvaluationContext())));
             }
         } catch (XPathException err) {
             // if early evaluation fails, suppress the error: the value might

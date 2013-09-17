@@ -20,8 +20,6 @@ public final class ContextMappingIterator implements SequenceIterator {
     private ContextMappingFunction action;
     private XPathContext context;
     private SequenceIterator stepIterator = null;
-    private Item current = null;
-    private int position = 0;
 
     /**
     * Construct a ContextMappingIterator that will apply a specified ContextMappingFunction to
@@ -60,23 +58,11 @@ public final class ContextMappingIterator implements SequenceIterator {
 
             } else {
                 stepIterator = null;
-                current = null;
-                position = -1;
                 return null;
             }
         }
 
-        current = nextItem;
-        position++;
         return nextItem;
-    }
-
-    public Item current() {
-        return current;
-    }
-
-    public int position() {
-        return position;
     }
 
     public SequenceIterator getAnother() throws XPathException {

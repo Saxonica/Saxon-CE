@@ -7,12 +7,16 @@ import client.net.sf.saxon.ce.event.SequenceReceiver;
 import client.net.sf.saxon.ce.expr.instruct.LocalParam;
 import client.net.sf.saxon.ce.expr.instruct.ParameterSet;
 import client.net.sf.saxon.ce.expr.sort.GroupIterator;
-import client.net.sf.saxon.ce.om.*;
+import client.net.sf.saxon.ce.om.Item;
+import client.net.sf.saxon.ce.om.Sequence;
+import client.net.sf.saxon.ce.om.SequenceIterator;
+import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.regex.RegexIterator;
 import client.net.sf.saxon.ce.trans.Mode;
 import client.net.sf.saxon.ce.trans.NoDynamicContextException;
 import client.net.sf.saxon.ce.trans.Rule;
 import client.net.sf.saxon.ce.trans.XPathException;
+import client.net.sf.saxon.ce.tree.iter.FocusIterator;
 import client.net.sf.saxon.ce.value.DateTimeValue;
 
 /**
@@ -129,7 +133,7 @@ public class EarlyEvaluationContext implements XPathContext {
      *         (which means the context item, position, and size are undefined).
      */
 
-    public SequenceIterator getCurrentIterator() {
+    public FocusIterator getCurrentIterator() {
         return null;
     }
 
@@ -280,7 +284,12 @@ public class EarlyEvaluationContext implements XPathContext {
      * Set a new sequence iterator.
      */
 
-    public void setCurrentIterator(SequenceIterator iter) {
+    public FocusIterator setCurrentIterator(SequenceIterator iter) {
+        notAllowed();
+        return null;
+    }
+
+    public void setSingletonFocus(Item item) {
         notAllowed();
     }
 

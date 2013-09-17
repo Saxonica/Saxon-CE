@@ -9,6 +9,7 @@ import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.pattern.PatternSponsor;
 import client.net.sf.saxon.ce.trans.XPathException;
+import client.net.sf.saxon.ce.tree.iter.FocusIterator;
 import client.net.sf.saxon.ce.tree.util.URI;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.TypeHierarchy;
@@ -280,14 +281,14 @@ public class ForEachGroup extends Instruction
         GroupIterator groupIterator = getGroupIterator(context);
 
         XPathContextMajor c2 = context.newContext();
-        c2.setCurrentIterator(groupIterator);
+        FocusIterator focus = c2.setCurrentIterator(groupIterator);
         c2.setCurrentGroupIterator(groupIterator);
         c2.setCurrentTemplateRule(null);
         
         if (LogConfiguration.loggingIsEnabled() && LogController.traceIsEnabled()) {
         	TraceListener listener = LogController.getTraceListener();
         	while (true) {
-	            Item item = groupIterator.next();
+	            Item item = focus.next();
 	            if (item == null) {
 	                break;
 	            }
@@ -297,7 +298,7 @@ public class ForEachGroup extends Instruction
         	}
         } else {
 	        while (true) {
-	            Item item = groupIterator.next();
+	            Item item = focus.next();
 	            if (item == null) {
 	                break;
 	            }

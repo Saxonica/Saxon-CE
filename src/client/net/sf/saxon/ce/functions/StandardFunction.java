@@ -1,6 +1,7 @@
 package client.net.sf.saxon.ce.functions;
 
 import client.net.sf.saxon.ce.expr.StaticProperty;
+import client.net.sf.saxon.ce.om.Sequence;
 import client.net.sf.saxon.ce.pattern.AnyNodeTest;
 import client.net.sf.saxon.ce.pattern.NodeKindTest;
 import client.net.sf.saxon.ce.type.AnyItemType;
@@ -8,7 +9,6 @@ import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.value.EmptySequence;
 import client.net.sf.saxon.ce.value.SequenceType;
-import client.net.sf.saxon.ce.value.Value;
 
 import java.util.HashMap;
 
@@ -20,7 +20,7 @@ import java.util.HashMap;
 
 public abstract class StandardFunction {
 
-    public static Value EMPTY = EmptySequence.getInstance();
+    public static Sequence EMPTY = EmptySequence.getInstance();
 
     /**
      * Categories of functions, bit significant

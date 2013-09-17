@@ -8,6 +8,7 @@ import client.net.sf.saxon.ce.lib.StringCollator;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.trans.XPathException;
+import client.net.sf.saxon.ce.tree.iter.FocusIterator;
 import client.net.sf.saxon.ce.tree.iter.ListIterator;
 import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.value.AtomicValue;
@@ -40,7 +41,7 @@ public class GroupByIterator implements GroupIterator, LastPositionFinder {
     // as a list of items in population order), a list of grouping keys, and a list of
     // the initial items of the groups.
 
-    private SequenceIterator population;
+    private FocusIterator population;
     protected Expression keyExpression;
     private StringCollator collator;
     private XPathContext keyContext;
@@ -70,28 +71,17 @@ public class GroupByIterator implements GroupIterator, LastPositionFinder {
     public GroupByIterator(SequenceIterator population, Expression keyExpression,
                            XPathContext keyContext, StringCollator collator)
     throws XPathException {
-        this.population = population;
         this.keyExpression = keyExpression;
         this.keyContext = keyContext;
         this.collator = collator;
         AtomicType type = (AtomicType)keyExpression.getItemType();
         this.comparer = AtomicSortComparer.makeSortComparer(collator, type, keyContext.getImplicitTimezone());
-        buildIndexedGroups();
-    }
 
-    /**
-      * Build the grouping table forming groups of items with equal keys.
-      * This form of grouping allows a member of the population to be present in zero
-      * or more groups, one for each value of the grouping key.
-     * @throws XPathException on dynamic error
-     */
-
-    private void buildIndexedGroups() throws XPathException {
         HashMap<Object, List<Item>> index = new HashMap<Object, List<Item>>(40);
-        XPathContext c2 = keyContext.newMinorContext();
-        c2.setCurrentIterator(population);
+        XPathContext c2 = this.keyContext.newMinorContext();
+        this.population = c2.setCurrentIterator(population);
         while (true) {
-            Item item = population.next();
+            Item item = this.population.next();
             if (item==null) {
                 break;
             }
@@ -176,7 +166,7 @@ public class GroupByIterator implements GroupIterator, LastPositionFinder {
     public Item next() throws XPathException {
         if (position >= 0 && position < groups.size()) {
             position++;
-            return current();
+            return current0();
         } else {
             position = -1;
             return null;
@@ -184,6 +174,10 @@ public class GroupByIterator implements GroupIterator, LastPositionFinder {
     }
 
     public Item current() {
+        return current0();
+    }
+
+    private Item current0() {
         if (position < 1) {
             return null;
         }
@@ -191,7 +185,7 @@ public class GroupByIterator implements GroupIterator, LastPositionFinder {
         return (Item)((ArrayList)groups.get(position-1)).get(0);
     }
 
-    public int position() {
+    private int position() {
         return position;
     }
 

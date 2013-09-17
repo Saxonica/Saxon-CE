@@ -1,25 +1,20 @@
 package client.net.sf.saxon.ce.functions;
 
-import java.util.logging.Logger;
-
-import com.google.gwt.logging.client.LogConfiguration;
-
 import client.net.sf.saxon.ce.LogController;
-import client.net.sf.saxon.ce.expr.Expression;
-import client.net.sf.saxon.ce.expr.ExpressionTool;
-import client.net.sf.saxon.ce.expr.ExpressionVisitor;
-import client.net.sf.saxon.ce.expr.TraceExpression;
-import client.net.sf.saxon.ce.expr.XPathContext;
+import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.lib.TraceListener;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.NodeInfo;
+import client.net.sf.saxon.ce.om.Sequence;
 import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.trace.Location;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.Navigator;
 import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.value.SequenceExtent;
-import client.net.sf.saxon.ce.value.Value;
+import com.google.gwt.logging.client.LogConfiguration;
+
+import java.util.logging.Logger;
 
 /**
  * This class supports the XPath 2.0 function trace().
@@ -68,7 +63,7 @@ public class Trace extends SystemFunction {
         if (LogConfiguration.loggingIsEnabled()) {
         	String label = argument[1].evaluateAsString(context).toString();
 	        if (LogController.traceIsEnabled()) {
-	            notifyListener(label, Value.asValue(val), context);
+	            notifyListener(label, val, context);
 	        } else {
 	                traceItem(val, label);
 	        }
@@ -76,7 +71,7 @@ public class Trace extends SystemFunction {
         return val;
     }
 
-    private void notifyListener(String label, Value val, XPathContext context) {
+    private void notifyListener(String label, Sequence val, XPathContext context) {
         TraceExpression info = new TraceExpression(this);
         info.setConstructType(Location.TRACE_CALL);
         info.setSourceLocator(this.getSourceLocator());
@@ -110,7 +105,7 @@ public class Trace extends SystemFunction {
         if (LogConfiguration.loggingIsEnabled() && LogController.traceIsEnabled()) {
             String label = argument[1].evaluateAsString(context).toString();
             int evalMode = ExpressionTool.eagerEvaluationMode(argument[0]); // eagerEvaluate not implemented in CE
-            Value value = Value.asValue(ExpressionTool.evaluate(argument[0], evalMode, context));
+            Sequence value = ExpressionTool.evaluate(argument[0], evalMode, context);
             notifyListener(label, value, context);
             return value.iterate();
         } else {
@@ -129,14 +124,14 @@ public class Trace extends SystemFunction {
      * @param arguments the values of the arguments, supplied as SequenceIterators
      * @param context   the dynamic evaluation context
      * @return the result of the evaluation, in the form of a SequenceIterator
-     * @throws net.sf.saxon.trans.XPathException
+     * @throws XPathException
      *          if a dynamic error occurs during the evaluation of the expression
      */
     public SequenceIterator call(SequenceIterator[] arguments, XPathContext context) throws XPathException {
 
         if (LogConfiguration.loggingIsEnabled() && LogController.traceIsEnabled()) {
             String label = arguments[1].next().getStringValue();
-            Value value = Value.asValue(SequenceExtent.makeSequenceExtent(arguments[0]));
+            Sequence value = SequenceExtent.makeSequenceExtent(arguments[0]);
             notifyListener(label, value, context);
             return value.iterate();
         } else {
@@ -159,6 +154,7 @@ public class Trace extends SystemFunction {
         SequenceIterator base;
         String label;
         boolean empty = true;
+        int pos = 0;
 
 
         public TracingIterator(SequenceIterator base, String label) {
@@ -173,18 +169,10 @@ public class Trace extends SystemFunction {
                     traceItem(null, label);
                 }
             } else {
-                traceItem(n, label + " [" + position() + ']');
+                traceItem(n, label + " [" + (++pos) + ']');
                 empty = false;
             }
             return n;
-        }
-
-        public Item current() {
-            return base.current();
-        }
-
-        public int position() {
-            return base.position();
         }
 
         /*@NotNull*/

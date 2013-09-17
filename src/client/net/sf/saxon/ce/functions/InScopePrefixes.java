@@ -4,6 +4,7 @@ import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.om.NamespaceBinding;
 import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.om.SequenceIterator;
+import client.net.sf.saxon.ce.value.StringValue;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.ListIterator;
 import client.net.sf.saxon.ce.tree.util.NamespaceIterator;
@@ -29,10 +30,10 @@ public class InScopePrefixes extends SystemFunction {
     public SequenceIterator iterate(final XPathContext context) throws XPathException {
         final NodeInfo element = (NodeInfo)argument[0].evaluateItem(context);
         final Iterator<NamespaceBinding> iter = NamespaceIterator.iterateNamespaces(element);
-        final List<String> prefixes = new ArrayList<String>();
-        prefixes.add("xml");
+        final List<StringValue> prefixes = new ArrayList<StringValue>();
+        prefixes.add(new StringValue("xml"));
         while (iter.hasNext()) {
-            prefixes.add(iter.next().getPrefix());
+            prefixes.add(new StringValue(iter.next().getPrefix()));
         }
         return new ListIterator(prefixes);
     }

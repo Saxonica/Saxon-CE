@@ -1,8 +1,9 @@
 package client.net.sf.saxon.ce.expr;
+
+import client.net.sf.saxon.ce.om.Sequence;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.value.Cardinality;
-import client.net.sf.saxon.ce.value.Value;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -57,7 +58,7 @@ public abstract class BinaryExpression extends Expression {
         // if both operands are known, pre-evaluate the expression
         try {
             if ((operand0 instanceof Literal) && (operand1 instanceof Literal)) {
-                Value v = Value.asValue(evaluateItem(visitor.getStaticContext().makeEarlyEvaluationContext()));
+                Sequence v = evaluateItem(visitor.getStaticContext().makeEarlyEvaluationContext());
                 return Literal.makeLiteral(v);
             }
         } catch (XPathException err) {
@@ -89,7 +90,7 @@ public abstract class BinaryExpression extends Expression {
         // if both operands are known, pre-evaluate the expression
         try {
             if ((operand0 instanceof Literal) && (operand1 instanceof Literal)) {
-                Value v = Value.asValue(evaluateItem(visitor.getStaticContext().makeEarlyEvaluationContext()));
+                Sequence v = evaluateItem(visitor.getStaticContext().makeEarlyEvaluationContext());
                 return Literal.makeLiteral(v);
             }
         } catch (XPathException err) {

@@ -7,12 +7,16 @@ import client.net.sf.saxon.ce.event.SequenceReceiver;
 import client.net.sf.saxon.ce.expr.instruct.LocalParam;
 import client.net.sf.saxon.ce.expr.instruct.ParameterSet;
 import client.net.sf.saxon.ce.expr.sort.GroupIterator;
-import client.net.sf.saxon.ce.om.*;
+import client.net.sf.saxon.ce.om.Item;
+import client.net.sf.saxon.ce.om.Sequence;
+import client.net.sf.saxon.ce.om.SequenceIterator;
+import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.regex.RegexIterator;
 import client.net.sf.saxon.ce.trans.Mode;
 import client.net.sf.saxon.ce.trans.NoDynamicContextException;
 import client.net.sf.saxon.ce.trans.Rule;
 import client.net.sf.saxon.ce.trans.XPathException;
+import client.net.sf.saxon.ce.tree.iter.FocusIterator;
 import client.net.sf.saxon.ce.value.DateTimeValue;
 
 /**
@@ -93,9 +97,12 @@ public interface XPathContext {
      * Set a new sequence iterator.
      * @param iter the current iterator. The context item, position, and size are determined by reference
      * to the current iterator.
+     * @return the new currnet iterator
      */
 
-    public void setCurrentIterator(SequenceIterator iter);
+    public FocusIterator setCurrentIterator(SequenceIterator iter);
+
+    public void setSingletonFocus(Item item);
 
      /**
      * Get the current iterator.
@@ -104,7 +111,7 @@ public interface XPathContext {
      * (which means the context item, position, and size are undefined).
     */
 
-    public SequenceIterator getCurrentIterator();
+    public FocusIterator getCurrentIterator();
 
     /**
      * Get the context position (the position of the context item)
@@ -120,6 +127,7 @@ public interface XPathContext {
     */
 
     public Item getContextItem();
+
     /**
      * Get the context size (the position of the last item in the current node list)
      * @return the context size

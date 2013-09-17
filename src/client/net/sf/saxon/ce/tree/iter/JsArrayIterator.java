@@ -6,7 +6,6 @@ import client.net.sf.saxon.ce.js.IXSLFunction;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.value.Value;
 import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.core.client.JsArray;
 
@@ -17,7 +16,7 @@ import java.util.logging.Logger;
 */
 
 public class JsArrayIterator
-        extends Value implements UnfailingIterator, LastPositionFinder {
+        implements UnfailingIterator, LastPositionFinder {
 
     int index=0;
     int length;
@@ -67,10 +66,6 @@ public class JsArrayIterator
         return current;
     }
 
-    public int position() {
-        return index;
-    }
-
     public int getLastPosition() {
         return length;
     }
@@ -79,14 +74,14 @@ public class JsArrayIterator
         return new JsArrayIterator(list, config);
     }
 
-    @Override
+    //@Override
     /**
      * Return an iterator over this sequence.
      *
      * @return the required SequenceIterator, positioned at the start of the
      *     sequence
      */
-	public SequenceIterator iterate() throws XPathException {
+	public UnfailingIterator iterate() {
 		return new JsArrayIterator(list, config);
 	}
 

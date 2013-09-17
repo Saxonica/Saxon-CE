@@ -1,13 +1,11 @@
 package client.net.sf.saxon.ce.expr;
 
-import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.expr.sort.DocumentSorter;
 import client.net.sf.saxon.ce.functions.Current;
 import client.net.sf.saxon.ce.functions.Reverse;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.Cardinality;
 import client.net.sf.saxon.ce.value.SequenceType;
 
@@ -20,8 +18,6 @@ import client.net.sf.saxon.ce.value.SequenceType;
 */
 
 public class PromotionOffer  {
-
-    private Configuration config;
 
     /**
     * FOCUS_INDEPENDENT requests promotion of all non-trivial subexpressions that don't depend on the
@@ -44,16 +40,6 @@ public class PromotionOffer  {
     */
 
     public static final int RANGE_INDEPENDENT = 11;
-
-    /**
-     * Inline variable references causes all references to a variable V to be replaced by the
-     * expression E. The variable is supplied in the "binding" property; the replacement expression
-     * in the containingExpression property. A special case is where the replacement expression is
-     * a ContextItemExpression; in this case the offer is not passed on to subexpressions where
-     * the context is different.
-    */
-
-    public static final int INLINE_VARIABLE_REFERENCES = 12;
 
     /**
      * UNORDERED indicates that the containing expression does not require the results
@@ -136,8 +122,7 @@ public class PromotionOffer  {
      * Create a PromotionOffer for use with a particular Optimizer
      */
 
-    public PromotionOffer(Configuration config) {
-        this.config = config;
+    public PromotionOffer() {
     }
 
     /**
@@ -223,7 +208,6 @@ public class PromotionOffer  {
     */
 
     private Expression promote(Expression parent, Expression child) {
-        final TypeHierarchy th = TypeHierarchy.getInstance();
         LetExpression let = new LetExpression();
         let.setVariableQName(new StructuredQName("zz", NamespaceConstant.SAXON, "zz" + let.hashCode()));
         SequenceType type = SequenceType.makeSequenceType(child.getItemType(), child.getCardinality());

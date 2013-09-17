@@ -21,7 +21,6 @@ public class PrependIterator implements UnfailingIterator {
         this.base = base;
     }
 
-
     /**
      * Get the next item in the sequence. <BR>
      *
@@ -32,42 +31,9 @@ public class PrependIterator implements UnfailingIterator {
         if (position == 0) {
             position = 1;
             return start;
-        }
-        Item n = base.next();
-        if (n == null) {
-            position = -1;
         } else {
-            position++;
+            return base.next();
         }
-        return n;
-    }
-
-    /**
-     * Get the current item in the sequence.
-     *
-     * @return the current item, that is, the item most recently returned by
-     *         next()
-     */
-
-    public Item current() {
-        if (position() == 1) {
-            return start;
-        } else if (position < 1) {
-            return null;
-        } else {
-            return base.current();
-        }
-    }
-
-    /**
-     * Get the current position
-     *
-     * @return the position of the current item (the item most recently
-     *         returned by next()), starting at 1 for the first node
-     */
-
-    public int position() {
-       return position;
     }
 
     /**
@@ -78,7 +44,7 @@ public class PrependIterator implements UnfailingIterator {
      */
 
     public SequenceIterator getAnother() {
-        return new PrependIterator(start, base);
+        return new PrependIterator(start, (UnfailingIterator)base.getAnother());
     }
 
 

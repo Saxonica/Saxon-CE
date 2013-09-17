@@ -15,7 +15,6 @@ public class ATokenIterator implements SequenceIterator {
     private UnicodeString input;
     private REMatcher matcher;
     /*@Nullable*/ private UnicodeString current;
-    private int position = 0;
     private int prevEnd = 0;
 
 
@@ -32,7 +31,6 @@ public class ATokenIterator implements SequenceIterator {
     public Item next() {
         if (prevEnd < 0) {
             current = null;
-            position = -1;
             return null;
         }
 
@@ -44,7 +42,6 @@ public class ATokenIterator implements SequenceIterator {
             current = input.substring(prevEnd, input.length());
             prevEnd = -1;
         }
-        position++;
         return currentStringValue();
     }
 
@@ -58,10 +55,6 @@ public class ATokenIterator implements SequenceIterator {
 
     public Item current() {
         return (current==null ? null : currentStringValue());
-    }
-
-    public int position() {
-        return position;
     }
 
     public void close() {

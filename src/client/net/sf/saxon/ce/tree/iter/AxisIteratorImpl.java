@@ -32,7 +32,7 @@ public abstract class AxisIteratorImpl implements UnfailingIterator {
      * @return the position of the most recent node returned by next()
      */
 
-    public final int position() {
+    private final int position() {
         return position;
     }
 

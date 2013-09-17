@@ -147,10 +147,12 @@ public class Subsequence extends SystemFunction {
         private SequenceIterator base;
         private int min;
         private int max;
+        private int pos;
         public SubsequenceMappingFunction(SequenceIterator base, int min, int max) {
             this.base = base;
             this.min = min;
             this.max = max;
+            this.pos = 0;
         }
 
         /**
@@ -160,7 +162,7 @@ public class Subsequence extends SystemFunction {
          * @return either the output item, or null.
          */
         public Item mapItem(Item item) throws ItemMappingIterator.EarlyExitException {
-            int position = base.position();
+            int position = ++pos;
             if (position > max) {
                 throw new ItemMappingIterator.EarlyExitException();
             }

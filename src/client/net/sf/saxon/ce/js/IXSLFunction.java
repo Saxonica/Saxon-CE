@@ -235,11 +235,11 @@ public class IXSLFunction extends FunctionCall {
                 throw new XPathException("Cannot convert " + val.getClass() + " to Javascript object");
             }
         } else {
-            int seqLength = ((Value) val).getLength();
+            int seqLength = val.getLength();
             if (seqLength == 0) {
                 return null;
             } else if (seqLength == 1) {
-                return convertToJavaScript(((Value) val).itemAt(0));
+                return convertToJavaScript(val.itemAt(0));
             } else {
                 return convertSequenceToArray(val, seqLength);
             }
@@ -248,7 +248,7 @@ public class IXSLFunction extends FunctionCall {
 
     private static JavaScriptObject convertSequenceToArray(Sequence val, int seqLength) throws XPathException {
         JavaScriptObject jsItems = jsArray(seqLength);
-        SequenceIterator iterator = Value.asIterator(val);
+        SequenceIterator iterator = val.iterate();
         int i = 0;
         while (true) {
             Item item = iterator.next();

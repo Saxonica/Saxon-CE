@@ -2,10 +2,8 @@ package client.net.sf.saxon.ce.tree.iter;
 
 import client.net.sf.saxon.ce.expr.LastPositionFinder;
 import client.net.sf.saxon.ce.om.Item;
+import client.net.sf.saxon.ce.om.Sequence;
 import client.net.sf.saxon.ce.om.SequenceIterator;
-import client.net.sf.saxon.ce.value.AtomicValue;
-import client.net.sf.saxon.ce.value.SingletonItem;
-import client.net.sf.saxon.ce.value.Value;
 
 
 /**
@@ -67,7 +65,7 @@ public class SingletonIterator implements UnfailingIterator,
      * @return 0 before the first call on next(); 1 before the second call on next(); -1 after the second
      * call on next().
      */
-    public int position() {
+    private int position() {
        return position;
     }
 
@@ -95,12 +93,8 @@ public class SingletonIterator implements UnfailingIterator,
      * evaluated and expanded.
      */
 
-    public Value materialize() {
-        if (item instanceof AtomicValue) {
-            return (AtomicValue)item;
-        } else {
-            return new SingletonItem(item);
-        }
+    public Sequence materialize() {
+        return item;
     }
 
 }

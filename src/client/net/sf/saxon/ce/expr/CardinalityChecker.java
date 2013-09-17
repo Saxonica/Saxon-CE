@@ -139,7 +139,7 @@ public final class CardinalityChecker extends UnaryExpression {
             if (first == null) {
                 typeError("An empty sequence is not allowed as the " + role.getMessage(), role.getErrorCode());
             } else {
-                base = new OneItemGoneIterator(base);
+                base = new OneItemGoneIterator(first, base);
             }
         }
         if (Cardinality.allowsMany(requiredCardinality)) {

@@ -240,7 +240,7 @@ public class SlashExpression extends Expression
 
         Configuration config = visitor.getConfiguration();
 
-        PromotionOffer offer = new PromotionOffer(config);
+        PromotionOffer offer = new PromotionOffer();
         offer.action = PromotionOffer.FOCUS_INDEPENDENT;
         offer.promoteDocumentDependent = (start.getSpecialProperties() & StaticProperty.CONTEXT_DOCUMENT_NODESET) != 0;
         offer.containingExpression = this;
@@ -388,7 +388,7 @@ public class SlashExpression extends Expression
                     }
                 }
             };
-            return new ItemMappingIterator(new OneItemGoneIterator(result), atomicValueChecker, true);
+            return new ItemMappingIterator(new OneItemGoneIterator(first, result), atomicValueChecker, true);
         } else {
             ItemMappingFunction nodeChecker = new ItemMappingFunction() {
                 public Item mapItem(Item item) throws XPathException {
@@ -400,7 +400,7 @@ public class SlashExpression extends Expression
                 }
             };
             return new DocumentOrderIterator(
-                new ItemMappingIterator(new OneItemGoneIterator(result), nodeChecker, true),
+                new ItemMappingIterator(new OneItemGoneIterator(first, result), nodeChecker, true),
                 GlobalOrderComparer.getInstance());
         }
 

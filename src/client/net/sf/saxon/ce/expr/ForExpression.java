@@ -175,7 +175,7 @@ public class ForExpression extends Assignation {
         // If a subexpression is (or might be) creative, this is, if it creates new nodes, we don't
         // extract it from the loop, but we do extract its non-creative subexpressions
 
-        PromotionOffer offer = new PromotionOffer(visitor.getConfiguration());
+        PromotionOffer offer = new PromotionOffer();
         offer.containingExpression = this;
         offer.action = PromotionOffer.RANGE_INDEPENDENT;
         offer.bindingList = new Binding[] {this};

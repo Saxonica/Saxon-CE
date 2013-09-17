@@ -82,14 +82,6 @@ public class Insert extends SystemFunction {
             }
         }
 
-        public Item current() {
-            return current;
-        }
-
-        public int position() {
-            return position;
-        }
-
         public SequenceIterator getAnother() throws XPathException {
             return new InsertIterator(  base.getAnother(),
                                         insert.getAnother(),

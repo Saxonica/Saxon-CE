@@ -2,38 +2,40 @@ package client.net.sf.saxon.ce.tree.iter;
 
 import client.net.sf.saxon.ce.expr.LastPositionFinder;
 import client.net.sf.saxon.ce.om.Item;
-import client.net.sf.saxon.ce.om.NodeInfo;
+import client.net.sf.saxon.ce.om.Sequence;
 import client.net.sf.saxon.ce.om.SequenceIterator;
-import client.net.sf.saxon.ce.value.*;
+import client.net.sf.saxon.ce.value.EmptySequence;
+import client.net.sf.saxon.ce.value.SequenceExtent;
 
 import java.util.List;
 
 /**
-* Class ListIterator, iterates over a sequence of items held in a Java List
-*/
+ * Class ListIterator, iterates over a sequence of items held in a Java List
+ */
 
 public class ListIterator
         implements UnfailingIterator, LastPositionFinder, GroundedIterator {
 
-    int index=0;
+    int index = 0;
     int length;
-    Item current = null;
-    List list = null;
+    List<? extends Item> list = null;
 
     /**
      * Create a ListIterator over a given List
+     *
      * @param list the list: all objects in the list must be instances of {@link Item}
      */
 
-    public ListIterator(List list) {
+    public ListIterator(List<? extends Item> list) {
         index = 0;
         this.list = list;
         this.length = list.size();
     }
 
-   /**
+    /**
      * Create a ListIterator over the leading part of a given List
-     * @param list the list: all objects in the list must be instances of {@link Item}
+     *
+     * @param list   the list: all objects in the list must be instances of {@link Item}
      * @param length the number of items to be included
      */
 
@@ -45,21 +47,11 @@ public class ListIterator
 
     public Item next() {
         if (index >= length) {
-            current = null;
             index = -1;
             length = -1;
             return null;
         }
-        current = (Item)list.get(index++);
-        return current;
-    }
-
-    public Item current() {
-        return current;
-    }
-
-    public int position() {
-        return index;
+        return list.get(index++);
     }
 
     public int getLastPosition() {
@@ -77,16 +69,11 @@ public class ListIterator
      * @return the corresponding SequenceValue
      */
 
-    public Value materialize() {
+    public Sequence materialize() {
         if (length == 0) {
             return EmptySequence.getInstance();
         } else if (length == 1) {
-            Item item = (Item)list.get(0);
-            if (item instanceof NodeInfo) {
-                return new SingletonItem(item);
-            } else {
-                return (AtomicValue)item;
-            }
+            return (Item) list.get(0);
         } else {
             return new SequenceExtent(list);
         }

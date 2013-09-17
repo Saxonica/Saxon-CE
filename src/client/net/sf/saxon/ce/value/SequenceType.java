@@ -1,13 +1,9 @@
 package client.net.sf.saxon.ce.value;
 
-import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.expr.StaticProperty;
-import client.net.sf.saxon.ce.om.Item;
-import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.pattern.AnyNodeTest;
 import client.net.sf.saxon.ce.pattern.EmptySequenceTest;
 import client.net.sf.saxon.ce.pattern.NodeKindTest;
-import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.AnyItemType;
 import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
@@ -275,33 +271,6 @@ public final class SequenceType {
      */
     public int getCardinality() {
         return cardinality;
-    }
-
-    /**
-     * Determine whether a given value is a valid instance of this SequenceType
-     *
-     * @param value the value to be tested
-     * @return true if the value is a valid instance of this type
-     */
-
-    public boolean matches(Value value, Configuration config) throws XPathException {
-        int length = value.getLength();
-        if (length > 1 && !Cardinality.allowsMany(cardinality)) {
-            return false;
-        }
-        if (length == 0 && !Cardinality.allowsZero(cardinality)) {
-            return false;
-        }
-        SequenceIterator iter = value.iterate();
-        while (true) {
-            Item item = iter.next();
-            if (item == null) {
-                return true;
-            }
-            if (!primaryType.matchesItem(item, false, config)) {
-                return false;
-            }
-        }
     }
 
     /**

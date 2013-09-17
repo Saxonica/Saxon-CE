@@ -4,6 +4,7 @@ import client.net.sf.saxon.ce.expr.instruct.Block;
 import client.net.sf.saxon.ce.expr.instruct.ValueOf;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.NodeInfo;
+import client.net.sf.saxon.ce.om.Sequence;
 import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.pattern.EmptySequenceTest;
 import client.net.sf.saxon.ce.pattern.NodeTest;
@@ -13,7 +14,6 @@ import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.AtomicValue;
-import client.net.sf.saxon.ce.value.Value;
 
 /**
 * An Atomizer is an expression corresponding essentially to the fn:data() function: it
@@ -40,7 +40,7 @@ public final class Atomizer extends UnaryExpression  {
     public Expression simplify(ExpressionVisitor visitor) throws XPathException {
         operand = visitor.simplify(operand);
         if (operand instanceof Literal) {
-            Value val = ((Literal)operand).getValue();
+            Sequence val = ((Literal)operand).getValue();
             if (val instanceof AtomicValue) {
                 return operand;
             }

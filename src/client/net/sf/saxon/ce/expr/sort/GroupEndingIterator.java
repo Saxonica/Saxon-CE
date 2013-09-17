@@ -19,11 +19,10 @@ public class GroupEndingIterator extends GroupMatchingIterator implements GroupI
     public GroupEndingIterator(SequenceIterator population, Pattern endPattern,
                                XPathContext context)
             throws XPathException {
-        this.population = population;
         this.pattern = endPattern;
         baseContext = context;
         runningContext = context.newMinorContext();
-        runningContext.setCurrentIterator(population);
+        this.population = runningContext.setCurrentIterator(population);
         // the first item in the population always starts a new group
         next = population.next();
     }

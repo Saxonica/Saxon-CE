@@ -8,6 +8,7 @@ import client.net.sf.saxon.ce.regex.ARegularExpression;
 import client.net.sf.saxon.ce.regex.RegexIterator;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.EmptyIterator;
+import client.net.sf.saxon.ce.tree.iter.FocusIterator;
 import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.Type;
@@ -260,11 +261,11 @@ public class AnalyzeString extends Instruction {
     public TailCall processLeavingTail(XPathContext context) throws XPathException {
         RegexIterator iter = getRegexIterator(context);
         XPathContextMajor c2 = context.newContext();
-        c2.setCurrentIterator(iter);
+        FocusIterator focus = c2.setCurrentIterator(iter);
         c2.setCurrentRegexIterator(iter);
 
         while (true) {
-            Item it = iter.next();
+            Item it = focus.next();
             if (it == null) {
                 break;
             }

@@ -5,7 +5,6 @@ import client.net.sf.saxon.ce.om.Sequence;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.value.SequenceType;
-import client.net.sf.saxon.ce.value.Value;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -241,7 +240,7 @@ public abstract class Assignation extends Expression implements Binding {
      */
 
     public void refineTypeInformation(ItemType type, int cardinality,
-                                      Value constantValue, int properties,
+                                      Sequence constantValue, int properties,
                                       ExpressionVisitor visitor,
                                       Assignation currentExpression) {
         List<VariableReference> references = new ArrayList<VariableReference>();

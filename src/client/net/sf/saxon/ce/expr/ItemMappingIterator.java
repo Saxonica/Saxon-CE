@@ -18,8 +18,6 @@ public class ItemMappingIterator implements SequenceIterator, LastPositionFinder
 
     private SequenceIterator base;
     private ItemMappingFunction action;
-    private Item current = null;
-    private int position = 0;
     private boolean oneToOne = false;
 
     /**
@@ -54,32 +52,19 @@ public class ItemMappingIterator implements SequenceIterator, LastPositionFinder
         while (true) {
             Item nextSource = base.next();
             if (nextSource == null) {
-                current = null;
-                position = -1;
                 return null;
             }
             // Call the supplied mapping function
             try {
-                current = action.mapItem(nextSource);
+                Item curr = action.mapItem(nextSource);
+                if (curr != null) {
+                    return curr;
+                }
             } catch (EarlyExitException e) {
-                current  = null;
-                position  = -1;
                 return null;
-            }
-            if (current != null) {
-                position++;
-                return current;
             }
             // otherwise go round the loop to get the next item from the base sequence
         }
-    }
-
-    public Item current() {
-        return current;
-    }
-
-    public int position() {
-        return position;
     }
 
     public SequenceIterator getAnother() throws XPathException {

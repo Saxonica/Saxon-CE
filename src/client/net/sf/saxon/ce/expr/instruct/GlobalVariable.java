@@ -7,8 +7,6 @@ import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.expr.XPathContextMajor;
 import client.net.sf.saxon.ce.om.Sequence;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.tree.iter.SingletonIterator;
-import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 
 /**
 * A compiled global variable in a stylesheet or query. <br>
@@ -98,10 +96,7 @@ public class GlobalVariable extends GeneralVariable implements Container {
                     getVariableQName().getDisplayName() + "!!");
         } else {
             XPathContextMajor c2 = context.newCleanContext();
-            UnfailingIterator initialNode =
-                    SingletonIterator.makeIterator(c2.getController().getContextForGlobalVariables());
-            initialNode.next();
-            c2.setCurrentIterator(initialNode);
+            c2.setSingletonFocus(c2.getController().getContextForGlobalVariables());
             if (numberOfSlots != 0) {
                 c2.openStackFrame(numberOfSlots);
             }

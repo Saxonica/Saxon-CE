@@ -9,13 +9,14 @@ import client.net.sf.saxon.ce.tree.iter.*;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
 import client.net.sf.saxon.ce.tree.util.Navigator;
 import client.net.sf.saxon.ce.type.Type;
+import client.net.sf.saxon.ce.value.AbstractNode;
 import client.net.sf.saxon.ce.value.AtomicValue;
 import client.net.sf.saxon.ce.value.UntypedAtomicValue;
 
 /**
  * An attribute node in the DOM - may be XML or HTML
  */
-public class HTMLAttributeNode implements NodeInfo {
+public class HTMLAttributeNode extends AbstractNode implements NodeInfo {
 
     private HTMLNodeWrapper element;
     private String name;

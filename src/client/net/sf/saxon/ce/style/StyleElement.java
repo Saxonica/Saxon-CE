@@ -972,7 +972,7 @@ public abstract class StyleElement extends ElementImpl
                 let.setRequiredType(SequenceType.SINGLE_ITEM);
                 let.setSequence(new ContextItemExpression());
                 let.setAction(Literal.makeEmptySequence());
-                PromotionOffer offer = new PromotionOffer(config);
+                PromotionOffer offer = new PromotionOffer();
                 offer.action = PromotionOffer.REPLACE_CURRENT;
                 offer.containingExpression = let;
                 pattern.resolveCurrent(let, offer, true);
