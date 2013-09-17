@@ -1,8 +1,5 @@
 package client.net.sf.saxon.ce.functions;
-import client.net.sf.saxon.ce.expr.Expression;
-import client.net.sf.saxon.ce.expr.ExpressionVisitor;
-import client.net.sf.saxon.ce.expr.Literal;
-import client.net.sf.saxon.ce.expr.XPathContext;
+import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.NameChecker;
 import client.net.sf.saxon.ce.om.QNameException;
@@ -29,7 +26,7 @@ public class QNameFn extends SystemFunction {
 
     public Expression preEvaluate(ExpressionVisitor visitor) throws XPathException {
         try {
-            XPathContext early = visitor.getStaticContext().makeEarlyEvaluationContext();
+            XPathContext early = new EarlyEvaluationContext(visitor.getConfiguration());
             final Item item1 = argument[1].evaluateItem(early);
             final String lex = item1.getStringValue();
             final Item item0 = argument[0].evaluateItem(early);

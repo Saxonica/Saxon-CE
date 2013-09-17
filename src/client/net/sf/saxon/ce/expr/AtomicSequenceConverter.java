@@ -55,7 +55,7 @@ public final class AtomicSequenceConverter extends UnaryExpression {
         operand = visitor.simplify(operand);
         if (operand instanceof Literal) {
             Sequence val = SequenceExtent.makeSequenceExtent(
-                    iterate(visitor.getStaticContext().makeEarlyEvaluationContext()));
+                    iterate(new EarlyEvaluationContext(visitor.getConfiguration())));
             return Literal.makeLiteral(val);
         }
         return this;

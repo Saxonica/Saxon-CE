@@ -1,7 +1,6 @@
 package client.net.sf.saxon.ce.trans;
 
 import client.net.sf.saxon.ce.expr.XPathContext;
-import client.net.sf.saxon.ce.expr.XPathContextMajor;
 import client.net.sf.saxon.ce.expr.instruct.ApplyTemplates;
 import client.net.sf.saxon.ce.expr.instruct.ParameterSet;
 import client.net.sf.saxon.ce.expr.instruct.TailCall;
@@ -50,7 +49,7 @@ public class StringifyRuleSet implements BuiltInRuleSet {
             case Type.DOCUMENT:
             case Type.ELEMENT:
                 SequenceIterator iter = node.iterateAxis(Axis.CHILD, AnyNodeTest.getInstance());
-                XPathContextMajor c2 = context.newContext();
+                XPathContext c2 = context.newContext();
 	            TailCall tc = ApplyTemplates.applyTemplates(
                         iter, context.getCurrentMode(), parameters, tunnelParams, c2, sourceLocator);
                 while (tc != null) {

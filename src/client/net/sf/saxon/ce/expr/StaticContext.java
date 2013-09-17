@@ -23,13 +23,6 @@ public interface StaticContext {
 
 
     /**
-     * Construct a dynamic context for early evaluation of constant subexpressions.
-     * @return a newly constructed dynamic context
-     */
-
-    public XPathContext makeEarlyEvaluationContext();
-
-    /**
      * Get the System ID of the container of the expression. This is the containing
      * entity (file) and is therefore useful for diagnostics. Use getBaseURI() to get
      * the base URI, which may be different.

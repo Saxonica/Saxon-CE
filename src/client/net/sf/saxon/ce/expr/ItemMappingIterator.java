@@ -84,7 +84,7 @@ public class ItemMappingIterator implements SequenceIterator, LastPositionFinder
     }
 
     /**
-     * The mapping function can throw an EarlyExitException to indicate that no more iteme will be
+     * The mapping function can throw an EarlyExitException to indicate that no more items will be
      * returned; processing of the input sequence can cease at this point.
      */
 

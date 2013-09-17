@@ -76,7 +76,7 @@ public final class UntypedAtomicConverter extends UnaryExpression implements Ite
         if (operand instanceof Literal) {
             return Literal.makeLiteral(
                     SequenceExtent.makeSequenceExtent(
-                            iterate(visitor.getStaticContext().makeEarlyEvaluationContext())));
+                            iterate(new EarlyEvaluationContext(visitor.getConfiguration()))));
         }
         ItemType type = operand.getItemType();
         if (type instanceof NodeTest) {

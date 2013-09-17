@@ -344,7 +344,7 @@ public class ForExpression extends Assignation {
         public StatefulMappingFunction getAnother(SequenceIterator newBaseIterator) {
             // Create a copy of the stack frame, so that changes made to local variables by the cloned
             // iterator are not seen by the original iterator
-            XPathContextMajor c2 = context.newContext();
+            XPathContext c2 = context.newContext();
             Sequence[] vars = context.getStackFrame();
             Sequence[] newvars = new Sequence[vars.length];
             System.arraycopy(vars, 0, newvars, 0, vars.length);

@@ -4,7 +4,6 @@ import client.net.sf.saxon.ce.Controller;
 import client.net.sf.saxon.ce.expr.Container;
 import client.net.sf.saxon.ce.expr.ExpressionTool;
 import client.net.sf.saxon.ce.expr.XPathContext;
-import client.net.sf.saxon.ce.expr.XPathContextMajor;
 import client.net.sf.saxon.ce.om.Sequence;
 import client.net.sf.saxon.ce.trans.XPathException;
 
@@ -95,7 +94,7 @@ public class GlobalVariable extends GeneralVariable implements Container {
             throw new AssertionError("*** No select expression for global variable $" +
                     getVariableQName().getDisplayName() + "!!");
         } else {
-            XPathContextMajor c2 = context.newCleanContext();
+            XPathContext c2 = context.newCleanContext();
             c2.setSingletonFocus(c2.getController().getContextForGlobalVariables());
             if (numberOfSlots != 0) {
                 c2.openStackFrame(numberOfSlots);

@@ -187,7 +187,7 @@ public abstract class FunctionCall extends Expression {
         try {
             Literal lit = Literal.makeLiteral(
                     SequenceExtent.makeSequenceExtent(
-                            iterate(visitor.getStaticContext().makeEarlyEvaluationContext())));
+                            iterate(new EarlyEvaluationContext(visitor.getConfiguration()))));
             ExpressionTool.copyLocationInfo(this, lit);
             return lit;
         } catch (NoDynamicContextException e) {

@@ -4,27 +4,23 @@ import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.Controller;
 import client.net.sf.saxon.ce.event.Receiver;
 import client.net.sf.saxon.ce.event.SequenceReceiver;
-import client.net.sf.saxon.ce.expr.instruct.LocalParam;
 import client.net.sf.saxon.ce.expr.instruct.ParameterSet;
 import client.net.sf.saxon.ce.expr.sort.GroupIterator;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.Sequence;
 import client.net.sf.saxon.ce.om.SequenceIterator;
-import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.regex.RegexIterator;
 import client.net.sf.saxon.ce.trans.Mode;
-import client.net.sf.saxon.ce.trans.NoDynamicContextException;
 import client.net.sf.saxon.ce.trans.Rule;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.FocusIterator;
-import client.net.sf.saxon.ce.value.DateTimeValue;
 
 /**
  * This class is an implementation of XPathContext used when evaluating constant sub-expressions at
  * compile time.
  */
 
-public class EarlyEvaluationContext implements XPathContext {
+public class EarlyEvaluationContext extends XPathContext {
 
     private Configuration config;
 
@@ -34,6 +30,7 @@ public class EarlyEvaluationContext implements XPathContext {
      */
 
     public EarlyEvaluationContext(Configuration config) {
+        super(null);
         this.config = config;
     }
 
@@ -230,21 +227,10 @@ public class EarlyEvaluationContext implements XPathContext {
     }
 
     /**
-     * Determine whether the context position is the same as the context size
-     * that is, whether position()=last()
-     */
-
-    public boolean isAtLast() throws XPathException {
-        XPathException err = new XPathException("The context item is undefined");
-        err.setErrorCode("XPDY0002");
-        throw err;
-    }
-
-    /**
      * Construct a new context without copying (used for the context in a function call)
      */
 
-    public XPathContextMajor newCleanContext() {
+    public XPathContext newCleanContext() {
         notAllowed();
         return null;
     }
@@ -254,7 +240,7 @@ public class EarlyEvaluationContext implements XPathContext {
      * to the top of a stack, and contains a pointer to the previous context
      */
 
-    public XPathContextMajor newContext() {
+    public XPathContext newContext() {
         Controller controller = new Controller(config);
         return controller.newXPathContext();
 //        notAllowed();
@@ -266,7 +252,7 @@ public class EarlyEvaluationContext implements XPathContext {
      * (currentIterator) and current output destination.
      */
 
-    public XPathContextMinor newMinorContext() {
+    public XPathContext newMinorContext() {
         return newContext().newMinorContext();
 //        notAllowed();
 //        return null;
@@ -302,14 +288,6 @@ public class EarlyEvaluationContext implements XPathContext {
     }
 
     /**
-     * Change the Receiver to which output is written
-     */
-
-    public void setReceiver(SequenceReceiver receiver) {
-        notAllowed();
-    }
-
-    /**
      * Set the receiver to which output is to be written, marking it as a temporary (non-final)
      * output destination.
      *
@@ -321,50 +299,14 @@ public class EarlyEvaluationContext implements XPathContext {
     }
 
     /**
-     * Use local parameter. This is called when a local xsl:param element is processed.
-     * If a parameter of the relevant name was supplied, it is bound to the xsl:param element.
-     * Otherwise the method returns false, so the xsl:param default will be evaluated
-     *
-     * @param qName The fingerprint of the parameter name
-     * @param binding     The XSLParam element to bind its value to
-     * @param isTunnel    True if a tunnel parameter is required, else false
-     * @return true if a parameter of this name was supplied, false if not
-     */
-
-    public int useLocalParameter(StructuredQName qName, LocalParam binding, boolean isTunnel) throws XPathException {
-        return ParameterSet.NOT_SUPPLIED;
-    }
-
-    /**
-     * Get the current date and time. This implementation always throws a
-     * NoDynamicContextException.
-     * @return the current date and time. All calls within a single query or transformation
-     * will return the same value
-     */
-
-    public DateTimeValue getCurrentDateTime() throws NoDynamicContextException {
-        throw new NoDynamicContextException("current-dateTime");
-    }
-
-    /**
      * Get the implicit timezone, as a positive or negative offset from UTC in minutes.
      * The range is -14hours to +14hours. This implementation always throws a
      * NoDynamicContextException.
      * @return the implicit timezone, as an offset from UTC in minutes
      */
 
-    public int getImplicitTimezone() throws NoDynamicContextException{
+    public int getImplicitTimezone() {
         return config.getImplicitTimezone();
-    }
-
-
-    /**
-     * Get the current exception
-     * @return the current exception, or null if there is none defined
-     */
-
-    public XPathException getCurrentException() {
-        return null;
     }
 
     /**

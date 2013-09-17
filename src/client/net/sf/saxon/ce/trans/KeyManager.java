@@ -215,7 +215,7 @@ public class KeyManager {
         //System.err.println("build index for doc " + doc.getDocumentNumber());
         Pattern match = keydef.getMatch();
 
-        XPathContextMajor xc = context.newContext();
+        XPathContext xc = context.newContext();
 
         // The use expression (or sequence constructor) may contain local variables.
         xc.openStackFrame(keydef.getNumberOfSlots());

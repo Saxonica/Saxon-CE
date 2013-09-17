@@ -219,7 +219,7 @@ public class ForEach extends Instruction implements ContextMappingFunction {
     public TailCall processLeavingTail(XPathContext context) throws XPathException {
         SequenceIterator iter = select.iterate(context);
 
-        XPathContextMajor c2 = context.newContext();
+        XPathContext c2 = context.newContext();
         FocusIterator focus = c2.setCurrentIterator(iter);
         c2.setCurrentTemplateRule(null);
 
@@ -279,7 +279,7 @@ public class ForEach extends Instruction implements ContextMappingFunction {
 
     public SequenceIterator iterate(XPathContext context) throws XPathException {
         SequenceIterator master = select.iterate(context);
-        XPathContextMajor c2 = context.newContext();
+        XPathContext c2 = context.newContext();
         c2.setCurrentTemplateRule(null);
         c2.setCurrentIterator(master);
         master = new ContextMappingIterator(this, c2);

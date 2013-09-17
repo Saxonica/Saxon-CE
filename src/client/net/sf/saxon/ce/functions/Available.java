@@ -60,7 +60,7 @@ public class Available extends SystemFunction {
             case FUNCTION_AVAILABLE: {
                 long arity = -1;
                 if (argument.length == 2) {
-                    arity = ((NumericValue)argument[1].evaluateItem(env.makeEarlyEvaluationContext())).intValue();
+                    arity = ((NumericValue)argument[1].evaluateItem(context)).intValue();
                 }
                 try {
                     StructuredQName qName = StructuredQName.fromLexicalQName(

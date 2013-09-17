@@ -3,7 +3,6 @@ package client.net.sf.saxon.ce;
 import client.net.sf.saxon.ce.dom.HTMLWriter;
 import client.net.sf.saxon.ce.event.*;
 import client.net.sf.saxon.ce.expr.XPathContext;
-import client.net.sf.saxon.ce.expr.XPathContextMajor;
 import client.net.sf.saxon.ce.expr.instruct.*;
 import client.net.sf.saxon.ce.functions.Component;
 import client.net.sf.saxon.ce.js.IXSLFunction;
@@ -1017,9 +1016,7 @@ public class Controller {
                 throw new XPathException("Stylesheet has not been compiled");
             }
 
-            openMessageEmitter();
-
-            XPathContextMajor initialContext = newXPathContext();
+            XPathContext initialContext = newXPathContext();
 
             if (source != null) {
 
@@ -1030,7 +1027,7 @@ public class Controller {
                 if (initialTemplate != null) {
                     initialContext.setSingletonFocus(initialContextItem);
                 } else {
-                    currentIter = initialContext.setCurrentIterator(currentIter);
+                    initialContext.setCurrentIterator(currentIter);
                 }
             }
 
@@ -1058,7 +1055,7 @@ public class Controller {
                 }
             } else {
                 Template t = initialTemplate;
-                XPathContextMajor c2 = initialContext.newContext();
+                XPathContext c2 = initialContext.newContext();
                 c2.openStackFrame(t.getNumberOfSlots());
                 c2.setLocalParameters(new ParameterSet());
                 c2.setTunnelParameters(new ParameterSet());
@@ -1124,16 +1121,6 @@ public class Controller {
     public Receiver openResult(PipelineConfiguration pipe, XPathContext initialContext,
                                Node root, int method) throws XPathException {
 
-//        if (method == ResultDocument.REPLACE_CONTENT) {
-//            while (true) {
-//                Node child = root.getFirstChild();
-//                if (child == null) {
-//                    break;
-//                }
-//                root.removeChild(child);
-//            }
-//        }
-    	
         HTMLWriter writer = new HTMLWriter();
         writer.setPipelineConfiguration(pipe);
         NamespaceReducer reducer = new NamespaceReducer();
@@ -1141,8 +1128,6 @@ public class Controller {
         reducer.setPipelineConfiguration(pipe);
         writer.setNode(root);
         Receiver receiver = reducer;
-
-
 
         // if this is the implicit XSLT result document, and if the executable is capable
         // of creating a secondary result document, then add a filter to check the first write
@@ -1167,13 +1152,6 @@ public class Controller {
         return receiver;
     }
 
-    private void openMessageEmitter() throws XPathException {
-//        if (getMessageEmitter() == null) {
-//            Receiver me = makeMessageReceiver();
-//            setMessageEmitter(me);
-//        }
-//        getMessageEmitter().open();
-    }
 
     //////////////////////////////////////////////////////////////////////////
     // Handle parameters to the transformation
@@ -1264,15 +1242,6 @@ public class Controller {
         return currentDateTime;
     }
 
-    /**
-     * Get the implicit timezone for this query or transformation
-     * @return the implicit timezone as an offset in minutes
-     */
-
-    public int getImplicitTimezone() {
-        return getCurrentDateTime().getTimezoneInMinutes();
-    }
-
     /////////////////////////////////////////
     // Methods for handling dynamic context
     /////////////////////////////////////////
@@ -1285,8 +1254,8 @@ public class Controller {
      * @return the new XPathContext
      */
 
-    public XPathContextMajor newXPathContext() {
-        return new XPathContextMajor(this);
+    public XPathContext newXPathContext() {
+        return new XPathContext(this);
     }
 
     /**
@@ -1319,32 +1288,6 @@ public class Controller {
         return -1;
     }
 
-    /**
-     * Get a result tree, given its URI
-     * @param uri the URI of the result tree
-     */
-
-//    public Document getResultTree(String uri) {
-//        return resultTrees.get(uri);
-//    }
-
-    /**
-     * Set a result tree (internal method)
-     * @param uri the URI of the result tree
-     * @param doc the document node of the result tree
-     */
-
-//    public void setResultTree(String uri, Document doc) {
-//        resultTrees.put(uri, doc);
-//    }
-//
-//    /**
-//     * Get the set of all result tree URIs
-//     */
-//
-//    public Set<String> getResultTreeUris() {
-//        return resultTrees.keySet();
-//    }
     
     /////////////////////////////////////////////////////////////////////////
     // Methods for tracing

@@ -2,7 +2,6 @@ package client.net.sf.saxon.ce.expr.instruct;
 
 import client.net.sf.saxon.ce.expr.Expression;
 import client.net.sf.saxon.ce.expr.XPathContext;
-import client.net.sf.saxon.ce.expr.XPathContextMajor;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.pattern.Pattern;
 import client.net.sf.saxon.ce.trace.Location;
@@ -165,7 +164,7 @@ public class Template extends Procedure  {
      * @param context The dynamic context, giving access to the current node,
      */
 
-    public void apply(XPathContextMajor context) throws XPathException {
+    public void apply(XPathContext context) throws XPathException {
         TailCall tc = applyLeavingTail(context);
         while (tc != null) {
             tc = tc.processLeavingTail();
@@ -180,7 +179,7 @@ public class Template extends Procedure  {
      * that hasn't been made yet and needs to be made by the caller
     */
 
-    public TailCall applyLeavingTail(XPathContextMajor context) throws XPathException {
+    public TailCall applyLeavingTail(XPathContext context) throws XPathException {
         if (bodyIsTailCallReturner) {
             return ((TailCallReturner)body).processLeavingTail(context);
         } else {

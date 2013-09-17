@@ -1,12 +1,13 @@
 package client.net.sf.saxon.ce.expr;
 
 import client.net.sf.saxon.ce.functions.StringFn;
-import client.net.sf.saxon.ce.om.*;
+import client.net.sf.saxon.ce.om.Item;
+import client.net.sf.saxon.ce.om.Sequence;
+import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.pattern.EmptySequenceTest;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.*;
 import client.net.sf.saxon.ce.value.*;
-import client.net.sf.saxon.ce.value.StringValue;
 
 import java.util.HashMap;
 
@@ -193,12 +194,8 @@ public final class CastExpression extends UnaryExpression  {
         if (operand instanceof Literal) {
             Sequence literalOperand = ((Literal)operand).getValue();
             if (literalOperand instanceof AtomicValue) {
-                AtomicValue av = ((AtomicValue)evaluateItem(visitor.getStaticContext().makeEarlyEvaluationContext()));
-                if (av instanceof StringValue) {
-                    return new StringLiteral((StringValue)av);
-                } else {
-                    return new Literal(av);
-                }
+                AtomicValue av = ((AtomicValue)evaluateItem(new EarlyEvaluationContext(visitor.getConfiguration())));
+                return Literal.makeLiteral(av);
             }
             if (literalOperand instanceof EmptySequence) {
                 if (allowEmpty) {

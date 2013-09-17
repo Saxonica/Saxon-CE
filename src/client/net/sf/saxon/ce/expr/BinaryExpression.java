@@ -55,16 +55,6 @@ public abstract class BinaryExpression extends Expression {
     public Expression typeCheck(ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
         operand0 = visitor.typeCheck(operand0, contextItemType);
         operand1 = visitor.typeCheck(operand1, contextItemType);
-        // if both operands are known, pre-evaluate the expression
-        try {
-            if ((operand0 instanceof Literal) && (operand1 instanceof Literal)) {
-                Sequence v = evaluateItem(visitor.getStaticContext().makeEarlyEvaluationContext());
-                return Literal.makeLiteral(v);
-            }
-        } catch (XPathException err) {
-            // if early evaluation fails, suppress the error: the value might
-            // not be needed at run-time
-        }
         return this;
     }
 
@@ -90,7 +80,7 @@ public abstract class BinaryExpression extends Expression {
         // if both operands are known, pre-evaluate the expression
         try {
             if ((operand0 instanceof Literal) && (operand1 instanceof Literal)) {
-                Sequence v = evaluateItem(visitor.getStaticContext().makeEarlyEvaluationContext());
+                Sequence v = evaluateItem(new EarlyEvaluationContext(visitor.getConfiguration()));
                 return Literal.makeLiteral(v);
             }
         } catch (XPathException err) {

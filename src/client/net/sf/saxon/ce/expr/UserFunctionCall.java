@@ -221,11 +221,11 @@ public class UserFunctionCall extends FunctionCall {
         Sequence[] actualArgs = evaluateArguments(c);
 
         if (tailCall) {
-            ((XPathContextMajor) c).requestTailCall(function, actualArgs);
+            c.requestTailCall(function, actualArgs);
             return EmptySequence.getInstance();
         }
 
-        XPathContextMajor c2 = c.newCleanContext();
+        XPathContext c2 = c.newCleanContext();
         c2.setTemporaryOutputState(true);
         return function.call(actualArgs, c2);
     }
@@ -240,11 +240,11 @@ public class UserFunctionCall extends FunctionCall {
     public void process(XPathContext context) throws XPathException {
         Sequence[] actualArgs = evaluateArguments(context);
         if (tailCall) {
-            ((XPathContextMajor) context).requestTailCall(function, actualArgs);
+            context.requestTailCall(function, actualArgs);
         } else {
             SequenceReceiver out = context.getReceiver();
-            XPathContextMajor c2 = context.newCleanContext();
-            c2.setReceiver(out);
+            XPathContext c2 = context.newCleanContext();
+            c2.setTemporaryReceiver(out);
             function.process(actualArgs, c2);
         }
     }

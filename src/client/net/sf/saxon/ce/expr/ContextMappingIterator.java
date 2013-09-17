@@ -67,7 +67,7 @@ public final class ContextMappingIterator implements SequenceIterator {
 
     public SequenceIterator getAnother() throws XPathException {
         SequenceIterator newBase = base.getAnother();
-        XPathContextMinor c2 = context.newMinorContext();
+        XPathContext c2 = context.newMinorContext();
         c2.setCurrentIterator(newBase);
         return new ContextMappingIterator(action, c2);
     }

@@ -45,14 +45,6 @@ public class ExpressionContext implements StaticContext {
     }
 
     /**
-     * Construct a dynamic context for early evaluation of constant subexpressions
-     */
-
-    public XPathContext makeEarlyEvaluationContext() {
-        return new EarlyEvaluationContext(getConfiguration());
-    }
-
-    /**
     * Get the System ID of the entity containing the expression (used for diagnostics)
     */
 

@@ -169,7 +169,7 @@ public class ApplyTemplates extends Instruction {
         ParameterSet tunnels = assembleTunnelParams(context, tunnelParams);
 
         if (returnTailCall) {
-            XPathContextMajor c2 = context.newContext();
+            XPathContext c2 = context.newContext();
             final int evaluationMode = ExpressionTool.lazyEvaluationMode(select);
             return new ApplyTemplatesPackage(
                     ExpressionTool.evaluate(select, evaluationMode, context),
@@ -187,7 +187,7 @@ public class ApplyTemplates extends Instruction {
         }
 
         // process the selected nodes now
-        XPathContextMajor c2 = context.newContext();
+        XPathContext c2 = context.newContext();
 //        try {
             TailCall tc = applyTemplates(iter, thisMode, params, tunnels, c2, getSourceLocator());
             while (tc != null) {
@@ -232,7 +232,7 @@ public class ApplyTemplates extends Instruction {
                                           Mode mode,
                                           ParameterSet parameters,
                                           ParameterSet tunnelParameters,
-                                          XPathContextMajor context,
+                                          XPathContext context,
                                           SourceLocator sourceLocator)
                                 throws XPathException {
         TailCall tc = null;
@@ -314,7 +314,7 @@ public class ApplyTemplates extends Instruction {
             case Type.DOCUMENT:
             case Type.ELEMENT:
                 SequenceIterator iter = node.iterateAxis(Axis.CHILD, AnyNodeTest.getInstance());
-                XPathContextMajor c2 = context.newContext();
+                XPathContext c2 = context.newContext();
 	            TailCall tc = applyTemplates(
                         iter, context.getCurrentMode(), parameters, tunnelParams, c2, sourceLocator);
                 while (tc != null) {
@@ -451,14 +451,14 @@ public class ApplyTemplates extends Instruction {
         private Mode mode;
         private ParameterSet params;
         private ParameterSet tunnelParams;
-        private XPathContextMajor evaluationContext;
+        private XPathContext evaluationContext;
         private SourceLocator sourceLocator;
 
         ApplyTemplatesPackage(Sequence selectedNodes,
                                      Mode mode,
                                      ParameterSet params,
                                      ParameterSet tunnelParams,
-                                     XPathContextMajor context,
+                                     XPathContext context,
                                      SourceLocator sourceLocator
                                      ) {
             this.selectedNodes = selectedNodes;

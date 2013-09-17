@@ -135,6 +135,18 @@ public class SortedIterator implements SequenceIterator, LastPositionFinder, Sor
 
         // initialise the array with data
 
+        allocated = populateArray(allocated);
+
+        // If there's lots of unused space, reclaim it
+
+        if (allocated * 2 < count || (allocated - count) > 2000) {
+            Object[] nk2 = new Object[count * recordSize];
+            System.arraycopy(nodeKeys, 0, nk2, 0, count * recordSize);
+            nodeKeys = nk2;
+        }
+    }
+
+    protected int populateArray(int allocated) throws XPathException {
         while (true) {
             Item item = base.next();
             if (item == null) {
@@ -148,23 +160,14 @@ public class SortedIterator implements SequenceIterator, LastPositionFinder, Sor
             }
             int k = count*recordSize;
             nodeKeys[k] = item;
-            // TODO: delay evaluating the sort keys until we know they are needed. Often the 2nd and subsequent
-            // sort key values will never be used. The only problem is with sort keys that depend on position().
             for (int n=0; n<comparators.length; n++) {
                 nodeKeys[k+n+1] = sortKeyEvaluator.evaluateSortKey(n, context);
             }
             // make the sort stable by adding the record number
-            nodeKeys[k+comparators.length+1] = Integer.valueOf(count);
+            nodeKeys[k+comparators.length+1] = count;
             count++;
         }
-
-        // If there's lots of unused space, reclaim it
-
-        if (allocated * 2 < count || (allocated - count) > 2000) {
-            Object[] nk2 = new Object[count * recordSize];
-            System.arraycopy(nodeKeys, 0, nk2, 0, count * recordSize);
-            nodeKeys = nk2;
-        }
+        return allocated;
     }
 
     private void doSort() throws XPathException {

@@ -176,7 +176,7 @@ public class ApplyImports extends Instruction {
             mode.getBuiltInRuleSet().process((NodeInfo)currentItem, params, tunnels, context, getSourceLocator());
         } else {
             Template nh = rule.getAction();
-            XPathContextMajor c2 = context.newContext();
+            XPathContext c2 = context.newContext();
             c2.openStackFrame(nh.getNumberOfSlots());
             c2.setLocalParameters(params);
             c2.setTunnelParameters(tunnels);

@@ -186,7 +186,7 @@ public class CallTemplate extends Instruction {
     public void process(XPathContext context) throws XPathException {
 
         Template t = getTargetTemplate();
-        XPathContextMajor c2 = context.newContext();
+        XPathContext c2 = context.newContext();
         c2.openStackFrame(t.getNumberOfSlots());
         c2.setLocalParameters(assembleParams(context, actualParams));
         c2.setTunnelParameters(assembleTunnelParams(context, tunnelParams));
@@ -307,7 +307,7 @@ public class CallTemplate extends Instruction {
             // creating a new one. We're doing this for the Java stack, but not for the context stack where
             // local variables are held. It should be possible to avoid creating a new context, and instead
             // to update the existing one in situ.
-            XPathContextMajor c2 = evaluationContext.newContext();
+            XPathContext c2 = evaluationContext.newContext();
             c2.setLocalParameters(params);
             c2.setTunnelParameters(tunnelParams);
             c2.openStackFrame(target.getNumberOfSlots());

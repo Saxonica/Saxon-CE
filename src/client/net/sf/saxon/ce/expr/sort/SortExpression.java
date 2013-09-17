@@ -139,8 +139,7 @@ public class SortExpression extends Expression
             sortKeyDefinitions[i].setSortKey(sortKey);
             sortKeyDefinitions[i].typeCheck(visitor, contextItemType);
             if (sortKeyDefinitions[i].isFixed()) {
-                AtomicComparer comp = sortKeyDefinitions[i].makeComparator(
-                        visitor.getStaticContext().makeEarlyEvaluationContext());
+                AtomicComparer comp = sortKeyDefinitions[i].makeComparator(new EarlyEvaluationContext(visitor.getConfiguration()));
                 sortKeyDefinitions[i].setFinalComparator(comp);
                 if (allKeysFixed) {
                     comparators[i] = comp;

@@ -128,7 +128,7 @@ public final class ComputedAttribute extends AttributeCreator {
         }
         // If the name is known statically, use a FixedAttribute instead
         if (attributeName instanceof Literal && (namespace == null || namespace instanceof Literal)) {
-            XPathContext context = visitor.getStaticContext().makeEarlyEvaluationContext();
+            XPathContext context = new EarlyEvaluationContext(visitor.getConfiguration());
             StructuredQName nc = evaluateNameCode(context);
             FixedAttribute fa = new FixedAttribute(nc);
             fa.setSelect(getContentExpression(), visitor.getConfiguration());

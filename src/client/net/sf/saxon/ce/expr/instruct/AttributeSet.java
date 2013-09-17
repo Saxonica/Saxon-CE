@@ -1,7 +1,6 @@
 package client.net.sf.saxon.ce.expr.instruct;
 import client.net.sf.saxon.ce.expr.StaticProperty;
 import client.net.sf.saxon.ce.expr.XPathContext;
-import client.net.sf.saxon.ce.expr.XPathContextMajor;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.XPathException;
@@ -75,7 +74,7 @@ public class AttributeSet extends Procedure {
         }
 
         if (getNumberOfSlots() != 0) {
-            XPathContextMajor c2 = context.newContext();
+            XPathContext c2 = context.newContext();
             c2.openStackFrame(getNumberOfSlots());
             getBody().process(c2);
         } else {

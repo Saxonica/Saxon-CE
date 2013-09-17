@@ -1,6 +1,5 @@
 package client.net.sf.saxon.ce.expr.sort;
 
-import client.net.sf.saxon.ce.expr.LastPositionFinder;
 import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.SequenceIterator;
@@ -27,29 +26,14 @@ public class SortedGroupIterator extends SortedIterator implements GroupIterator
     }
 
     /**
-     * Override the method that builds the array of values and sort keys.
+     * Override the method that populates the array of values and sort keys.
      * @throws XPathException
      */
 
-    protected void buildArray() throws XPathException {
-        int allocated = -1;
-        if (base instanceof LastPositionFinder) {
-            allocated = ((LastPositionFinder)base).getLastPosition();
-        }
-        if (allocated == -1) {
-            allocated = 100;
-        }
-
-        nodeKeys = new Object[allocated * recordSize];
-        count = 0;
-
-//        XPathContextMajor c2 = context.newContext();
-//        FocusIterator focus = c2.setCurrentIterator(base);
-//        c2.setCurrentGroupIterator((GroupIterator)base);
-                // this provides the context for evaluating the sort key
-
-        // initialise the array with data
-
+    protected int populateArray(int allocated) throws XPathException {
+        // Create a context in which sort keys can access the value of current-group()
+        XPathContext c2 = context.newContext();
+        c2.setCurrentGroupIterator((GroupIterator)base.getUnderlyingIterator());
         while (true) {
             Item item = base.next();
             if (item == null) {
@@ -64,7 +48,7 @@ public class SortedGroupIterator extends SortedIterator implements GroupIterator
             int k = count*recordSize;
             nodeKeys[k] = item;
             for (int n=0; n<comparators.length; n++) {
-                nodeKeys[k+n+1] = sortKeyEvaluator.evaluateSortKey(n, context);
+                nodeKeys[k+n+1] = sortKeyEvaluator.evaluateSortKey(n, c2);
             }
             nodeKeys[k+comparators.length+1] = count;
             // extra code added to superclass
@@ -73,6 +57,7 @@ public class SortedGroupIterator extends SortedIterator implements GroupIterator
             nodeKeys[k+comparators.length+3] = gi.iterateCurrentGroup();
             count++;
         }
+        return allocated;
     }
 
     public AtomicValue getCurrentGroupingKey() {

@@ -44,7 +44,7 @@ public final class CastableExpression extends UnaryExpression {
     private Expression preEvaluate(ExpressionVisitor visitor) throws XPathException {
         if (Literal.isAtomic(operand)) {
             return Literal.makeLiteral(
-                    BooleanValue.get(effectiveBooleanValue(visitor.getStaticContext().makeEarlyEvaluationContext())));
+                    BooleanValue.get(effectiveBooleanValue(new EarlyEvaluationContext(visitor.getConfiguration()))));
         }
         if (Literal.isEmptySequence(operand)) {
             return new Literal(BooleanValue.get(allowEmpty));

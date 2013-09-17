@@ -233,7 +233,7 @@ public class UseWhenFilter extends ProxyReceiver {
                 // this is to ensure that all use-when expressions in a module use the same date and time
         XPathContext dynamicContext = controller.newXPathContext();
         dynamicContext = dynamicContext.newCleanContext();
-        ((XPathContextMajor)dynamicContext).openStackFrame(slots);
+        dynamicContext.openStackFrame(slots);
         return expr.effectiveBooleanValue(dynamicContext);
     }
 

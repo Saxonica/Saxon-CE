@@ -1,9 +1,6 @@
 package client.net.sf.saxon.ce.expr.instruct;
 
-import client.net.sf.saxon.ce.expr.Expression;
-import client.net.sf.saxon.ce.expr.ExpressionTool;
-import client.net.sf.saxon.ce.expr.UserFunctionCall;
-import client.net.sf.saxon.ce.expr.XPathContextMajor;
+import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.om.Sequence;
 import client.net.sf.saxon.ce.trace.Location;
@@ -245,7 +242,7 @@ public class UserFunction extends Procedure {
      * @return a Value representing the result of the function.
      */
 
-    public Sequence call(Sequence[] actualArgs, XPathContextMajor context)
+    public Sequence call(Sequence[] actualArgs, XPathContext context)
             throws XPathException {
 
         if (evaluationMode == ExpressionTool.UNDECIDED) {
@@ -279,7 +276,7 @@ public class UserFunction extends Procedure {
      *                   will be overwritten by the function.
      */
 
-    public void process(Sequence[] actualArgs, XPathContextMajor context)
+    public void process(Sequence[] actualArgs, XPathContext context)
             throws XPathException {
         context.setStackFrame(getNumberOfSlots(), actualArgs);
         getBody().process(context);

@@ -52,8 +52,7 @@ public class NormalizeSpace extends SystemFunction {
         if (argument.length == 0) {
             return this;
         } else {
-            return Literal.makeLiteral(evaluateItem(
-                    visitor.getStaticContext().makeEarlyEvaluationContext()));
+            return Literal.makeLiteral(evaluateItem(new EarlyEvaluationContext(visitor.getConfiguration())));
         }
     }
 

@@ -42,18 +42,6 @@ public abstract class UnaryExpression extends Expression {
 
     public Expression typeCheck(ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
         operand = visitor.typeCheck(operand, contextItemType);
-        // if the operand value is known, pre-evaluate the expression
-        try {
-            if (operand instanceof Literal) {
-                return Literal.makeLiteral(
-                        SequenceExtent.makeSequenceExtent(
-                                iterate(visitor.getStaticContext().makeEarlyEvaluationContext())));
-            }
-                //return (Value)ExpressionTool.eagerEvaluate(this, env.makeEarlyEvaluationContext());
-        } catch (XPathException err) {
-            // if early evaluation fails, suppress the error: the value might
-            // not be needed at run-time
-        }
         return this;
     }
 
@@ -80,7 +68,7 @@ public abstract class UnaryExpression extends Expression {
             if (operand instanceof Literal) {
                 return Literal.makeLiteral(
                         SequenceExtent.makeSequenceExtent(
-                                iterate(visitor.getStaticContext().makeEarlyEvaluationContext())));
+                                iterate(new EarlyEvaluationContext(visitor.getConfiguration()))));
             }
         } catch (XPathException err) {
             // if early evaluation fails, suppress the error: the value might

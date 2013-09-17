@@ -260,7 +260,7 @@ public class AnalyzeString extends Instruction {
 
     public TailCall processLeavingTail(XPathContext context) throws XPathException {
         RegexIterator iter = getRegexIterator(context);
-        XPathContextMajor c2 = context.newContext();
+        XPathContext c2 = context.newContext();
         FocusIterator focus = c2.setCurrentIterator(iter);
         c2.setCurrentRegexIterator(iter);
 
@@ -322,7 +322,7 @@ public class AnalyzeString extends Instruction {
 
     public SequenceIterator iterate(XPathContext context) throws XPathException {
         RegexIterator iter = getRegexIterator(context);
-        XPathContextMajor c2 = context.newContext();
+        XPathContext c2 = context.newContext();
         c2.setCurrentIterator(iter);
         c2.setCurrentRegexIterator(iter);
 

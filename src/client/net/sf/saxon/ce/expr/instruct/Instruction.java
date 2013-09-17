@@ -118,10 +118,10 @@ public abstract class Instruction extends Expression implements TailCallReturner
             return null;
         }
         ParameterSet params = new ParameterSet(actualParams.length);
-        for (int i=0; i<actualParams.length; i++) {
-            params.put(actualParams[i].getParameterId(),
-                       actualParams[i].getSelectValue(context),
-                       actualParams[i].isTypeChecked());
+        for (WithParam actualParam : actualParams) {
+            params.put(actualParam.getParameterId(),
+                    actualParam.getSelectValue(context),
+                    actualParam.isTypeChecked());
         }
         return params;
     }

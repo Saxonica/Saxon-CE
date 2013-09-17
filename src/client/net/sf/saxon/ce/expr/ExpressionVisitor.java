@@ -129,14 +129,6 @@ public class ExpressionVisitor {
     }
 
     /**
-     * Create a dynamic context suitable for early evaluation of constant subexpressions
-     */
-
-    public XPathContext makeDynamicContext() {
-        return staticContext.makeEarlyEvaluationContext();
-    }
-
-    /**
      * Simplify an expression, via the ExpressionVisitor
      * @param exp the expression to be simplified
      * @return the simplified expression

@@ -2,12 +2,11 @@ package client.net.sf.saxon.ce.expr;
 
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.SequenceIterator;
-import client.net.sf.saxon.ce.tree.iter.SingletonIterator;
 import client.net.sf.saxon.ce.trans.XPathException;
+import client.net.sf.saxon.ce.tree.iter.SingletonIterator;
 import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.TypeHierarchy;
-import client.net.sf.saxon.ce.value.AtomicValue;
 import client.net.sf.saxon.ce.value.BooleanValue;
 import client.net.sf.saxon.ce.value.Cardinality;
 import client.net.sf.saxon.ce.value.SequenceType;
@@ -63,7 +62,7 @@ public final class InstanceOfExpression extends UnaryExpression {
         operand = visitor.typeCheck(operand, contextItemType);
         if (operand instanceof Literal) {
             Literal lit = Literal.makeLiteral(
-                    (AtomicValue)evaluateItem(visitor.getStaticContext().makeEarlyEvaluationContext()));
+                    evaluateItem(new EarlyEvaluationContext(visitor.getConfiguration())));
             ExpressionTool.copyLocationInfo(this, lit);
             return lit;
         }

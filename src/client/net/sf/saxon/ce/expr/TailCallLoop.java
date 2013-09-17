@@ -72,7 +72,7 @@ public final class TailCallLoop extends UnaryExpression {
     */
 
     public SequenceIterator iterate(XPathContext context) throws XPathException {
-        final XPathContextMajor cm = (XPathContextMajor)context;
+        final XPathContext cm = context;
         while (true) {
             SequenceIterator iter = operand.iterate(cm);
             Sequence extent = SequenceExtent.makeSequenceExtent(iter);
@@ -92,7 +92,7 @@ public final class TailCallLoop extends UnaryExpression {
     */
 
     public Item evaluateItem(XPathContext context) throws XPathException {
-        final XPathContextMajor cm = (XPathContextMajor)context;
+        final XPathContext cm = context;
         while (true) {
             Item item = operand.evaluateItem(context);
             UserFunction fn = cm.getTailCallFunction();
@@ -113,7 +113,7 @@ public final class TailCallLoop extends UnaryExpression {
      */
 
     public void process(XPathContext context) throws XPathException {
-        final XPathContextMajor cm = (XPathContextMajor)context;
+        final XPathContext cm = context;
         while (true) {
             operand.process(context);
             UserFunction fn = cm.getTailCallFunction();
@@ -138,7 +138,7 @@ public final class TailCallLoop extends UnaryExpression {
      * @throws XPathException if the called function fails
      */
 
-    private Sequence tailCallDifferentFunction(UserFunction fn, XPathContextMajor cm) throws XPathException {
+    private Sequence tailCallDifferentFunction(UserFunction fn, XPathContext cm) throws XPathException {
         cm.resetStackFrameMap(fn.getNumberOfSlots(), fn.getNumberOfArguments());
         try {
             return ExpressionTool.evaluate(fn.getBody(), fn.getEvaluationMode(), cm);

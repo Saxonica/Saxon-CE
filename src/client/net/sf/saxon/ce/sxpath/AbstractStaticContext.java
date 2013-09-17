@@ -1,9 +1,7 @@
 package client.net.sf.saxon.ce.sxpath;
 
 import client.net.sf.saxon.ce.Configuration;
-import client.net.sf.saxon.ce.expr.EarlyEvaluationContext;
 import client.net.sf.saxon.ce.expr.StaticContext;
-import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.functions.FunctionLibrary;
 import client.net.sf.saxon.ce.functions.FunctionLibraryList;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
@@ -45,14 +43,6 @@ public abstract class AbstractStaticContext implements StaticContext {
 
     public Configuration getConfiguration() {
         return config;
-    }
-
-    /**
-     * Construct a dynamic context for early evaluation of constant subexpressions
-     */
-
-    public XPathContext makeEarlyEvaluationContext() {
-        return new EarlyEvaluationContext(getConfiguration());
     }
 
     /**

@@ -1,7 +1,6 @@
 package client.net.sf.saxon.ce.trans;
 
 import client.net.sf.saxon.ce.expr.XPathContext;
-import client.net.sf.saxon.ce.expr.XPathContextMajor;
 import client.net.sf.saxon.ce.expr.instruct.Template;
 import client.net.sf.saxon.ce.expr.sort.GenericSorter;
 import client.net.sf.saxon.ce.expr.sort.Sortable;
@@ -324,7 +323,7 @@ public class Mode  {
 
     private XPathContext makeNewContext(XPathContext context) {
         context = context.newContext();
-        ((XPathContextMajor)context).openStackFrame(stackFrameSlotsNeeded);
+        context.openStackFrame(stackFrameSlotsNeeded);
         return context;
     }
     

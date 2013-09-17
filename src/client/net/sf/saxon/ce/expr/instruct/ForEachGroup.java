@@ -122,8 +122,7 @@ public class ForEachGroup extends Instruction
                 skd.setSortKey(sortKey);
 
                 if (skd.isFixed()) {
-                    AtomicComparer comp = skd.makeComparator(
-                            visitor.getStaticContext().makeEarlyEvaluationContext());
+                    AtomicComparer comp = skd.makeComparator(new EarlyEvaluationContext(visitor.getConfiguration()));
                     skd.setFinalComparator(comp);
                 } else {
                     allFixed = false;
@@ -280,7 +279,7 @@ public class ForEachGroup extends Instruction
     public TailCall processLeavingTail(XPathContext context) throws XPathException {
         GroupIterator groupIterator = getGroupIterator(context);
 
-        XPathContextMajor c2 = context.newContext();
+        XPathContext c2 = context.newContext();
         FocusIterator focus = c2.setCurrentIterator(groupIterator);
         c2.setCurrentGroupIterator(groupIterator);
         c2.setCurrentTemplateRule(null);
@@ -408,7 +407,7 @@ public class ForEachGroup extends Instruction
 
     public SequenceIterator iterate(XPathContext context) throws XPathException {
         GroupIterator master = getGroupIterator(context);
-        XPathContextMajor c2 = context.newContext();
+        XPathContext c2 = context.newContext();
         c2.setCurrentIterator(master);
         c2.setCurrentGroupIterator(master);
         c2.setCurrentTemplateRule(null);

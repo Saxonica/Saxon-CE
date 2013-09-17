@@ -77,28 +77,10 @@ public final class LocalParam extends GeneralVariable {
     */
 
     public TailCall processLeavingTail(XPathContext context) throws XPathException {
-        int wasSupplied = context.useLocalParameter(getVariableQName(), this, isTunnelParam());
-        switch (wasSupplied) {
-        case ParameterSet.SUPPLIED_AND_CHECKED:
-            // No action needed
-            break;
-
-        case ParameterSet.SUPPLIED:
-            // if a parameter was supplied by the caller, with no type-checking by the caller,
-            // then we may need to convert it to the type required
-            if (conversion != null) {
-                context.setLocalVariable(getSlotNumber(),
-                        ExpressionTool.evaluate(conversion, conversionEvaluationMode, context));
-                // We do an eager evaluation here for safety, because the result of the
-                // type conversion overwrites the slot where the actual supplied parameter
-                // is contained.
-            }
-            break;
-
-            // don't evaluate the default if a value has been supplied or if it has already been
-            // evaluated by virtue of a forwards reference
-
-        case ParameterSet.NOT_SUPPLIED:
+        ParameterSet params = (isTunnelParam() ? context.getTunnelParameters() : context.getLocalParameters());
+        int index = (params==null ? -1 : params.getIndex(getParameterId()));
+    	if (index < 0) {
+            // Parameter not supplied by caller
             if (isImplicitlyRequiredParam()) {
                 String name = "$" + getVariableQName().getDisplayName();
                 throw new XPathException("A value must be supplied for parameter "
@@ -109,6 +91,15 @@ public final class LocalParam extends GeneralVariable {
                 throw new XPathException("No value supplied for required parameter " + name, "XTDE0700");
             }
             context.setLocalVariable(getSlotNumber(), getSelectValue(context));
+        } else {
+            assert params != null;
+            Sequence val = params.getValue(index);
+            context.setLocalVariable(getSlotNumber(), val);
+            boolean checked = params.isTypeChecked(index);
+            if (!checked && conversion != null) {
+                context.setLocalVariable(getSlotNumber(),
+                        ExpressionTool.evaluate(conversion, conversionEvaluationMode, context));
+            }
         }
         return null;
     }
