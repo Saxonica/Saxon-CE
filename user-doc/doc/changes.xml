@@ -63,7 +63,37 @@
                 instruction is executed (with this document as the context item) as soon as the document has
                 been successfully downloaded and parsed.</p>
             </li>
+            
+            <li>
+                <p>Dot-separated paths, previously allowed in <code>ixsl:get-property</code>, are now allowed
+                also in <code>ixsl:call</code>, and in direct calls to global Javascript methods. For example,
+                <code>&lt;xsl:value-of select="js:Math.sqrt(2)" xmlns:js="http://saxonica.com/ns/globalJS"/&gt;</code>
+                can be used to compute a square root.</p>
+            </li>
+            
+            <li>
+              <p>Two extension functions are available in the IXSL namespace: <code>parse-xml</code> and
+              <code>serialize-xml</code>. (The first of these was available in 1.1, but undocumented). The
+              <code>parse-xml</code> function takes a string containing lexical XML and generates a node tree;
+              the <code>serialize-xml</code> function does the reverse. The <code>SaxonCE.parseXML()</code>
+              and <code>SaxonCE.serializeXML()</code> methods remain available in the Javascript API; they are
+              slightly different however, in that the output of the <code>parseXML</code> is always a DOM Node,
+              and the input to <code>serializeXML</code> must be a DOM Node, while the IXSL functions are
+              designed to produce/consume nodes for use in XSLT/XPath. TODO: document these</p>
+            </li>  
         </ol>
+        
+        <p>Some more minor changes:</p>
+        
+        <ul>
+        <li><p>In the interests of performance, Saxon now assumes that the <code>namespaceURI</code> property
+        of an XML DOM node is reliable, in particular that a null value for this property (in the case of an element or
+        attribute node) means that the node is in no namespace. In previous releases, Saxon took a null value
+        to mean "unknown", and established the namespace URI in this case by searching the in-scope namespace
+        declarations. For a DOM constructed by the XML parser, or by Saxon itself, the <code>namespaceURI</code>
+        property is always reliable, but in a DOM created programmatically by the application, this is not
+        necessarily the case. Applications that create element nodes should use the <code>createElementNS</code>
+        method, not <code>createElement</code>.</p></li>
         
 
     </section>

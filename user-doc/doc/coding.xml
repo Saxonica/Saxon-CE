@@ -140,7 +140,8 @@
       <h1>Source documents</h1>
   
       <p>Source documents may be read using the <code>doc()</code> and <code>document()</code> functions
-  in the usual way.</p>
+  in the usual way. In addition, they can be read asynchronously using the <code>ixsl:schedule-action</code>
+  instruction: see <a href="../animation" class="bodylink">Asynchronous Processing</a>.</p>
       <p>The root (document) node of the HTML page is accessible using the extension function 
   <code>ixsl:page()</code> (with no arguments). Because the HTML data model is not a direct match
   for the XDM data model used by XPath 2.0 and XSLT 2.0, some special considerations apply.</p>
@@ -318,9 +319,10 @@
       properties of element nodes may also be obtained as pseudo-attributes, for example
        <code>$checkbox/@prop:checked</code> returns the value of the <code>checked</code> property,
       where <code>prop</code> is bound to the namespace
-       <code>http://saxonica.com/ns/html-property</code>. The value of a nested property can be
-      obtained by using dot separator characters within <code>name</code> - for example,
-       <code>location.hash</code> to get the hash property of the location property of the
+       <code>http://saxonica.com/ns/html-property</code>.</p>
+       <p>The value of a nested property can be
+      obtained by using dot separator characters within <code>name</code> – for example,
+       <code>location.hash</code> to get the hash property of the <code>location</code> property of the
        <code>window</code> object.</p>
             </td>
          </tr>
@@ -333,6 +335,8 @@
       defined (use <code>ixsl:window()</code> to call a global function). The second argument is the
       function name. The third and subsequent arguments are the actual arguments to the function.
       The result of calling the function is returned as the result of <code>ixsl:call()</code>.</p>
+      <p>The second argument can be a dot-separated path – for example <code>history.back</code> to call
+      the <code>back</code> method of the <code>history</code> property of the <code>window</code> object.
             </td>
          </tr>
          <tr>
@@ -352,7 +356,10 @@
    directly. For example if a function has been declared as
     <code>&lt;script type="text/javascript" language="javascript"&gt; function square(x) { return String(x*x) }&lt;/script&gt;</code>
    then it can be called from within an XPath expression as <code>js:square('5')</code> where
-    <code>js</code> is bound to the namespace <code>http://saxonica.com/ns/globalJS</code>.</p>
+    <code>js</code> is bound to the namespace <code>http://saxonica.com/ns/globalJS</code>.
+    The function name can be a dot-separated path to call functions defined as methods on global objects, for example
+    <code>js:Math.sqrt(2)</code> calls the <code>sqrt</code> method of the <code>Math</code> property of the global
+    Window object.</p>
    </section>
    <section id="extension-instructions" title="Extension Instructions">
       <h1>Extension Instructions</h1>
@@ -417,7 +424,7 @@
                <p>Makes an asynchronous call to the template named in an <code>xsl:call-template</code>
       instruction that is the only permitted body content of <code>ixsl:schedule-action</code>. The
        <code>wait</code> attribute of <code>ixsl:schedule-action</code> is an integer used to
-      specify the delay in miliseconds before the call is invoked. See the <a href="../animation" class="bodylink">Animation</a> section for further detail.</p>
+      specify the delay in miliseconds before the call is invoked. See <a href="../animation" class="bodylink">Asynchronous Processing</a> for further detail.</p>
             </td>
          </tr>
       </table>
