@@ -4,17 +4,18 @@ import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.dom.HTMLDocumentWrapper;
 import client.net.sf.saxon.ce.dom.HTMLDocumentWrapper.DocType;
 import client.net.sf.saxon.ce.dom.HTMLNodeWrapper;
+import client.net.sf.saxon.ce.dom.HTMLWriter;
 import client.net.sf.saxon.ce.dom.XMLDOM;
+import client.net.sf.saxon.ce.event.NamespaceReducer;
+import client.net.sf.saxon.ce.event.PipelineConfiguration;
 import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
-import client.net.sf.saxon.ce.om.Item;
-import client.net.sf.saxon.ce.om.SequenceIterator;
-import client.net.sf.saxon.ce.om.StructuredQName;
-import client.net.sf.saxon.ce.om.ValueRepresentation;
+import client.net.sf.saxon.ce.om.*;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.EmptyIterator;
 import client.net.sf.saxon.ce.tree.iter.JsArrayIterator;
 import client.net.sf.saxon.ce.tree.iter.SingletonIterator;
+import client.net.sf.saxon.ce.tree.util.Navigator;
 import client.net.sf.saxon.ce.type.AnyItemType;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.TypeHierarchy;
@@ -306,7 +307,15 @@ public class IXSLFunction extends FunctionCall {
         	ValueRepresentation itemVal = (ValueRepresentation)argument[0].evaluateItem(context);
         	JavaScriptObject target = (JavaScriptObject)convertToJavaScript(itemVal);
         	if (target != null) {
-	            String method = argument[1].evaluateAsString(context).toString();
+
+                // Addition to allow call of the form js:Math.sqrt(2)
+                String method = argument[1].evaluateAsString(context).toString();
+                int lastDot = method.lastIndexOf('.');
+                if (lastDot > 0 && lastDot + 1 < method.length()) {
+                    target = (JavaScriptObject)getValueFromTypeValuePair(jsSplitPropertyTypeAndValue(target, method.substring(0, lastDot)));
+                    method = method.substring(lastDot + 1);
+                }
+
 	            JavaScriptObject jsArgs = jsArray(argument.length - 2);
 	            for (int i=2; i<argument.length; i++) {
 	                ValueRepresentation val = SequenceExtent.makeSequenceExtent(argument[i].iterate(context));
@@ -366,7 +375,30 @@ public class IXSLFunction extends FunctionCall {
         } else if (localName.equals("parse-xml")) {
         	String data = argument[0].evaluateAsString(context).toString();
         	return convertFromJavaScript(XMLDOM.parseXML(data), context.getConfiguration());
-        }else {
+        } else if (localName.equals("serialize-xml")) {
+                Item arg = argument[0].evaluateItem(context);
+                if (arg instanceof NodeInfo) {
+                    Node node;
+                    if (arg instanceof HTMLNodeWrapper) {
+                        node = (Node)((HTMLNodeWrapper) arg).getUnderlyingNode();
+                    } else {
+                        // Copy the Saxon tree to a DOM tree
+                        HTMLWriter writer = new HTMLWriter();
+                        PipelineConfiguration pipe = context.getController().makePipelineConfiguration();
+                        writer.setPipelineConfiguration(pipe);
+                        NamespaceReducer reducer = new NamespaceReducer();
+                        reducer.setUnderlyingReceiver(writer);
+                        reducer.setPipelineConfiguration(pipe);
+                        node = XMLDOM.createDocument(((NodeInfo)arg).getBaseURI());
+                        writer.setNode(node);
+                        Navigator.copy(((NodeInfo) arg), reducer, context.getNamePool(), 0);
+                    }
+                    return SingletonIterator.makeIterator(
+                                new StringValue(XMLDOM.serializeXML(node)));
+                } else {
+                    return SingletonIterator.makeIterator(new StringValue(arg.getStringValue()));
+                }
+        } else {
         	// previously there was no warning - strictly - this should be caught at compile time
         	logger.warning("No such IXSL function: '" + localName + "' - empty sequence returned");
         	return EmptyIterator.getInstance();
