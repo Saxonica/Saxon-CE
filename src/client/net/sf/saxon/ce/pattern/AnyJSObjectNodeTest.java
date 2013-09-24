@@ -1,6 +1,5 @@
 package client.net.sf.saxon.ce.pattern;
 
-import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.js.JSObjectValue;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.StructuredQName;
@@ -14,19 +13,11 @@ public class AnyJSObjectNodeTest extends NodeTest {
         return THE_INSTANCE;
     }
 
-    public boolean isAtomicType() {
-        return false;
-    }
-
-    public boolean matchesItem(Item item, boolean allowURIPromotion, Configuration config) {
+    public boolean matchesItem(Item item) {
         return item instanceof JSObjectValue;
     }
 
-    public ItemType getSuperType(TypeHierarchy th) {
-        return AnyItemType.getInstance();
-    }
-
-    public ItemType getPrimitiveItemType() {
+    public ItemType getSuperType() {
         return AnyItemType.getInstance();
     }
 

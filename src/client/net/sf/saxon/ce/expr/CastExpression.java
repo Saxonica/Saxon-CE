@@ -20,7 +20,6 @@ import java.util.HashMap;
 public final class CastExpression extends UnaryExpression  {
 
     private AtomicType targetType;
-    private AtomicType targetPrimitiveType;
     private boolean allowEmpty = false;
     private boolean upcast = false;
 
@@ -140,7 +139,6 @@ public final class CastExpression extends UnaryExpression  {
         super(source);
         this.allowEmpty = allowEmpty;
         targetType = target;
-        targetPrimitiveType = (AtomicType)target.getPrimitiveItemType();
         adoptChildExpression(source);
     }
 
@@ -320,7 +318,7 @@ public final class CastExpression extends UnaryExpression  {
         }
         if (upcast) {
             // When casting to a supertype of the original type, we can bypass validation
-            return (AtomicValue)value.convert(targetPrimitiveType);
+            return (AtomicValue)value.convert(targetType);
         }
         ConversionResult result = value.convert(targetType);
         if (result instanceof ValidationFailure) {

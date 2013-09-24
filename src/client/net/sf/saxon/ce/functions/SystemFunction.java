@@ -5,6 +5,7 @@ import client.net.sf.saxon.ce.lib.NamespaceConstant;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.AnyItemType;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.value.SequenceType;
 
@@ -162,7 +163,7 @@ public abstract class SystemFunction extends FunctionCall {
         if (details == null) {
             return p;
         }
-        if (details.resultType.getPrimaryType().isAtomicType()) {
+        if (details.resultType.getPrimaryType() instanceof AtomicType) {
             return p | StaticProperty.NON_CREATIVE;
         }
         for (Expression arg : argument) {

@@ -79,7 +79,7 @@ public class ArithmeticExpression extends BinaryExpression {
         if (itemType0 instanceof EmptySequenceTest) {
             return new Literal(EmptySequence.getInstance());
         }
-        AtomicType type0 = (AtomicType) itemType0.getPrimitiveItemType();
+        AtomicType type0 = (AtomicType) itemType0;
         if (type0 == AtomicType.UNTYPED_ATOMIC) {
             operand0 = new UntypedAtomicConverter(operand0, AtomicType.DOUBLE, true, role0);
         } else if (/*!(operand0 instanceof UntypedAtomicConverter)*/
@@ -97,7 +97,7 @@ public class ArithmeticExpression extends BinaryExpression {
         if (itemType1 instanceof EmptySequenceTest) {
             return new Literal(EmptySequence.getInstance());
         }
-        AtomicType type1 = (AtomicType) itemType1.getPrimitiveItemType();
+        AtomicType type1 = (AtomicType) itemType1;
         if (type1 == AtomicType.UNTYPED_ATOMIC) {
             operand1 = new UntypedAtomicConverter(operand1, AtomicType.DOUBLE, true, role1);
         } else if (/*!(operand1 instanceof UntypedAtomicConverter) &&*/
@@ -351,14 +351,8 @@ public class ArithmeticExpression extends BinaryExpression {
      */
 
     public ItemType getItemType() {
-        ItemType t1 = operand0.getItemType();
-        if (!(t1 instanceof AtomicType)) {
-            t1 = t1.getAtomizedItemType();
-        }
-        ItemType t2 = operand1.getItemType();
-        if (!(t2 instanceof AtomicType)) {
-            t2 = t2.getAtomizedItemType();
-        }
+        AtomicType t1 = operand0.getItemType().getAtomizedItemType();
+        AtomicType t2 = operand1.getItemType().getAtomizedItemType();
         TypeHierarchy th = TypeHierarchy.getInstance();
         boolean numeric1 = th.isSubType(t1, AtomicType.NUMERIC);
         boolean numeric2 = th.isSubType(t2, AtomicType.NUMERIC);

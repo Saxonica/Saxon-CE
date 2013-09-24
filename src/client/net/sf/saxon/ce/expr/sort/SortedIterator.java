@@ -4,7 +4,6 @@ import client.net.sf.saxon.ce.expr.LastPositionFinder;
 import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.SequenceIterator;
-import client.net.sf.saxon.ce.trans.NoDynamicContextException;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.FocusIterator;
 import client.net.sf.saxon.ce.value.AtomicValue;
@@ -197,17 +196,13 @@ public class SortedIterator implements SequenceIterator, LastPositionFinder, Sor
     public int compare(int a, int b) {
         int a1 = a*recordSize + 1;
         int b1 = b*recordSize + 1;
-        try {
-            for (int i=0; i<comparators.length; i++) {
-                int comp = comparators[i].compareAtomicValues(
-                        (AtomicValue)nodeKeys[a1+i], (AtomicValue)nodeKeys[b1+i]);
-                if (comp != 0) {
-                    // we have found a difference, so we can return
-                    return comp;
-                }
+        for (int i=0; i<comparators.length; i++) {
+            int comp = comparators[i].compareAtomicValues(
+                    (AtomicValue)nodeKeys[a1+i], (AtomicValue)nodeKeys[b1+i]);
+            if (comp != 0) {
+                // we have found a difference, so we can return
+                return comp;
             }
-        } catch (NoDynamicContextException e) {
-            throw new AssertionError("Sorting without dynamic context: " + e.getMessage());
         }
 
         // all sort keys equal: return the items in their original order

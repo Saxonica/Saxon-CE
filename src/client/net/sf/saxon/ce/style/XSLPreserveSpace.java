@@ -1,6 +1,5 @@
 package client.net.sf.saxon.ce.style;
 
-import client.net.sf.saxon.ce.event.Stripper;
 import client.net.sf.saxon.ce.expr.Expression;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.expr.instruct.Template;
@@ -45,7 +44,7 @@ public class XSLPreserveSpace extends StyleElement {
     public Expression compile(Executable exec, Declaration decl) throws XPathException
     {
         Template preserve =
-                (getLocalPart().equals("preserve-space") ? Stripper.PRESERVE : Stripper.STRIP);
+                (getLocalPart().equals("preserve-space") ? StripSpaceRules.PRESERVE : StripSpaceRules.STRIP);
         StripSpaceRules stripperRules = getExecutable().getStripperRules();
 
         // elements is a space-separated list of element names

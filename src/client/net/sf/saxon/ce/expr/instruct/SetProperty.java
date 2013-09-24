@@ -111,7 +111,7 @@ public class SetProperty extends Instruction {
         JavaScriptObject clientObject = (JavaScriptObject)eval(targetObject, context);       		
         String member = (String)eval(name, context);
         try {
-        IXSLFunction.setProperty(clientObject, member, content);
+            IXSLFunction.setProperty(clientObject, member, content);
         } catch (Exception e){
         	throw new XPathException("Error setting client-property: " + member + " " + e.getMessage());
         }

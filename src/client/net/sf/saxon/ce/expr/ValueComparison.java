@@ -92,14 +92,12 @@ public final class ValueComparison extends BinaryExpression implements Compariso
         RoleLocator role1 = new RoleLocator(RoleLocator.BINARY_EXPR, Token.tokens[operator], 1);
         operand1 = TypeChecker.staticTypeCheck(operand1, optionalAtomic, false, role1);
 
-        AtomicType t0 = operand0.getItemType().getAtomizedItemType();
-        AtomicType t1 = operand1.getItemType().getAtomizedItemType();
+        AtomicType p0 = operand0.getItemType().getAtomizedItemType();
+        AtomicType p1 = operand1.getItemType().getAtomizedItemType();
 
-        AtomicType p0 = (AtomicType)t0.getPrimitiveItemType();
         if (p0.equals(AtomicType.UNTYPED_ATOMIC)) {
             p0 = AtomicType.STRING;
         }
-        AtomicType p1 = (AtomicType)t1.getPrimitiveItemType();
         if (p1.equals(AtomicType.UNTYPED_ATOMIC)) {
             p1 = AtomicType.STRING;
         }
@@ -116,16 +114,16 @@ public final class ValueComparison extends BinaryExpression implements Compariso
                 // one of the operands is an empty sequence.
                 needsRuntimeCheck = true;
             } else {
-                typeError("Cannot compare " + t0.toString() +
-                        " to " + t1.toString(), "XPTY0004");
+                typeError("Cannot compare " + p0.toString() +
+                        " to " + p1.toString(), "XPTY0004");
             }
         }
         if (!(operator == Token.FEQ || operator == Token.FNE)) {
             if (!p0.isOrdered()) {
-                typeError("Type " + t0.toString() + " is not an ordered type", "XPTY0004");
+                typeError("Type " + p0.toString() + " is not an ordered type", "XPTY0004");
             }
             if (!p1.isOrdered()) {
-                typeError("Type " + t1.toString() + " is not an ordered type", "XPTY0004");
+                typeError("Type " + p1.toString() + " is not an ordered type", "XPTY0004");
             }
         }
 

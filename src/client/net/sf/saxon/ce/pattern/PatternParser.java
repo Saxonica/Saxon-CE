@@ -28,7 +28,7 @@ public class PatternParser extends ExpressionParser {
         Expression exp = parse(pattern, 0, Token.EOF, env);
         exp.setContainer(defaultContainer);
         ExpressionVisitor visitor = ExpressionVisitor.make(env, exp.getExecutable());
-        return PatternMaker.fromExpression(exp.simplify(visitor), env.getConfiguration());
+        return Pattern.fromExpression(exp.simplify(visitor), env.getConfiguration());
     }
 
 

@@ -1,13 +1,12 @@
 package client.net.sf.saxon.ce.type;
 
-import client.net.sf.saxon.ce.expr.sort.SetUtils;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.pattern.AnyNodeTest;
 import client.net.sf.saxon.ce.pattern.EmptySequenceTest;
+import client.net.sf.saxon.ce.pattern.NameTest;
 import client.net.sf.saxon.ce.pattern.NodeTest;
 
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
 
 /**
@@ -124,28 +123,28 @@ public class TypeHierarchy {
             }
         } else if (t2 instanceof AnyItemType) {
             return SUBSUMED_BY;
-        } else if (t1.isAtomicType()) {
+        } else if (t1 instanceof AtomicType) {
             if (t2 instanceof NodeTest) {
                 return DISJOINT;
             } else {
                 ItemType t = t2;
-                while (t.isAtomicType()) {
+                while (t instanceof AtomicType) {
                     if (t1 == t) {
                         return SUBSUMES;
                     }
-                    t = t.getSuperType(this);
+                    t = t.getSuperType();
                 }
                 t = t1;
-                while (t.isAtomicType()) {
+                while (t instanceof AtomicType) {
                     if (t == t2) {
                         return SUBSUMED_BY;
                     }
-                    t = t.getSuperType(this);
+                    t = t.getSuperType();
                 }
                 return DISJOINT;
             }
         } else if (t1 instanceof NodeTest) {
-            if (t2.isAtomicType()) {
+            if (t2 instanceof AtomicType) {
                 return DISJOINT;
             } else {
                 // both types are NodeTests
@@ -182,30 +181,21 @@ public class TypeHierarchy {
                     // NamespaceTest and LocalNameTest are NodeTests, they do not occur in SequenceTypes,
                     // so we don't need to consider them.
                     int nodeNameRelationship;
-                    HashSet<StructuredQName> n1 = ((NodeTest)t1).getRequiredNodeNames(); // null means all names allowed
-                    HashSet<StructuredQName> n2 = ((NodeTest)t2).getRequiredNodeNames(); // null means all names allowed
+                    StructuredQName n1 = null;
+                    StructuredQName n2 = null;
+                    if (t1 instanceof NameTest) {
+                        n1 = ((NameTest)t1).getRequiredNodeName();
+                    }
+                    if (t2 instanceof NameTest) {
+                        n2 = ((NameTest)t2).getRequiredNodeName();
+                    }
                     if (n1 == null) {
-                        if (n2 == null) {
-                            nodeNameRelationship = SAME_TYPE;
-                        } else {
-                            nodeNameRelationship = SUBSUMES;
-                        }
+                        nodeNameRelationship = (n2 == null ? SAME_TYPE : SUBSUMES);
                     } else if (n2 == null) {
                         nodeNameRelationship = SUBSUMED_BY;
-                    } else if (n1.containsAll(n2)) {
-                        if (n1.size() == n2.size()) {
-                            nodeNameRelationship = SAME_TYPE;
-                        } else {
-                            nodeNameRelationship = SUBSUMES;
-                        }
-                    } else if (n2.containsAll(n1)) {
-                        nodeNameRelationship = SUBSUMED_BY;
-                    } else if (SetUtils.containsSome(n1, n2)) {
-                        nodeNameRelationship = OVERLAPS;
                     } else {
-                        nodeNameRelationship = DISJOINT;
+                        nodeNameRelationship = (n1.equals(n2) ? SAME_TYPE : DISJOINT);
                     }
-
 
                     // now analyse the three different relationsships
 

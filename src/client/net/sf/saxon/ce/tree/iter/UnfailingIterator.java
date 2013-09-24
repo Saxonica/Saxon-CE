@@ -26,7 +26,7 @@ public interface UnfailingIterator extends SequenceIterator {
      * @return a new iterator over the same sequence
      */
 
-    public SequenceIterator getAnother();
+    public UnfailingIterator getAnother();
 
 }
 

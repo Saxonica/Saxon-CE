@@ -1,11 +1,13 @@
 package client.net.sf.saxon.ce.functions;
-import client.net.sf.saxon.ce.expr.*;
+import client.net.sf.saxon.ce.expr.ExpressionVisitor;
+import client.net.sf.saxon.ce.expr.StaticContext;
+import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.style.StyleNodeFactory;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.type.BuiltInType;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.value.BooleanValue;
 import client.net.sf.saxon.ce.value.NumericValue;
 
@@ -76,7 +78,7 @@ public class Available extends SystemFunction {
                     StructuredQName qName = StructuredQName.fromLexicalQName(
                         lexicalQName, env.getDefaultElementNamespace(), env.getNamespaceResolver());
                     return qName.getNamespaceURI().equals(NamespaceConstant.SCHEMA) &&
-                            BuiltInType.getSchemaType(qName.getLocalName()) != null;
+                            AtomicType.isRecognizedName(qName.getLocalName());
                 } catch (XPathException e) {
                     e.setErrorCode("XTDE1425");
                     throw e;

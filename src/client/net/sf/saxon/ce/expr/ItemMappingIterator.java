@@ -48,6 +48,14 @@ public class ItemMappingIterator implements SequenceIterator, LastPositionFinder
         this.oneToOne = oneToOne;
     }
 
+    protected SequenceIterator getBaseIterator() {
+        return base;
+    }
+
+    protected ItemMappingFunction getMappingFunction() {
+        return action;
+    }
+
     public Item next() throws XPathException {
         while (true) {
             Item nextSource = base.next();
@@ -70,7 +78,7 @@ public class ItemMappingIterator implements SequenceIterator, LastPositionFinder
     public SequenceIterator getAnother() throws XPathException {
         SequenceIterator newBase = base.getAnother();
         ItemMappingFunction newAction = action instanceof StatefulMappingFunction ?
-                (ItemMappingFunction)((StatefulMappingFunction)action).getAnother(null) :
+                (ItemMappingFunction)((StatefulMappingFunction)action).getAnother(newBase) :
                 action;
         return new ItemMappingIterator(newBase, newAction, oneToOne);
     }

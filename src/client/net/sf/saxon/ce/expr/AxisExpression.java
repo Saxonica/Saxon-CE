@@ -6,6 +6,7 @@ import client.net.sf.saxon.ce.pattern.NameTest;
 import client.net.sf.saxon.ce.pattern.NodeKindTest;
 import client.net.sf.saxon.ce.pattern.NodeTest;
 import client.net.sf.saxon.ce.trans.XPathException;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.value.AtomicValue;
@@ -73,7 +74,7 @@ public final class AxisExpression extends Expression {
             typeError(visitor, "Axis step " + toString() +
                     " cannot be used here: the context item is undefined", "XPDY0002");
         }
-        if (contextItemType.isAtomicType()) {
+        if (contextItemType instanceof AtomicType) {
             typeError(visitor, "Axis step " + toString() +
                     " cannot be used here: the context item is an atomic value", "XPTY0020");
         }
@@ -142,11 +143,7 @@ public final class AxisExpression extends Expression {
         // generate an arbitrary hash code that depends on the axis and the node test
         int h = 9375162 + axis << 20;
         if (test != null) {
-            h ^= test.getRequiredNodeKind() << 16;
-            StructuredQName qn = test.getRequiredNodeName();
-            if (qn != null) {
-                h ^= qn.hashCode();
-            }
+            h ^= test.hashCode();
         }
         return h;
     }

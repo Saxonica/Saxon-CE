@@ -1,6 +1,5 @@
 package client.net.sf.saxon.ce.expr.sort;
 import client.net.sf.saxon.ce.lib.StringCollator;
-import client.net.sf.saxon.ce.trans.NoDynamicContextException;
 import client.net.sf.saxon.ce.value.AtomicValue;
 import client.net.sf.saxon.ce.value.StringValue;
 
@@ -35,14 +34,15 @@ public class TextComparer implements AtomicComparer {
 
     /**
     * Compare two Items by converting them to strings and comparing the string values.
-    * @param a the first Item to be compared.
-    * @param b the second Item to be compared.
-    * @return <0 if a<b, 0 if a=b, >0 if a>b
+    *
+     * @param a the first Item to be compared.
+     * @param b the second Item to be compared.
+     * @return <0 if a<b, 0 if a=b, >0 if a>b
     * @throws ClassCastException if the objects are not Items, or are items that cannot be convered
     * to strings (e.g. QNames)
     */
 
-    public int compareAtomicValues(AtomicValue a, AtomicValue b) throws ClassCastException, NoDynamicContextException {
+    public int compareAtomicValues(AtomicValue a, AtomicValue b) {
         return baseComparer.compareAtomicValues(toStringValue(a), toStringValue(b));
     }
 
@@ -58,13 +58,14 @@ public class TextComparer implements AtomicComparer {
      * Compare two AtomicValue objects for equality according to the rules for their data type. UntypedAtomic
      * values are compared by converting to the type of the other operand.
      *
+     *
      * @param a the first object to be compared.
      * @param b the second object to be compared.
      * @return true if the values are equal, false if not
      * @throws ClassCastException if the objects are not comparable
      */
 
-    public boolean comparesEqual(AtomicValue a, AtomicValue b) throws NoDynamicContextException {
+    public boolean comparesEqual(AtomicValue a, AtomicValue b) {
         return compareAtomicValues(a, b) == 0;
     }
 

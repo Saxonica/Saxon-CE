@@ -24,11 +24,12 @@ public class NodeTestPattern extends Pattern {
     /**
     * Determine whether this Pattern matches the given Node. This is the main external interface
     * for matching patterns: it sets current() to the node being tested
-    * @param node The NodeInfo representing the Element or other node to be tested against the Pattern
-    * @param context The context in which the match is to take place. Only relevant if the pattern
-    * uses variables, or contains calls on functions such as document() or key(). Not used (and can be
-     * set to null) in the case of patterns that are NodeTests
-    * @return true if the node matches the Pattern, false otherwise
+    *
+     * @param node The NodeInfo representing the Element or other node to be tested against the Pattern
+     * @param context The context in which the match is to take place. Only relevant if the pattern
+     * uses variables, or contains calls on functions such as document() or key(). Not used (and can be
+      * set to null) in the case of patterns that are NodeTests
+     * @return true if the node matches the Pattern, false otherwise
     */
 
     public boolean matches(NodeInfo node, XPathContext context) {

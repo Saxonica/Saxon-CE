@@ -2,15 +2,21 @@ package client.net.sf.saxon.ce.expr.instruct;
 
 import client.net.sf.saxon.ce.event.NoOpenStartTagException;
 import client.net.sf.saxon.ce.event.SequenceReceiver;
-import client.net.sf.saxon.ce.expr.*;
+import client.net.sf.saxon.ce.expr.Expression;
+import client.net.sf.saxon.ce.expr.ExpressionVisitor;
+import client.net.sf.saxon.ce.expr.PromotionOffer;
+import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.lib.NamespaceConstant;
-import client.net.sf.saxon.ce.om.*;
+import client.net.sf.saxon.ce.om.CopyOptions;
+import client.net.sf.saxon.ce.om.Item;
+import client.net.sf.saxon.ce.om.NodeInfo;
+import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.Navigator;
 import client.net.sf.saxon.ce.tree.util.URI;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.Type;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
 
 import java.util.Iterator;
 
@@ -54,8 +60,7 @@ public class CopyOf extends Instruction {
      */
 
     public final boolean createsNewNodes() {
-        final TypeHierarchy th = TypeHierarchy.getInstance();
-        return !select.getItemType().isAtomicType();
+        return !(select.getItemType() instanceof AtomicType);
     }
 
     /**
@@ -99,8 +104,7 @@ public class CopyOf extends Instruction {
     public Expression optimize(ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
         select = visitor.optimize(select, contextItemType);
         adoptChildExpression(select);
-        final TypeHierarchy th = TypeHierarchy.getInstance();
-        if (select.getItemType().isAtomicType()) {
+        if (select.getItemType() instanceof AtomicType) {
             return select;
         }
         return this;

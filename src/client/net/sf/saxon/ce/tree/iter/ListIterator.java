@@ -3,7 +3,6 @@ package client.net.sf.saxon.ce.tree.iter;
 import client.net.sf.saxon.ce.expr.LastPositionFinder;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.Sequence;
-import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.value.EmptySequence;
 import client.net.sf.saxon.ce.value.SequenceExtent;
 
@@ -58,22 +57,22 @@ public class ListIterator
         return length;
     }
 
-    public SequenceIterator getAnother() {
+    public UnfailingIterator getAnother() {
         return new ListIterator(list);
     }
 
     /**
-     * Return a SequenceValue containing all the items in the sequence returned by this
+     * Return a Sequence containing all the items in the sequence returned by this
      * SequenceIterator
      *
-     * @return the corresponding SequenceValue
+     * @return the corresponding Sequence
      */
 
     public Sequence materialize() {
         if (length == 0) {
             return EmptySequence.getInstance();
         } else if (length == 1) {
-            return (Item) list.get(0);
+            return list.get(0);
         } else {
             return new SequenceExtent(list);
         }

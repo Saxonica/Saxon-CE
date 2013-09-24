@@ -1,7 +1,6 @@
 package client.net.sf.saxon.ce.expr.sort;
 import client.net.sf.saxon.ce.lib.StringCollator;
 import client.net.sf.saxon.ce.value.AtomicValue;
-import client.net.sf.saxon.ce.trans.NoDynamicContextException;
 
 /**
  * A Comparer used for comparing descending keys. This simply returns the inverse of the result
@@ -35,13 +34,14 @@ public class DescendingComparer implements AtomicComparer {
     * @throws ClassCastException if the objects are of the wrong type for this Comparer
     */
 
-    public int compareAtomicValues(AtomicValue a, AtomicValue b) throws NoDynamicContextException {
+    public int compareAtomicValues(AtomicValue a, AtomicValue b) {
         return 0 - baseComparer.compareAtomicValues(a, b);
     }
 
     /**
      * Compare two AtomicValue objects for equality according to the rules for their data type. UntypedAtomic
      * values are compared by converting to the type of the other operand.
+     *
      *
      * @param a the first object to be compared. It is intended that this should be an instance
      *          of AtomicValue, though this restriction is not enforced. If it is a StringValue, the
@@ -52,7 +52,7 @@ public class DescendingComparer implements AtomicComparer {
      * @throws ClassCastException if the objects are not comparable
      */
 
-    public boolean comparesEqual(AtomicValue a, AtomicValue b) throws NoDynamicContextException {
+    public boolean comparesEqual(AtomicValue a, AtomicValue b) {
         return baseComparer.comparesEqual(a, b);
     }
 

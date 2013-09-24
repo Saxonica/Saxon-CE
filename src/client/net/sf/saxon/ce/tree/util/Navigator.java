@@ -771,7 +771,7 @@ public final class Navigator {
      */
 
     public static UnfailingIterator filteredSingleton(NodeInfo node, NodeTest nodeTest) {
-        if (node != null && nodeTest.matches(node)) {
+        if (node != null && nodeTest.matchesItem(node)) {
             return SingletonIterator.makeIterator(node);
         } else {
             return EmptyIterator.getInstance();
@@ -784,7 +784,7 @@ public final class Navigator {
         }
         ItemMappingFunction umf = new ItemMappingFunction() {
             public Item mapItem(Item item) {
-                return (test.matches((NodeInfo)item) ? item : null);
+                return (test.matchesItem(item) ? item : null);
             }
         };
         return new UnfailingItemMappingIterator(base, umf);
@@ -808,40 +808,6 @@ public final class Navigator {
     }
 
 
-    /**
-     * BaseEnumeration is an abstract implementation of an AxisIterator, it
-     * simplifies the implementation of the underlying AxisIterator by requiring
-     * it to provide only two methods: advance(), and getAnother().
-     *
-     * <p>BaseEnumeration takes responsibility for incrementing position
-     * when next() is called. The advance() method in a subclass should therefore
-     * not modify position.</p>
-     */
-
-    public static abstract class BaseEnumeration extends AxisIteratorImpl {
-
-        public final Item next() {
-            advance();
-            if (current == null) {
-                position = -1;
-            } else {
-                position++;
-            }
-            return current;
-        }
-
-        /**
-         * The advance() method must be provided in each concrete implementation.
-         * It must leave the variable current set to the next node to be returned in the
-         * iteration, or to null if there are no more nodes to be returned.
-         */
-
-        public abstract void advance();
-
-        public abstract SequenceIterator getAnother();
-
-    }
-
     public static final UnfailingIterator getAncestorIterator(NodeInfo origin, NodeTest nodeTest, boolean includeSelf) {
         return new SteppingIterator(origin, new ParentFunction(nodeTest), includeSelf);
     }
@@ -855,7 +821,7 @@ public final class Navigator {
      * returned first.
      */
 
-    public static final class DescendantEnumeration extends BaseEnumeration {
+    public static final class DescendantEnumeration implements UnfailingIterator {
 
         private UnfailingIterator children = null;
         private UnfailingIterator descendants = null;
@@ -878,12 +844,11 @@ public final class Navigator {
             this.forwards = forwards;
         }
 
-        public void advance() {
+        public Item next() {
             if (descendants != null) {
                 NodeInfo nextd = (NodeInfo)descendants.next();
                 if (nextd != null) {
-                    current = nextd;
-                    return;
+                    return nextd;
                 } else {
                     descendants = null;
                 }
@@ -894,26 +859,26 @@ public final class Navigator {
                     if (n.hasChildNodes()) {
                         if (forwards) {
                             descendants = new DescendantEnumeration(n, false, forwards);
-                            current = n;
+                            return n;
                         } else {
                             descendants = new DescendantEnumeration(n, true, forwards);
-                            advance();
+                            return next();
                         }
                     } else {
-                        current = n;
+                        return n;
                     }
                 } else {
                     if (forwards || !includeSelf) {
-                        current = null;
+                        return null;
                     } else {
                         atEnd = true;
                         children = null;
-                        current = start;
+                        return start;
                     }
                 }
             } else if (atEnd) {
                 // we're just finishing a backwards scan
-                current = null;
+                return null;
             } else {
                 // we're just starting...
                 if (start.hasChildNodes()) {
@@ -933,14 +898,14 @@ public final class Navigator {
                     children = EmptyIterator.getInstance();
                 }
                 if (forwards && includeSelf) {
-                    current = start;
+                    return start;
                 } else {
-                    advance();
+                    return next();
                 }
             }
         }
 
-        public SequenceIterator getAnother() {
+        public UnfailingIterator getAnother() {
             return new DescendantEnumeration(start, includeSelf, forwards);
         }
 
@@ -951,7 +916,7 @@ public final class Navigator {
      * ancestor, child, and following-sibling axes
      */
 
-    public static final class FollowingEnumeration extends BaseEnumeration {
+    public static final class FollowingEnumeration implements UnfailingIterator {
         private NodeInfo start;
         private UnfailingIterator ancestorEnum = null;
         private UnfailingIterator siblingEnum = null;
@@ -991,27 +956,24 @@ public final class Navigator {
             //advance();
         }
 
-        public void advance() {
+        public Item next() {
             if (descendEnum != null) {
                 NodeInfo nextd = (NodeInfo)descendEnum.next();
                 if (nextd != null) {
-                    current = nextd;
-                    return;
+                    return nextd;
                 } else {
                     descendEnum = null;
                 }
             }
             if (siblingEnum != null) {
-                NodeInfo nexts = (NodeInfo)siblingEnum.next();
-                if (nexts != null) {
-                    current = nexts;
-                    NodeInfo n = current;
-                    if (n.hasChildNodes()) {
-                        descendEnum = new DescendantEnumeration(n, false, true);
+                NodeInfo nextSib = (NodeInfo)siblingEnum.next();
+                if (nextSib != null) {
+                    if (nextSib.hasChildNodes()) {
+                        descendEnum = new DescendantEnumeration(nextSib, false, true);
                     } else {
                         descendEnum = null;
                     }
-                    return;
+                    return nextSib;
                 } else {
                     descendEnum = null;
                     siblingEnum = null;
@@ -1019,21 +981,20 @@ public final class Navigator {
             }
             NodeInfo nexta = (NodeInfo)ancestorEnum.next();
             if (nexta != null) {
-                current = nexta;
-                NodeInfo n = current;
+                NodeInfo n = nexta;
                 if (n.getNodeKind() == Type.DOCUMENT) {
                     siblingEnum = EmptyIterator.getInstance();
                 } else {
                     //siblingEnum = new XMLNodeWrapper.ChildEnumeration(next, false, true);
                     siblingEnum = n.iterateAxis(Axis.FOLLOWING_SIBLING, AnyNodeTest.getInstance());
                 }
-                advance();
+                return next();
             } else {
-                current = null;
+                return null;
             }
         }
 
-        public SequenceIterator getAnother() {
+        public UnfailingIterator getAnother() {
             return new FollowingEnumeration(start);
         }
 
@@ -1045,7 +1006,7 @@ public final class Navigator {
      * preceding-sibling axes.
      */
 
-    public static final class PrecedingEnumeration extends BaseEnumeration {
+    public static final class PrecedingEnumeration implements UnfailingIterator {
 
         private NodeInfo start;
         private UnfailingIterator ancestorEnum = null;
@@ -1078,12 +1039,11 @@ public final class Navigator {
             }
         }
 
-        public void advance() {
+        public Item next() {
             if (descendEnum != null) {
                 NodeInfo nextd = (NodeInfo)descendEnum.next();
                 if (nextd != null) {
-                    current = nextd;
-                    return;
+                    return nextd;
                 } else {
                     descendEnum = null;
                 }
@@ -1093,35 +1053,30 @@ public final class Navigator {
                 if (nexts != null) {
                     if (nexts.hasChildNodes()) {
                         descendEnum = new DescendantEnumeration(nexts, true, false);
-                        advance();
+                        return next();
                     } else {
                         descendEnum = null;
-                        current = nexts;
+                        return nexts;
                     }
-                    return;
                 } else {
                     descendEnum = null;
                     siblingEnum = null;
                 }
             }
-            NodeInfo nexta = (NodeInfo)ancestorEnum.next();
-            if (nexta != null) {
-                current = nexta;
-                NodeInfo n = current;
-                if (n.getNodeKind() == Type.DOCUMENT) {
+            NodeInfo nextAnc = (NodeInfo)ancestorEnum.next();
+            if (nextAnc != null) {
+                if (nextAnc.getNodeKind() == Type.DOCUMENT) {
                     siblingEnum = EmptyIterator.getInstance();
                 } else {
-                    siblingEnum = n.iterateAxis(Axis.PRECEDING_SIBLING, AnyNodeTest.getInstance());
+                    siblingEnum = nextAnc.iterateAxis(Axis.PRECEDING_SIBLING, AnyNodeTest.getInstance());
                 }
-                if (!includeAncestors) {
-                    advance();
-                }
+                return (includeAncestors ? nextAnc : next());
             } else {
-                current = null;
+                return null;
             }
         }
 
-        public SequenceIterator getAnother() {
+        public UnfailingIterator getAnother() {
             return new PrecedingEnumeration(start, includeAncestors);
         }
 
@@ -1138,7 +1093,7 @@ public final class Navigator {
         }
 
         public boolean conforms(Item current) {
-            return predicate.matches((NodeInfo)current);
+            return predicate.matchesItem(current);
         }
     }
 }

@@ -3,13 +3,9 @@ package client.net.sf.saxon.ce.value;
 import client.net.sf.saxon.ce.expr.StaticProperty;
 import client.net.sf.saxon.ce.pattern.AnyNodeTest;
 import client.net.sf.saxon.ce.pattern.EmptySequenceTest;
-import client.net.sf.saxon.ce.pattern.NodeKindTest;
 import client.net.sf.saxon.ce.type.AnyItemType;
 import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
-
-import java.util.HashMap;
-import java.util.Map;
 
 /**
  * SequenceType: a sequence type consists of a primary type, which indicates the type of item,
@@ -22,8 +18,6 @@ public final class SequenceType {
 
     private ItemType primaryType;    // the primary type of the item, e.g. "element", "comment", or "integer"
     private int cardinality;    // the required cardinality
-
-    private static Map pool = new HashMap(50);
 
     /**
      * A type that allows any sequence of items
@@ -76,13 +70,6 @@ public final class SequenceType {
     public static final SequenceType SINGLE_STRING =
             makeSequenceType(AtomicType.STRING, StaticProperty.EXACTLY_ONE);
 
-    public static final SequenceType OPTIONAL_STRING =
-            makeSequenceType(AtomicType.STRING, StaticProperty.ALLOWS_ZERO_OR_ONE);
-
-    public static final SequenceType STRING_SEQUENCE =
-            makeSequenceType(AtomicType.STRING, StaticProperty.ALLOWS_ZERO_OR_MORE);
-
-
     /**
      * A type that allows a single untyped atomic
      */
@@ -100,10 +87,6 @@ public final class SequenceType {
 
     public static final SequenceType SINGLE_INTEGER =
             makeSequenceType(AtomicType.INTEGER, StaticProperty.EXACTLY_ONE);
-
-    public static final SequenceType INTEGER_SEQUENCE =
-            makeSequenceType(AtomicType.INTEGER, StaticProperty.ALLOWS_ZERO_OR_MORE);
-
 
     /**
      * A type that allows an optional numeric value
@@ -127,80 +110,6 @@ public final class SequenceType {
             makeSequenceType(AnyNodeTest.getInstance(), StaticProperty.ALLOWS_ZERO_OR_MORE);
 
 
-    public static final SequenceType OPTIONAL_DOCUMENT =
-            makeSequenceType(NodeKindTest.DOCUMENT, StaticProperty.ALLOWS_ZERO_OR_ONE);
-
-    public static final SequenceType SINGLE_ELEMENT =
-            makeSequenceType(NodeKindTest.ELEMENT, StaticProperty.EXACTLY_ONE);
-
-    public static final SequenceType ELEMENT_SEQUENCE =
-            makeSequenceType(NodeKindTest.ELEMENT, StaticProperty.ALLOWS_ZERO_OR_MORE);
-
-    /**
-     * A type that allows a sequence of zero or more numeric values
-     */
-
-    public static final SequenceType NUMERIC_SEQUENCE =
-            makeSequenceType(AtomicType.NUMERIC, StaticProperty.ALLOWS_ZERO_OR_MORE);
-
-    public static final SequenceType OPTIONAL_BOOLEAN =
-            makeSequenceType(AtomicType.BOOLEAN, StaticProperty.ALLOWS_ZERO_OR_ONE);
-
-    public static final SequenceType SINGLE_BOOLEAN =
-            makeSequenceType(AtomicType.BOOLEAN, StaticProperty.EXACTLY_ONE);
-
-    public static final SequenceType OPTIONAL_DATE =
-            makeSequenceType(AtomicType.DATE, StaticProperty.ALLOWS_ZERO_OR_ONE);
-
-    public static final SequenceType SINGLE_DATE =
-            makeSequenceType(AtomicType.DATE, StaticProperty.EXACTLY_ONE);
-
-    public static final SequenceType OPTIONAL_DATE_TIME =
-            makeSequenceType(AtomicType.DATE_TIME, StaticProperty.ALLOWS_ZERO_OR_ONE);
-
-    public static final SequenceType SINGLE_DATE_TIME =
-            makeSequenceType(AtomicType.DATE_TIME, StaticProperty.EXACTLY_ONE);
-
-    public static final SequenceType OPTIONAL_TIME =
-            makeSequenceType(AtomicType.TIME, StaticProperty.ALLOWS_ZERO_OR_ONE);
-
-    public static final SequenceType SINGLE_TIME =
-            makeSequenceType(AtomicType.TIME, StaticProperty.EXACTLY_ONE);
-
-    public static final SequenceType OPTIONAL_DURATION =
-            makeSequenceType(AtomicType.DURATION, StaticProperty.ALLOWS_ZERO_OR_ONE);
-
-    public static final SequenceType OPTIONAL_DAY_TIME_DURATION =
-            makeSequenceType(AtomicType.DAY_TIME_DURATION, StaticProperty.ALLOWS_ZERO_OR_ONE);
-
-    public static final SequenceType SINGLE_DAY_TIME_DURATION =
-            makeSequenceType(AtomicType.DAY_TIME_DURATION, StaticProperty.EXACTLY_ONE);
-
-    public static final SequenceType OPTIONAL_ANY_URI =
-            makeSequenceType(AtomicType.ANY_URI, StaticProperty.ALLOWS_ZERO_OR_ONE);
-
-    public static final SequenceType SINGLE_ANY_URI =
-            makeSequenceType(AtomicType.ANY_URI, StaticProperty.EXACTLY_ONE);
-
-    public static final SequenceType OPTIONAL_QNAME =
-            makeSequenceType(AtomicType.QNAME, StaticProperty.ALLOWS_ZERO_OR_ONE);
-
-    public static final SequenceType OPTIONAL_DECIMAL =
-            makeSequenceType(AtomicType.DECIMAL, StaticProperty.ALLOWS_ZERO_OR_ONE);
-
-    public static final SequenceType SINGLE_QNAME =
-            makeSequenceType(AtomicType.QNAME, StaticProperty.EXACTLY_ONE);
-
-    public static final SequenceType SINGLE_DOUBLE =
-            makeSequenceType(AtomicType.DOUBLE, StaticProperty.EXACTLY_ONE);
-
-
-    /**
-     * A type that only permits the empty sequence
-     */
-
-    public static final SequenceType EMPTY_SEQUENCE =
-            makeSequenceType(EmptySequenceTest.getInstance(), StaticProperty.EMPTY);
 
     /**
      * Construct an instance of SequenceType. This is a private constructor: all external
@@ -219,8 +128,7 @@ public final class SequenceType {
     }
 
     /**
-     * Construct an instance of SequenceType. This is a factory method: it maintains a
-     * pool of SequenceType objects to reduce the amount of object creation.
+     * Construct an instance of SequenceType.
      *
      * @param primaryType The item type
      * @param cardinality The required cardinality
@@ -228,29 +136,7 @@ public final class SequenceType {
      */
 
     public static SequenceType makeSequenceType(ItemType primaryType, int cardinality) {
-
-        if (!(primaryType instanceof AtomicType)) {
-            return new SequenceType(primaryType, cardinality);
-        }
-
-        // For each ItemType, there is an array of 8 SequenceTypes, one for each possible
-        // cardinality (including impossible cardinalities, such as "0 or many"). The pool
-        // is a static HashMap that obtains this array, given an ItemType. The array contains null
-        // entries for cardinalities that have not been requested.
-
-        SequenceType[] array = (SequenceType[]) pool.get(primaryType);
-        if (array == null) {
-            array = new SequenceType[8];
-            pool.put(primaryType, array);
-        }
-        int code = StaticProperty.getCardinalityCode(cardinality);
-        if (array[code] == null) {
-            SequenceType s = new SequenceType(primaryType, cardinality);
-            array[code] = s;
-            return s;
-        } else {
-            return array[code];
-        }
+        return new SequenceType(primaryType, cardinality);
     }
 
     /**

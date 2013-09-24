@@ -1,6 +1,5 @@
 package client.net.sf.saxon.ce.js;
 
-import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.type.*;
 
@@ -15,19 +14,11 @@ public class JSObjectType implements ItemType {
         return THE_INSTANCE;
     }
 
-    public boolean isAtomicType() {
-        return false;
-    }
-
-    public boolean matchesItem(Item item, boolean allowURIPromotion, Configuration config) {
+    public boolean matchesItem(Item item) {
         return item instanceof JSObjectValue;
     }
 
-    public ItemType getSuperType(TypeHierarchy th) {
-        return AnyItemType.getInstance();
-    }
-
-    public ItemType getPrimitiveItemType() {
+    public ItemType getSuperType() {
         return AnyItemType.getInstance();
     }
 

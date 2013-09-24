@@ -1,10 +1,10 @@
 package client.net.sf.saxon.ce.expr;
+
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.*;
-import client.net.sf.saxon.ce.value.Cardinality;
-import client.net.sf.saxon.ce.value.SequenceTool;
+import client.net.sf.saxon.ce.value.*;
 
 /**
 * A ItemChecker implements the item type checking of "treat as": that is,
@@ -37,15 +37,6 @@ public final class ItemChecker extends UnaryExpression {
 
     public ItemType getRequiredType() {
         return requiredItemType;
-    }
-
-    /**
-     * Get the RoleLocator (used to construct error messages)
-     * @return the RoleLocator
-     */
-
-    public RoleLocator getRoleLocator() {
-        return role;
     }
 
     /**
@@ -126,10 +117,9 @@ public final class ItemChecker extends UnaryExpression {
      * @param context The dynamic context used to evaluate the mapping function
      * @return the mapping function. This will be an identity mapping: the output sequence is the same
      * as the input sequence, unless the dynamic type checking reveals an error.
-     * @throws XPathException
      */
 
-    public ItemMappingFunction getMappingFunction(XPathContext context) throws XPathException {
+    public ItemMappingFunction getMappingFunction(XPathContext context) {
         ItemCheckMappingFunction map = new ItemCheckMappingFunction();
         map.externalContext = context;
         return map;
@@ -160,10 +150,14 @@ public final class ItemChecker extends UnaryExpression {
 
 
     private void testConformance(Item item, XPathContext context) throws XPathException {
-        if (!requiredItemType.matchesItem(item, true, (context == null ? null : context.getConfiguration()))) {
+        if (item instanceof AnyURIValue) {
+            // Static type checking does not actively convert URIs to Strings, so we
+            // have to treat a URI as OK when a string is acceptable.
+            item = StringValue.EMPTY_STRING;
+        }
+        if (!requiredItemType.matchesItem(item)) {
             String message;
             if (context == null) {
-                // no name pool available
                 message = "Supplied value of type " + Type.displayTypeName(item) +
                         " does not match the required type of " + role.getMessage();
             } else {

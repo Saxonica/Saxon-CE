@@ -34,38 +34,19 @@ public class NumericComparer implements AtomicComparer {
     * Compare two Items by converting them to numbers and comparing the numeric values. If either
     * value cannot be converted to a number, it is treated as NaN, and compares less that the other
     * (two NaN values compare equal).
-    * @param a the first Item to be compared.
-    * @param b the second Item to be compared.
-    * @return <0 if a<b, 0 if a=b, >0 if a>b
+    *
+     * @param a the first Item to be compared.
+     * @param b the second Item to be compared.
+     * @return <0 if a<b, 0 if a=b, >0 if a>b
     * @throws ClassCastException if the objects are not Items
     */
 
     public int compareAtomicValues(AtomicValue a, AtomicValue b) {
         double d1, d2;
 
-        if (a instanceof NumericValue) {
-            d1 = ((NumericValue)a).getDoubleValue();
-        } else if (a == null) {
-            d1 = Double.NaN;
-        } else {
-            try {
-                d1 = StringToDouble.stringToNumber(a.getStringValue());
-            } catch (NumberFormatException err) {
-                d1 = Double.NaN;
-            }
-        }
+        d1 = makeDouble(a);
 
-        if (b instanceof NumericValue) {
-            d2 = ((NumericValue)b).getDoubleValue();
-        } else if (b == null) {
-            d2 = Double.NaN;
-        } else {
-            try {
-                d2 = StringToDouble.stringToNumber(b.getStringValue());
-            } catch (NumberFormatException err) {
-                d2 = Double.NaN;
-            }
-        }
+        d2 = makeDouble(b);
 
         if (Double.isNaN(d1)) {
             if (Double.isNaN(d2)) {
@@ -83,9 +64,26 @@ public class NumericComparer implements AtomicComparer {
 
     }
 
+    private double makeDouble(AtomicValue a) {
+        double d1;
+        if (a instanceof NumericValue) {
+            d1 = ((NumericValue)a).getDoubleValue();
+        } else if (a == null) {
+            d1 = Double.NaN;
+        } else {
+            try {
+                d1 = StringToDouble.stringToNumber(a.getStringValue());
+            } catch (NumberFormatException err) {
+                d1 = Double.NaN;
+            }
+        }
+        return d1;
+    }
+
     /**
      * Compare two AtomicValue objects for equality according to the rules for their data type. UntypedAtomic
      * values are compared by converting to the type of the other operand.
+     *
      *
      * @param a the first object to be compared.
      * @param b the second object to be compared.

@@ -16,10 +16,10 @@ import java.util.List;
 
 /**
  * Class ARegexIterator - provides an iterator over matched and unmatched substrings.
- * This implementation of RegexIterator uses the modified Jakarta regular expression engine.
+ * This implementation uses the modified Jakarta regular expression engine.
 */
 
-public class ARegexIterator implements RegexIterator {
+public class ARegexIterator implements SequenceIterator {
 
     private UnicodeString theString;   // the input string being matched
     private UnicodeString regex;
@@ -165,7 +165,7 @@ public class ARegexIterator implements RegexIterator {
      * Process a matching substring, performing specified actions at the start and end of each captured
      * subgroup. This method will always be called when operating in "push" mode; it writes its
      * result to context.getReceiver(). The matching substring text is all written to the receiver,
-     * interspersed with calls to the {@link RegexIterator.OnGroup} methods onGroupStart() and onGroupEnd().
+     * interspersed with calls to the {@link ARegexIterator.OnGroup} methods onGroupStart() and onGroupEnd().
      * @param context the dynamic evaluation context
      * @param action defines the processing to be performed at the start and end of a group
      */
@@ -289,6 +289,26 @@ public class ARegexIterator implements RegexIterator {
             }
         }
     }
+
+    public static interface OnGroup {
+
+        /**
+         * Method to be called when the start of a captured group is encountered
+         * @param c the dynamic evaluation context
+         * @param groupNumber the group number of the captured group
+         */
+
+        public void onGroupStart(XPathContext c, int groupNumber) throws XPathException;
+
+       /**
+         * Method to be called when the end of a captured group is encountered
+         * @param c the dynamic evaluation context
+         * @param groupNumber the group number of the captured group
+         */
+
+        public void onGroupEnd(XPathContext c, int groupNumber) throws XPathException;
+    }
+
 
 
 }

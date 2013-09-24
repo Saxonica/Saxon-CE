@@ -680,14 +680,7 @@ public class FormatNumber extends SystemFunction {
         if (ch < 65536) {
             return "" + (char) ch;
         } else {  // output a surrogate pair
-            //To compute the numeric value of the character corresponding to a surrogate
-            //pair, use this formula (all numbers are hex):
-            //(FirstChar - D800) * 400 + (SecondChar - DC00) + 10000
-            ch -= 65536;
-            char[] sb = new char[2];
-            sb[0] = ((char) ((ch / 1024) + 55296));
-            sb[1] = ((char) ((ch % 1024) + 56320));
-            return new String(sb, 0, 2);
+            return new FastStringBuffer(2).appendWideChar(ch);
         }
     }
 

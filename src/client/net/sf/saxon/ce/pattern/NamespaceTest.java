@@ -2,7 +2,6 @@ package client.net.sf.saxon.ce.pattern;
 import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.type.ItemType;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
 
 /**
   * NodeTest is an interface that enables a test of whether a node has a particular
@@ -83,10 +82,9 @@ public final class NamespaceTest extends NodeTest {
      * is that it returns a type that strictly subsumes this type, ideally as narrowly
      * as possible.
      * @return the supertype, or null if this type is item()
-     * @param th the type hierarchy cache
      */
 
-    public ItemType getSuperType(TypeHierarchy th) {
+    public ItemType getSuperType() {
         return NodeKindTest.makeNodeKindTest(nodeKind);
     }
 

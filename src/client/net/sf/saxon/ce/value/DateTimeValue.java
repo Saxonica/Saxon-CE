@@ -4,7 +4,6 @@ import client.net.sf.saxon.ce.Controller;
 import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.functions.Component;
 import client.net.sf.saxon.ce.trans.Err;
-import client.net.sf.saxon.ce.trans.NoDynamicContextException;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
 import client.net.sf.saxon.ce.type.AtomicType;
@@ -298,10 +297,9 @@ public final class DateTimeValue extends CalendarValue implements Comparable {
      *           no explicit timezone
      * @return in general, a new DateTimeValue in timezone Z, representing the same instant in time.
      *         Returns the original DateTimeValue if this is already in timezone Z.
-     * @throws NoDynamicContextException if the implicit timezone is needed and is not available
      */
 
-    public DateTimeValue normalize(XPathContext cc) throws NoDynamicContextException {
+    public DateTimeValue normalize(XPathContext cc) {
         if (hasTimezone()) {
             return (DateTimeValue)adjustTimezone(0);
         } else {

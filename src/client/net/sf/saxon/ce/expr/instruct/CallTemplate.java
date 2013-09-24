@@ -187,9 +187,8 @@ public class CallTemplate extends Instruction {
 
         Template t = getTargetTemplate();
         XPathContext c2 = context.newContext();
-        c2.openStackFrame(t.getNumberOfSlots());
-        c2.setLocalParameters(assembleParams(context, actualParams));
-        c2.setTunnelParameters(assembleTunnelParams(context, tunnelParams));
+        c2.setParameters(t.getNumberOfSlots(),
+                assembleParams(context, actualParams), assembleTunnelParams(context, tunnelParams));
 
         TailCall tc = t.expand(c2);
         while (tc != null) {
@@ -308,9 +307,7 @@ public class CallTemplate extends Instruction {
             // local variables are held. It should be possible to avoid creating a new context, and instead
             // to update the existing one in situ.
             XPathContext c2 = evaluationContext.newContext();
-            c2.setLocalParameters(params);
-            c2.setTunnelParameters(tunnelParams);
-            c2.openStackFrame(target.getNumberOfSlots());
+            c2.setParameters(target.getNumberOfSlots(), params, tunnelParams);
 
             // System.err.println("Tail call on template");
 

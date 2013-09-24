@@ -1,6 +1,5 @@
 package client.net.sf.saxon.ce.pattern;
 
-import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.om.SequenceIterator;
@@ -34,15 +33,8 @@ public class NodeSetPattern extends Pattern {
      * if it is present in this node-set. The expression must not depend on the focus, though it can depend on
      * other aspects of the dynamic context such as local or global variables.
      */
-    public NodeSetPattern(Expression exp, Configuration config) {
+    public NodeSetPattern(Expression exp) {
         expression = exp;
-        if ((expression.getDependencies() & StaticProperty.DEPENDS_ON_NON_DOCUMENT_FOCUS) != 0) {
-            throw new IllegalArgumentException("Expression used in pattern must not depend on focus");
-        }
-//        itemType = (exp.getItemType(TypeHierarchy.getInstance()));
-//        if (!(itemType instanceof NodeTest)) {
-//            throw new IllegalArgumentException("Expression used in a pattern must evaluate to a node-set");
-//        }
     }
 
     /**
@@ -73,7 +65,7 @@ public class NodeSetPattern extends Pattern {
      * Iterate over the subexpressions within this pattern
      */
 
-    public Iterator iterateSubExpressions() {
+    public Iterator<Expression> iterateSubExpressions() {
         return Arrays.asList(expression).iterator();
     }
 
@@ -113,20 +105,25 @@ public class NodeSetPattern extends Pattern {
 
     /**
     * Determine whether this Pattern matches the given Node
-    * @param e The NodeInfo representing the Element or other node to be tested against the Pattern
-    * @return true if the node matches the Pattern, false otherwise
+    *
+     * @param e The NodeInfo representing the Element or other node to be tested against the Pattern
+     * @return true if the node matches the Pattern, false otherwise
     */
 
-    public boolean matches(NodeInfo e, XPathContext context) throws XPathException {
-        SequenceIterator iter = expression.iterate(context);
-        while (true) {
-            NodeInfo node = (NodeInfo)iter.next();
-            if (node == null) {
-                return false;
+    public boolean matches(NodeInfo e, XPathContext context) {
+        try {
+            SequenceIterator iter = expression.iterate(context);
+            while (true) {
+                NodeInfo node = (NodeInfo)iter.next();
+                if (node == null) {
+                    return false;
+                }
+                if (node.isSameNodeInfo(e)) {
+                    return true;
+                }
             }
-            if (node.isSameNodeInfo(e)) {
-                return true;
-            }
+        } catch (XPathException err) {
+            return false;
         }
     }
 

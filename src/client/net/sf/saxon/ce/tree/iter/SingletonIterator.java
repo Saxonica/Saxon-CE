@@ -1,17 +1,14 @@
 package client.net.sf.saxon.ce.tree.iter;
 
-import client.net.sf.saxon.ce.expr.LastPositionFinder;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.Sequence;
-import client.net.sf.saxon.ce.om.SequenceIterator;
 
 
 /**
 * SingletonIterator: an iterator over a sequence of zero or one values
 */
 
-public class SingletonIterator implements UnfailingIterator,
-        LastPositionFinder, GroundedIterator {
+public class SingletonIterator implements UnfailingIterator, GroundedIterator {
 
     private Item item;
     private int position = 0;
@@ -52,32 +49,11 @@ public class SingletonIterator implements UnfailingIterator,
         }
     }
 
-    public Item current() {
-        if (position == 1) {
-            return item;
-        } else {
-            return null;
-        }
-    }
-
-    /**
-     * Return the current position in the sequence.
-     * @return 0 before the first call on next(); 1 before the second call on next(); -1 after the second
-     * call on next().
-     */
-    private int position() {
-       return position;
-    }
-
     public int getLastPosition() {
         return 1;
     }
 
-    public SequenceIterator getAnother() {
-        return new SingletonIterator(item);
-    }
-
-    public SequenceIterator getReverseIterator() {
+    public UnfailingIterator getAnother() {
         return new SingletonIterator(item);
     }
 

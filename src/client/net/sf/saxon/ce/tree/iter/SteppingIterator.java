@@ -1,6 +1,5 @@
 package client.net.sf.saxon.ce.tree.iter;
 import client.net.sf.saxon.ce.om.Item;
-import client.net.sf.saxon.ce.om.SequenceIterator;
 
 /**
  * A general-purpose iterator built over a function that steps from one item in a sequence to the next
@@ -63,7 +62,7 @@ public class SteppingIterator implements UnfailingIterator {
      * @return a new iterator over the same sequence
      */
 
-    public SequenceIterator getAnother() {
+    public UnfailingIterator getAnother() {
         return new SteppingIterator(origin, function, includeSelf);
     }
 

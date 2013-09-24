@@ -1,9 +1,9 @@
 package client.net.sf.saxon.ce.type;
-import client.net.sf.saxon.ce.om.*;
+import client.net.sf.saxon.ce.om.Item;
+import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.pattern.AnyNodeTest;
 import client.net.sf.saxon.ce.pattern.EmptySequenceTest;
 import client.net.sf.saxon.ce.pattern.NodeKindTest;
-import client.net.sf.saxon.ce.pattern.NodeTest;
 import client.net.sf.saxon.ce.value.AtomicValue;
 
 
@@ -98,17 +98,6 @@ public abstract class Type  {
     }
 
     /**
-     * Test whether a given type is (some subtype of) node()
-     *
-     * @param type The type to be tested
-     * @return true if the item type is node() or a subtype of node()
-     */
-
-    public static boolean isNodeType(ItemType type) {
-        return type instanceof NodeTest;
-    }
-
-    /**
      * Get the ItemType of an Item
      *
      * @param item the item whose type is required
@@ -183,7 +172,7 @@ public abstract class Type  {
         } else if (r == TypeHierarchy.SUBSUMES) {
             return t1;
         } else {
-            return getCommonSuperType(t2.getSuperType(th), t1);
+            return getCommonSuperType(t2.getSuperType(), t1);
             // eventually we will hit a type that is a supertype of t2. We reverse
             // the arguments so we go up each branch of the tree alternately.
             // If we hit the root of the tree, one of the earlier conditions will be satisfied,
@@ -243,26 +232,6 @@ public abstract class Type  {
             }
         }
         return t1 == t2;
-    }
-
-    /**
-     * Determine whether two primitive atomic types are comparable under the rules for GeneralComparisons
-     * (that is, untyped atomic values treated as comparable to anything)
-     * @param t1 the first type to compared.
-     * This must be a primitive atomic type
-     * @param t2 the second type to compared.
-     * This must be a primitive atomic type
-     * @param ordered true if testing for an ordering comparison (lt, gt, le, ge). False
-     * if testing for an equality comparison (eq, ne)
-     * @return true if the types are comparable, as defined by the rules of the "eq" operator
-     */
-
-    public static boolean isGenerallyComparable(AtomicType t1, AtomicType t2, boolean ordered) {
-        return t1.equals(AtomicType.ANY_ATOMIC)
-                || t2.equals(AtomicType.ANY_ATOMIC)
-                || t1.equals(AtomicType.UNTYPED_ATOMIC)
-                || t2.equals(AtomicType.UNTYPED_ATOMIC)
-                || isComparable(t1, t2, ordered);
     }
 
 

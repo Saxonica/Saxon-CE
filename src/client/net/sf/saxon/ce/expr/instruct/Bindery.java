@@ -106,9 +106,9 @@ public final class Bindery  {
 
         val = applyFunctionConversionRules(qName, val, requiredType, context);
 
-        XPathException err = TypeChecker.testConformance(val, requiredType, context);
+        String err = TypeChecker.testConformance(val.iterate(), requiredType);
         if (err != null) {
-            throw err;
+            throw new XPathException(err, "XPTY0004");
         }
 
         globals[slot] = val;

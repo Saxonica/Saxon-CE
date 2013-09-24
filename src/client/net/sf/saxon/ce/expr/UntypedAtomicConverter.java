@@ -48,7 +48,7 @@ public final class UntypedAtomicConverter extends UnaryExpression implements Ite
 
     public ItemType getItemType() {
         ItemType it = operand.getItemType();
-        singleton = it.isAtomicType() && !Cardinality.allowsMany(operand.getCardinality());
+        singleton = (it instanceof AtomicType) && !Cardinality.allowsMany(operand.getCardinality());
         if (allConverted) {
             return requiredItemType;
         } else {
@@ -82,7 +82,7 @@ public final class UntypedAtomicConverter extends UnaryExpression implements Ite
         if (type instanceof NodeTest) {
             return this;
         }
-        singleton = type.isAtomicType() && !Cardinality.allowsMany(operand.getCardinality());
+        singleton = (type instanceof AtomicType) && !Cardinality.allowsMany(operand.getCardinality());
                 
         // If we're atomizing a node that always returns an untyped atomic value, and then converting
         // the untyped atomic value to a string, then we might as well take the string value of the node

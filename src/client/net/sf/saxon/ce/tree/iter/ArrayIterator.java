@@ -1,9 +1,7 @@
 package client.net.sf.saxon.ce.tree.iter;
 
-import client.net.sf.saxon.ce.expr.LastPositionFinder;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.Sequence;
-import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.value.SequenceExtent;
 
 /**
@@ -14,13 +12,11 @@ import client.net.sf.saxon.ce.value.SequenceExtent;
  */
 
 
-public class ArrayIterator implements UnfailingIterator,
-        LastPositionFinder, GroundedIterator {
+public class ArrayIterator implements UnfailingIterator, GroundedIterator {
 
     protected Item[] items;
     private int index;          // position in array of current item, zero-based
                                 // set equal to end+1 when all the items required have been read.
-    private Item current = null;
 
     /**
      * Create an iterator over all the items in an array
@@ -42,32 +38,9 @@ public class ArrayIterator implements UnfailingIterator,
     public Item next() {
         if (index >= items.length) {
             index = items.length+1;
-            current = null;
             return null;
         }
-        current = items[index++];
-        return current;
-    }
-
-    /**
-     * Get the current item in the array
-     *
-     * @return the item returned by the most recent call of next()
-     */
-    public Item current() {
-        return current;
-    }
-
-    /**
-     * Get the position of the current item in the array
-     *
-     * @return the current position (starting at 1 for the first item)
-     */
-    private int position() {
-        if (index > items.length) {
-            return -1;
-        }
-        return index;
+        return items[index++];
     }
 
     /**
@@ -85,7 +58,7 @@ public class ArrayIterator implements UnfailingIterator,
      *
      * @return a new ArrayIterator
      */
-    public SequenceIterator getAnother() {
+    public UnfailingIterator getAnother() {
         return new ArrayIterator(items);
     }
 

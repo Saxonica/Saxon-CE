@@ -9,7 +9,7 @@ import client.net.sf.saxon.ce.expr.sort.GroupIterator;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.Sequence;
 import client.net.sf.saxon.ce.om.SequenceIterator;
-import client.net.sf.saxon.ce.regex.RegexIterator;
+import client.net.sf.saxon.ce.regex.ARegexIterator;
 import client.net.sf.saxon.ce.trans.Mode;
 import client.net.sf.saxon.ce.trans.Rule;
 import client.net.sf.saxon.ce.trans.XPathException;
@@ -152,7 +152,7 @@ public class EarlyEvaluationContext extends XPathContext {
      * @return the current regular expressions iterator
      */
 
-    public RegexIterator getCurrentRegexIterator() {
+    public ARegexIterator getCurrentRegexIterator() {
         return null;
     }
 

@@ -1,11 +1,9 @@
 package client.net.sf.saxon.ce.functions;
 
-import client.net.sf.saxon.ce.event.ComplexContentOutputter;
-import client.net.sf.saxon.ce.event.SequenceReceiver;
 import client.net.sf.saxon.ce.expr.XPathContext;
-import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.trans.XPathException;
+import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
 import client.net.sf.saxon.ce.value.AtomicValue;
 import client.net.sf.saxon.ce.value.SequenceType;
 import client.net.sf.saxon.ce.value.StringValue;
@@ -52,35 +50,6 @@ public class Concat extends SystemFunction {
         return StringValue.makeStringValue(sb.condense());
     }
 
-    /**
-     * Process the instruction in push mode. This avoids constructing the concatenated string
-     * in memory, instead each argument can be sent straight to the serializer.
-     * @param context The dynamic context, giving access to the current node,
-     *                the current variables, etc.
-     */
-
-    public void process(XPathContext context) throws XPathException {
-        SequenceReceiver out = context.getReceiver();
-        if (out instanceof ComplexContentOutputter) {
-            // This optimization is only safe if the output forms part of document or element content
-            int numArgs = argument.length;
-            // Start and end with an empty string to force space separation from any previous or following outputs
-            out.append(StringValue.EMPTY_STRING, 0);
-            boolean empty = true;
-            for (int i=0; i<numArgs; i++) {
-                AtomicValue val = (AtomicValue)argument[i].evaluateItem(context);
-                if (val!=null) {
-                    out.characters(val.getStringValue());
-                    empty = false;
-                }
-            }
-            if (!empty) {
-                out.append(StringValue.EMPTY_STRING, 0);
-            }
-        } else {
-            out.append(evaluateItem(context), 0);
-        }
-    }
 }
 
 

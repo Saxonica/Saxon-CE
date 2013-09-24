@@ -4,8 +4,8 @@ import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.pattern.EmptySequenceTest;
+import client.net.sf.saxon.ce.regex.ARegexIterator;
 import client.net.sf.saxon.ce.regex.ARegularExpression;
-import client.net.sf.saxon.ce.regex.RegexIterator;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.EmptyIterator;
 import client.net.sf.saxon.ce.tree.iter.FocusIterator;
@@ -259,7 +259,7 @@ public class AnalyzeString extends Instruction {
      */
 
     public TailCall processLeavingTail(XPathContext context) throws XPathException {
-        RegexIterator iter = getRegexIterator(context);
+        ARegexIterator iter = getRegexIterator(context);
         XPathContext c2 = context.newContext();
         FocusIterator focus = c2.setCurrentIterator(iter);
         c2.setCurrentRegexIterator(iter);
@@ -292,7 +292,7 @@ public class AnalyzeString extends Instruction {
      * @throws XPathException if a dynamic error occurs
      */
 
-    private RegexIterator getRegexIterator(XPathContext context) throws XPathException {
+    private ARegexIterator getRegexIterator(XPathContext context) throws XPathException {
         CharSequence input = select.evaluateAsString(context);
 
         String flagstr = flags.evaluateAsString(context).toString();
@@ -321,7 +321,7 @@ public class AnalyzeString extends Instruction {
      */
 
     public SequenceIterator iterate(XPathContext context) throws XPathException {
-        RegexIterator iter = getRegexIterator(context);
+        ARegexIterator iter = getRegexIterator(context);
         XPathContext c2 = context.newContext();
         c2.setCurrentIterator(iter);
         c2.setCurrentRegexIterator(iter);
@@ -339,10 +339,10 @@ public class AnalyzeString extends Instruction {
 
     private class AnalyzeMappingFunction implements ContextMappingFunction {
 
-        private RegexIterator base;
+        private ARegexIterator base;
         private XPathContext c2;
 
-        public AnalyzeMappingFunction(RegexIterator base, XPathContext c2) {
+        public AnalyzeMappingFunction(ARegexIterator base, XPathContext c2) {
             this.base = base;
             this.c2 = c2;
         }

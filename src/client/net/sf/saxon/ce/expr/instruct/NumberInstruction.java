@@ -113,7 +113,7 @@ public class NumberInstruction extends Expression {
         this.backwardsCompatible = backwardsCompatible;
 
         final TypeHierarchy th = TypeHierarchy.getInstance();
-        if (arguments[VALUE] != null && !arguments[VALUE].getItemType().isAtomicType()) {
+        if (arguments[VALUE] != null && !(arguments[VALUE].getItemType() instanceof AtomicType)) {
             arguments[VALUE] = new Atomizer(arguments[VALUE]);
         }
 
@@ -168,7 +168,7 @@ public class NumberInstruction extends Expression {
             if (contextItemType == null) {
                 err = new XPathException(
                         "xsl:number requires a select attribute, a value attribute, or a context item");
-            } else if (contextItemType.isAtomicType()) {
+            } else if (contextItemType instanceof AtomicType) {
                 err = new XPathException(
                         "xsl:number requires the context item to be a node, but it is an atomic value");
 

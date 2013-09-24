@@ -9,7 +9,7 @@ import client.net.sf.saxon.ce.expr.sort.GroupIterator;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.Sequence;
 import client.net.sf.saxon.ce.om.SequenceIterator;
-import client.net.sf.saxon.ce.regex.RegexIterator;
+import client.net.sf.saxon.ce.regex.ARegexIterator;
 import client.net.sf.saxon.ce.trans.Mode;
 import client.net.sf.saxon.ce.trans.Rule;
 import client.net.sf.saxon.ce.trans.RuleManager;
@@ -39,7 +39,7 @@ public class XPathContext {
     private Mode currentMode;
     private Rule currentTemplate;
     private GroupIterator currentGroupIterator;
-    private RegexIterator currentRegexIterator;
+    private ARegexIterator currentRegexIterator;
 
     private static final Sequence[] EMPTY_STACKFRAME = new Sequence[0];
 
@@ -105,12 +105,16 @@ public class XPathContext {
     }
 
     /**
-     * Set the local parameters for the current template call.
-     * @param localParameters the supplied parameters
+     * Set the local and tunnel parameters for the current template call.
+     * @param slots the total number of slots needed on the stackframe
+     * @param localParameters the supplied non-tunnel parameters
+     * @param tunnelParameters the supplied tunnel parameters
      */
 
-    public void setLocalParameters(ParameterSet localParameters) {
+    public void setParameters(int slots, ParameterSet localParameters, ParameterSet tunnelParameters) {
+        openStackFrame(slots);
         this.localParameters = localParameters;
+        this.tunnelParameters = tunnelParameters;
     }
 
     /**
@@ -121,15 +125,6 @@ public class XPathContext {
 
     public ParameterSet getTunnelParameters() {
         return tunnelParameters;
-    }
-
-    /**
-     * Set the tunnel parameters for the current template call.
-     * @param tunnelParameters the supplied tunnel parameters
-     */
-
-    public void setTunnelParameters(ParameterSet tunnelParameters) {
-        this.tunnelParameters = tunnelParameters;
     }
 
     /**
@@ -203,7 +198,8 @@ public class XPathContext {
     }
 
     /**
-     * Create a new stack frame for local variables
+     * Create a new stack frame for local variables, in cases (such as attribute sets and global variables)
+     * where there are no parameters
      * @param numberOfSlots the number of slots needed in the stack frame
      */
     public void openStackFrame(int numberOfSlots) {
@@ -503,7 +499,7 @@ public class XPathContext {
      * @return the current regular expressions iterator
      */
 
-    public RegexIterator getCurrentRegexIterator() {
+    public ARegexIterator getCurrentRegexIterator() {
         return currentRegexIterator;
     }
 
@@ -513,7 +509,7 @@ public class XPathContext {
      * @param currentRegexIterator the current regex iterator
      */
 
-    public void setCurrentRegexIterator(RegexIterator currentRegexIterator) {
+    public void setCurrentRegexIterator(ARegexIterator currentRegexIterator) {
         this.currentRegexIterator = currentRegexIterator;
     }
 

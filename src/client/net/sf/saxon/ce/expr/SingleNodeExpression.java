@@ -1,13 +1,14 @@
 package client.net.sf.saxon.ce.expr;
-import com.google.gwt.logging.client.LogConfiguration;
 
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.om.SequenceIterator;
-import client.net.sf.saxon.ce.tree.iter.SingletonIterator;
 import client.net.sf.saxon.ce.pattern.AnyNodeTest;
 import client.net.sf.saxon.ce.trans.XPathException;
+import client.net.sf.saxon.ce.tree.iter.SingletonIterator;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
+import com.google.gwt.logging.client.LogConfiguration;
 
 
 /**
@@ -22,7 +23,7 @@ public abstract class SingleNodeExpression extends Expression {
 
     public Expression typeCheck(ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
 
-    	if (contextItemType == null || contextItemType.isAtomicType()) {
+    	if (contextItemType == null || (contextItemType instanceof AtomicType)) {
     		String message = "";
     		String code = "";
 
@@ -30,7 +31,7 @@ public abstract class SingleNodeExpression extends Expression {
     	        if (contextItemType == null) {
     	        	code = "XPDY0002";
     	            message = noContextMessage() + ": the context item is undefined";
-    	        } else if (contextItemType.isAtomicType()) {
+    	        } else {
     	        	code = "XPTY0020";    	        	
     	            message = noContextMessage() + ": the context item is an atomic value";
     	        }

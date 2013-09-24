@@ -134,15 +134,17 @@ public final class FastStringBuffer implements CharSequence {
     /**
      * Append a wide character to the buffer (as a surrogate pair if necessary)
      * @param ch the character, as a 32-bit Unicode codepoint
+     * @return this FastStringBuffer (to allow function chaining)
      */
 
-    public void appendWideChar(int ch) {
+    public FastStringBuffer appendWideChar(int ch) {
         if (ch > 0xffff) {
             append(UTF16CharacterSet.highSurrogate(ch));
             append(UTF16CharacterSet.lowSurrogate(ch));
         } else {
             append((char)ch);
         }
+        return this;
     }
 
     /**

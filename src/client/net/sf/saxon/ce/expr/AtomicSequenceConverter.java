@@ -20,8 +20,6 @@ public final class AtomicSequenceConverter extends UnaryExpression {
 
     private AtomicType requiredItemType;
 
-    private AtomicType requiredPrimitiveType;
-
     /**
     * Constructor
     * @param sequence this must be a sequence of atomic values. This is not checked; a ClassCastException
@@ -33,18 +31,9 @@ public final class AtomicSequenceConverter extends UnaryExpression {
     public AtomicSequenceConverter(Expression sequence, AtomicType requiredItemType) {
         super(sequence);
         this.requiredItemType = requiredItemType;
-        requiredPrimitiveType = (AtomicType)requiredItemType.getPrimitiveItemType();
         ExpressionTool.copyLocationInfo(sequence, this);
     }
 
-    /**
-     * Get the required (target) primitive type
-     * @return the required primitive type
-     */
-
-    public AtomicType getRequiredPrimitiveType() {
-        return requiredPrimitiveType;
-    }
 
     /**
     * Simplify an expression
@@ -98,7 +87,7 @@ public final class AtomicSequenceConverter extends UnaryExpression {
         SequenceIterator base = operand.iterate(context);
         ItemMappingFunction converter = new ItemMappingFunction() {
             public Item mapItem(Item item) throws XPathException {
-                return ((AtomicValue)item).convert(requiredPrimitiveType).asAtomic();
+                return ((AtomicValue)item).convert(requiredItemType).asAtomic();
             }
         };
         return new ItemMappingIterator(base, converter, true);
@@ -113,7 +102,7 @@ public final class AtomicSequenceConverter extends UnaryExpression {
         Item item = operand.evaluateItem(context);
         if (item==null) return null;
         return ((AtomicValue)item).convert(
-                requiredPrimitiveType).asAtomic();
+                requiredItemType).asAtomic();
     }
 
     /**
@@ -140,7 +129,7 @@ public final class AtomicSequenceConverter extends UnaryExpression {
 
     public boolean equals(Object other) {
         return super.equals(other) &&
-                requiredPrimitiveType == ((AtomicSequenceConverter)other).requiredPrimitiveType;
+                requiredItemType == ((AtomicSequenceConverter)other).requiredItemType;
     }
 
     /**
@@ -150,7 +139,7 @@ public final class AtomicSequenceConverter extends UnaryExpression {
 
     @Override
     public int hashCode() {
-        return super.hashCode() ^ requiredPrimitiveType.hashCode();
+        return super.hashCode() ^ requiredItemType.hashCode();
     }
 
 }

@@ -93,12 +93,10 @@ public class LiteralResultElement extends StyleElement {
                         // already dealt with
                     } else if (local.equals("xpath-default-namespace")) {
                         // already dealt with
-                    } else if (local.equals("type")) {
-                        // deal with this later
+                    } else if (local.equals("type") || (local.equals("validation") && !atts.getValue(i).equals("strip"))) {
+                        compileError("The xsl:type and xsl:validate attributes require a schema-aware processor", "XTSE1660");
                     } else if (local.equals("use-when")) {
                         // already dealt with
-                    } else if (local.equals("validation")) {
-                        // deal with this later
                     } else if (local.equals("inherit-namespaces")) {
                         String inheritAtt = atts.getValue(i);
                         if (inheritAtt.equals("yes")) {
@@ -201,16 +199,6 @@ public class LiteralResultElement extends StyleElement {
             String useAttSets = getAttributeValue(NamespaceConstant.XSLT, "use-attribute-sets");
             if (useAttSets != null) {
                 attributeSets = getAttributeSets(useAttSets, null);
-            }
-
-            String type = getAttributeValue(NamespaceConstant.XSLT, "type");
-            if (type != null) {
-                compileError("The xsl:type attribute is available only with a schema-aware XSLT processor", "XTSE1660");
-            }
-
-            String validate = getAttributeValue(NamespaceConstant.XSLT, "validation");
-            if (validate != null && !validate.equals("strip")) {
-                compileError("To perform validation, a schema-aware XSLT processor is needed", "XTSE1660");
             }
 
             // establish the names to be used for all the output attributes;
@@ -350,9 +338,8 @@ public class LiteralResultElement extends StyleElement {
             } else {
                 message = "The supplied file does not appear to be a stylesheet (found " + getLocalPart() + ")";
             }
-            XPathException err = new XPathException(message);
+            XPathException err = new XPathException(message, "XTSE0150");
             err.setLocator(this);
-            err.setErrorCode("XTSE0150");
             err.setIsStaticError(true);
             exec.reportError(err);
             throw err;
@@ -364,8 +351,7 @@ public class LiteralResultElement extends StyleElement {
 
         String version = getAttributeValue(NamespaceConstant.XSLT, "version");
         if (version==null) {
-            XPathException err = new XPathException("Simplified stylesheet: xsl:version attribute is missing");
-            err.setErrorCode("XTSE0150");
+            XPathException err = new XPathException("Simplified stylesheet: xsl:version attribute is missing", "XTSE0150");
             err.setIsStaticError(true);
             err.setLocator(this);
             exec.reportError(err);

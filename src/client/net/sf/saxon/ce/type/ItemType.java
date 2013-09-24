@@ -1,6 +1,5 @@
 package client.net.sf.saxon.ce.type;
 
-import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.om.Item;
 
 
@@ -25,22 +24,14 @@ import client.net.sf.saxon.ce.om.Item;
 public interface ItemType  {
 
     /**
-     * Determine whether this item type is atomic (that is, whether it can ONLY match
-     * atomic values)
-     * @return true if this is ANY_ATOMIC_TYPE or a subtype thereof
-     */
-
-    public boolean isAtomicType();
-
-    /**
      * Test whether a given item conforms to this type
+     *
+     *
      * @param item The item to be tested
-     * @param allowURIPromotion
-     * @param config
-     * @return true if the item is an instance of this type; false otherwise
+      * @return true if the item is an instance of this type; false otherwise
     */
 
-    public boolean matchesItem(Item item, boolean allowURIPromotion, Configuration config);
+    public boolean matchesItem(Item item);
 
     /**
      * Get the type from which this item type is derived by restriction. This
@@ -53,22 +44,9 @@ public interface ItemType  {
      * is that it returns a type that strictly subsumes this type, ideally as narrowly
      * as possible.
      * @return the supertype, or null if this type is item()
-     * @param th the type hierarchy cache
      */
 
-    public ItemType getSuperType(TypeHierarchy th);
-
-    /**
-     * Get the primitive item type corresponding to this item type. For item(),
-     * this is Type.ITEM. For node(), it is Type.NODE. For specific node kinds,
-     * it is the value representing the node kind, for example Type.ELEMENT.
-     * For anyAtomicValue it is Type.ATOMIC_VALUE. For numeric it is Type.NUMBER.
-     * For other atomic types it is the primitive type as defined in XML Schema,
-     * except that integer, xs:dayTimeDuration, and xs:yearMonthDuration
-     * are considered to be primitive types.
-     */
-
-    public ItemType getPrimitiveItemType();
+    public ItemType getSuperType();
 
     /**
      * Get the item type of the atomic values that will be produced when an item

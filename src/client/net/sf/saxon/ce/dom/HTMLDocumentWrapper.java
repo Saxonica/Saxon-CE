@@ -223,7 +223,7 @@ public class HTMLDocumentWrapper extends HTMLNodeWrapper implements DocumentInfo
                     if (node == null) {
                         break;
                     }
-                    Node testNode = (Node)((HTMLNodeWrapper)node).getUnderlyingNode();
+                    Node testNode = ((HTMLNodeWrapper)node).getUnderlyingNode();
                     String xmlId = (useNS)? getXmlIdNS(testNode) : getXmlId(testNode);
                     //String xmlId = ((Element)((HTMLNodeWrapper)node).getUnderlyingNode()).getAttribute("xml:id");
                     if (xmlId != null && !xmlId.isEmpty()) {

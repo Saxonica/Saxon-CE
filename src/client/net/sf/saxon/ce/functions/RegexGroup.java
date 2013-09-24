@@ -3,7 +3,7 @@ package client.net.sf.saxon.ce.functions;
 import client.net.sf.saxon.ce.expr.StaticProperty;
 import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.om.Item;
-import client.net.sf.saxon.ce.regex.RegexIterator;
+import client.net.sf.saxon.ce.regex.ARegexIterator;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.value.AtomicValue;
 import client.net.sf.saxon.ce.value.NumericValue;
@@ -23,7 +23,7 @@ public class RegexGroup extends SystemFunction {
     public Item evaluateItem(XPathContext c) throws XPathException {
         AtomicValue gp0 = (AtomicValue)argument[0].evaluateItem(c);
         NumericValue gp = (NumericValue)gp0;
-        RegexIterator iter = c.getCurrentRegexIterator();
+        ARegexIterator iter = c.getCurrentRegexIterator();
         if (iter == null) {
             return StringValue.EMPTY_STRING;
         }

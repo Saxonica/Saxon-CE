@@ -1,29 +1,25 @@
 package client.net.sf.saxon.ce.tree.iter;
 
 import client.net.sf.saxon.ce.Configuration;
-import client.net.sf.saxon.ce.expr.LastPositionFinder;
 import client.net.sf.saxon.ce.js.IXSLFunction;
 import client.net.sf.saxon.ce.om.Item;
-import client.net.sf.saxon.ce.om.SequenceIterator;
-import client.net.sf.saxon.ce.trans.XPathException;
+import client.net.sf.saxon.ce.om.Sequence;
 import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.core.client.JsArray;
 
-import java.util.logging.Logger;
-
 /**
-* Class JsArrayIterator, iterates over a sequence of items held in a Javascript array
+ * Class JsArrayIterator, iterates over a sequence of items held in a Javascript array; it also implements Sequence
+ * providing access to the underlying value.
 */
 
 public class JsArrayIterator
-        implements UnfailingIterator, LastPositionFinder {
+        implements UnfailingIterator, GroundedIterator, Sequence {
 
     int index=0;
     int length;
     Item current = null;
     JsArray list = null;
     Configuration config;
-    static Logger logger = Logger.getLogger("JsArrayIterator");
 
     /**
      * Create a JsArrayIterator over a given List
@@ -45,12 +41,7 @@ public class JsArrayIterator
             return null;
         }
         Object obj = getObject(index++, list);
-        try {
         current = IXSLFunction.convertFromJavaScript(obj, config).next();
-        } catch(XPathException xe) {
-        	// only warn because this is an unfailingIterator implementation
-        	logger.warning("Failed to convert JS object: " + obj.toString() + " to XDM item.");
-        }
         return current;
     }
     
@@ -70,7 +61,7 @@ public class JsArrayIterator
         return length;
     }
 
-    public SequenceIterator getAnother() {
+    public UnfailingIterator getAnother() {
         return new JsArrayIterator(list, config);
     }
 
@@ -82,9 +73,38 @@ public class JsArrayIterator
      *     sequence
      */
 	public UnfailingIterator iterate() {
-		return new JsArrayIterator(list, config);
+		return getAnother();
 	}
 
+    /**
+     * Return a Value containing all the items in the sequence returned by this
+     * SequenceIterator. This should involve no computation, and throws no errors.
+     *
+     * @return the corresponding Value, or null if the value is not known
+     */
+    public Sequence materialize() {
+        return this;
+    }
+
+    /**
+     * Get the n'th item in the sequence (starting from 0).
+     *
+     * @param n position of the required item, counting from zero.
+     * @return the n'th item in the sequence, where the first item in the sequence is
+     *         numbered zero. If n is negative or >= the length of the sequence, returns null.
+     */
+    public Item itemAt(int n) {
+        return IXSLFunction.convertFromJavaScript(getObject(n, list), config).next();
+    }
+
+    /**
+     * Get the length of the sequence
+     *
+     * @return the number of items in the sequence
+     */
+    public int getLength() {
+        return length;
+    }
 }
 
 // This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. 

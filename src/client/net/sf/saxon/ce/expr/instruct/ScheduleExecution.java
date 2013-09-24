@@ -3,12 +3,15 @@ package client.net.sf.saxon.ce.expr.instruct;
 import client.net.sf.saxon.ce.LogController;
 import client.net.sf.saxon.ce.SaxonceApi;
 import client.net.sf.saxon.ce.client.HTTPHandler;
+import client.net.sf.saxon.ce.dom.HTMLDocumentWrapper;
+import client.net.sf.saxon.ce.dom.Sanitizer;
 import client.net.sf.saxon.ce.dom.XMLDOM;
 import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.functions.ResolveURI;
 import client.net.sf.saxon.ce.om.DocumentInfo;
 import client.net.sf.saxon.ce.om.DocumentPool;
 import client.net.sf.saxon.ce.pattern.EmptySequenceTest;
+import client.net.sf.saxon.ce.trans.StripSpaceRules;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.URI;
 import client.net.sf.saxon.ce.type.ItemType;
@@ -185,6 +188,12 @@ public class ScheduleExecution extends Instruction {
                                 return;
                             }
                             DocumentInfo doc = context.getConfiguration().wrapXMLDocument(responseNode, uri);
+                            if (doc instanceof HTMLDocumentWrapper) {
+                                StripSpaceRules rules = context.getController().getExecutable().getStripperRules();
+                                if (rules.isStripping()) {
+                                    new Sanitizer(rules).sanitize((HTMLDocumentWrapper)doc);
+                                }
+                            }
                             pool.add(doc, uri);
                             XPathContext c2 = context.newMinorContext();
                             c2.setSingletonFocus(doc);

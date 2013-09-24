@@ -1,17 +1,15 @@
 package client.net.sf.saxon.ce;
 
-import java.util.logging.Logger;
-
 import client.net.sf.saxon.ce.dom.XMLDOM;
 import client.net.sf.saxon.ce.om.DocumentInfo;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.URI;
-
 import com.google.gwt.core.client.JavaScriptObject;
 import com.google.gwt.dom.client.Document;
-import com.google.gwt.dom.client.Node;
 import com.google.gwt.logging.client.LogConfiguration;
 import com.google.gwt.user.client.Window;
+
+import java.util.logging.Logger;
 
 /**
  * A class to provide static utiltiy functions for the JavaScript API. All API
@@ -86,7 +84,7 @@ public class SaxonceApi {
 			throw new XPathException("Error resolving document: "
 					+ e.getMessage());
 		}
-		return (DocumentInfo) config.wrapXMLDocument(doc, absSourceURI);
+		return config.wrapXMLDocument(doc, absSourceURI);
 	}
 
 	/**

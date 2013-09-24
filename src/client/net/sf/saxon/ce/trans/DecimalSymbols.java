@@ -25,11 +25,11 @@ public class DecimalSymbols  {
 
     /**
      * Check that no character is used in more than one role
-     * @throws XPathException
+     * @throws XPathException if a character is used in more than one role
      */
 
     public void checkDistinctRoles() throws XPathException {
-        HashMap<Integer, String> map = new HashMap(20);
+        HashMap<Integer, String> map = new HashMap<Integer, String>(20);
         map.put(decimalSeparator, "decimal-separator");
 
         if (map.get(groupingSeparator) != null) {

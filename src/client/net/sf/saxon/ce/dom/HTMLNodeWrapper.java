@@ -10,10 +10,12 @@ import client.net.sf.saxon.ce.pattern.NameTest;
 import client.net.sf.saxon.ce.pattern.NodeTest;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.NamespaceNode;
-import client.net.sf.saxon.ce.tree.iter.*;
+import client.net.sf.saxon.ce.tree.iter.ArrayIterator;
+import client.net.sf.saxon.ce.tree.iter.EmptyIterator;
+import client.net.sf.saxon.ce.tree.iter.SingletonIterator;
+import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
 import client.net.sf.saxon.ce.tree.util.Navigator;
-import client.net.sf.saxon.ce.tree.wrapper.VirtualNode;
 import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.value.AbstractNode;
 import client.net.sf.saxon.ce.value.AtomicValue;
@@ -37,7 +39,7 @@ import java.util.ArrayList;
   * and the capitalisation of element names 
   */
 
-public class HTMLNodeWrapper extends AbstractNode implements NodeInfo, VirtualNode {
+public class HTMLNodeWrapper extends AbstractNode implements NodeInfo {
 
     protected Node node;
     private StructuredQName qName;
@@ -131,7 +133,7 @@ public class HTMLNodeWrapper extends AbstractNode implements NodeInfo, VirtualNo
     * Get the underlying DOM node, to implement the VirtualNode interface
     */
 
-    public Object getUnderlyingNode() {
+    public Node getUnderlyingNode() {
         return node;
     }
 
@@ -453,7 +455,10 @@ public class HTMLNodeWrapper extends AbstractNode implements NodeInfo, VirtualNo
     	boolean isHTML = (docWrapper.getDocType() == DocType.HTML);
     	// don't return XHTML namespace for HTML docs that have no XHTML namespace declaration
     	if (uri == null) {
-    		if (isHTML) return "";
+    		//if (isHTML) {
+            // Experimentally, assume we can rely on uri=null meaning "no namespace", rather than "unknown".
+                return "";
+            //}
     	// some browsers add XHTML namespace to all HTML elements - whether namespace declared or not:
     	} else if (isHTML && uri.equals(NamespaceConstant.XHTML)) {
     		return "";
@@ -463,45 +468,45 @@ public class HTMLNodeWrapper extends AbstractNode implements NodeInfo, VirtualNo
     	
     	// Otherwise we have to work it out the hard way...
     	
-        if (lNode.getNodeName().startsWith("xml:")) {
-            return NamespaceConstant.XML;
-        }
-        
-        String[] parts;
-        try {
-            parts = NameChecker.getQNameParts(lNode.getNodeName());
-        } catch (QNameException e) {
-            throw new IllegalStateException("Invalid QName in DOM node. " + e);
-        }
-
-        if ((isLocalAttribute || nodeKind == Type.ATTRIBUTE) && parts[0].length() == 0) {
-            // for an attribute, no prefix means no namespace
-            uri = "";
-        } else {
-            UnfailingIterator nsiter = element.iterateAxis(Axis.NAMESPACE, AnyNodeTest.getInstance());
-            while (true) {
-                NodeInfo ns = (NodeInfo)nsiter.next();
-                if (ns == null) {
-                	break;
-                }
-                if (ns.getLocalPart().equals(parts[0])) {
-                    uri = ns.getStringValue();
-                    break;
-                }
-            }
-            if (uri == null) {
-                if (parts[0].length() == 0) {
-                    uri = "";
-                } else {
-                    throw new IllegalStateException("Undeclared namespace prefix in DOM input: " + parts[0]);
-                }
-            }
-        }
-
-        return uri;
+//        if (lNode.getNodeName().startsWith("xml:")) {
+//            return NamespaceConstant.XML;
+//        }
+//
+//        String[] parts;
+//        try {
+//            parts = NameChecker.getQNameParts(lNode.getNodeName());
+//        } catch (QNameException e) {
+//            throw new IllegalStateException("Invalid QName in DOM node. " + e);
+//        }
+//
+//        if ((isLocalAttribute || nodeKind == Type.ATTRIBUTE) && parts[0].length() == 0) {
+//            // for an attribute, no prefix means no namespace
+//            uri = "";
+//        } else {
+//            UnfailingIterator nsiter = element.iterateAxis(Axis.NAMESPACE, AnyNodeTest.getInstance());
+//            while (true) {
+//                NodeInfo ns = (NodeInfo)nsiter.next();
+//                if (ns == null) {
+//                	break;
+//                }
+//                if (ns.getLocalPart().equals(parts[0])) {
+//                    uri = ns.getStringValue();
+//                    break;
+//                }
+//            }
+//            if (uri == null) {
+//                if (parts[0].length() == 0) {
+//                    uri = "";
+//                } else {
+//                    throw new IllegalStateException("Undeclared namespace prefix in DOM input: " + parts[0]);
+//                }
+//            }
+//        }
+//
+//        return uri;
     }
     
-    public final native String getNodeNamespace(Node node) /*-{
+    public static native String getNodeNamespace(Node node) /*-{
     	if (node.namespaceURI) {
     		return node.namespaceURI;
     	} else {
@@ -509,7 +514,7 @@ public class HTMLNodeWrapper extends AbstractNode implements NodeInfo, VirtualNo
     	}
     }-*/;
 
-    private native String getNodePrefix(Node node) /*-{
+    private static native String getNodePrefix(Node node) /*-{
     	if (node.prefix) {
     		return node.prefix;
     	} else {
@@ -653,7 +658,7 @@ public class HTMLNodeWrapper extends AbstractNode implements NodeInfo, VirtualNo
     * @return a SequenceIterator that scans the nodes reached by the axis in turn.
     */
 
-    public UnfailingIterator iterateAxis0(byte axisNumber) {
+    private UnfailingIterator iterateAxis(byte axisNumber) {
         switch (axisNumber) {
             case Axis.ANCESTOR:
                 if (nodeKind==Type.DOCUMENT) {
@@ -757,12 +762,10 @@ public class HTMLNodeWrapper extends AbstractNode implements NodeInfo, VirtualNo
 
         if (docWrapper.getDocType() != DocType.NONHTML && axisNumber == Axis.ATTRIBUTE && nodeTest instanceof NameTest) {
             if (nodeKind == Type.ELEMENT) {
-            	StructuredQName fp = nodeTest.getRequiredNodeName();
+            	StructuredQName fp = ((NameTest)nodeTest).getRequiredNodeName();
                 String uri = fp.getNamespaceURI();
                 String name = fp.getLocalName();
-                String prefix = fp.getPrefix();
                 String value;
-                boolean keepUri = false;
                 if (NamespaceConstant.HTML_PROP.equals(uri)) {
                     value = ((Element)node).getPropertyString(name);
                 } else if (NamespaceConstant.HTML_STYLE_PROP.equals(uri)) {
@@ -775,7 +778,7 @@ public class HTMLNodeWrapper extends AbstractNode implements NodeInfo, VirtualNo
                 } else {
                 	value = getAltAttribute(name);
                 	if (docWrapper.getDocType() == DocType.XHTML) {
-                		return Navigator.newAxisFilter(iterateAxis0(axisNumber), nodeTest);
+                		return Navigator.newAxisFilter(iterateAxis(axisNumber), nodeTest);
                 	}
                 }
                 //HTML only (not XHTML) - so don't use prefix / namespace
@@ -792,7 +795,7 @@ public class HTMLNodeWrapper extends AbstractNode implements NodeInfo, VirtualNo
                 return EmptyIterator.getInstance();
             }
         }
-        return Navigator.newAxisFilter(iterateAxis0(axisNumber), nodeTest);
+        return Navigator.newAxisFilter(iterateAxis(axisNumber), nodeTest);
     }
     
   
@@ -1157,13 +1160,31 @@ public class HTMLNodeWrapper extends AbstractNode implements NodeInfo, VirtualNo
     }
 
     /**
+     * Strip a node from the tree (used when stripping whitespace text nodes). This method needs care
+     * because it invalidates the index numbers of siblings of the removed node.
+     */
+
+    public void stripTextNode() {
+        Node textNode = node;
+        if (span == 1) {
+            textNode.removeFromParent();
+        } else {
+            for (int i=0; i<span; i++) {
+                Node t = textNode;
+                textNode = textNode.getNextSibling();
+                t.removeFromParent();
+            }
+        }
+    }
+
+    /**
     * The class ChildEnumeration handles not only the child axis, but also the
     * following-sibling and preceding-sibling axes. It can also iterate the children
     * of the start node in reverse order, something that is needed to support the
     * preceding and preceding-or-ancestor axes (the latter being used by xsl:number)
     */
 
-    private final class ChildEnumeration extends AxisIteratorImpl {
+    private final class ChildEnumeration implements UnfailingIterator {
 
         private HTMLNodeWrapper start;
         private HTMLNodeWrapper commonParent;
@@ -1182,7 +1203,6 @@ public class HTMLNodeWrapper extends AbstractNode implements NodeInfo, VirtualNo
             this.downwards = downwards;
             this.forwards = forwards;
             this.elementsOnly = elementsOnly;
-            position = 0;
             currentSpan = 1;
 
             if (downwards) {
@@ -1195,11 +1215,7 @@ public class HTMLNodeWrapper extends AbstractNode implements NodeInfo, VirtualNo
             childNodesLength = childNodes.getLength();
             if (downwards) {
                 currentSpan = 1;
-                if (forwards) {
-                    ix = -1;                        // just before first
-                } else {
-                    ix = childNodesLength;          // just after last
-                }
+                ix = (forwards ? -1 : childNodesLength); // (just before first or just after last)
             } else {
                 ix = start.getSiblingPosition();    // at current node
                 currentSpan = start.span;
@@ -1254,7 +1270,6 @@ public class HTMLNodeWrapper extends AbstractNode implements NodeInfo, VirtualNo
                 if (forwards) {
                     ix += currentSpan;
                     if (ix >= childNodesLength) {
-                        position = -1;
                         return null;
                     } else {
                         currentSpan = skipFollowingTextNodes();
@@ -1279,13 +1294,11 @@ public class HTMLNodeWrapper extends AbstractNode implements NodeInfo, VirtualNo
                         }
                         HTMLNodeWrapper wrapper = makeWrapper(currentDomNode, docWrapper, commonParent, ix);
                         wrapper.span = currentSpan;
-                        position++;
-                        return current = wrapper;
+                        return wrapper;
                     }
                 } else {
                     ix--;
                     if (ix < 0) {
-                        position = -1;
                         return null;
                     } else {
                         currentSpan = skipPrecedingTextNodes();
@@ -1311,14 +1324,13 @@ public class HTMLNodeWrapper extends AbstractNode implements NodeInfo, VirtualNo
                         }
                         HTMLNodeWrapper wrapper = makeWrapper(currentDomNode, docWrapper, commonParent, ix);
                         wrapper.span = currentSpan;
-                        position++;
-                        return current = wrapper;
+                        return wrapper;
                     }
                 }
             }
         }
 
-        public SequenceIterator getAnother() {
+        public UnfailingIterator getAnother() {
             return new ChildEnumeration(start, downwards, forwards, elementsOnly);
         }
 

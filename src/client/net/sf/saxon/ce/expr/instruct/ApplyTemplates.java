@@ -12,7 +12,6 @@ import client.net.sf.saxon.ce.tree.iter.FocusIterator;
 import client.net.sf.saxon.ce.tree.util.SourceLocator;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.Type;
-import client.net.sf.saxon.ce.value.SequenceTool;
 
 import java.util.ArrayList;
 import java.util.Iterator;
@@ -48,6 +47,46 @@ public class ApplyTemplates extends Instruction {
                             Mode mode) {
         init(select, useCurrentMode, useTailRecursion, mode);
         this.implicitSelect = implicitSelect;
+    }
+
+    /**
+     * Perform the built-in template action for a given node.
+     * @param node         the node to be processed
+     * @param parameters   the parameters supplied to apply-templates
+     * @param tunnelParams the tunnel parameters to be passed through
+     * @param context      the dynamic evaluation context
+     * @param sourceLocator   location of the instruction (apply-templates, apply-imports etc) that caused
+     *                     the built-in template to be invoked
+     * @throws client.net.sf.saxon.ce.trans.XPathException
+     *          if any dynamic error occurs
+     */
+
+    public static void defaultAction(NodeInfo node, ParameterSet parameters,
+                                     ParameterSet tunnelParams, XPathContext context,
+                                     SourceLocator sourceLocator) throws XPathException {
+        switch(node.getNodeKind()) {
+            case Type.DOCUMENT:
+            case Type.ELEMENT:
+                SequenceIterator iter = node.iterateAxis(Axis.CHILD, AnyNodeTest.getInstance());
+                XPathContext c2 = context.newContext();
+	            TailCall tc = applyTemplates(
+                        iter, context.getCurrentMode(), parameters, tunnelParams, c2, sourceLocator);
+                while (tc != null) {
+                    tc = tc.processLeavingTail();
+                }
+	            return;
+	        case Type.TEXT:
+	            // NOTE: I tried changing this to use the text node's copy() method, but
+	            // performance was worse
+	        case Type.ATTRIBUTE:
+	            context.getReceiver().characters(node.getStringValue());
+	            return;
+	        case Type.COMMENT:
+	        case Type.PROCESSING_INSTRUCTION:
+	        case Type.NAMESPACE:
+	            // no action
+        }
+
     }
 
     protected void init(  Expression select,
@@ -268,15 +307,13 @@ public class ApplyTemplates extends Instruction {
             if (rule==null) {
             	// Use the default action for the node
                 // No need to open a new stack frame!
-                mode.getBuiltInRuleSet().process(node, parameters, tunnelParameters, context, sourceLocator);
+                defaultAction(node, parameters, tunnelParameters, context, sourceLocator);
             } else {
                 Template template = rule.getAction();
                 if (template != previousTemplate) {
                     // Reuse the previous stackframe unless it's a different template rule
                     previousTemplate = template;
-                    context.openStackFrame(template.getNumberOfSlots());
-                    context.setLocalParameters(parameters);
-                    context.setTunnelParameters(tunnelParameters);
+                    context.setParameters(template.getNumberOfSlots(), parameters, tunnelParameters);
                 }
                 context.setCurrentTemplateRule(rule);
                 if (rule.isVirtual()){
@@ -291,47 +328,6 @@ public class ApplyTemplates extends Instruction {
 
         // return the TailCall returned from the last node processed
         return tc;
-    }
-
-    /**
-     * Perform the built-in template action for a given node.
-     *
-     * @param node the node to be processed
-     * @param parameters the parameters supplied to apply-templates
-     * @param tunnelParams the tunnel parameters to be passed through
-     * @param context the dynamic evaluation context
-     * @param sourceLocator location of the instruction (apply-templates, apply-imports etc) that caused
-     * the built-in template to be invoked
-     * @exception XPathException if any dynamic error occurs
-     */
-
-    public static void defaultAction(NodeInfo node,
-                                     ParameterSet parameters,
-                                     ParameterSet tunnelParams,
-                                     XPathContext context,
-                                     SourceLocator sourceLocator) throws XPathException {
-        switch(node.getNodeKind()) {
-            case Type.DOCUMENT:
-            case Type.ELEMENT:
-                SequenceIterator iter = node.iterateAxis(Axis.CHILD, AnyNodeTest.getInstance());
-                XPathContext c2 = context.newContext();
-	            TailCall tc = applyTemplates(
-                        iter, context.getCurrentMode(), parameters, tunnelParams, c2, sourceLocator);
-                while (tc != null) {
-                    tc = tc.processLeavingTail();
-                }
-	            return;
-	        case Type.TEXT:
-	            // NOTE: I tried changing this to use the text node's copy() method, but
-	            // performance was worse
-	        case Type.ATTRIBUTE:
-	            context.getReceiver().characters(node.getStringValue());
-	            return;
-	        case Type.COMMENT:
-	        case Type.PROCESSING_INSTRUCTION:
-	        case Type.NAMESPACE:
-	            // no action
-        }
     }
 
     /**

@@ -3,7 +3,6 @@ package client.net.sf.saxon.ce.expr;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.tree.iter.SingletonIterator;
 import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.TypeHierarchy;
@@ -17,8 +16,9 @@ import client.net.sf.saxon.ce.value.SequenceType;
 
 public final class InstanceOfExpression extends UnaryExpression {
 
-    ItemType targetType;
-    int targetCardinality;
+    //ItemType targetType;
+    //int targetCardinality;
+    SequenceType targetType;
 
     /**
      * Construct an "instance of" expression in the form "source instance of target"
@@ -28,11 +28,7 @@ public final class InstanceOfExpression extends UnaryExpression {
 
     public InstanceOfExpression(Expression source, SequenceType target) {
         super(source);
-        targetType = target.getPrimaryType();
-        if (targetType == null) {
-            throw new IllegalArgumentException("Primary item type must not be null");
-        }
-        targetCardinality = target.getCardinality();
+        targetType = target;
     }
 
     /**
@@ -41,16 +37,7 @@ public final class InstanceOfExpression extends UnaryExpression {
      */
 
     public ItemType getRequiredItemType() {
-        return targetType;
-    }
-
-    /**
-     * Get the cardinality that we are testing for membership of
-     * @return the required cardinality
-     */
-
-    public int getRequiredCardinality() {
-        return targetCardinality;
+        return targetType.getPrimaryType();
     }
 
     /**
@@ -69,16 +56,16 @@ public final class InstanceOfExpression extends UnaryExpression {
 
         // See if we can get the answer by static analysis.
 
-        if (Cardinality.subsumes(targetCardinality, operand.getCardinality())) {
+        if (Cardinality.subsumes(targetType.getCardinality(), operand.getCardinality())) {
             final TypeHierarchy th = TypeHierarchy.getInstance();
-            int relation = th.relationship(operand.getItemType(), targetType);
+            int relation = th.relationship(operand.getItemType(), targetType.getPrimaryType());
             if (relation == TypeHierarchy.SAME_TYPE || relation == TypeHierarchy.SUBSUMED_BY) {
                 Literal lit = Literal.makeLiteral(BooleanValue.TRUE);
                 ExpressionTool.copyLocationInfo(this, lit);
                 return lit;
             } else if (relation == TypeHierarchy.DISJOINT) {
                 // if the item types are disjoint, the result might still be true if both sequences are empty
-                if (!Cardinality.allowsZero(targetCardinality) || !Cardinality.allowsZero(operand.getCardinality())) {
+                if (!Cardinality.allowsZero(targetType.getCardinality()) || !Cardinality.allowsZero(operand.getCardinality())) {
                     Literal lit =  Literal.makeLiteral(BooleanValue.FALSE);
                     ExpressionTool.copyLocationInfo(this, lit);
                     return lit;
@@ -109,18 +96,6 @@ public final class InstanceOfExpression extends UnaryExpression {
         if (e != this) {
             return e;
         }
-        if (Cardinality.subsumes(targetCardinality, operand.getCardinality())) {
-            final TypeHierarchy th = TypeHierarchy.getInstance();
-            int relation = th.relationship(operand.getItemType(), targetType);
-            if (relation == TypeHierarchy.SAME_TYPE || relation == TypeHierarchy.SUBSUMED_BY) {
-                return Literal.makeLiteral(BooleanValue.TRUE);
-            } else if (relation == TypeHierarchy.DISJOINT) {
-                // if the item types are disjoint, the result might still be true if both sequences are empty
-                if (!Cardinality.allowsZero(targetCardinality) || !Cardinality.allowsZero(operand.getCardinality())) {
-                    return Literal.makeLiteral(BooleanValue.FALSE);
-                }
-            }
-        }
         return this;
     }
 
@@ -130,9 +105,7 @@ public final class InstanceOfExpression extends UnaryExpression {
      */
 
     public boolean equals(Object other) {
-        return super.equals(other) &&
-                targetType == ((InstanceOfExpression)other).targetType &&
-                targetCardinality == ((InstanceOfExpression)other).targetCardinality;
+        return super.equals(other) && targetType.equals(other);
     }
 
     /**
@@ -142,7 +115,7 @@ public final class InstanceOfExpression extends UnaryExpression {
 
     @Override
     public int hashCode() {
-        return super.hashCode() ^ targetType.hashCode() ^ targetCardinality;
+        return super.hashCode() ^ targetType.hashCode();
     }
 
     /**
@@ -175,37 +148,7 @@ public final class InstanceOfExpression extends UnaryExpression {
 
     public boolean effectiveBooleanValue(XPathContext context) throws XPathException {
         SequenceIterator iter = operand.iterate(context);
-        return isInstance(iter, context);
-    }
-
-    private boolean isInstance(SequenceIterator iter, XPathContext context) throws XPathException {
-        int count = 0;
-        while (true) {
-            Item item = iter.next();
-            if (item == null) break;
-            count++;
-            if (!targetType.matchesItem(item, false, context.getConfiguration())) {
-                return false;
-            }
-            if (count==2 && !Cardinality.allowsMany(targetCardinality)) {
-                return false;
-            }
-        }
-        return !(count == 0 && ((targetCardinality & StaticProperty.ALLOWS_ZERO) == 0));
-    }
-
-    /**
-     * Return an iterator over the results of the expression, given an iterator over the principal
-     * operand to the expression
-     * @param base an interator over the input to the expression
-     * @param context dynamic evaluation context
-     * @return an iterator over the results of the expression
-     * @throws XPathException
-     */
-
-    public SequenceIterator getMappingIterator(SequenceIterator base, XPathContext context) throws XPathException {
-        boolean b = isInstance(base, context);
-        return SingletonIterator.makeIterator(BooleanValue.get(b));
+        return TypeChecker.testConformance(iter, targetType) == null;
     }
 
 }

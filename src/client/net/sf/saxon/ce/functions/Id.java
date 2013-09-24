@@ -10,6 +10,7 @@ import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.ListIterator;
 import client.net.sf.saxon.ce.tree.iter.SingletonIterator;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.value.AtomicValue;
@@ -55,7 +56,7 @@ public class Id extends SystemFunction {
      */
 
     public Expression typeCheck(ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
-        if (argument[1] instanceof RootExpression && contextItemType != null && contextItemType.isAtomicType()) {
+        if (argument[1] instanceof RootExpression && contextItemType != null && contextItemType instanceof AtomicType) {
             // intercept this to get better diagnostics
             typeError(getFunctionName().getLocalName() +
                     "() function called when the context item is not a node", "XPTY0004");

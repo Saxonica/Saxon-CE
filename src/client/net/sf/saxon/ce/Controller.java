@@ -1056,9 +1056,7 @@ public class Controller {
             } else {
                 Template t = initialTemplate;
                 XPathContext c2 = initialContext.newContext();
-                c2.openStackFrame(t.getNumberOfSlots());
-                c2.setLocalParameters(new ParameterSet());
-                c2.setTunnelParameters(new ParameterSet());
+                c2.setParameters(t.getNumberOfSlots(), new ParameterSet(), new ParameterSet());
 
                 TailCall tc = t.expand(c2);
                 while (tc != null) {

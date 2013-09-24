@@ -94,10 +94,7 @@ public abstract class AbstractNumberer implements Numberer {
                          String ordinal) {
 
 
-        if (number < 0) {
-            return "" + number;
-        }
-        if (picture == null || picture.length() == 0) {
+        if (number < 0 || picture == null || picture.length() == 0) {
             return "" + number;
         }
 
@@ -148,26 +145,16 @@ public abstract class AbstractNumberer implements Numberer {
                 }
 
             case 'i':
-                if (number == 0) {
-                    return "0";
-                }
                 if (letterValue == null || letterValue.length() == 0 ||
                         letterValue.equals("traditional")) {
                     return toRoman(number);
-                } else {
-                    alphaDefault(number, 'i', sb);
                 }
                 break;
 
             case 'I':
-                if (number == 0) {
-                    return "0";
-                }
                 if (letterValue == null || letterValue.length() == 0 ||
                         letterValue.equals("traditional")) {
                     return toRoman(number).toUpperCase();
-                } else {
-                    alphaDefault(number, 'I', sb);
                 }
                 break;
 
@@ -193,61 +180,11 @@ public abstract class AbstractNumberer implements Numberer {
                 return "" + (char) (0x2488 + number - 1);
 
             case '\u0391':
-                if (number == 0) {
-                    return "0";
-                }
                 return toAlphaSequence(number, greekUpper);
 
             case '\u03b1':
-                if (number == 0) {
-                    return "0";
-                }
                 return toAlphaSequence(number, greekLower);
 
-            case '\u0410':
-                if (number == 0) {
-                    return "0";
-                }
-                return toAlphaSequence(number, cyrillicUpper);
-
-            case '\u0430':
-                if (number == 0) {
-                    return "0";
-                }
-                return toAlphaSequence(number, cyrillicLower);
-
-            case '\u05d0':
-                if (number == 0) {
-                    return "0";
-                }
-                return toAlphaSequence(number, hebrew);
-
-            case '\u3042':
-                if (number == 0) {
-                    return "0";
-                }
-                return toAlphaSequence(number, hiraganaA);
-
-            case '\u30a2':
-                if (number == 0) {
-                    return "0";
-                }
-                return toAlphaSequence(number, katakanaA);
-
-            case '\u3044':
-                if (number == 0) {
-                    return "0";
-                }
-                return toAlphaSequence(number, hiraganaI);
-
-            case '\u30a4':
-                if (number == 0) {
-                    return "0";
-                }
-                return toAlphaSequence(number, katakanaI);
-
-            case '\u4e00':
-                return toJapanese(number);
 
             default:
 
@@ -266,13 +203,8 @@ public abstract class AbstractNumberer implements Numberer {
                     if (number == 0) {
                         return "0";
                     }
-                    if (formchar < '\u1100') {
-                        alphaDefault(number, (char) formchar, sb);
-                    } else {
-                        // fallback to western numbering
-                        return toRadical(number, westernDigits, pictureLength, numGroupFormatter);
-                    }
-                    break;
+                    // fallback to western numbering
+                    return toRadical(number, westernDigits, pictureLength, numGroupFormatter);
 
                 }
         }
@@ -312,81 +244,6 @@ public abstract class AbstractNumberer implements Numberer {
             "\u03b1\u03b2\u03b3\u03b4\u03b5\u03b6\u03b7\u03b8\u03b9\u03ba" +
                     "\u03bb\u03bc\u03bd\u03be\u03bf\u03c0\u03c1\u03c2\u03c3\u03c4" +
                     "\u03c5\u03c6\u03c7\u03c8\u03c9";
-
-    // Cyrillic information from Dmitry Kirsanov [dmitry@kirsanov.com]
-    // (based on his personal knowledge of Russian texts, not any authoritative source)
-
-    protected static final String cyrillicUpper =
-            "\u0410\u0411\u0412\u0413\u0414\u0415\u0416\u0417\u0418" +
-                    "\u041a\u041b\u041c\u041d\u041e\u041f\u0420\u0421\u0421\u0423" +
-                    "\u0424\u0425\u0426\u0427\u0428\u0429\u042b\u042d\u042e\u042f";
-
-    protected static final String cyrillicLower =
-            "\u0430\u0431\u0432\u0433\u0434\u0435\u0436\u0437\u0438" +
-                    "\u043a\u043b\u043c\u043d\u043e\u043f\u0440\u0441\u0441\u0443" +
-                    "\u0444\u0445\u0446\u0447\u0448\u0449\u044b\u044d\u044e\u044f";
-
-    protected static final String hebrew =
-            "\u05d0\u05d1\u05d2\u05d3\u05d4\u05d5\u05d6\u05d7\u05d8\u05d9\u05db\u05dc" +
-                    "\u05de\u05e0\u05e1\u05e2\u05e4\u05e6\u05e7\u05e8\u05e9\u05ea";
-
-
-    // The following Japanese sequences were supplied by
-    // MURAKAMI Shinyu [murakami@nadita.com]
-
-    protected static final String hiraganaA =
-            "\u3042\u3044\u3046\u3048\u304a\u304b\u304d\u304f\u3051\u3053" +
-                    "\u3055\u3057\u3059\u305b\u305d\u305f\u3061\u3064\u3066\u3068" +
-                    "\u306a\u306b\u306c\u306d\u306e\u306f\u3072\u3075\u3078\u307b" +
-                    "\u307e\u307f\u3080\u3081\u3082\u3084\u3086\u3088\u3089\u308a" +
-                    "\u308b\u308c\u308d\u308f\u3092\u3093";
-
-    protected static final String katakanaA =
-
-            "\u30a2\u30a4\u30a6\u30a8\u30aa\u30ab\u30ad\u30af\u30b1\u30b3" +
-                    "\u30b5\u30b7\u30b9\u30bb\u30bd\u30bf\u30c1\u30c4\u30c6\u30c8" +
-                    "\u30ca\u30cb\u30cc\u30cd\u30ce\u30cf\u30d2\u30d5\u30d8\u30db" +
-                    "\u30de\u30df\u30e0\u30e1\u30e2\u30e4\u30e6\u30e8\u30e9\u30ea" +
-                    "\u30eb\u30ec\u30ed\u30ef\u30f2\u30f3";
-
-    protected static final String hiraganaI =
-
-            "\u3044\u308d\u306f\u306b\u307b\u3078\u3068\u3061\u308a\u306c" +
-                    "\u308b\u3092\u308f\u304b\u3088\u305f\u308c\u305d\u3064\u306d" +
-                    "\u306a\u3089\u3080\u3046\u3090\u306e\u304a\u304f\u3084\u307e" +
-                    "\u3051\u3075\u3053\u3048\u3066\u3042\u3055\u304d\u3086\u3081" +
-                    "\u307f\u3057\u3091\u3072\u3082\u305b\u3059";
-
-    protected static final String katakanaI =
-
-            "\u30a4\u30ed\u30cf\u30cb\u30db\u30d8\u30c8\u30c1\u30ea\u30cc" +
-                    "\u30eb\u30f2\u30ef\u30ab\u30e8\u30bf\u30ec\u30bd\u30c4\u30cd" +
-                    "\u30ca\u30e9\u30e0\u30a6\u30f0\u30ce\u30aa\u30af\u30e4\u30de" +
-                    "\u30b1\u30d5\u30b3\u30a8\u30c6\u30a2\u30b5\u30ad\u30e6\u30e1" +
-                    "\u30df\u30b7\u30f1\u30d2\u30e2\u30bb\u30b9";
-
-
-
-
-
-    /**
-     * Default processing with an alphabetic format token: use the contiguous
-     * range of Unicode letters starting with that token.
-     *
-     * @param number   the number to be formatted
-     * @param formchar the format character, for example 'A' for the numbering sequence A,B,C
-     * @param sb       buffer to hold the result of the formatting
-     */
-
-    protected void alphaDefault(long number, char formchar, FastStringBuffer sb) {
-        int min = (int) formchar;
-        int max = (int) formchar;
-        // use the contiguous range of letters starting with the specified one
-        while (Character.isLetterOrDigit((char) (max + 1))) {
-            max++;
-        }
-        sb.append(toAlpha(number, min, max));
-    }
 
     /**
      * Format the number as an alphabetic label using the alphabet consisting
@@ -503,59 +360,6 @@ public abstract class AbstractNumberer implements Numberer {
     private static String[] romanUnits =
             {"", "i", "ii", "iii", "iv", "v", "vi", "vii", "viii", "ix"};
 
-
-    /**
-     * Format the number in Japanese.
-     * @param number the number to be formatted: formatted in Western decimal style unless in the range 1 to 9999
-     * @return the Japanese Kanji representation of the number if in the range 1-9999
-     */
-
-    public String toJapanese(long number) {
-        FastStringBuffer fsb = new FastStringBuffer(FastStringBuffer.TINY);
-        if (number == 0) {
-            fsb.appendWideChar(0x3007);
-        } else if (number <= 9999) {
-            toJapanese((int)number, fsb, false);
-        } else {
-            fsb.append("" + number);
-        }
-        return fsb.toString();
-    }
-
-    /**
-     * Format the number in Japanese.
-     * @param nr the number to be formatted: must be in the range 1 to 9999 (or 0 on a recursive call)
-     * @param fsb buffer to receive the formatted number
-     * @return the Japanese Kanji representation of the number in lower case
-     */
-
-    private static void toJapanese(int nr, FastStringBuffer fsb, boolean isInitial) {
-        if (nr == 0) {
-            // no action (not used at top level)
-        } else if (nr <= 9) {
-            if (!(nr == 1 && isInitial)) {
-                fsb.appendWideChar(kanjiDigits[nr]);
-            }
-        } else if (nr == 10) {
-            fsb.appendWideChar(0x5341);
-        } else if (nr <= 99) {
-            toJapanese(nr / 10, fsb, true);
-            fsb.appendWideChar(0x5341);
-            toJapanese(nr % 10, fsb, false);
-        } else if (nr <= 999) {
-            toJapanese(nr / 100, fsb, true);
-            fsb.appendWideChar(0x767e);
-            toJapanese(nr % 100, fsb, false);
-        } else if (nr <= 9999) {
-            toJapanese(nr / 1000, fsb, true);
-            fsb.appendWideChar(0x5343);
-            toJapanese(nr % 1000, fsb, false);
-        }
-
-    }
-
-    private static final int[] kanjiDigits =
-            {0x3007, 0x4e00, 0x4e8c, 0x4e09, 0x56db, 0x4e94, 0x516d, 0x4e03, 0x516b, 0x4e5d};
 
     /**
      * Show the number as words in title case. (We choose title case because

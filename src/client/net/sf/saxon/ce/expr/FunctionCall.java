@@ -1,6 +1,5 @@
 package client.net.sf.saxon.ce.expr;
 import client.net.sf.saxon.ce.om.StructuredQName;
-import client.net.sf.saxon.ce.trans.NoDynamicContextException;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
 import client.net.sf.saxon.ce.type.ItemType;
@@ -124,13 +123,7 @@ public abstract class FunctionCall extends Expression {
         }
         checkArguments(visitor);
         if (fixed) {
-            try {
-                return preEvaluate(visitor);
-            } catch (NoDynamicContextException err) {
-                // Early evaluation failed, typically because the implicit timezone is not yet known.
-                // Try again later at run-time.
-                return this;
-            }
+            return preEvaluate(visitor);
         } else {
             return this;
         }
@@ -184,16 +177,11 @@ public abstract class FunctionCall extends Expression {
         if (getIntrinsicDependencies() != 0) {
             return this;
         }
-        try {
-            Literal lit = Literal.makeLiteral(
-                    SequenceExtent.makeSequenceExtent(
-                            iterate(new EarlyEvaluationContext(visitor.getConfiguration()))));
-            ExpressionTool.copyLocationInfo(this, lit);
-            return lit;
-        } catch (NoDynamicContextException e) {
-            // early evaluation failed, usually because implicit timezone required
-            return this;
-        }
+        Literal lit = Literal.makeLiteral(
+                SequenceExtent.makeSequenceExtent(
+                        iterate(new EarlyEvaluationContext(visitor.getConfiguration()))));
+        ExpressionTool.copyLocationInfo(this, lit);
+        return lit;
     }
 
     /**

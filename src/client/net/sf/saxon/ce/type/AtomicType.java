@@ -1,21 +1,73 @@
 package client.net.sf.saxon.ce.type;
 
-import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.om.*;
 import client.net.sf.saxon.ce.value.*;
+
+import java.util.HashMap;
 
 /**
  * This class represents a built-in atomic type, which may be either a primitive type
  * (such as xs:decimal or xs:anyURI) or a derived type (such as xs:ID or xs:dayTimeDuration).
  */
 
-public class AtomicType extends BuiltInType implements SchemaType, ItemType {
+public class AtomicType implements ItemType {
 
-    String localName;
-    SchemaType baseType;
-    boolean ordered = false;
+    private static HashMap<String, AtomicType> lookup = new HashMap<String, AtomicType>(20);
 
-    public static AtomicType ANY_ATOMIC = makeAtomicType("anyAtomicType", AnySimpleType.getInstance(), true);
+    /**
+     * Internal factory method to create a BuiltInAtomicType. There is one instance for each of the
+     * built-in atomic types
+     *
+     * @param localName The name of the type within the XSD namespace
+     * @param baseType    The base type from which this type is derived
+     * @param ordered True if an ordering relationship is defined for this type
+     * @return the newly constructed built in atomic type
+     */
+    private static AtomicType makeAtomicType(String localName, ItemType baseType, boolean ordered) {
+        AtomicType t = new AtomicType(localName);
+        t.baseType = baseType;
+        t.ordered = ordered;
+        register(localName, t);
+        return t;
+    }
+
+    public static boolean isRecognizedName(String localName) {
+        return getSchemaType(localName) != null ||
+                "anyType".equals(localName) ||
+                "untyped".equals(localName) ||
+                "anySimpleType".equals(localName);
+    }
+
+    /**
+     * Get the schema type with a given fingerprint
+     * @param localName the local name of the type, in the XSD namespace
+     * @return the SchemaType object representing the given type, if known, otherwise null
+     */
+
+    public static AtomicType getSchemaType(String localName) {
+        AtomicType st = lookup.get(localName);
+        if (st == null) {
+            // this means the method has been called before doing the static initialization of BuiltInAtomicType
+            // or BuiltInListType. So force it now
+            if (AtomicType.DOUBLE == null) {
+                // no action, except to force the initialization to run
+            }
+            st = lookup.get(localName);
+        }
+        return st;
+    }
+
+    /**
+     * Method for internal use to register a built in type with this class
+     * @param localName the type name within the XSD namespace
+     * @param type the SchemaType representing the built in type
+     */
+
+    static void register(String localName, AtomicType type) {
+        lookup.put(localName, type);
+    }
+
+    public static AtomicType ANY_ATOMIC = makeAtomicType("anyAtomicType", AnyItemType.getInstance(), true);
 
     public static AtomicType NUMERIC = makeAtomicType("numeric", ANY_ATOMIC, true);
 
@@ -64,9 +116,11 @@ public class AtomicType extends BuiltInType implements SchemaType, ItemType {
     public static AtomicType DAY_TIME_DURATION = makeAtomicType("dayTimeDuration", DURATION, true);
 
 
-    static {
-        
-    }
+
+
+    String localName;
+    ItemType baseType;
+    boolean ordered = false;
 
     private AtomicType(String localName) {
         this.localName = localName;
@@ -107,41 +161,20 @@ public class AtomicType extends BuiltInType implements SchemaType, ItemType {
     }
 
     /**
-     * Returns the base type that this type inherits from. This method can be used to get the
-     * base type of a type that is known to be valid.
-     * If this type is a Simpletype that is a built in primitive type then null is returned.
-     *
-     * @return the base type.
-     * @throws IllegalStateException if this type is not valid.
-     */
-
-    public final SchemaType getBaseType() {
-        return baseType;
-    }
-
-    /**
      * Test whether a given item conforms to this type
-     *
-     * @param item              The item to be tested
-     * @param allowURIPromotion true if we regard a URI as effectively a subtype of String
-     * @param config            the Saxon configuration (used to locate the type hierarchy cache)
+     * @param item  The item to be tested
      * @return true if the item is an instance of this type; false otherwise
      */
 
-    public boolean matchesItem(Item item, boolean allowURIPromotion, Configuration config) {
+    public boolean matchesItem(Item item) {
         if (item instanceof AtomicValue) {
             ItemType type = ((AtomicValue)item).getItemType();
-            if (type == this) {
-                return true;
-            }
-            final TypeHierarchy th = TypeHierarchy.getInstance();
-            if (th.isSubType(type, this)) {
-                return true;
-            }
-            if (allowURIPromotion && this == STRING && th.isSubType(type, AtomicType.ANY_URI)) {
-                // allow promotion from anyURI to string
-                return true;
-            }
+            do {
+                if (type == this) {
+                    return true;
+                }
+                type = type.getSuperType();
+            } while (type != null);
         }
         return false;
     }
@@ -152,30 +185,11 @@ public class AtomicType extends BuiltInType implements SchemaType, ItemType {
      * base type: this means that the supertype of xs:boolean is xs:anyAtomicType,
      * whose supertype is item() (rather than xs:anySimpleType).
      *
-     * @param th the type hierarchy cache, not used in this implementation
      * @return the supertype, or null if this type is item()
      */
 
-    public ItemType getSuperType(TypeHierarchy th) {
-        SchemaType base = getBaseType();
-        if (base instanceof AnySimpleType) {
-            return AnyItemType.getInstance();
-        } else {
-            return (ItemType)base;
-        }
-    }
-
-    /**
-     * Get the primitive item type corresponding to this item type. For item(),
-     * this is Type.ITEM. For node(), it is Type.NODE. For specific node kinds,
-     * it is the value representing the node kind, for example Type.ELEMENT.
-     * For anyAtomicValue it is Type.ATOMIC_VALUE. For numeric it is Type.NUMBER.
-     * For other atomic types it is the primitive type as defined in XML Schema,
-     * except that INTEGER is considered to be a primitive type.
-     */
-
-    public ItemType getPrimitiveItemType() {
-        return this;    // all atomic types in Saxon-CE are primitive
+    public ItemType getSuperType() {
+        return baseType;
     }
 
     /**
@@ -191,32 +205,6 @@ public class AtomicType extends BuiltInType implements SchemaType, ItemType {
         return getDisplayName();
     }
 
-    /**
-     * Test whether this Simple Type is an atomic type
-     *
-     * @return true, this is an atomic type
-     */
-
-    public boolean isAtomicType() {
-        return true;
-    }
-
-    /**
-     * Internal factory method to create a BuiltInAtomicType. There is one instance for each of the
-     * built-in atomic types
-     *
-     * @param localName The name of the type within the XSD namespace
-     * @param baseType    The base type from which this type is derived
-     * @param ordered True if an ordering relationship is defined for this type
-     * @return the newly constructed built in atomic type
-     */
-    private static AtomicType makeAtomicType(String localName, SchemaType baseType, boolean ordered) {
-        AtomicType t = new AtomicType(localName);
-        t.baseType = baseType;
-        t.ordered = ordered;
-        BuiltInType.register(localName, t);
-        return t;
-    }
 
 }
 

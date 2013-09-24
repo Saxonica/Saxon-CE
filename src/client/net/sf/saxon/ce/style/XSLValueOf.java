@@ -68,7 +68,7 @@ public final class XSLValueOf extends XSLLeafNodeConstructor {
     public Expression compile(Executable exec, Declaration decl) throws XPathException {
         final TypeHierarchy th = TypeHierarchy.getInstance();
         if (separator == null && select != null && xPath10ModeIsEnabled()) {
-            if (!select.getItemType().isAtomicType()) {
+            if (!(select.getItemType() instanceof AtomicType)) {
                 select = new Atomizer(select);
                 select = makeExpressionVisitor().simplify(select);
             }

@@ -34,8 +34,6 @@ public class Mode  {
     public static final StructuredQName UNNAMED_MODE_NAME =
             new StructuredQName("saxon", NamespaceConstant.SAXON, "_defaultMode");
 
-    private BuiltInRuleSet builtInRuleSet = StringifyRuleSet.getInstance();
-
     private Rule genericNodeRuleChain = null;
     private ArrayList<Rule> virtualRuleChain = null;
     private Rule documentRuleChain = null;
@@ -112,17 +110,6 @@ public class Mode  {
     
     public ArrayList<Rule> getVirtualRuleSet() {
     	return virtualRuleChain;
-    }
-
-     /**
-     * Get the built-in template rules to be used with this Mode in the case where there is no
-     * explicit template rule
-     * @return the built-in rule set, defaulting to the StringifyRuleSet if no other rule set has
-     * been supplied
-     */
-
-    public BuiltInRuleSet getBuiltInRuleSet() {
-        return this.builtInRuleSet;
     }
 
     /**
@@ -213,24 +200,24 @@ public class Mode  {
         mostRecentModuleHash = moduleHash;
 
         int kind = pattern.getNodeKind();
+        StructuredQName nodeName = (pattern.getNodeTest() instanceof NameTest ?
+                    ((NameTest)pattern.getNodeTest()).getRequiredNodeName() : null);
         switch (kind) {
             case Type.ELEMENT: {
-                StructuredQName fp = pattern.getNodeTest().getRequiredNodeName();
-                if (fp == null) {
+                if (nodeName == null) {
                     unnamedElementRuleChain = addRuleToList(newRule, unnamedElementRuleChain);
                 } else {
-                    Rule chain = namedElementRuleChains.get(fp);
-                    namedElementRuleChains.put(fp, addRuleToList(newRule, chain));
+                    Rule chain = namedElementRuleChains.get(nodeName);
+                    namedElementRuleChains.put(nodeName, addRuleToList(newRule, chain));
                 }
                 break;
             }
             case Type.ATTRIBUTE: {
-                StructuredQName fp = pattern.getNodeTest().getRequiredNodeName();
-                if (fp == null) {
+                if (nodeName == null) {
                     unnamedAttributeRuleChain = addRuleToList(newRule, unnamedAttributeRuleChain);
                 } else {
-                    Rule chain = namedAttributeRuleChains.get(fp);
-                    namedAttributeRuleChains.put(fp, addRuleToList(newRule, chain));
+                    Rule chain = namedAttributeRuleChains.get(nodeName);
+                    namedAttributeRuleChains.put(nodeName, addRuleToList(newRule, chain));
                 }
                 break;
             }

@@ -16,14 +16,17 @@ import java.util.HashMap;
  */
 
 public class StripSpaceRules  {
+    public final static Template STRIP = new Template();
+    public final static Template PRESERVE = new Template();
 
-   // This is a cut-down version of the Mode class, which until 9.3 was used for the job, even though
+    // This is a cut-down version of the Mode class, which until 9.3 was used for the job, even though
    // it is over-engineered for the task.
 
     private Rule anyElementRule = null;
     private Rule unnamedElementRuleChain = null;
     private HashMap<StructuredQName, Rule> namedElementRules = new HashMap<StructuredQName, Rule>(32);
     private int sequence = 0;
+    private boolean isStripping = false;
 
     /**
      * Default constructor - creates a StripSpaceRules containing no rules
@@ -59,13 +62,24 @@ public class StripSpaceRules  {
             anyElementRule = addRuleToList(newRule, anyElementRule, true);
         } else if (test instanceof NameTest) {
             newRule.setAlwaysMatches(true);
-            StructuredQName fp = test.getRequiredNodeName();
+            StructuredQName fp = ((NameTest)test).getRequiredNodeName();
             Rule chain = namedElementRules.get(fp);
             namedElementRules.put(fp, addRuleToList(newRule, chain, true));
         } else {
             unnamedElementRuleChain = addRuleToList(newRule, unnamedElementRuleChain, false);
         }
+        if (action == STRIP) {
+            isStripping = true;
+        }
+    }
 
+    /**
+     * Check whether one or more stripping rules have been defined
+     * @return true if one or more rules require whitespace stripping
+     */
+
+    public boolean isStripping() {
+        return isStripping;
     }
 
     /**
@@ -107,6 +121,11 @@ public class StripSpaceRules  {
         return list;
     }
 
+    public boolean isSpaceStripped(StructuredQName elementName) {
+        Rule rule = getRule(elementName);
+        return rule != null && rule.getAction() == STRIP;
+    }
+
     /**
      * Get the rule corresponding to a given element node, by finding the best pattern match.
      *
@@ -114,7 +133,7 @@ public class StripSpaceRules  {
      * @return the best matching rule, if any (otherwise null).
      */
 
-    public Rule getRule(StructuredQName fingerprint) {
+    private Rule getRule(StructuredQName fingerprint) {
 
         // search the specific list for this node type / node name
 

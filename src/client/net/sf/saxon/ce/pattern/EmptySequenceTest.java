@@ -1,9 +1,6 @@
 package client.net.sf.saxon.ce.pattern;
-import client.net.sf.saxon.ce.Configuration;
-import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.om.StructuredQName;
-import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.Type;
 
 /**
@@ -35,32 +32,6 @@ public final class EmptySequenceTest extends NodeTest {
 	public final int getRequiredNodeKind() {
 		return Type.EMPTY;
 	}
-
-    /**
-     * Get the primitive item type corresponding to this item type. For item(),
-     * this is Type.ITEM. For node(), it is Type.NODE. For specific node kinds,
-     * it is the value representing the node kind, for example Type.ELEMENT.
-     * For anyAtomicValue it is Type.ATOMIC_VALUE. For numeric it is Type.NUMBER.
-     * For other atomic types it is the primitive type as defined in XML Schema,
-     * except that INTEGER is considered to be a primitive type.
-     */
-
-    public ItemType getPrimitiveItemType() {
-        return this;
-    }
-
-    /**
-     * Test whether a given item conforms to this type
-     * @param item The item to be tested
-     * @param allowURIPromotion
-     * @param config
-     * @return true if the item is an instance of this type; false otherwise
-    */
-
-    public boolean matchesItem(Item item, boolean allowURIPromotion, Configuration config) {
-        return false;
-    }
-
 
     /**
     * Test whether this node test is satisfied by a given node

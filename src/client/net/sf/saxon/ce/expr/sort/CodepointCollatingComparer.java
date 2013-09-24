@@ -46,11 +46,12 @@ public class CodepointCollatingComparer implements AtomicComparer {
     * Compare two AtomicValue objects according to the rules for their data type. UntypedAtomic
     * values are compared as if they were strings; if different semantics are wanted, the conversion
     * must be done by the caller.
-    * @param a the first object to be compared. This must be either be an instance
-    * of AtomicValue, or null to represent an empty sequence. Empty collates before non-empty.
-    * @param b the second object to be compared. This must be either be an instance
-    * of AtomicValue, or null to represent an empty sequence. 
-    * @return <0 if a<b, 0 if a=b, >0 if a>b
+    *
+     * @param a the first object to be compared. This must be either be an instance
+     * of AtomicValue, or null to represent an empty sequence. Empty collates before non-empty.
+     * @param b the second object to be compared. This must be either be an instance
+     * of AtomicValue, or null to represent an empty sequence.
+     * @return <0 if a<b, 0 if a=b, >0 if a>b
     * @throws ClassCastException if the objects are not comparable
     */
 
@@ -73,9 +74,10 @@ public class CodepointCollatingComparer implements AtomicComparer {
     /**
     * Compare two AtomicValue objects for equality. The values must be instances of xs:string or a type
      * derived from xs:string. The method will also handle xs:untypedAtomic and xs:anyURI values.
-    * @param a the first object to be compared.
-    * @param b the second object to be compared.
-    * @return <0 if a<b, 0 if a=b, >0 if a>b
+    *
+     * @param a the first object to be compared.
+     * @param b the second object to be compared.
+     * @return <0 if a<b, 0 if a=b, >0 if a>b
     * @throws ClassCastException if either value is not xs:string or a subtype
     */
 

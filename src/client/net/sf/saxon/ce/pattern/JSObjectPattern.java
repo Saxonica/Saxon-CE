@@ -16,7 +16,7 @@ public class JSObjectPattern extends NodeSetPattern {
 	private JavaScriptObject val = null;
 	
 	public JSObjectPattern(Expression exp, Configuration config) {
-		super(exp, config);
+		super(exp);
 		expression = exp;
 	}
 	
@@ -36,7 +36,7 @@ public class JSObjectPattern extends NodeSetPattern {
      * local variable to cache value so it can be used for a match test
      */
     public JavaScriptObject evaluate(XPathContext context) throws XPathException{
-			Sequence valueRep = (Sequence)expression.evaluateItem(context);
+			Sequence valueRep = expression.evaluateItem(context);
 			val = (JavaScriptObject)IXSLFunction.convertToJavaScript(valueRep);
 			return val;
     }

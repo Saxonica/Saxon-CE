@@ -11,6 +11,7 @@ import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.EmptyIterator;
 import client.net.sf.saxon.ce.tree.iter.OneItemGoneIterator;
 import client.net.sf.saxon.ce.tree.util.SourceLocator;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.type.TypeHierarchy;
@@ -201,7 +202,7 @@ public class SlashExpression extends Expression
 //                return new DocumentSorter(this);
 //            }
 
-        } else if (stepType.isAtomicType()) {
+        } else if (stepType instanceof AtomicType) {
             // This is a simple mapping expression: a/b where b returns atomic values
             ForEach ame = new ForEach(start, step, false);
             ExpressionTool.copyLocationInfo(this, ame);

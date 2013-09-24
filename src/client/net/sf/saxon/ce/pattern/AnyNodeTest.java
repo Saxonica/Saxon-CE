@@ -1,13 +1,10 @@
 package client.net.sf.saxon.ce.pattern;
 
-import client.net.sf.saxon.ce.Configuration;
-import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.type.AnyItemType;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.Type;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
 
 /**
   * NodeTest is an interface that enables a test of whether a node has a particular
@@ -34,19 +31,8 @@ public final class AnyNodeTest extends NodeTest {
 
     private AnyNodeTest() {}
 
-    /**
-     * Test whether a given item conforms to this type
-     * @param item The item to be tested
-     * @param allowURIPromotion
-     * @param config
-     * @return true if the item is an instance of this type; false otherwise
-    */
 
-    public boolean matchesItem(Item item, boolean allowURIPromotion, Configuration config) {
-        return (item instanceof NodeInfo);
-    }
-
-    public ItemType getSuperType(TypeHierarchy th) {
+    public ItemType getSuperType() {
         return AnyItemType.getInstance();
     }
 
@@ -57,7 +43,7 @@ public final class AnyNodeTest extends NodeTest {
      */
 
     public final boolean matches(int nodeType, StructuredQName qName) {
-        return nodeType != Type.PARENT_POINTER;
+        return true;
     }
 
     /**

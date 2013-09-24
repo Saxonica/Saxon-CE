@@ -1,14 +1,14 @@
 package client.net.sf.saxon.ce.expr;
 
-import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.functions.SystemFunction;
-import client.net.sf.saxon.ce.om.*;
+import client.net.sf.saxon.ce.om.Item;
+import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.pattern.EmptySequenceTest;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.*;
 import client.net.sf.saxon.ce.value.Cardinality;
-import client.net.sf.saxon.ce.value.SequenceType;
 import client.net.sf.saxon.ce.value.SequenceTool;
+import client.net.sf.saxon.ce.value.SequenceType;
 
 
 /**
@@ -145,10 +145,10 @@ public final class TypeChecker {
         if (!itemTypeOK) {
             // Now apply the conversions needed in 2.0 mode
 
-            if (reqItemType.isAtomicType()) {
+            if (reqItemType instanceof AtomicType) {
 
                 // rule 1: Atomize
-                if (!(suppliedItemType.isAtomicType()) &&
+                if (!(suppliedItemType instanceof AtomicType) &&
                         !(suppliedCard == StaticProperty.EMPTY)) {
                     exp = new Atomizer(exp);
                     suppliedItemType = exp.getItemType();
@@ -302,20 +302,18 @@ public final class TypeChecker {
 
     /**
      * Test whether a given value conforms to a given type
-     * @param val the value
+     *
+     * @param iter iterator over the value
      * @param requiredType the required type
-     * @param context XPath dynamic context
-     * @return an XPathException describing the error condition if the value doesn't conform;
+     * @return a string describing the error condition if the value doesn't conform;
      * or null if it does.
      * @throws XPathException if a failure occurs reading the value
      */
 
-    public static XPathException testConformance(
-            Sequence val, SequenceType requiredType, XPathContext context)
+    public static String testConformance(
+            SequenceIterator iter, SequenceType requiredType)
     throws XPathException {
         ItemType reqItemType = requiredType.getPrimaryType();
-        final Configuration config = context.getConfiguration();
-        SequenceIterator iter = val.iterate();
         int count = 0;
         while (true) {
             Item item = iter.next();
@@ -323,24 +321,21 @@ public final class TypeChecker {
                 break;
             }
             count++;
-            if (!reqItemType.matchesItem(item, false, config)) {
-                return new XPathException("Required type is " + reqItemType +
-                        "; supplied value has type " + SequenceTool.getItemTypeOfValue(val), "XPTY0004");
+            if (!reqItemType.matchesItem(item)) {
+                return ("Required type is " + reqItemType +
+                        "; supplied value includes an item of type " + SequenceTool.getItemType(item));
             }
         }
 
         int reqCardinality = requiredType.getCardinality();
         if (count == 0 && !Cardinality.allowsZero(reqCardinality)) {
-            return new XPathException(
-                    "Required type does not allow empty sequence, but supplied value is empty", "XPTY0004");
+            return "Required type does not allow empty sequence, but supplied value is empty";
         }
         if (count > 1 && !Cardinality.allowsMany(reqCardinality)) {
-            return new XPathException(
-                    "Required type requires a singleton sequence; supplied value contains " + count + " items", "XPTY0004");
+            return "Required type requires a singleton sequence; supplied value contains " + count + " items";
         }
         if (count > 0 && reqCardinality == StaticProperty.EMPTY) {
-            return new XPathException(
-                    "Required type requires an empty sequence, but supplied value is non-empty", "XPTY0004");
+            return "Required type requires an empty sequence, but supplied value is non-empty";
         }
         return null;
     }

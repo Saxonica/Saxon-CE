@@ -251,7 +251,7 @@ public class NamespaceNode extends AbstractNode implements NodeInfo {
                 return element.iterateAxis(Axis.ANCESTOR_OR_SELF, nodeTest);
 
             case Axis.ANCESTOR_OR_SELF:
-                if (nodeTest.matches(this)) {
+                if (nodeTest.matchesItem(this)) {
                     return new PrependIterator(this, element.iterateAxis(Axis.ANCESTOR_OR_SELF, nodeTest));
                 } else {
                     return element.iterateAxis(Axis.ANCESTOR_OR_SELF, nodeTest);
@@ -400,12 +400,12 @@ public class NamespaceNode extends AbstractNode implements NodeInfo {
         int position = 0;
         while (bindings.hasNext()) {
             NamespaceNode node = new NamespaceNode(element, bindings.next(), position++);
-            if (test.matches(node)) {
+            if (test.matchesItem(node)) {
                 nodes.add(node);
             }
         }
         NamespaceNode node = new NamespaceNode(element, NamespaceBinding.XML, position);
-        if (test.matches(node)) {
+        if (test.matchesItem(node)) {
             nodes.add(node);
         }
         return new ListIterator(nodes);

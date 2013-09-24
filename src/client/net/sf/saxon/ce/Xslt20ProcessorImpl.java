@@ -4,6 +4,7 @@ import client.net.sf.saxon.ce.Controller.APIcommand;
 import client.net.sf.saxon.ce.client.HTTPHandler;
 import client.net.sf.saxon.ce.dom.HTMLDocumentWrapper;
 import client.net.sf.saxon.ce.dom.HTMLDocumentWrapper.DocType;
+import client.net.sf.saxon.ce.dom.Sanitizer;
 import client.net.sf.saxon.ce.dom.XMLDOM;
 import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
@@ -207,7 +208,7 @@ public class Xslt20ProcessorImpl implements EntryPoint {
             localController.setApiCommand(APIcommand.UPDATE_HTML);
             localController.setTargetNode(Document.get());          // target node is the document node
             
-            renderXML(sourceDoc, styleDoc, body);                   // principle output is to the body element
+            renderXML(sourceDoc, styleDoc, body);                   // principal output is to the body element
 
         } catch (Exception err) {
         	logger.log(Level.SEVERE, err.getMessage());
@@ -388,6 +389,10 @@ public class Xslt20ProcessorImpl implements EntryPoint {
             	} else {
             		fetchedSourceDoc = SaxonceApi.getDocSynchronously(inSourceDoc, config);
             	}
+            }
+
+            if (stylesheet.getStripperRules().isStripping()) {
+                new Sanitizer(stylesheet.getStripperRules()).sanitize((HTMLDocumentWrapper)fetchedSourceDoc);
             }
             // this method only runs if transformInvoked == false - need to get sourceDoc reference if not invoked
 

@@ -32,6 +32,8 @@ public class HTMLWriter implements Receiver {
     private Node containerNode;
     private static Logger logger = Logger.getLogger("XSLT20Processor");
 
+    public HTMLWriter() {}
+
     /**
      * Native Javascript method to create a namespaced element. Not available in GWT because
      * it's not supported in IE. But needed for SVG/mathML support
@@ -96,7 +98,7 @@ public class HTMLWriter implements Receiver {
 			name = "colSpan";
 		} else if (name.equals("cellpadding")){
 			name = "cellPadding";
-		} else if (name.equals("cellppacing")){
+		} else if (name.equals("cellspacing")){
 			name = "cellSpacing";
 		}
     	}

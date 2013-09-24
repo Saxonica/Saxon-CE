@@ -11,6 +11,7 @@ import client.net.sf.saxon.ce.pattern.NodeKindTest;
 import client.net.sf.saxon.ce.pattern.NodeTest;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.NamespaceIterator;
+import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.value.EmptySequence;
@@ -144,7 +145,7 @@ public class Copy extends ElementCreator {
             if (resultItemType == null) {
                 resultItemType = computeItemType();
             }
-            if (resultItemType.isAtomicType()) {
+            if (resultItemType instanceof AtomicType) {
                 return select;
             }
         }

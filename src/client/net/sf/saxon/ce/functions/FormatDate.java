@@ -73,10 +73,6 @@ public class FormatDate extends SystemFunction {
     /**
      * This method analyzes the formatting picture and delegates the work of formatting
      * individual parts of the date.
-     *
-     *
-     *
-     *
      * @param value    the value to be formatted
      * @param format   the supplied format picture
      * @param language the chosen language
@@ -101,8 +97,9 @@ public class FormatDate extends SystemFunction {
         int i = 0;
         while (true) {
             while (i < format.length() && format.charAt(i) != '[') {
-                sb.append(format.charAt(i));
-                if (format.charAt(i) == ']') {
+                char c = format.charAt(i);
+                sb.append(c);
+                if (c == ']') {
                     i++;
                     if (i == format.length() || format.charAt(i) != ']') {
                         throw new XPathException("Closing ']' in date picture must be written as ']]'", "XTDE1340");

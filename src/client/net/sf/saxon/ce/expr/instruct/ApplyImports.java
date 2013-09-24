@@ -173,13 +173,11 @@ public class ApplyImports extends Instruction {
 
         }
         if (rule==null) {             // use the default action for the node
-            mode.getBuiltInRuleSet().process((NodeInfo)currentItem, params, tunnels, context, getSourceLocator());
+            ApplyTemplates.defaultAction((NodeInfo) currentItem, params, tunnels, context, getSourceLocator());
         } else {
             Template nh = rule.getAction();
             XPathContext c2 = context.newContext();
-            c2.openStackFrame(nh.getNumberOfSlots());
-            c2.setLocalParameters(params);
-            c2.setTunnelParameters(tunnels);
+            c2.setParameters(nh.getNumberOfSlots(), params, tunnels);
             c2.setCurrentTemplateRule(rule);
             nh.apply(c2);
         }

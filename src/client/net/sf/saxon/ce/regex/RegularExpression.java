@@ -44,7 +44,7 @@ public interface RegularExpression {
      * @return an iterator over matched and unmatched substrings
      */
 
-    public RegexIterator analyze(CharSequence input);
+    public ARegexIterator analyze(CharSequence input);
 
     /**
      * Replace all substrings of a supplied input string that match the regular expression

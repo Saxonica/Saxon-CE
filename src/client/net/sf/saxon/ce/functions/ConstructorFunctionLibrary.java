@@ -8,7 +8,6 @@ import client.net.sf.saxon.ce.lib.NamespaceConstant;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.AtomicType;
-import client.net.sf.saxon.ce.type.BuiltInType;
 
 /**
  * The ConstructorFunctionLibrary represents the collection of constructor functions for atomic types. These
@@ -46,7 +45,7 @@ public class ConstructorFunctionLibrary implements FunctionLibrary {
         }
         String uri = functionName.getNamespaceURI();
         String local = functionName.getLocalName();
-        return uri.equals(NamespaceConstant.SCHEMA) && BuiltInType.getSchemaType(local) != null;
+        return uri.equals(NamespaceConstant.SCHEMA) && AtomicType.getSchemaType(local) != null;
     }
 
     /**
@@ -76,10 +75,9 @@ public class ConstructorFunctionLibrary implements FunctionLibrary {
             if (arguments.length != 1) {
                 throw new XPathException("A constructor function must have exactly one argument");
             }
-            BuiltInType type = BuiltInType.getSchemaType(localName);
+            AtomicType type = AtomicType.getSchemaType(localName);
             if (type==null || type == AtomicType.ANY_ATOMIC) {
-                XPathException err = new XPathException("Unknown constructor function: {" + uri + '}' + localName);
-                err.setErrorCode("XPST0017");
+                XPathException err = new XPathException("Unknown constructor function: {" + uri + '}' + localName, "XPST0017");
                 err.setIsStaticError(true);
                 throw err;
             }

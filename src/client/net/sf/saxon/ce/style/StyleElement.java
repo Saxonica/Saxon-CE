@@ -884,7 +884,7 @@ public abstract class StyleElement extends ElementImpl
 
         try {
             exp = makeExpressionVisitor().typeCheck(exp, Type.ITEM_TYPE);
-            exp = ExpressionTool.resolveCallsToCurrentFunction(exp, getConfiguration());
+            exp = ExpressionTool.resolveCallsToCurrentFunction(exp);
             if (LogConfiguration.loggingIsEnabled() && LogController.traceIsEnabled()) {
             	CodeInjector injector = ((XSLTTraceListener)LogController.getTraceListener()).getCodeInjector();
             	String name = "";
@@ -965,8 +965,6 @@ public abstract class StyleElement extends ElementImpl
                 }
             }
             if (usesCurrent) {
-                Configuration config = getConfiguration();
-
                 LetExpression let = new LetExpression();
                 let.setVariableQName(new StructuredQName("saxon", NamespaceConstant.SAXON, "current" + hashCode()));
                 let.setRequiredType(SequenceType.SINGLE_ITEM);
@@ -1370,7 +1368,7 @@ public abstract class StyleElement extends ElementImpl
         // process any xsl:fallback children; if there are none,
         // generate code to report the original failure reason
         Expression fallback = null;
-        for (NodeImpl child : allChildren()) {
+        for (NodeImpl child : instruction.allChildren()) {
             if (child instanceof XSLFallback) {
                 //fallback.setLocationId(allocateLocationId(getSystemId(), child.getLineNumber()));
                 //((XSLFallback)child).compileChildren(exec, fallback, true);

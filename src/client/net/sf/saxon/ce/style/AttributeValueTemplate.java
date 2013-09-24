@@ -122,7 +122,7 @@ public abstract class AttributeValueTemplate {
 
     public static Expression makeFirstItem(Expression exp) {
         final TypeHierarchy th = TypeHierarchy.getInstance();
-        if (!exp.getItemType().isAtomicType()) {
+        if ((!(exp.getItemType() instanceof AtomicType))) {
             exp = new Atomizer(exp);
         }
         if (Cardinality.allowsMany(exp.getCardinality())) {

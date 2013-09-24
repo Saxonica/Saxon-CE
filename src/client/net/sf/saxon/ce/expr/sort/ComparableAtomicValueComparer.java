@@ -33,6 +33,7 @@ public class ComparableAtomicValueComparer implements AtomicComparer {
      * values are compared as if they were strings; if different semantics are wanted, the conversion
      * must be done by the caller.
      *
+     *
      * @param a the first object to be compared. This must be an AtomicValue and it must implement
      * Comparable with context-free XPath comparison semantics
      * @param b the second object to be compared. This must be an AtomicValue and it must implement
@@ -53,6 +54,7 @@ public class ComparableAtomicValueComparer implements AtomicComparer {
     /**
      * Compare two AtomicValue objects for equality according to the rules for their data type. UntypedAtomic
      * values are compared by converting to the type of the other operand.
+     *
      * @param a the first object to be compared. This must be an AtomicValue and it must implement
      * equals() with context-free XPath comparison semantics
      * @param b the second object to be compared. This must be an AtomicValue and it must implement

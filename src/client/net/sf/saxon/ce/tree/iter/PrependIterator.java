@@ -1,8 +1,7 @@
 package client.net.sf.saxon.ce.tree.iter;
 
-import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.om.Item;
-import client.net.sf.saxon.ce.om.SequenceIterator;
+import client.net.sf.saxon.ce.om.NodeInfo;
 
 /**
  * An iterator over nodes, that prepends a given node to the nodes
@@ -43,8 +42,8 @@ public class PrependIterator implements UnfailingIterator {
      * @return a new iterator over the same sequence
      */
 
-    public SequenceIterator getAnother() {
-        return new PrependIterator(start, (UnfailingIterator)base.getAnother());
+    public UnfailingIterator getAnother() {
+        return new PrependIterator(start, base.getAnother());
     }
 
 

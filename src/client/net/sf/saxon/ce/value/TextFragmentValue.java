@@ -126,9 +126,9 @@ public final class TextFragmentValue extends Orphan implements DocumentInfo {
                 return Navigator.filteredSingleton(getTextNode(), nodeTest);
 
             case Axis.DESCENDANT_OR_SELF:
-                boolean b1 = nodeTest.matches(this);
+                boolean b1 = nodeTest.matchesItem(this);
                 NodeInfo textNode2 = getTextNode();
-                boolean b2 = nodeTest.matches(textNode2);
+                boolean b2 = nodeTest.matchesItem(textNode2);
                 if (b1) {
                     if (b2) {
                         NodeInfo[] pair = {this, textNode2};
@@ -248,8 +248,8 @@ public final class TextFragmentValue extends Orphan implements DocumentInfo {
                     return Navigator.filteredSingleton(TextFragmentValue.this, nodeTest);
 
                 case Axis.ANCESTOR_OR_SELF:
-                    boolean matchesDoc = nodeTest.matches(TextFragmentValue.this);
-                    boolean matchesText = nodeTest.matches(this);
+                    boolean matchesDoc = nodeTest.matchesItem(TextFragmentValue.this);
+                    boolean matchesText = nodeTest.matchesItem(this);
                     if (matchesDoc && matchesText) {
                         NodeInfo[] nodes = {this, TextFragmentValue.this};
                         return new ArrayIterator(nodes);

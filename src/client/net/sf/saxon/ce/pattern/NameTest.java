@@ -4,9 +4,6 @@ import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.Type;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
-
-import java.util.HashSet;
 
 /**
   * NodeTest is an interface that enables a test of whether a node has a particular
@@ -129,10 +126,9 @@ public class NameTest extends NodeTest {
      * is that it returns a type that strictly subsumes this type, ideally as narrowly
      * as possible.
      * @return the supertype, or null if this type is item()
-     * @param th the type hierarchy cache
      */
 
-    public ItemType getSuperType(TypeHierarchy th) {
+    public ItemType getSuperType() {
         return NodeKindTest.makeNodeKindTest(nodeKind);
     }
 
@@ -143,18 +139,6 @@ public class NameTest extends NodeTest {
 
     public int getNodeKindMask() {
         return 1<<nodeKind;
-    }
-
-    /**
-     * Get the set of node names allowed by this NodeTest. This is returned as a set of Integer fingerprints.
-     * A null value indicates that all names are permitted (i.e. that there are no constraints on the node name.
-     * The default implementation returns null.
-     */
-
-    public HashSet<StructuredQName> getRequiredNodeNames() {
-        HashSet<StructuredQName> s = new HashSet<StructuredQName>(1);
-        s.add(qName);
-        return s;
     }
 
     public String toString() {

@@ -400,12 +400,12 @@ public class ExpressionTool {
 
     /**
      * Resolve calls to the XSLT current() function within an expression
+     *
      * @param exp the expression within which calls to current() should be resolved
-     * @param config the Saxon configuration
      * @return the expression after resolving calls to current()
      */
 
-    public static Expression resolveCallsToCurrentFunction(Expression exp, Configuration config)
+    public static Expression resolveCallsToCurrentFunction(Expression exp)
             throws XPathException {
         if (callsFunction(exp, Current.FN_CURRENT)) {
             LetExpression let = new LetExpression();

@@ -6,7 +6,6 @@ import client.net.sf.saxon.ce.functions.DistinctValues;
 import client.net.sf.saxon.ce.lib.StringCollator;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.SequenceIterator;
-import client.net.sf.saxon.ce.trans.NoDynamicContextException;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.FocusIterator;
 import client.net.sf.saxon.ce.tree.iter.ListIterator;
@@ -87,7 +86,7 @@ public class GroupAdjacentIterator implements GroupIterator {
         nextKey = null;
     }
 
-    private Object comparisonKey(AtomicValue candidateKey) throws NoDynamicContextException {
+    private Object comparisonKey(AtomicValue candidateKey) {
         if (candidateKey.isNaN()) {
             return DistinctValues.class;
         } else {

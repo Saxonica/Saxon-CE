@@ -1,7 +1,6 @@
 package client.net.sf.saxon.ce.expr.sort;
 import client.net.sf.saxon.ce.lib.StringCollator;
 import client.net.sf.saxon.ce.om.StructuredQName;
-import client.net.sf.saxon.ce.trans.NoDynamicContextException;
 import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.Type;
 import client.net.sf.saxon.ce.value.AtomicValue;
@@ -75,17 +74,18 @@ public class AtomicSortComparer implements AtomicComparer {
     * Compare two AtomicValue objects according to the rules for their data type. UntypedAtomic
     * values are compared as if they were strings; if different semantics are wanted, the conversion
     * must be done by the caller.
-    * @param a the first object to be compared. It is intended that this should normally be an instance
-    * of AtomicValue, though this restriction is not enforced. If it is a StringValue, the
-    * collator is used to compare the values, otherwise the value must implement the java.util.Comparable
-    * interface.
-    * @param b the second object to be compared. This must be comparable with the first object: for
-    * example, if one is a string, they must both be strings.
-    * @return <0 if a<b, 0 if a=b, >0 if a>b
+    *
+     * @param a the first object to be compared. It is intended that this should normally be an instance
+     * of AtomicValue, though this restriction is not enforced. If it is a StringValue, the
+     * collator is used to compare the values, otherwise the value must implement the java.util.Comparable
+     * interface.
+     * @param b the second object to be compared. This must be comparable with the first object: for
+     * example, if one is a string, they must both be strings.
+     * @return <0 if a<b, 0 if a=b, >0 if a>b
     * @throws ClassCastException if the objects are not comparable
     */
 
-    public int compareAtomicValues(AtomicValue a, AtomicValue b) throws NoDynamicContextException {
+    public int compareAtomicValues(AtomicValue a, AtomicValue b) {
 
         if (a == null) {
             if (b == null) {
@@ -129,6 +129,7 @@ public class AtomicSortComparer implements AtomicComparer {
      * Compare two AtomicValue objects for equality according to the rules for their data type. UntypedAtomic
      * values are compared by converting to the type of the other operand.
      *
+     *
      * @param a the first object to be compared. It is intended that this should be an instance
      *          of AtomicValue, though this restriction is not enforced. If it is a StringValue, the
      *          collator is used to compare the values, otherwise the value must implement the equals() method.
@@ -138,7 +139,7 @@ public class AtomicSortComparer implements AtomicComparer {
      * @throws ClassCastException if the objects are not comparable
      */
 
-    public boolean comparesEqual(AtomicValue a, AtomicValue b) throws NoDynamicContextException {
+    public boolean comparesEqual(AtomicValue a, AtomicValue b) {
         return compareAtomicValues(a, b) == 0;
     }
 

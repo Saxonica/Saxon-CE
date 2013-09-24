@@ -2,7 +2,6 @@ package client.net.sf.saxon.ce.pattern;
 
 import client.net.sf.saxon.ce.expr.*;
 import client.net.sf.saxon.ce.expr.instruct.Executable;
-import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.type.ItemType;
@@ -18,7 +17,6 @@ public class UnionPattern extends Pattern {
 
     protected Pattern p1, p2;
     private int nodeType = Type.NODE;
-    private Expression variableBinding = null;      // local variable to which the current() node is bound
 
     /**
      * Constructor
@@ -89,7 +87,7 @@ public class UnionPattern extends Pattern {
         p1.resolveCurrent(let, offer, false);
         p2.resolveCurrent(let, offer, false);
         if (topLevel) {
-            variableBinding = let;
+            setVariableBindingExpression(let);
         }
     }
 
@@ -134,8 +132,8 @@ public class UnionPattern extends Pattern {
      */
 
     public int allocateSlots(int nextFree) {
-        if (variableBinding != null) {
-            nextFree = ExpressionTool.allocateSlots(variableBinding, nextFree);
+        if (getVariableBindingExpression() != null) {
+            nextFree = ExpressionTool.allocateSlots(getVariableBindingExpression(), nextFree);
         }
         nextFree = p1.allocateSlots(nextFree);
         nextFree = p2.allocateSlots(nextFree);
@@ -160,52 +158,17 @@ public class UnionPattern extends Pattern {
         }
     }
 
-     /**
-     * Set an expression used to bind the variable that represents the value of the current() function
-     * @param exp the expression that binds the variable
-     */
-
-    public void setVariableBindingExpression(Expression exp) {
-        variableBinding = exp;
-    }
-
-    public Expression getVariableBindingExpression() {
-        return variableBinding;
-    }
-
     /**
      * Determine if the supplied node matches the pattern
+     *
      *
      * @param e the node to be compared
      * @return true if the node matches either of the operand patterns
      */
 
-    public boolean matches(NodeInfo e, XPathContext context) throws XPathException {
-        if (variableBinding != null) {
-            XPathContext c2 = context;
-            Item ci = context.getContextItem();
-            if (!(ci instanceof NodeInfo && ((NodeInfo)ci).isSameNodeInfo(e))) {
-                c2 = context.newContext();
-                c2.setSingletonFocus(e);
-            }
-            variableBinding.evaluateItem(c2);
-        }
+    public boolean matches(NodeInfo e, XPathContext context) {
+        bindCurrent(e, context);
         return p1.matches(e, context) || p2.matches(e, context);
-    }
-
-    /**
-     * Determine whether this pattern matches a given Node within the subtree rooted at a given
-     * anchor node. This method is used when the pattern is used for streaming.
-     * @param node    The NodeInfo representing the Element or other node to be tested against the Pattern
-     * @param anchor  The anchor node, which must match any AnchorPattern subpattern
-     * @param context The dynamic context. Only relevant if the pattern
-     *                uses variables, or contains calls on functions such as document() or key().
-     * @return true if the node matches the Pattern, false otherwise
-     */
-
-    public boolean matchesBeneathAnchor(NodeInfo node, NodeInfo anchor, XPathContext context) throws XPathException {
-        return p1.matchesBeneathAnchor(node, anchor, context) ||
-                p2.matchesBeneathAnchor(node, anchor, context);
     }
 
     /**
@@ -248,10 +211,10 @@ public class UnionPattern extends Pattern {
      * @return an iterator over the subexpressions. 
      */
 
-    public Iterator iterateSubExpressions() {
+    public Iterator<Expression> iterateSubExpressions() {
         List<Expression> list = new ArrayList<Expression>();
-        if (variableBinding != null) {
-            list.add(variableBinding);
+        if (getVariableBindingExpression() != null) {
+            list.add(getVariableBindingExpression());
         }
         for (Iterator<Expression> i1 = p1.iterateSubExpressions(); i1.hasNext();) {
             list.add(i1.next());

@@ -295,7 +295,7 @@ public class ResultDocument extends Instruction  {
             	throw new XPathException("non-node returned by result-document href: " + hrefValue);
             } else {
             	target = (NodeInfo)resultItem;
-            	targetNode = (com.google.gwt.dom.client.Node)((HTMLNodeWrapper)target).getUnderlyingNode();
+            	targetNode = ((HTMLNodeWrapper)target).getUnderlyingNode();
             }
         }
         else if (command == APIcommand.UPDATE_HTML) {

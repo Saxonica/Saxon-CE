@@ -2,15 +2,12 @@ package client.net.sf.saxon.ce.expr.instruct;
 
 import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.Controller;
-import client.net.sf.saxon.ce.event.CommentStripper;
-import client.net.sf.saxon.ce.event.NamespaceReducer;
-import client.net.sf.saxon.ce.event.PipelineConfiguration;
-import client.net.sf.saxon.ce.event.StartTagBuffer;
+import client.net.sf.saxon.ce.event.*;
 import client.net.sf.saxon.ce.functions.FunctionLibraryList;
 import client.net.sf.saxon.ce.om.CopyOptions;
 import client.net.sf.saxon.ce.om.DocumentInfo;
-import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.om.Sequence;
+import client.net.sf.saxon.ce.om.StructuredQName;
 import client.net.sf.saxon.ce.style.*;
 import client.net.sf.saxon.ce.trans.*;
 import client.net.sf.saxon.ce.tree.linked.DocumentImpl;

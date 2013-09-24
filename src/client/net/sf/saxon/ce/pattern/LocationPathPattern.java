@@ -5,10 +5,10 @@ import client.net.sf.saxon.ce.expr.instruct.Executable;
 import client.net.sf.saxon.ce.functions.Last;
 import client.net.sf.saxon.ce.functions.Position;
 import client.net.sf.saxon.ce.om.Axis;
-import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.trans.XPathException;
+import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
 import client.net.sf.saxon.ce.type.AtomicType;
 import client.net.sf.saxon.ce.type.ItemType;
 import client.net.sf.saxon.ce.type.Type;
@@ -42,7 +42,6 @@ public final class LocationPathPattern extends Pattern {
     protected boolean firstElementPattern = false;
     protected boolean lastElementPattern = false;
     protected boolean specialFilter = false;
-    private Expression variableBinding = null;      // local variable to which the current() node is bound
     private NodeTest refinedNodeTest = null;
 
     /**
@@ -132,15 +131,6 @@ public final class LocationPathPattern extends Pattern {
 
     public byte getUpwardsAxis() {
         return upwardsAxis;
-    }
-
-    /**
-     * Set an expression used to bind the variable that represents the value of the current() function
-     * @param exp the expression that binds the variable
-     */
-
-    public void setVariableBindingExpression(Expression exp) {
-        variableBinding = exp;
     }
 
     /**
@@ -297,12 +287,12 @@ public final class LocationPathPattern extends Pattern {
      * Iterate over the subexpressions within this pattern
      */
 
-    public Iterator iterateSubExpressions() {
+    public Iterator<Expression> iterateSubExpressions() {
         List<Expression> list = new ArrayList<Expression>();
-        if (variableBinding != null) {
+        if (getVariableBindingExpression() != null) {
             // Note that the variable binding must come first to ensure slots are allocated to the "current"
             // variable before the variable reference is encountered
-            list.add(variableBinding);
+            list.add(getVariableBindingExpression());
         }
         list.addAll(Arrays.asList(filters));
         if (upperPattern != null) {
@@ -321,8 +311,8 @@ public final class LocationPathPattern extends Pattern {
     public int allocateSlots(int nextFree) {
         // See tests cnfr23, idky239, match54
         // SlotManager slotManager = env.getStyleElement().getContainingSlotManager();
-        if (variableBinding != null) {
-            nextFree = ExpressionTool.allocateSlots(variableBinding, nextFree);
+        if (getVariableBindingExpression() != null) {
+            nextFree = ExpressionTool.allocateSlots(getVariableBindingExpression(), nextFree);
         }
         for (int i = 0; i < filters.length; i++) {
             nextFree = ExpressionTool.allocateSlots(filters[i], nextFree);
@@ -359,8 +349,8 @@ public final class LocationPathPattern extends Pattern {
             upperPattern.promote(offer, parent);
         }
         Binding[] savedBindingList = offer.bindingList;
-        if (variableBinding instanceof Assignation) {
-            offer.bindingList = ((Assignation)variableBinding).extendBindingList(offer.bindingList);
+        if (getVariableBindingExpression() instanceof Assignation) {
+            offer.bindingList = ((Assignation)getVariableBindingExpression()).extendBindingList(offer.bindingList);
         }
         for (int i = 0; i < filters.length; i++) {
             filters[i] = filters[i].promote(offer, parent);
@@ -395,46 +385,25 @@ public final class LocationPathPattern extends Pattern {
     /**
      * Determine whether the pattern matches a given node.
      *
+     *
      * @param node the node to be tested
      * @return true if the pattern matches, else false
      */
 
-    public boolean matches(NodeInfo node, XPathContext context) throws XPathException {
-        return matchesBeneathAnchor(node, null, context);
+    public boolean matches(NodeInfo node, XPathContext context) {
+        // if there is a variable to hold the value of current(), bind it now
+        bindCurrent(node, context);
+        return internalMatches(node, null, context);
         // matches() and internalMatches() differ in the way they handle the current() function.
         // The variable holding the value of current() is initialized on entry to the top-level
         // LocationPathPattern, but not on entry to its subordinate patterns.
     }
 
     /**
-     * Determine whether this pattern matches a given Node within the subtree rooted at a given
-     * anchor node. This method is used when the pattern is used for streaming.
-     * @param node    The NodeInfo representing the Element or other node to be tested against the Pattern
-     * @param anchor  The anchor node, which must match any AnchorPattern subpattern
-     * @param context The dynamic context. Only relevant if the pattern
-     *                uses variables, or contains calls on functions such as document() or key().
-     * @return true if the node matches the Pattern, false otherwise
-     */
-
-    public boolean matchesBeneathAnchor(NodeInfo node, NodeInfo anchor, XPathContext context) throws XPathException {
-        // if there is a variable to hold the value of current(), bind it now
-        if (variableBinding != null) {
-            XPathContext c2 = context;
-            Item ci = context.getContextItem();
-            if (!(ci instanceof NodeInfo && ((NodeInfo)ci).isSameNodeInfo(node))) {
-                c2 = context.newContext();
-                c2.setSingletonFocus(node);
-            }
-            variableBinding.evaluateItem(c2);
-        }
-        return internalMatches(node, anchor, context);
-    }
-
-    /**
      * Test whether the pattern matches, but without changing the current() node
      */
 
-    protected boolean internalMatches(NodeInfo node, NodeInfo anchor, XPathContext context) throws XPathException {
+    protected boolean internalMatches(NodeInfo node, NodeInfo anchor, XPathContext context) {
         // System.err.println("Matching node type and fingerprint");
         if (!nodeTest.matches(node)) {
             return false;
@@ -460,12 +429,12 @@ public final class LocationPathPattern extends Pattern {
 
         if (specialFilter) {
             if (firstElementPattern) {
-                SequenceIterator iter = node.iterateAxis(Axis.PRECEDING_SIBLING, nodeTest);
+                UnfailingIterator iter = node.iterateAxis(Axis.PRECEDING_SIBLING, nodeTest);
                 return iter.next() == null;
             }
 
             if (lastElementPattern) {
-                SequenceIterator iter = node.iterateAxis(Axis.FOLLOWING_SIBLING, nodeTest);
+                UnfailingIterator iter = node.iterateAxis(Axis.FOLLOWING_SIBLING, nodeTest);
                 return iter.next() == null;
             }
 
@@ -506,10 +475,10 @@ public final class LocationPathPattern extends Pattern {
                         return false;
                     }
                 } catch (XPathException e) {
-                    if ("XTDE0640".equals(e.getErrorCodeLocalPart())) {
-                        // Treat circularity error as fatal (test error213)
-                        throw e;
-                    }
+//                    if ("XTDE0640".equals(e.getErrorCodeLocalPart())) {
+//                        // Treat circularity error as fatal (test error213)
+//                        throw e;
+//                    }
                     // errors in patterns are recoverable
                     return false;
                 }
@@ -584,7 +553,7 @@ public final class LocationPathPattern extends Pattern {
             upperPattern.resolveCurrent(let, offer, false);
         }
         if (topLevel) {
-            variableBinding = let;
+            setVariableBindingExpression(let);
         }
     }
 

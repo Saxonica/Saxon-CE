@@ -4,7 +4,6 @@ import client.net.sf.saxon.ce.expr.XPathContext;
 import client.net.sf.saxon.ce.lib.StringCollator;
 import client.net.sf.saxon.ce.om.Item;
 import client.net.sf.saxon.ce.om.NodeInfo;
-import client.net.sf.saxon.ce.trans.NoDynamicContextException;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.iter.SingletonIterator;
 import client.net.sf.saxon.ce.tree.iter.UnfailingIterator;
@@ -48,8 +47,6 @@ public abstract class AtomicValue implements Item, ConversionResult {
      * @return an Object whose equals() and hashCode() methods implement the XPath comparison semantics
      *         with respect to this atomic value. If ordered is specified, the result will either be null if
      *         no ordering is defined, or will be a Comparable
-     * @throws NoDynamicContextException if the comparison depends on dynamic context information that
-     * is not available, for example implicit timezone
      */
 
     public abstract Object getXPathComparable(boolean ordered, StringCollator collator, int implicitTimezone);

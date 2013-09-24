@@ -643,9 +643,9 @@ public class ExpressionParser {
     private AtomicType getAtomicType(String qname) throws XPathException {
         StructuredQName name = makeStructuredQName(qname, env.getDefaultElementNamespace());
         if (name.getNamespaceURI().equals(NamespaceConstant.SCHEMA)) {
-            BuiltInType t = BuiltInType.getSchemaType(name.getLocalName());
-            if (t instanceof AtomicType) {
-                return (AtomicType)t;
+            AtomicType t = AtomicType.getSchemaType(name.getLocalName());
+            if (t != null) {
+                return t;
             }
         }
         grumble("Unknown atomic type " + qname, "XPST0051");
@@ -1259,20 +1259,22 @@ public class ExpressionParser {
                         nextToken();
                         StructuredQName contentType =
                                 makeStructuredQName(t.currentTokenValue, env.getDefaultElementNamespace());
-                        BuiltInType schemaType = null;
+                        boolean recognized = false;
                         if (contentType.getNamespaceURI().equals(NamespaceConstant.SCHEMA)) {
-                            schemaType = BuiltInType.getSchemaType(contentType.getLocalName());
+                            String local = contentType.getLocalName();
+                            recognized = AtomicType.isRecognizedName(local);
+
+                            if (primaryType == Type.ELEMENT &&
+                                    !(local.equals("anyType") || local.equals("untyped"))) {
+                                result = EmptySequenceTest.getInstance();
+                            }
+                            if (primaryType == Type.ATTRIBUTE &&
+                                    !(local.equals("anyAtomicType") || local.equals("untypedAtomic"))) {
+                                result = EmptySequenceTest.getInstance();
+                            }
                         }
-                        if (schemaType == null) {
-                            grumble("Unknown schema type " + t.currentTokenValue);
-                        }
-                        if (primaryType == Type.ELEMENT &&
-                                !(schemaType == AnyType.getInstance() || schemaType == Untyped.getInstance())) {
-                            result = EmptySequenceTest.getInstance();
-                        }
-                        if (primaryType == Type.ATTRIBUTE &&
-                                !(schemaType == AtomicType.ANY_ATOMIC || schemaType == AtomicType.UNTYPED_ATOMIC)) {
-                            result = EmptySequenceTest.getInstance();
+                        if (!recognized) {
+                            grumble("Unknown type name: " + t.currentTokenValue);
                         }
                         nextToken();
                         if (primaryType == Type.ELEMENT && t.currentToken == Token.QMARK) {

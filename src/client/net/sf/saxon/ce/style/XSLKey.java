@@ -11,7 +11,6 @@ import client.net.sf.saxon.ce.trans.KeyManager;
 import client.net.sf.saxon.ce.trans.XPathException;
 import client.net.sf.saxon.ce.tree.util.URI;
 import client.net.sf.saxon.ce.type.AtomicType;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
 import client.net.sf.saxon.ce.value.SequenceType;
 
 
@@ -154,8 +153,7 @@ public class XSLKey extends StyleElement implements StylesheetProcedure {
                 compileError(err);
             }
         }
-        final TypeHierarchy th = TypeHierarchy.getInstance();
-        AtomicType useType = (AtomicType)use.getItemType().getPrimitiveItemType();
+        AtomicType useType = (AtomicType)use.getItemType();
         if (xPath10ModeIsEnabled()) {
             if (!useType.equals(AtomicType.STRING) && !useType.equals(AtomicType.UNTYPED_ATOMIC)) {
                 use = new AtomicSequenceConverter(use, AtomicType.STRING);

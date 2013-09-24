@@ -1,13 +1,7 @@
 package client.net.sf.saxon.ce.trans;
 
-import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
-import client.net.sf.saxon.ce.om.Item;
-import client.net.sf.saxon.ce.om.NodeInfo;
 import client.net.sf.saxon.ce.om.StructuredQName;
-import client.net.sf.saxon.ce.type.Type;
-import client.net.sf.saxon.ce.value.AtomicValue;
-import client.net.sf.saxon.ce.value.StringValue;
-import client.net.sf.saxon.ce.value.Whitespace;
+import client.net.sf.saxon.ce.tree.util.FastStringBuffer;
 
 /**
  * Class containing utility methods for handling error messages
@@ -86,50 +80,6 @@ public class Err {
                 return "\"" + s + "\"";
             default:
                 return "{" + s + "}";
-        }
-    }
-
-    /**
-     * Create a string representation of an item for use in an error message
-     */
-
-    public static CharSequence depict(Item item) {
-        if (item instanceof AtomicValue) {
-            CharSequence cs = item.getStringValue();
-            if (item instanceof StringValue) {
-                return '\"' + truncate30(cs).toString() + '\"';
-            } else {
-                return truncate30(cs);
-            }
-        } else {
-            NodeInfo node = (NodeInfo)item;
-            switch (node.getNodeKind()) {
-                case Type.DOCUMENT:
-                    return "document-node()";
-                case Type.ELEMENT:
-                    return "<" + node.getDisplayName() + "/>";
-                case Type.ATTRIBUTE:
-                    return "@" + node.getDisplayName();
-                case Type.TEXT:
-                    return "text(\"" + truncate30(node.getStringValue()) + "\")";
-                case Type.COMMENT:
-                    return "<!--" + truncate30(node.getStringValue()) + "-->";
-                case Type.PROCESSING_INSTRUCTION:
-                    return "<?" + node.getDisplayName() + "?>";
-                case Type.NAMESPACE:
-                    String prefix = node.getLocalPart();
-                    return "xmlns" + (prefix.equals("") ? "" : ":" + prefix) + "=\"" + node.getStringValue() + '"';
-                default:
-                    return "";
-            }
-        }
-    }
-
-    private static CharSequence truncate30(CharSequence cs) {
-        if (cs.length() <= 30) {
-            return Whitespace.collapseWhitespace(cs);
-        } else {
-            return Whitespace.collapseWhitespace(cs.subSequence(0, 30)).toString() + "...";
         }
     }
 

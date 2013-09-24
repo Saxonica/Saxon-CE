@@ -91,7 +91,7 @@ public class Minimax extends CollatingFunction {
 
     public Expression optimize(ExpressionVisitor visitor, ItemType contextItemType) throws XPathException {
         TypeHierarchy th = TypeHierarchy.getInstance();
-        argumentType = (AtomicType)argument[0].getItemType().getAtomizedItemType().getPrimitiveItemType();
+        argumentType = (AtomicType)argument[0].getItemType().getAtomizedItemType();
         Expression e = super.optimize(visitor, contextItemType);
         if (e != this) {
             return e;

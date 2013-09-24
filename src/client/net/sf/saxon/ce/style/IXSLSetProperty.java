@@ -34,7 +34,7 @@ public class IXSLSetProperty extends StyleElement {
 	protected void prepareAttributes() throws XPathException {
         targetObject = (Expression)checkAttribute("object", "e");
         select = (Expression)checkAttribute("select", "e");
-        name = (Expression)checkAttribute("select", "a");
+        name = (Expression)checkAttribute("name", "a");
         checkForUnknownAttributes();
 
         if (targetObject == null) {

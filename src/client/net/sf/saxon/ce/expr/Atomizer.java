@@ -9,10 +9,7 @@ import client.net.sf.saxon.ce.om.SequenceIterator;
 import client.net.sf.saxon.ce.pattern.EmptySequenceTest;
 import client.net.sf.saxon.ce.pattern.NodeTest;
 import client.net.sf.saxon.ce.trans.XPathException;
-import client.net.sf.saxon.ce.type.AtomicType;
-import client.net.sf.saxon.ce.type.ItemType;
-import client.net.sf.saxon.ce.type.Type;
-import client.net.sf.saxon.ce.type.TypeHierarchy;
+import client.net.sf.saxon.ce.type.*;
 import client.net.sf.saxon.ce.value.AtomicValue;
 
 /**
@@ -174,11 +171,10 @@ public final class Atomizer extends UnaryExpression  {
 
     public static ItemType getAtomizedItemType(Expression operand, boolean alwaysUntyped) {
         ItemType in = operand.getItemType();
-        if (in.isAtomicType()) {
-            return in;
+        if (in instanceof AnyItemType) {
+            return AtomicType.ANY_ATOMIC;
         }
         if (in instanceof NodeTest) {
-
             if (in instanceof EmptySequenceTest) {
                 return in;
             }
@@ -202,8 +198,9 @@ public final class Atomizer extends UnaryExpression  {
             }
 
             return in.getAtomizedItemType();
+        } else {
+            return in;
         }
-	    return AtomicType.ANY_ATOMIC;
 	}
 
     /**

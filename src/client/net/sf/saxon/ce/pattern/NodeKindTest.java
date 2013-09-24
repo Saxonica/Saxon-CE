@@ -103,32 +103,6 @@ public class NodeKindTest extends NodeTest {
     }
 
     /**
-     * Get the content type allowed by this NodeTest (that is, the type of content allowed).
-     * Return AnyType if there are no restrictions.
-     */
-
-    public SchemaType getContentType() {
-        switch (kind) {
-            case Type.DOCUMENT:
-                return AnyType.getInstance();
-            case Type.ELEMENT:
-                return AnyType.getInstance();
-            case Type.ATTRIBUTE:
-                return AtomicType.UNTYPED_ATOMIC;
-            case Type.COMMENT:
-                return AtomicType.STRING;
-            case Type.TEXT:
-                return AtomicType.UNTYPED_ATOMIC;
-            case Type.PROCESSING_INSTRUCTION:
-                return AtomicType.STRING;
-            case Type.NAMESPACE:
-                return AtomicType.STRING;
-            default:
-                throw new AssertionError("Unknown node kind");
-        }
-    }
-
-    /**
      * Get the content type allowed by this NodeTest (that is, the type annotation).
      * Return AnyType if there are no restrictions. The default implementation returns AnyType.
      */

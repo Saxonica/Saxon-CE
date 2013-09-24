@@ -91,7 +91,7 @@ public class ARegularExpression implements RegularExpression {
      * @param input the character string to be analyzed using the regular expression
      * @return an iterator over matched and unmatched substrings
      */
-    public RegexIterator analyze(CharSequence input) {
+    public ARegexIterator analyze(CharSequence input) {
         return new ARegexIterator(GeneralUnicodeString.makeUnicodeString(input), rawPattern, new REMatcher(regex));
     }
 

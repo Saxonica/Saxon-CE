@@ -1,5 +1,4 @@
 package client.net.sf.saxon.ce.type;
-import client.net.sf.saxon.ce.Configuration;
 import client.net.sf.saxon.ce.om.Item;
 
 
@@ -22,43 +21,19 @@ public class AnyItemType implements ItemType {
     }
 
     /**
-     * Determine whether this item type is atomic (that is, whether it can ONLY match
-     * atomic values)
-     *
-     * @return false: this type can match nodes or atomic values
-     */
-
-    public boolean isAtomicType() {
-        return false;
-    }
-
-    /**
      * Test whether a given item conforms to this type
+     *
+     *
      * @param item The item to be tested
-     * @param allowURIPromotion
-     * @param config
      * @return true if the item is an instance of this type; false otherwise
     */
 
-    public boolean matchesItem(Item item, boolean allowURIPromotion, Configuration config) {
+    public boolean matchesItem(Item item) {
         return true;
     }
 
-    public ItemType getSuperType(TypeHierarchy th) {
+    public ItemType getSuperType() {
         return null;
-    }
-
-    /**
-     * Get the primitive item type corresponding to this item type. For item(),
-     * this is Type.ITEM. For node(), it is Type.NODE. For specific node kinds,
-     * it is the value representing the node kind, for example Type.ELEMENT.
-     * For anyAtomicValue it is Type.ATOMIC_VALUE. For numeric it is Type.NUMBER.
-     * For other atomic types it is the primitive type as defined in XML Schema,
-     * except that INTEGER is considered to be a primitive type.
-     */
-
-    public ItemType getPrimitiveItemType() {
-        return this;
     }
 
     public AtomicType getAtomizedItemType() {

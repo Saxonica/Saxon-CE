@@ -351,7 +351,7 @@ public abstract class NodeImpl extends AbstractNode implements NodeInfo {
                 }
                 AttributeCollection atts = ((ElementImpl)this).getAttributeList();
                 if (nodeTest instanceof NameTest) {
-                    int index = atts.findByStructuredQName(nodeTest.getRequiredNodeName());
+                    int index = atts.findByStructuredQName(((NameTest)nodeTest).getRequiredNodeName());
                     if (index < 0) {
                         return EmptyIterator.getInstance();
                     } else {
@@ -382,7 +382,7 @@ public abstract class NodeImpl extends AbstractNode implements NodeInfo {
                 if (getNodeKind() == Type.DOCUMENT &&
                         nodeTest instanceof NameTest &&
                         nodeTest.getRequiredNodeKind() == Type.ELEMENT) {
-                    return ((DocumentImpl)this).getAllElements(nodeTest.getRequiredNodeName());
+                    return ((DocumentImpl)this).getAllElements(((NameTest)nodeTest).getRequiredNodeName());
                 } else if (hasChildNodes()) {
                     return new SteppingIterator(this, new NextDescendantFunction(this, nodeTest), false);
                 } else {
@@ -597,7 +597,7 @@ public abstract class NodeImpl extends AbstractNode implements NodeInfo {
         }
 
         public boolean conforms(Item current) {
-            return predicate.matches((NodeInfo)current);
+            return predicate.matchesItem(current);
         }
     }
 
@@ -611,7 +611,7 @@ public abstract class NodeImpl extends AbstractNode implements NodeInfo {
         }
 
         public boolean conforms(Item current) {
-            return predicate.matches((NodeInfo)current);
+            return predicate.matchesItem(current);
         }
     }
 
@@ -625,7 +625,7 @@ public abstract class NodeImpl extends AbstractNode implements NodeInfo {
         }
 
         public boolean conforms(Item current) {
-            return predicate.matches((NodeInfo)current);
+            return predicate.matchesItem(current);
         }
     }
 }
