@@ -55,36 +55,42 @@ public class XSLAnalyzeString extends StyleElement {
     public void validate(Declaration decl) throws XPathException {
         //checkWithinTemplate();
 
+        int state = 0;
         for (NodeImpl child : allChildren()) {
             if (child instanceof XSLFallback) {
-                // no-op
+                state = 3;
             } else if (child instanceof XSLMatchingSubstring) {
                 boolean b = child.getLocalPart().equals("matching-substring");
                 if (b) {
-                    if (matching != null) {
-                        compileError("xsl:matching-substring element must only appear once", "XTSE0010");
+                    if (state != 0) {
+                        outOfOrder("XTSE0010");
                     }
+                    state = 1;
                     matching = (StyleElement) child;
                 } else {
-                    if (nonMatching != null) {
-                        compileError("xsl:non-matching-substring element must only appear once", "XTSE0010");
+                    if (state >= 2) {
+                        outOfOrder("XTSE0010");
                     }
+                    state = 2;
                     nonMatching = (StyleElement) child;
                 }
             } else {
-                compileError("Only xsl:matching-substring and xsl:non-matching-substring are allowed here", "XTSE0010");
+                outOfOrder("XTSE0010");
             }
         }
 
         if (matching == null && nonMatching == null) {
-            compileError("At least one xsl:matching-substring or xsl:non-matching-substring element must be present",
-                    "XTSE1130");
+            outOfOrder("XTSE1130");
         }
 
         select = typeCheck(select);
         regex = typeCheck(regex);
         flags = typeCheck(flags);
 
+    }
+
+    private void outOfOrder(String code) throws XPathException {
+        compileError("Content model for xsl:analyze-string is (xsl:matching-substring? xsl:non-matching-substring? xsl:fallback*)", code);
     }
 
     public Expression compile(Executable exec, Declaration decl) throws XPathException {
