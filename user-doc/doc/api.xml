@@ -186,16 +186,41 @@
                 the Saxon <code>run</code> method is shown below. This sample also shows how to use
                 the <code>onSaxonLoad</code> function to ensure the Saxon-CE library loads fully
                 before any JavaScript API calls are made on the library.</p>
-      <samp><![CDATA[ // Using Saxon.run method with the Command object to start an HTML
-                page transform: var onSaxonLoad = function() { Saxon.run( { stylesheet:
-                "display-geo.xsl", source: "geo-files.xml", initialMode: "pull", parameters: {
-                mass-kg: 225, point: [128, 79], label: "Definitions" }, errorHandler: saxonHandler
-                }); } // equivalent using the procedural JavaScript API: var onSaxonLoad =
-                function() { var xml = Saxon.requestXML(geo-files.xml); var xsl =
-                Saxon.requestXML("display-geo.xsl"); var proc = new XSLT20Processor(xsl);
-                proc.setParameter(null, "mass-kg", 225); proc.setParameter(null, "point", [128,
-                79]); proc.setParameter(null, "label", "Definitions");
-                proc.setErrorHandler(saxonHandler); proc.updateHTMLDocument(xml, null); } ]]></samp>
+      <samp><![CDATA[
+// Using Saxon.run method with the Command object to start an HTML page transform:
+
+var onSaxonLoad = function() {
+    Saxon.run( {
+         stylesheet:   "display-geo.xsl",
+         source:       "geo-files.xml",
+         initialMode:  "pull",
+         
+         parameters: {
+                        mass-kg: 225,
+                        point: [128, 79],
+                        label: "Definitions"
+                     },
+                     
+         errorHandler:  saxonHandler    
+    });
+}
+
+// equivalent using the procedural JavaScript API:
+
+var onSaxonLoad = function() {
+    var xml = Saxon.requestXML(geo-files.xml);
+    var xsl = Saxon.requestXML("display-geo.xsl");
+    
+    var proc = new XSLT20Processor(xsl);
+    
+    proc.setParameter(null, "mass-kg", 225);
+    proc.setParameter(null, "point", [128, 79]);
+    proc.setParameter(null, "label", "Definitions");
+    
+    proc.setErrorHandler(saxonHandler);
+    proc.updateHTMLDocument(xml, null);
+}
+]]></samp>
    </section>
    <section id="saxon" title="Saxon">
       <h1>Saxon</h1>
@@ -716,10 +741,23 @@
                         <a class="bodylink" href="/api/command">Command</a> object parameter to
                         describe the XSLT transform to run. The Command object is designed to be
                         used as JavaScript literal:</p>
-         <samp><![CDATA[ var onSaxonLoad = function() { var xrows =
-                        document.getElementById("extra").getElementsByTagName("tr"); Saxon.run( {
-                        stylesheet: "display-geo.xsl", source: "geo-files.xml" parameters: { mass:
-                        225, rows: xrows, title: "Intro" }, }); } ]]></samp>
+         <samp><![CDATA[
+var onSaxonLoad = function() {
+
+    var xrows = document.getElementById("extra").getElementsByTagName("tr");
+
+    Saxon.run( {
+         stylesheet:   "display-geo.xsl",
+         source:       "geo-files.xml"
+         
+         parameters: {
+                        mass: 225,
+                        rows: xrows,
+                        title: "Intro"
+                     },   
+    });
+}
+]]></samp>
          <p>This function returns a newly created
                         <a class="bodylink" href="/api/xslt20processor">XSLT20Processor</a> object.
                         Use this object's <code>getResultDocument</code> and
@@ -844,14 +882,31 @@
          <p>
             <i>Sample JavaScript code:</i>
          </p>
-         <samp><![CDATA[ var errors = new Array(); function doPageUpdate() { errors =
-                        new Array(); // ------ SET ERROR HANDLER --------
-                        Saxon.setErrorHandler(handler); Saxon.setLogLevel("FINE"); (...) // update
-                        the HTML page var result = proc.updateHTMLDocument(xml); // show a window
-                        alert listing any compile-time or run-time errors if (errors.length > 0) {
-                        window.alert(errors.toString()); } } // ------ DECLARE ERROR HANDLER
-                        -------- function handler(saxonError) { errors.push(saxonError.message + " "
-                        + saxonError.level + " " + saxonError.time); } ]]></samp>
+         <samp><![CDATA[
+var errors = new Array();
+
+function doPageUpdate() {
+
+    errors = new Array();
+    // ------ SET ERROR HANDLER --------
+    Saxon.setErrorHandler(handler);
+    Saxon.setLogLevel("FINE");
+
+    (...)
+    
+    // update the HTML page
+    var result = proc.updateHTMLDocument(xml);
+
+    // show a window alert listing any compile-time or run-time errors
+    if (errors.length > 0) {
+        window.alert(errors.toString());
+    }                     
+}
+// ------ DECLARE ERROR HANDLER --------
+function handler(saxonError) {
+   errors.push(saxonError.message + " " + saxonError.level + " " + saxonError.time);
+}
+]]></samp>
       </section>
       <section id="setLogLevel" title="setLogLevel">
          <h1>setLogLevel</h1>
@@ -1856,12 +1911,20 @@
          <p>
             <i>Sample JavaScript code:</i>
          </p>
-         <samp><![CDATA[ ... // initialise processor var proc = new
-                        XSLT20Processor(xsl); // a node parameter: proc.setParameter(null,
-                        "fElementArray", document.getElementsByTagName("h2")); // a string array
-                        parameter proc.setParameter(null, "fArray", ["one", "two"]); // a string
-                        parameter proc.setParameter(null, "fString", "my value"); var result =
-                        proc.transformToDocument(Saxon.requestXML('data.xml')); ]]></samp>
+         <samp><![CDATA[
+    ...
+    // initialise processor
+    var proc = new XSLT20Processor(xsl);
+    
+    // a node parameter:
+    proc.setParameter(null, "fElementArray", document.getElementsByTagName("h2"));
+    // a string array parameter
+    proc.setParameter(null, "fArray", ["one", "two"]);
+    // a string parameter
+    proc.setParameter(null, "fString", "my value");
+    
+    var result = proc.transformToDocument(Saxon.requestXML('data.xml'));
+]]></samp>
       </section>
       <section id="setSuccess" title="setSuccess">
          <h1>setSuccess</h1>
