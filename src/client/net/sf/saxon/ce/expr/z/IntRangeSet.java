@@ -339,8 +339,8 @@ public class IntRangeSet extends AbstractIntSet implements Serializable, IntSet 
             for (int i=1; i<used; i++) {
                 if (startPoints[i] > high && endPoints[i-1] < low) {
                     ensureCapacity(used+1);
-                    System.arraycopy(startPoints, i, startPoints, i+1, used-i);
-                    System.arraycopy(endPoints, i, endPoints, i+1, used-i);
+                    System.arraycopy(startPoints, i, startPoints, i+1, used-i-1);
+                    System.arraycopy(endPoints, i, endPoints, i+1, used-i-1);
                     startPoints[i] = low;
                     endPoints[i] = high;
                     return;
