@@ -81,9 +81,6 @@ public class NamespaceConstant {
      */
 
     public static final String IXSL = "http://saxonica.com/ns/interactiveXSLT";
-    public static final String IXSL_VIRTUAL = IXSL + "-v";
-    
-    public static final short IXSL_CODE = 6;
 
     /**
      * Standard namespace for global javascript methods (defined on the Window object)
@@ -120,6 +117,10 @@ public class NamespaceConstant {
      * The standard namespace for system error codes
      */
     public static final String ERR = "http://www.w3.org/2005/xqt-errors";
+     /**
+      * Fixed namespace name for EXSLT/Common: "http://exslt.org/common"
+      */
+    public static final String EXSLT_COMMON = "http://exslt.org/common";
 
 
     /**

@@ -31,22 +31,21 @@ public class IXSLFunctionLibrary implements FunctionLibrary {
 
     public Expression bind(StructuredQName functionName, Expression[] staticArgs, StaticContext env, Container container) throws XPathException {
         String uri = functionName.getNamespaceURI();
+        String local = functionName.getLocalName();
         if (NamespaceConstant.IXSL.equals(uri)) {
             if (!hasFunctionSignature(functionName, staticArgs.length)) {
                 return null;
             }
-            String local = functionName.getLocalName();
             return new IXSLFunction(local, staticArgs);
         } else if (NamespaceConstant.JS.equals(uri)) {
-            String local = functionName.getLocalName();
-//            if (!exists(local)) {
-//                return null;
-//            }
             Expression[] args = new Expression[staticArgs.length + 2];
             System.arraycopy(staticArgs, 0, args, 2, staticArgs.length);
             args[0] = new IXSLFunction("window", new Expression[0]);
             args[1] = StringLiteral.makeLiteral(new StringValue(local));
             return new IXSLFunction("call", args);
+        } else if (NamespaceConstant.EXSLT_COMMON.equals(uri) && local.equals("node-set") && staticArgs.length == 1) {
+                // exslt:node-set() is a no-op in XSLT 2.0
+                return staticArgs[0];
         } else {
             return null;
         }
