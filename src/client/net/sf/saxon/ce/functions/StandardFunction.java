@@ -7,8 +7,6 @@ import client.net.sf.saxon.ce.value.Value;
 
 import java.util.HashMap;
 
-import com.google.gwt.logging.client.LogConfiguration;
-
 /**
  * This class contains static data tables defining the properties of standard functions. "Standard functions"
  * here means the XPath 2.0 functions, the XSLT 2.0 functions, and a few selected extension functions
@@ -554,7 +552,7 @@ public abstract class StandardFunction {
                 SequenceType.SINGLE_BOOLEAN);
         e.applicability = XSLT;
         e.mandatoryArg(SequenceType.SINGLE_STRING);
-        e.mandatoryArg(SequenceType.SINGLE_STRING);
+        e.optionalArg(SequenceType.SINGLE_STRING);
 
         e = register("year-from-date", new Component((Component.YEAR << 16) + StandardNames.XS_DATE),
                 SequenceType.OPTIONAL_INTEGER);
