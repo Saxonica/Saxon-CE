@@ -9,7 +9,7 @@
     <import file="build-constants.xml"/>
     
     <!-- Arguments to gwtc and devmode target add -style PRETTY here to see no obfuscated code -->
-    <property name="gwt.args" value="-XenableClosureCompiler -style PRETTY"/>
+    <property name="gwt.args" value="-XenableClosureCompiler"/>
     
     
     <path id="project.class.path">
