@@ -54,22 +54,22 @@ public class HTMLWriter implements Receiver {
         }
         return null;
     }-*/;
-    
+
     private native Node createProcessingInstruction(Document doc,
             final String target,
             final String data) /*-{
        return doc.createProcessingInstruction(target, data);
     }-*/;
-      
+
     private native Node createComment(Document doc,
             final String data) /*-{
        	return doc.createComment(data);
    }-*/;
-    
+
     private static native boolean attNSSupported(Document doc) /*-{
        	return (typeof doc.createNode == "function" || typeof doc.createAttributeNS == "function");
    }-*/;
-    
+
     public static void setAttribute(Document doc,
     		Element element,
     		String name,
@@ -93,7 +93,7 @@ public class HTMLWriter implements Receiver {
             setAttributeProps(element, name, value);
     	}
     }
-    
+
     public static String tableAttributeFix(String name, WriteMode wMode){
     	if (wMode != WriteMode.XML && Configuration.getIeVersion() > 0 && name.length() > 5){
 		if (name.equals("rowspan")){
@@ -108,8 +108,8 @@ public class HTMLWriter implements Receiver {
     	}
 		return name;
     }
-     
-    
+
+
     //  This throws an exception in IE7 that must be handled, in IE, you can only create a namespace-qualified
     //  attribute using the createNode method of the DOMDocument.
     /**
@@ -117,7 +117,7 @@ public class HTMLWriter implements Receiver {
      *  This throws an exception in IE7 that (it seems) must be handled by the caller,
      *  in IE, you can only create a namespace-qualified attribute using the createNode method
      *  of the DOMDocument.
-     * 
+     *
      */
     public static native void setAttributeJs(Document doc,
     		final Node element,
@@ -131,10 +131,10 @@ public class HTMLWriter implements Receiver {
         } else {
             att = doc.createAttributeNS(URI, name);
             att.nodeValue = value;
-        } 
-        element.setAttributeNode(att);      	
+        }
+        element.setAttributeNode(att);
    }-*/;
-    
+
 
     /**
     * Set the pipelineConfiguration
@@ -206,20 +206,20 @@ public class HTMLWriter implements Receiver {
         String localName = namePool.getLocalName(nameCode);
         String prefix = namePool.getPrefix(nameCode);
         String uri = namePool.getURI(nameCode);
-        
+
         // TODO: For XML Writer it should write prefixes in a
         // way compliant with the XSLT2.0 specification - using xsl:output attributes
         Element element = null;
         if (uri != null && !uri.isEmpty()) {
         	if(mode == WriteMode.XML && !prefix.equals("")) {
         		element =  createElementNS(document, uri, prefix+":"+localName);
-        		
+
         	} else {
         		// no svg specific prefix now used, for compliance with HTML5
         		element = createElementNS(document, uri, localName);
         	}
         }
-        
+
         // if there's no namespace - or no namespace support
         if (element == null) {
             element = document.createElement(localName);
@@ -251,7 +251,7 @@ public class HTMLWriter implements Receiver {
         		if(uri.equals(NamespaceConstant.IXSL)) {
 	        				XPathException xpe = new XPathException("Error on adding IXSL element to the DOM, the IXSL namespace should be added to the 'extension-element-prefixes' list.");
 	        				throw(xpe);
-        		} else {       			
+        		} else {
         			throw(new XPathException(err.getMessage()));
         		}
         	} catch(Exception exc) {
@@ -263,9 +263,16 @@ public class HTMLWriter implements Receiver {
         level++;
     }
 
+    public final static native void setAttributeNS(Element elem, String nameSpace, String name, String value) /*-{
+		elem.setAttributeNS(nameSpace, name, value);
+	}-*/;
+
     private static void addNamespace(Element element, String prefix, String uri) {
-        String attName = (prefix.isEmpty() ? "xmlns" : "xmlns:" + prefix);
-        element.setAttribute(attName, uri);
+    	if (prefix.isEmpty()) {
+            element.setAttribute("xmlns", uri);
+    	} else {
+    		setAttributeNS(element, "http://www.w3.org/2000/xmlns/", "xmlns:" + prefix, uri);
+    	}
     }
 
     public void namespace (NamespaceBinding nsBinding, int properties) throws XPathException {
@@ -277,7 +284,7 @@ public class HTMLWriter implements Receiver {
                 addNamespace(element, prefix, uri);
             }
        }
-       
+
     }
 
     public void attribute(int nameCode, CharSequence value)
@@ -306,7 +313,7 @@ public class HTMLWriter implements Receiver {
             setAttributeProps(element, localName, val);
         }
     }
-    
+
     /**
      * Method for backward compatibility with IE8 and previous where
      * properties and attributes were handled separately
@@ -327,19 +334,19 @@ public class HTMLWriter implements Receiver {
 	            	setTitle(element, val);
 //	            } else if (localName.equals("align") || localName.equals("width")) {
 //	            	setElementProperty(element, localName, val);
-		        } else {	        	
+		        } else {
 		        	setElementProperty(element, localName, val);
 		        }
 	        } else if (localName.length() == 2 && localName.equals("id")) {
 	        	setId(element, val);
 //	        } else if (localName.length() == 7 && localName.equals("colSpan") || localName.equals("rowSpan") ) {
 //	        	setElementProperty(element, localName, val);
-	        } else {	        	
+	        } else {
 	        	setElementProperty(element, localName, val);
 	        }
     	}
     }
-    
+
     /**
      * following setElementProperty method call doesn't work consistently
      * because in IE some element are initially undefined?
@@ -362,35 +369,35 @@ public class HTMLWriter implements Receiver {
 	            }
     	}
     }
-    
+
     private static native boolean hasStyle(Element element) /*-{
        	return (typeof element.style !== "undefined");
     }-*/;
-    
+
     private static native boolean setClass(Element element, String value) /*-{
    	 	if (typeof element.className !== "undefined") {
    	 		element.className = value;
    	 	}
     }-*/;
-    
+
     private static native boolean setId(Element element, String value) /*-{
 	 	if (typeof element.id !== "undefined") {
 	 		element.id = value;
 	 	}
     }-*/;
-    
+
     private static native boolean setTitle(Element element, String value) /*-{
 	 	if (typeof element.title !== "undefined") {
 	 		element.title = value;
 	 	}
     }-*/;
-    
+
     private static native void setElementProperty(Element element, String name, String value) /*-{
     	if (typeof element[name] !== "undefined") {
 			element[name] = value;
     	}
     }-*/;
-    
+
     /**
      * Parse the value of the style attribute and use it to set individual properties of the style object
      * @param element the element whose style properties are to be updated
@@ -417,7 +424,7 @@ public class HTMLWriter implements Receiver {
         	setStyleProperties(element, styleAttribute.substring(semi+1));
         }
     }
-    
+
     public static String getCamelCaseName(String prop) {
         while (prop.contains("-")) {
             int h = prop.indexOf('-');
@@ -481,7 +488,7 @@ public class HTMLWriter implements Receiver {
     	if (mode == WriteMode.XML) {
 	    	JavaScriptObject pi = createProcessingInstruction(document, target, data.toString());
 	    	addNode(pi, "processing-instruction");
-    	}	
+    	}
     }
 
     /**
@@ -496,7 +503,7 @@ public class HTMLWriter implements Receiver {
 	    	addNode(comment, "comment");
     	}
     }
-    
+
     public void addNode(JavaScriptObject newNode, String nodeType) throws XPathException {
         try {
 	        if (nextSibling != null && level == 0) {
@@ -509,11 +516,11 @@ public class HTMLWriter implements Receiver {
         	throw(new XPathException("DOM error " + desc + " " + nodeType + " node to node with name: " + currentNode.getNodeName()));
         }
     }
-    
+
     public final native JavaScriptObject appendChild(JavaScriptObject parent, JavaScriptObject newChild) /*-{
        return parent.appendChild(newChild);
     }-*/;
-    
+
     public final native JavaScriptObject insertBefore(JavaScriptObject targetNode, JavaScriptObject newNode) /*-{
        return targetNode.insertBefore(newNode);
     }-*/;
@@ -522,13 +529,13 @@ public class HTMLWriter implements Receiver {
      * Set the attachment point for the new subtree
      * @param node the node to which the new subtree will be attached
     */
-    
+
     public enum WriteMode {
     	NONE, XML, HTML
     }
-    
 
-    
+
+
     private WriteMode mode = WriteMode.NONE;
 
     public void setNode (Node node) {
@@ -539,7 +546,7 @@ public class HTMLWriter implements Receiver {
         if (node.getNodeType() == Node.DOCUMENT_NODE) {
             document = (Document)node;
         } else {
-            document = currentNode.getOwnerDocument();            
+            document = currentNode.getOwnerDocument();
         }
         if (mode == WriteMode.NONE) {
         	Controller.APIcommand cmd = pipe.getController().getApiCommand();
@@ -547,7 +554,7 @@ public class HTMLWriter implements Receiver {
         			WriteMode.XML : WriteMode.HTML;
         }
     }
-    
+
     public Node getNode() {
     	// though this is changed by startElement it's reset by endElement and therefore,
     	// when called after close, should always return the initial container node
@@ -568,6 +575,6 @@ public class HTMLWriter implements Receiver {
 
 }
 
-// This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0. 
+// This Source Code Form is subject to the terms of the Mozilla Public License, v. 2.0.
 // If a copy of the MPL was not distributed with this file, You can obtain one at http://mozilla.org/MPL/2.0/.
 // This Source Code Form is “Incompatible With Secondary Licenses”, as defined by the Mozilla Public License, v. 2.0.
