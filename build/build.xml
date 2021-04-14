@@ -65,13 +65,19 @@
         </java>
         
         <!-- Now do the XHTML gwt bugfix, replacing the 2 .write methods -->
-        <replace file="${temp_path}/Saxonce/Saxonce.nocache.js" token="m.write(gb+b+hb)"
-            value="var script=document.createElement(&quot;script&quot;);script.setAttribute(&quot;id&quot;, b);m.getElementsByTagName(&quot;head&quot;)[0].appendChild(script)"/>
+        <replace file="${temp_path}/Saxonce/Saxonce.nocache.js" token="n.write(hb+b+ib)"
+            value="var script=n.createElement(&quot;script&quot;);script.setAttribute(&quot;id&quot;, b);n.getElementsByTagName(&quot;head&quot;)[0].appendChild(script)"/>
         <!--
 <replace file="${temp_path}/Saxonce/Saxonce.nocache.js" token='m.write($b)' value='var script=document.createElement("script");script.setAttribute("defer", "defer");script.innerHTML="Saxonce.onInjectionDone(&apos;Saxonce&apos;)";m.getElementsByTagName("head")[0].appendChild(script)'/>
 -->
-        <replace file="${temp_path}/Saxonce/Saxonce.nocache.js" token="m.write($b)"
-            value="try{var script=document.createElement(&quot;script&quot;);script.setAttribute(&quot;defer&quot;, &quot;defer&quot;);script.innerHTML=&quot;Saxonce.onInjectionDone(&apos;Saxonce&apos;)&quot;;m.getElementsByTagName(&quot;head&quot;)[0].appendChild(script)}catch(e9){m.write($b)}"/>
+        <replace file="${temp_path}/Saxonce/Saxonce.nocache.js" token="n.write(Zb)"
+            value="try{var script=n.createElement(&quot;script&quot;);script.setAttribute(&quot;defer&quot;, &quot;defer&quot;);script.innerHTML=&quot;Saxonce.onInjectionDone(&apos;Saxonce&apos;)&quot;;n.getElementsByTagName(&quot;head&quot;)[0].appendChild(script)}catch(e9){n.write(Zb);}"/>
+
+        <!-- Pretty print version -->
+        <replace file="${temp_path}/Saxonce/Saxonce.nocache.js" token="$doc_0.write(&apos;&lt;script id=&quot;&apos; + markerId + &apos;&quot;&gt;&lt;\/script&gt;&apos;)"
+            value="var script=$doc_0.createElement(&quot;script&quot;);script.setAttribute(&quot;id&quot;, markerId);$doc_0.getElementsByTagName(&quot;head&quot;)[0].appendChild(script)"/>
+        <replace file="${temp_path}/Saxonce/Saxonce.nocache.js" token="$doc_0.write(&apos;&lt;script defer=&quot;defer&quot;&gt;Saxonce.onInjectionDone(\&apos;Saxonce\&apos;)&lt;\/script&gt;&apos;)"
+            value="try{var script=$doc_0.createElement(&quot;script&quot;);script.setAttribute(&quot;defer&quot;, &quot;defer&quot;);script.innerHTML=&quot;Saxonce.onInjectionDone(&apos;Saxonce&apos;)&quot;;$doc_0.getElementsByTagName(&quot;head&quot;)[0].appendChild(script)}catch(e9){$doc_0.write(&apos;&lt;script defer=&quot;defer&quot;&gt;Saxonce.onInjectionDone(\&apos;Saxonce\&apos;)&lt;\/script&gt;&apos;);}"/>
         
         <move file="${temp_path}/Saxonce" tofile="${deploy_path}/SaxonceDebug"/>
         <delete>
@@ -106,13 +112,19 @@
             value="&quot;gwt.logging.enabled&quot; value=&quot;TRUE&quot;"/>
         
         <!-- Now do the XHTML gwt bugfix, replacing the 2 .write methods -->
-        <replace file="${temp_path}/Saxonce/Saxonce.nocache.js" token="m.write(gb+b+hb)"
-            value="var script=document.createElement(&quot;script&quot;);script.setAttribute(&quot;id&quot;, b);m.getElementsByTagName(&quot;head&quot;)[0].appendChild(script)"/>
+        <replace file="${temp_path}/Saxonce/Saxonce.nocache.js" token="n.write(hb+b+ib)"
+            value="var script=n.createElement(&quot;script&quot;);script.setAttribute(&quot;id&quot;, b);n.getElementsByTagName(&quot;head&quot;)[0].appendChild(script)"/>
         <!--
 <replace file="${temp_path}/Saxonce/Saxonce.nocache.js" token='m.write($b)' value='var script=document.createElement("script");script.setAttribute("defer", "defer");script.innerHTML="Saxonce.onInjectionDone(&apos;Saxonce&apos;)";m.getElementsByTagName("head")[0].appendChild(script)'/>
 -->
-        <replace file="${temp_path}/Saxonce/Saxonce.nocache.js" token="m.write($b)"
-            value="try{var script=document.createElement(&quot;script&quot;);script.setAttribute(&quot;defer&quot;, &quot;defer&quot;);script.innerHTML=&quot;Saxonce.onInjectionDone(&apos;Saxonce&apos;)&quot;;m.getElementsByTagName(&quot;head&quot;)[0].appendChild(script)}catch(e9){m.write($b)}"/>
+        <replace file="${temp_path}/Saxonce/Saxonce.nocache.js" token="n.write(Zb)"
+            value="try{var script=n.createElement(&quot;script&quot;);script.setAttribute(&quot;defer&quot;, &quot;defer&quot;);script.innerHTML=&quot;Saxonce.onInjectionDone(&apos;Saxonce&apos;)&quot;;n.getElementsByTagName(&quot;head&quot;)[0].appendChild(script)}catch(e9){n.write(Zb);}"/>
+
+        <!-- Pretty print version -->
+        <replace file="${temp_path}/Saxonce/Saxonce.nocache.js" token="$doc_0.write(&apos;&lt;script id=&quot;&apos; + markerId + &apos;&quot;&gt;&lt;\/script&gt;&apos;)"
+            value="var script=$doc_0.createElement(&quot;script&quot;);script.setAttribute(&quot;id&quot;, markerId);$doc_0.getElementsByTagName(&quot;head&quot;)[0].appendChild(script)"/>
+        <replace file="${temp_path}/Saxonce/Saxonce.nocache.js" token="$doc_0.write(&apos;&lt;script defer=&quot;defer&quot;&gt;Saxonce.onInjectionDone(\&apos;Saxonce\&apos;)&lt;\/script&gt;&apos;)"
+            value="try{var script=$doc_0.createElement(&quot;script&quot;);script.setAttribute(&quot;defer&quot;, &quot;defer&quot;);script.innerHTML=&quot;Saxonce.onInjectionDone(&apos;Saxonce&apos;)&quot;;$doc_0.getElementsByTagName(&quot;head&quot;)[0].appendChild(script)}catch(e9){$doc_0.write(&apos;&lt;script defer=&quot;defer&quot;&gt;Saxonce.onInjectionDone(\&apos;Saxonce\&apos;)&lt;\/script&gt;&apos;);}"/>
         
         <move file="${temp_path}/Saxonce" tofile="${deploy_path}/Saxonce"/>
         
